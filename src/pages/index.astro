@@ -1,8 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import Navigation from '../components/Navigation2.tsx';
-import ToolGrid from '../components/ToolGrid.tsx';
+import Navigation from '../components/Navigation.tsx';
 import Hero from '../components/Hero.tsx';
+import ToolGrid from '../components/ToolGrid.tsx';
 import '../styles/global.css';
 ---
 
@@ -10,8 +10,8 @@ import '../styles/global.css';
   <Navigation client:load />
   
   <main>
-    <Hero />
-    <ToolGrid />
+    <Hero client:load />
+    <ToolGrid client:load />
     
     {/* Features Section */}
     <section class="py-20 bg-secondary/[0.3]">

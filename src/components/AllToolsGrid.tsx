@@ -1,6 +1,6 @@
 import React from 'react';
 import { 
-  FileText, FileImage, Code, ArrowRight, TrendingUp, Sparkles,
+  FileText, Code, ArrowRight, TrendingUp, Sparkles,
   Layers, FileDown, Scissors, Type, Image, QrCode, Braces, 
   Hash, FileSpreadsheet, FileArchive, Globe
 } from 'lucide-react';
