@@ -1,11 +1,10 @@
 import React from 'react';
 import { 
   Search, Sun, Moon, Menu, X, ChevronDown,
-  FileText, FileImage, Code, ArrowRight,
+  FileText, Code, ArrowRight,
   Layers, FileDown, Scissors, Type, Image,
   QrCode, Braces, Hash, TrendingUp, Sparkles
 } from 'lucide-react';
-import * as NavigationMenu from '@radix-ui/react-navigation-menu';
 
 // Tool definitions
 const pdfTools = [
@@ -41,11 +40,31 @@ const categories = [
   { name: 'Developer Tools', tools: devTools, color: 'text-accent', bgColor: 'bg-accent/[0.1]' },
 ];
 
+// Fuzzy search function
+function fuzzySearch(query: string, target: string): boolean {
+  const queryLower = query.toLowerCase();
+  const targetLower = target.toLowerCase();
+  
+  // If query is empty or exact match
+  if (!query || targetLower.includes(queryLower)) return true;
+  
+  // Simple fuzzy match - all characters in query must appear in order
+  let queryIndex = 0;
+  for (let i = 0; i < targetLower.length && queryIndex < queryLower.length; i++) {
+    if (targetLower[i] === queryLower[queryIndex]) {
+      queryIndex++;
+    }
+  }
+  return queryIndex === queryLower.length;
+}
+
 export default function Navigation() {
   const [isOpen, setIsOpen] = React.useState(false);
   const [isDark, setIsDark] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState('');
+  const [activeDropdown, setActiveDropdown] = React.useState<string | null>(null);
   const [mobileCategory, setMobileCategory] = React.useState<string | null>(null);
+  const [showSearchResults, setShowSearchResults] = React.useState(false);
 
   React.useEffect(() => {
     setIsDark(document.documentElement.classList.contains('dark'));
@@ -64,6 +83,25 @@ export default function Navigation() {
     }
   };
 
+  // Get search results
+  const searchResults = React.useMemo(() => {
+    if (!searchQuery) return [];
+    
+    const results: Array<{tool: typeof pdfTools[0], category: typeof categories[0]}> = [];
+    
+    categories.forEach(category => {
+      category.tools.forEach(tool => {
+        if (fuzzySearch(searchQuery, tool.name) || 
+            fuzzySearch(searchQuery, tool.name.replace(/\s+/g, '')) ||
+            tool.name.split(' ').map(w => w[0]).join('').toLowerCase().includes(searchQuery.toLowerCase())) {
+          results.push({ tool, category });
+        }
+      });
+    });
+    
+    return results.slice(0, 8); // Limit to 8 results
+  }, [searchQuery]);
+
   return (
     <nav className="sticky top-0 z-50 bg-background border-b">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -80,66 +118,65 @@ export default function Navigation() {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex relative">
-            <NavigationMenu.Root>
-              <NavigationMenu.List className="flex items-center gap-1">
-                {categories.map((category) => (
-                  <NavigationMenu.Item key={category.name}>
-                    <NavigationMenu.Trigger className="group px-4 py-2 text-sm font-medium hover:text-foreground text-muted-foreground ff-transition flex items-center gap-1">
-                      {category.name}
-                      <ChevronDown className="w-3 h-3 ff-transition group-data-[state=open]:rotate-180" />
-                    </NavigationMenu.Trigger>
-                    <NavigationMenu.Content>
-                      <div className="absolute top-0 left-0 w-[600px] bg-card rounded-lg shadow-lg border p-4">
-                      <div className="mb-3 flex items-center justify-between">
-                        <h3 className="font-semibold text-sm">{category.name}</h3>
-                        <a href="/tools" className="text-xs text-primary hover:underline flex items-center gap-1">
-                          View all
-                          <ArrowRight className="w-3 h-3" />
-                        </a>
-                      </div>
-                      <div className="grid grid-cols-2 gap-1">
-                        {category.tools.map((tool) => (
-                          <a
-                            key={tool.id}
-                            href={`/convert/${tool.id}`}
-                            className="group/item flex items-center gap-3 p-3 rounded-md hover:bg-secondary ff-transition"
-                          >
-                            <div className={`p-1.5 rounded ${category.bgColor} ${category.color}`}>
-                              <tool.icon className="w-4 h-4" />
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium group-hover/item:text-primary ff-transition">
-                                  {tool.name}
-                                </span>
-                                {tool.popular && (
-                                  <TrendingUp className="w-3 h-3 text-primary" />
-                                )}
-                                {tool.new && (
-                                  <Sparkles className="w-3 h-3 text-accent" />
-                                )}
-                              </div>
-                            </div>
-                          </a>
-                        ))}
-                      </div>
-                    </div>
-                  </NavigationMenu.Content>
-                  </NavigationMenu.Item>
-                ))}
+          <div className="hidden lg:flex items-center gap-1">
+            {categories.map((category) => (
+              <div
+                key={category.name}
+                className="relative"
+                onMouseEnter={() => setActiveDropdown(category.name)}
+                onMouseLeave={() => setActiveDropdown(null)}
+              >
+                <button className="group px-4 py-2 text-sm font-medium hover:text-foreground text-muted-foreground ff-transition flex items-center gap-1">
+                  {category.name}
+                  <ChevronDown className={`w-3 h-3 ff-transition ${activeDropdown === category.name ? 'rotate-180' : ''}`} />
+                </button>
                 
-                <NavigationMenu.Item>
-                  <a
-                    href="/tools"
-                    className="px-4 py-2 text-sm font-medium hover:text-foreground text-muted-foreground ff-transition"
-                  >
-                    All Tools
-                  </a>
-                </NavigationMenu.Item>
-              </NavigationMenu.List>
-              <NavigationMenu.Viewport className="absolute left-0 top-full mt-2 h-[var(--radix-navigation-menu-viewport-height)] w-full overflow-hidden rounded-md md:w-[var(--radix-navigation-menu-viewport-width)]" />
-            </NavigationMenu.Root>
+                {activeDropdown === category.name && (
+                  <div className="absolute top-full left-0 mt-2 w-[600px] bg-card rounded-lg shadow-lg border p-4 z-50">
+                    <div className="mb-3 flex items-center justify-between">
+                      <h3 className="font-semibold text-sm">{category.name}</h3>
+                      <a href="/tools" className="text-xs text-primary hover:underline flex items-center gap-1">
+                        View all
+                        <ArrowRight className="w-3 h-3" />
+                      </a>
+                    </div>
+                    <div className="grid grid-cols-2 gap-1">
+                      {category.tools.map((tool) => (
+                        <a
+                          key={tool.id}
+                          href={`/convert/${tool.id}`}
+                          className="group/item flex items-center gap-3 p-3 rounded-md hover:bg-secondary ff-transition"
+                        >
+                          <div className={`p-1.5 rounded ${category.bgColor} ${category.color}`}>
+                            <tool.icon className="w-4 h-4" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium group-hover/item:text-primary ff-transition">
+                                {tool.name}
+                              </span>
+                              {tool.popular && (
+                                <TrendingUp className="w-3 h-3 text-primary" />
+                              )}
+                              {tool.new && (
+                                <Sparkles className="w-3 h-3 text-accent" />
+                              )}
+                            </div>
+                          </div>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+            
+            <a
+              href="/tools"
+              className="px-4 py-2 text-sm font-medium hover:text-foreground text-muted-foreground ff-transition"
+            >
+              All Tools
+            </a>
           </div>
 
           {/* Search and Actions */}
@@ -153,8 +190,36 @@ export default function Navigation() {
                   placeholder="Quick search..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => setShowSearchResults(true)}
+                  onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
                   className="pl-10 pr-4 py-2 w-56 bg-secondary border border-input rounded-md text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring"
                 />
+                
+                {/* Search Results Dropdown */}
+                {showSearchResults && searchResults.length > 0 && (
+                  <div className="absolute top-full mt-2 w-80 bg-card rounded-lg shadow-lg border p-2 z-50">
+                    <div className="text-xs text-muted-foreground px-2 py-1 mb-1">
+                      {searchResults.length} results
+                    </div>
+                    {searchResults.map(({ tool, category }, index) => (
+                      <a
+                        key={`${tool.id}-${index}`}
+                        href={`/convert/${tool.id}`}
+                        className="flex items-center gap-3 p-2 rounded-md hover:bg-secondary ff-transition"
+                      >
+                        <div className={`p-1.5 rounded ${category.bgColor} ${category.color}`}>
+                          <tool.icon className="w-4 h-4" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-sm font-medium">{tool.name}</div>
+                          <div className="text-xs text-muted-foreground">{category.name}</div>
+                        </div>
+                        {tool.popular && <TrendingUp className="w-3 h-3 text-primary" />}
+                        {tool.new && <Sparkles className="w-3 h-3 text-accent" />}
+                      </a>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -203,45 +268,75 @@ export default function Navigation() {
               />
             </div>
 
-            {/* Mobile Categories */}
-            {categories.map((category) => (
-              <div key={category.name} className="space-y-2">
-                <button
-                  onClick={() => setMobileCategory(
-                    mobileCategory === category.name ? null : category.name
-                  )}
-                  className="w-full flex items-center justify-between px-3 py-2 rounded-md hover:bg-secondary ff-transition"
-                >
-                  <span className="text-sm font-medium">{category.name}</span>
-                  <ChevronDown 
-                    className={`w-4 h-4 ff-transition ${
-                      mobileCategory === category.name ? 'rotate-180' : ''
-                    }`} 
-                  />
-                </button>
-                
-                {mobileCategory === category.name && (
-                  <div className="pl-4 space-y-1">
-                    {category.tools.map((tool) => (
-                      <a
-                        key={tool.id}
-                        href={`/convert/${tool.id}`}
-                        className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-secondary ff-transition"
-                      >
-                        <tool.icon className={`w-4 h-4 ${category.color}`} />
-                        <span className="text-sm">{tool.name}</span>
-                        {tool.popular && (
-                          <TrendingUp className="w-3 h-3 text-primary ml-auto" />
-                        )}
-                        {tool.new && (
-                          <Sparkles className="w-3 h-3 text-accent ml-auto" />
-                        )}
-                      </a>
-                    ))}
-                  </div>
-                )}
+            {/* Mobile Search Results or Categories */}
+            {searchQuery && searchResults.length > 0 ? (
+              <div className="space-y-1">
+                <div className="text-xs text-muted-foreground px-3 py-1">
+                  {searchResults.length} results
+                </div>
+                {searchResults.map(({ tool, category }, index) => (
+                  <a
+                    key={`${tool.id}-${index}`}
+                    href={`/convert/${tool.id}`}
+                    className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-secondary ff-transition"
+                  >
+                    <tool.icon className={`w-4 h-4 ${category.color}`} />
+                    <div className="flex-1">
+                      <span className="text-sm">{tool.name}</span>
+                      <span className="text-xs text-muted-foreground ml-2">
+                        {category.name}
+                      </span>
+                    </div>
+                    {tool.popular && (
+                      <TrendingUp className="w-3 h-3 text-primary" />
+                    )}
+                    {tool.new && (
+                      <Sparkles className="w-3 h-3 text-accent" />
+                    )}
+                  </a>
+                ))}
               </div>
-            ))}
+            ) : (
+              /* Mobile Categories */
+              categories.map((category) => (
+                <div key={category.name} className="space-y-2">
+                  <button
+                    onClick={() => setMobileCategory(
+                      mobileCategory === category.name ? null : category.name
+                    )}
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-md hover:bg-secondary ff-transition"
+                  >
+                    <span className="text-sm font-medium">{category.name}</span>
+                    <ChevronDown 
+                      className={`w-4 h-4 ff-transition ${
+                        mobileCategory === category.name ? 'rotate-180' : ''
+                      }`} 
+                    />
+                  </button>
+                  
+                  {mobileCategory === category.name && (
+                    <div className="pl-4 space-y-1">
+                      {category.tools.map((tool) => (
+                        <a
+                          key={tool.id}
+                          href={`/convert/${tool.id}`}
+                          className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-secondary ff-transition"
+                        >
+                          <tool.icon className={`w-4 h-4 ${category.color}`} />
+                          <span className="text-sm">{tool.name}</span>
+                          {tool.popular && (
+                            <TrendingUp className="w-3 h-3 text-primary ml-auto" />
+                          )}
+                          {tool.new && (
+                            <Sparkles className="w-3 h-3 text-accent ml-auto" />
+                          )}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
 
             <a
               href="/tools"
