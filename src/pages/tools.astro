@@ -1,0 +1,40 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navigation from '../components/Navigation2.tsx';
+import AllToolsGrid from '../components/AllToolsGrid.tsx';
+import '../styles/global.css';
+---
+
+<Layout title="All File Conversion Tools">
+  <Navigation client:load />
+  
+  <main>
+    <div class="bg-secondary/[0.3] py-12">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="text-center">
+          <h1 class="text-4xl font-bold mb-4">All Conversion Tools</h1>
+          <p class="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Browse our complete collection of file converters. Everything runs in your browser - no uploads, no waiting.
+          </p>
+        </div>
+      </div>
+    </div>
+    
+    <AllToolsGrid client:load />
+  </main>
+  
+  <footer class="border-t py-8 mt-20">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+        <div class="text-sm text-muted-foreground">
+          © 2024 FormatFuse. Built for privacy and speed.
+        </div>
+        <div class="flex space-x-6 text-sm text-muted-foreground">
+          <a href="/privacy" class="hover:text-foreground ff-transition">Privacy</a>
+          <a href="/about" class="hover:text-foreground ff-transition">About</a>
+          <a href="/api" class="hover:text-foreground ff-transition">API</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+</Layout>

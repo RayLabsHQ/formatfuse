@@ -47,17 +47,17 @@ export default function Hero() {
             {/* CTA Buttons */}
             <div className="mt-10 flex flex-wrap gap-4">
               <a 
-                href="#tools" 
+                href="/convert/pdf-to-word" 
                 className="inline-flex items-center px-6 py-3 bg-primary text-primary-foreground font-medium rounded-md hover:opacity-90 ff-transition"
               >
-                Browse All Tools
+                Try PDF to Word
                 <ArrowRight className="ml-2 w-4 h-4" />
               </a>
               <a 
-                href="/convert/pdf-to-word"
+                href="#tools"
                 className="inline-flex items-center px-6 py-3 bg-secondary text-foreground font-medium rounded-md hover:bg-secondary/[0.8] ff-transition"
               >
-                Try PDF to Word
+                Browse Popular Tools
               </a>
             </div>
           </div>

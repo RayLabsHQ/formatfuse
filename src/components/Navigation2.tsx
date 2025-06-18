@@ -5,7 +5,6 @@ import {
   Layers, FileDown, Scissors, Type, Image,
   QrCode, Braces, Hash, TrendingUp, Sparkles
 } from 'lucide-react';
-import * as NavigationMenu from '@radix-ui/react-navigation-menu';
 
 // Tool definitions
 const pdfTools = [
@@ -41,10 +40,11 @@ const categories = [
   { name: 'Developer Tools', tools: devTools, color: 'text-accent', bgColor: 'bg-accent/[0.1]' },
 ];
 
-export default function Navigation() {
+export default function Navigation2() {
   const [isOpen, setIsOpen] = React.useState(false);
   const [isDark, setIsDark] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState('');
+  const [activeDropdown, setActiveDropdown] = React.useState<string | null>(null);
   const [mobileCategory, setMobileCategory] = React.useState<string | null>(null);
 
   React.useEffect(() => {
@@ -80,66 +80,65 @@ export default function Navigation() {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex relative">
-            <NavigationMenu.Root>
-              <NavigationMenu.List className="flex items-center gap-1">
-                {categories.map((category) => (
-                  <NavigationMenu.Item key={category.name}>
-                    <NavigationMenu.Trigger className="group px-4 py-2 text-sm font-medium hover:text-foreground text-muted-foreground ff-transition flex items-center gap-1">
-                      {category.name}
-                      <ChevronDown className="w-3 h-3 ff-transition group-data-[state=open]:rotate-180" />
-                    </NavigationMenu.Trigger>
-                    <NavigationMenu.Content>
-                      <div className="absolute top-0 left-0 w-[600px] bg-card rounded-lg shadow-lg border p-4">
-                      <div className="mb-3 flex items-center justify-between">
-                        <h3 className="font-semibold text-sm">{category.name}</h3>
-                        <a href="/tools" className="text-xs text-primary hover:underline flex items-center gap-1">
-                          View all
-                          <ArrowRight className="w-3 h-3" />
-                        </a>
-                      </div>
-                      <div className="grid grid-cols-2 gap-1">
-                        {category.tools.map((tool) => (
-                          <a
-                            key={tool.id}
-                            href={`/convert/${tool.id}`}
-                            className="group/item flex items-center gap-3 p-3 rounded-md hover:bg-secondary ff-transition"
-                          >
-                            <div className={`p-1.5 rounded ${category.bgColor} ${category.color}`}>
-                              <tool.icon className="w-4 h-4" />
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium group-hover/item:text-primary ff-transition">
-                                  {tool.name}
-                                </span>
-                                {tool.popular && (
-                                  <TrendingUp className="w-3 h-3 text-primary" />
-                                )}
-                                {tool.new && (
-                                  <Sparkles className="w-3 h-3 text-accent" />
-                                )}
-                              </div>
-                            </div>
-                          </a>
-                        ))}
-                      </div>
-                    </div>
-                  </NavigationMenu.Content>
-                  </NavigationMenu.Item>
-                ))}
+          <div className="hidden lg:flex items-center gap-1">
+            {categories.map((category) => (
+              <div
+                key={category.name}
+                className="relative"
+                onMouseEnter={() => setActiveDropdown(category.name)}
+                onMouseLeave={() => setActiveDropdown(null)}
+              >
+                <button className="group px-4 py-2 text-sm font-medium hover:text-foreground text-muted-foreground ff-transition flex items-center gap-1">
+                  {category.name}
+                  <ChevronDown className={`w-3 h-3 ff-transition ${activeDropdown === category.name ? 'rotate-180' : ''}`} />
+                </button>
                 
-                <NavigationMenu.Item>
-                  <a
-                    href="/tools"
-                    className="px-4 py-2 text-sm font-medium hover:text-foreground text-muted-foreground ff-transition"
-                  >
-                    All Tools
-                  </a>
-                </NavigationMenu.Item>
-              </NavigationMenu.List>
-              <NavigationMenu.Viewport className="absolute left-0 top-full mt-2 h-[var(--radix-navigation-menu-viewport-height)] w-full overflow-hidden rounded-md md:w-[var(--radix-navigation-menu-viewport-width)]" />
-            </NavigationMenu.Root>
+                {activeDropdown === category.name && (
+                  <div className="absolute top-full left-0 mt-2 w-[600px] bg-card rounded-lg shadow-lg border p-4 z-50">
+                    <div className="mb-3 flex items-center justify-between">
+                      <h3 className="font-semibold text-sm">{category.name}</h3>
+                      <a href="/tools" className="text-xs text-primary hover:underline flex items-center gap-1">
+                        View all
+                        <ArrowRight className="w-3 h-3" />
+                      </a>
+                    </div>
+                    <div className="grid grid-cols-2 gap-1">
+                      {category.tools.map((tool) => (
+                        <a
+                          key={tool.id}
+                          href={`/convert/${tool.id}`}
+                          className="group/item flex items-center gap-3 p-3 rounded-md hover:bg-secondary ff-transition"
+                        >
+                          <div className={`p-1.5 rounded ${category.bgColor} ${category.color}`}>
+                            <tool.icon className="w-4 h-4" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium group-hover/item:text-primary ff-transition">
+                                {tool.name}
+                              </span>
+                              {tool.popular && (
+                                <TrendingUp className="w-3 h-3 text-primary" />
+                              )}
+                              {tool.new && (
+                                <Sparkles className="w-3 h-3 text-accent" />
+                              )}
+                            </div>
+                          </div>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+            
+            <a
+              href="/tools"
+              className="px-4 py-2 text-sm font-medium hover:text-foreground text-muted-foreground ff-transition"
+            >
+              All Tools
+            </a>
           </div>
 
           {/* Search and Actions */}
