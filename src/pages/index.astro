@@ -1,25 +1,68 @@
 ---
+import Layout from '../layouts/Layout.astro';
+import Navigation from '../components/Navigation.tsx';
+import ToolGrid from '../components/ToolGrid.tsx';
+import Hero from '../components/Hero.tsx';
 import '../styles/global.css';
-// Component Imports
-import Button from '../components/Button.astro';
-
-// Full Astro Component Syntax:
-// https://docs.astro.build/basics/astro-components/
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro + TailwindCSS</title>
-	</head>
-
-	<body>
-		<div class="grid place-items-center h-screen content-center">
-			<Button>Tailwind Button in Astro!</Button>
-			<a href="/markdown-page" class="p-4 underline">Markdown is also supported...</a>
-		</div>
-	</body>
-</html>
+<Layout title="Free Online File Converters">
+  <Navigation client:load />
+  
+  <main>
+    <Hero />
+    <ToolGrid />
+    
+    {/* Features Section */}
+    <section class="py-20 bg-secondary/[0.3]">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div class="text-center">
+            <div class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-primary/[0.1] text-primary mb-4">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold mb-2">100% Private</h3>
+            <p class="text-muted-foreground">Files never leave your browser. No uploads, no cloud storage.</p>
+          </div>
+          
+          <div class="text-center">
+            <div class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-accent/[0.1] text-accent mb-4">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold mb-2">Lightning Fast</h3>
+            <p class="text-muted-foreground">Instant processing with WebAssembly. No waiting for uploads.</p>
+          </div>
+          
+          <div class="text-center">
+            <div class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-tool-pdf/[0.1] text-tool-pdf mb-4">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold mb-2">No Limits</h3>
+            <p class="text-muted-foreground">Convert files up to 100MB. Batch process multiple files.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  
+  <footer class="border-t py-8 mt-20">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+        <div class="text-sm text-muted-foreground">
+          © 2024 FormatFuse. Built for privacy and speed.
+        </div>
+        <div class="flex space-x-6 text-sm text-muted-foreground">
+          <a href="/privacy" class="hover:text-foreground ff-transition">Privacy</a>
+          <a href="/about" class="hover:text-foreground ff-transition">About</a>
+          <a href="/api" class="hover:text-foreground ff-transition">API</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+</Layout>

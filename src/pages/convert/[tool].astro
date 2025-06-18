@@ -1,0 +1,27 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Navigation from '../../components/Navigation.tsx';
+import PdfToWord from '../../components/converters/PdfToWord.tsx';
+import '../../styles/global.css';
+
+export function getStaticPaths() {
+  return [
+    { params: { tool: 'pdf-to-word' }, props: { title: 'PDF to Word Converter', component: 'PdfToWord' } },
+    { params: { tool: 'jpg-to-pdf' }, props: { title: 'JPG to PDF Converter', component: 'JpgToPdf' } },
+    { params: { tool: 'pdf-merge' }, props: { title: 'Merge PDF Files', component: 'PdfMerge' } },
+    // Add more tools here
+  ];
+}
+
+const { tool } = Astro.params;
+const { title, component } = Astro.props;
+---
+
+<Layout title={title}>
+  <Navigation client:load />
+  
+  <main>
+    {component === 'PdfToWord' && <PdfToWord client:load />}
+    {/* Add more component conditions here */}
+  </main>
+</Layout>
