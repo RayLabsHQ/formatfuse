@@ -186,13 +186,13 @@ export default function PdfToWord() {
             {/* Tool Stats */}
             <div className="hidden md:flex items-center gap-4 text-sm">
               <div className="text-center">
-                <div className="font-semibold">450k</div>
-                <div className="text-muted-foreground">Monthly users</div>
+                <div className="font-semibold">100MB</div>
+                <div className="text-muted-foreground">Max file size</div>
               </div>
               <div className="h-8 w-px bg-border" />
               <div className="text-center">
-                <div className="font-semibold">100MB</div>
-                <div className="text-muted-foreground">Max file size</div>
+                <div className="font-semibold">Unlimited</div>
+                <div className="text-muted-foreground">Free conversions</div>
               </div>
             </div>
           </div>

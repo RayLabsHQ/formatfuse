@@ -97,11 +97,6 @@ export default function ToolSuggestionModal({
                               Popular
                             </span>
                           )}
-                          {tool.searches && (
-                            <span className="text-xs text-muted-foreground">
-                              {tool.searches}/mo
-                            </span>
-                          )}
                         </div>
                         <p className="text-sm text-muted-foreground">
                           {tool.description}

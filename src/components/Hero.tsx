@@ -115,8 +115,8 @@ export default function Hero() {
           {/* Stats */}
           <div className="mt-16 grid grid-cols-3 gap-8 max-w-2xl mx-auto">
             <div>
-              <div className="text-3xl font-bold text-primary">2M+</div>
-              <div className="text-sm text-muted-foreground">Files Converted</div>
+              <div className="text-3xl font-bold text-primary">50+</div>
+              <div className="text-sm text-muted-foreground">Free Tools</div>
             </div>
             <div>
               <div className="text-3xl font-bold text-primary">100%</div>

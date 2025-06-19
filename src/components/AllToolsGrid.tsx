@@ -411,13 +411,7 @@ export default function AllToolsGrid() {
                         
                         {/* Footer */}
                         <div className="flex items-center justify-between pt-4 border-t border-border/50">
-                          {tool.searches ? (
-                            <span className="text-xs text-muted-foreground font-medium">
-                              {tool.searches}/mo
-                            </span>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">Free tool</span>
-                          )}
+                          <span className="text-xs text-muted-foreground">Free tool</span>
                           <div className="flex items-center gap-1 text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity">
                             <span>Try now</span>
                             <ArrowRight className="w-3.5 h-3.5" />
