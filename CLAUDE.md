@@ -23,6 +23,15 @@ pnpm preview
 
 # Run Astro CLI commands
 pnpm astro [command]
+
+# Run tests
+pnpm test
+
+# Run tests in watch mode
+pnpm test:watch
+
+# Run tests with coverage
+pnpm test:coverage
 ```
 
 ## Architecture Overview
@@ -33,6 +42,7 @@ pnpm astro [command]
 - **UI Components**: Radix UI primitives
 - **Package Manager**: pnpm (v10.8.1)
 - **Type Safety**: TypeScript with strict config
+- **Testing**: Vitest with real file conversion tests (no mocking)
 
 ### Planned Architecture (from docs/plan.md and docs/development.md)
 
@@ -119,3 +129,40 @@ The old FormatFuse project at `/Users/arunavoray/Documents/Development/Studio/fo
 - Worker architecture (`/workers/`)
 - File handling components
 - These can be referenced but the new project uses Astro + React instead of Next.js
+
+## Testing Requirements
+
+**IMPORTANT**: Every new tool MUST have comprehensive tests before it's considered complete.
+
+### Test Structure
+When implementing a new converter tool, create tests following this structure:
+
+1. **Create test file**: `tests/workers/[tool-name].test.ts`
+   - Copy from `tests/workers/converter-test-template.ts`
+   - Customize for your specific converter
+
+2. **Test categories to implement**:
+   - **Unit Tests**: Core conversion logic with real files
+   - **Worker Integration**: Web Worker communication
+   - **Performance Tests**: Conversion speed benchmarks
+   - **Output Quality**: Format and content validation
+   - **Edge Cases**: Empty files, corrupted files, large files
+
+3. **Use real test fixtures**:
+   - Add sample files to `tests/fixtures/[type]/`
+   - Never mock file conversions - test with actual files
+   - Include edge cases: empty, corrupted, large files
+
+4. **Run tests before committing**:
+   ```bash
+   pnpm test tests/workers/[your-tool].test.ts
+   ```
+
+### Test Template Location
+Use `tests/workers/converter-test-template.ts` as your starting point for all new converter tests.
+
+### Testing Philosophy
+- Test real file conversions, not mocks
+- Ensure tools work with actual user files
+- Performance matters - set reasonable time limits
+- Validate both format and content preservation

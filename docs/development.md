@@ -216,6 +216,15 @@ pnpm build
 
 # Preview production build
 pnpm preview
+
+# Run tests
+pnpm test
+
+# Run tests in watch mode
+pnpm test:watch
+
+# Run tests with coverage
+pnpm test:coverage
 ```
 
 ### Environment Variables
@@ -255,6 +264,34 @@ self.addEventListener('message', async (e) => {
 // src/components/Navigation.tsx
 { id: 'new-tool', name: 'New Tool', icon: Icon }
 ```
+
+5. **Write tests**
+```typescript
+// tests/workers/new-tool.test.ts
+// Copy from converter-test-template.ts and customize
+```
+
+### Testing Strategy
+
+**Test Philosophy**: Test real file conversions without mocking
+
+1. **Test Structure**
+   - Unit tests for conversion logic
+   - Integration tests for worker communication
+   - Performance tests for conversion speed
+   - Quality tests for output validation
+
+2. **Test Fixtures**
+   - Located in `tests/fixtures/`
+   - Organized by file type
+   - Includes edge cases (empty, corrupted, large files)
+
+3. **Running Tests**
+   - All tests: `pnpm test`
+   - Specific converter: `pnpm test pdf-to-word`
+   - Coverage report: `pnpm test:coverage`
+
+See `tests/TESTING.md` for detailed testing guide.
 
 ## 🎯 Success Metrics
 
