@@ -1,7 +1,59 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { Upload, Sparkles } from 'lucide-react';
+import ToolSuggestionModal from './ToolSuggestionModal';
+import { getToolsForFile, isSupportedFileType } from '../lib/file-type-tools';
+import { storeFileForTransfer } from '../lib/file-transfer';
 
 export default function Hero() {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleFile = useCallback((file: File) => {
+    if (!isSupportedFileType(file)) {
+      // Show unsupported file type message
+      alert(`Sorry, we don't support ${file.name.split('.').pop()?.toUpperCase()} files yet.`);
+      return;
+    }
+
+    setSelectedFile(file);
+    setShowModal(true);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      handleFile(file);
+    }
+  }, [handleFile]);
+
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleFile(file);
+    }
+  }, [handleFile]);
+
+  const handleToolSelect = async (toolId: string) => {
+    if (!selectedFile) return;
+
+    setIsProcessing(true);
+    
+    // Store file for transfer
+    const stored = await storeFileForTransfer(selectedFile);
+    
+    if (stored) {
+      // Navigate to the tool page
+      window.location.href = `/convert/${toolId}`;
+    } else {
+      alert('File is too large to transfer. Please select the file again on the tool page.');
+      window.location.href = `/convert/${toolId}`;
+    }
+  };
+
+  const tools = selectedFile ? getToolsForFile(selectedFile) : [];
+
   return (
     <section className="relative pt-16 pb-20 overflow-hidden">
       {/* Subtle background gradient */}
@@ -35,9 +87,16 @@ export default function Hero() {
               <input
                 type="file"
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                accept="*"
+                onChange={handleFileSelect}
+                disabled={isProcessing}
               />
-              <div className="p-8 rounded-2xl border-2 border-dashed border-border bg-card/50 group-hover:border-primary/50 group-hover:bg-primary/[0.02] transition-colors">
+              <div 
+                className="p-8 rounded-2xl border-2 border-dashed border-border bg-card/50 group-hover:border-primary/50 group-hover:bg-primary/[0.02] transition-colors"
+                onDrop={handleDrop}
+                onDragOver={(e) => e.preventDefault()}
+                onDragEnter={(e) => e.preventDefault()}
+              >
                 <Upload className="w-10 h-10 mx-auto mb-4 text-muted-foreground" />
                 <p className="text-base font-medium mb-2">
                   Drop a file here to start
@@ -70,6 +129,18 @@ export default function Hero() {
           </div>
         </div>
       </div>
+      
+      {/* Tool Suggestion Modal */}
+      <ToolSuggestionModal
+        isOpen={showModal}
+        onClose={() => {
+          setShowModal(false);
+          setSelectedFile(null);
+        }}
+        file={selectedFile}
+        tools={tools}
+        onSelectTool={handleToolSelect}
+      />
     </section>
   );
 }

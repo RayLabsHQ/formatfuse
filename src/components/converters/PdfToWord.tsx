@@ -1,8 +1,9 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { 
   FileText, Upload, Download, X, FileUp, 
   Loader2, ArrowRight, FileCheck, Settings, Eye
 } from 'lucide-react';
+import { retrieveStoredFile } from '../../lib/file-transfer';
 
 interface FileInfo {
   file: File;
@@ -16,6 +17,22 @@ export default function PdfToWord() {
   const [files, setFiles] = useState<FileInfo[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Check for pre-loaded file on mount
+  useEffect(() => {
+    const loadStoredFile = async () => {
+      const storedFile = await retrieveStoredFile();
+      if (storedFile && storedFile.type === 'application/pdf') {
+        setFiles([{
+          file: storedFile,
+          status: 'pending',
+          progress: 0,
+        }]);
+      }
+    };
+    
+    loadStoredFile();
+  }, []);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
