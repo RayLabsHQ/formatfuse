@@ -9,9 +9,6 @@ const StaticLogo: React.FC<Props> = ({ className }) => (
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
   >
-    {/* White background */}
-    <rect width="1000" height="1000" fill="white"/>
-    
     <defs>
       <linearGradient id="static-paint0_linear" x1="516.081" y1="151" x2="516.081" y2="610.604" gradientUnits="userSpaceOnUse">
         <stop stopColor="#942DE6" />

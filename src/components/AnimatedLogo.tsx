@@ -29,9 +29,6 @@ const AnimatedLogo: React.FC<Props> = ({ className }) => {
       whileHover={{ scale: 1.05 }}
       transition={{ duration: 0.3 }}
     >
-      {/* White background */}
-      <rect width="1000" height="1000" fill="white"/>
-      
       <defs>
         <linearGradient id="paint0_linear_486_489" x1="516.081" y1="151" x2="516.081" y2="610.604" gradientUnits="userSpaceOnUse">
           <stop stopColor="#942DE6" />

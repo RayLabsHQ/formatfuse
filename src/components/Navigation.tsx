@@ -5,6 +5,7 @@ import {
   Layers, FileDown, Scissors, Type, Image,
   QrCode, Braces, Hash, TrendingUp, Sparkles
 } from 'lucide-react';
+import StaticLogo from './StaticLogo';
 
 // Tool definitions
 const pdfTools = [
@@ -109,10 +110,7 @@ export default function Navigation() {
           {/* Logo */}
           <div className="flex items-center">
             <a href="/" className="flex items-center space-x-2 group">
-              <div className="relative">
-                <div className="w-8 h-8 bg-primary rounded-md ff-transition group-hover:scale-110" />
-                <div className="absolute inset-0 w-8 h-8 bg-accent rounded-md -rotate-6 -z-10" />
-              </div>
+              <StaticLogo className="w-8 h-8 ff-transition group-hover:scale-110" />
               <span className="text-xl font-bold">FormatFuse</span>
             </a>
           </div>
