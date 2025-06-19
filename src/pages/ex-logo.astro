@@ -1,0 +1,104 @@
+---
+import Layout from '../layouts/Layout.astro';
+import AnimatedLogo from '../components/AnimatedLogo.tsx';
+import StaticLogo from '../components/StaticLogo.tsx';
+import '../styles/global.css';
+---
+
+<Layout title="Experimental Logo - FormatFuse">
+  <main class="min-h-screen bg-background flex items-center justify-center p-8">
+    <div class="max-w-4xl w-full">
+      <h1 class="text-3xl font-bold text-center mb-12">FormatFuse Logo Experiments</h1>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Default size */}
+        <div class="bg-card p-8 rounded-xl border border-border">
+          <h2 class="text-lg font-semibold mb-4">Default Size</h2>
+          <div class="flex justify-center">
+            <AnimatedLogo client:load className="w-32 h-32" />
+          </div>
+        </div>
+        
+        {/* Large size */}
+        <div class="bg-card p-8 rounded-xl border border-border">
+          <h2 class="text-lg font-semibold mb-4">Large Size</h2>
+          <div class="flex justify-center">
+            <AnimatedLogo client:load className="w-48 h-48" />
+          </div>
+        </div>
+        
+        {/* On dark background */}
+        <div class="bg-black p-8 rounded-xl">
+          <h2 class="text-lg font-semibold mb-4 text-white">Dark Background</h2>
+          <div class="flex justify-center">
+            <AnimatedLogo client:load className="w-32 h-32" />
+          </div>
+        </div>
+        
+        {/* On light background */}
+        <div class="bg-white p-8 rounded-xl">
+          <h2 class="text-lg font-semibold mb-4 text-black">Light Background</h2>
+          <div class="flex justify-center">
+            <AnimatedLogo client:load className="w-32 h-32" />
+          </div>
+        </div>
+        
+        {/* With text */}
+        <div class="bg-card p-8 rounded-xl border border-border md:col-span-2">
+          <h2 class="text-lg font-semibold mb-4">With Brand Name</h2>
+          <div class="flex items-center justify-center gap-4">
+            <AnimatedLogo client:load className="w-16 h-16" />
+            <span class="text-3xl font-bold bg-gradient-to-r from-[#9b30ff] to-[#3f00ff] bg-clip-text text-transparent">
+              FormatFuse
+            </span>
+          </div>
+        </div>
+        
+        {/* Small icon size */}
+        <div class="bg-card p-8 rounded-xl border border-border md:col-span-2">
+          <h2 class="text-lg font-semibold mb-4">Icon Sizes</h2>
+          <div class="flex items-center justify-center gap-8">
+            <div class="text-center">
+              <AnimatedLogo client:load className="w-8 h-8 mb-2" />
+              <span class="text-xs text-muted-foreground">32px</span>
+            </div>
+            <div class="text-center">
+              <AnimatedLogo client:load className="w-12 h-12 mb-2" />
+              <span class="text-xs text-muted-foreground">48px</span>
+            </div>
+            <div class="text-center">
+              <AnimatedLogo client:load className="w-16 h-16 mb-2" />
+              <span class="text-xs text-muted-foreground">64px</span>
+            </div>
+            <div class="text-center">
+              <AnimatedLogo client:load className="w-24 h-24 mb-2" />
+              <span class="text-xs text-muted-foreground">96px</span>
+            </div>
+          </div>
+        </div>
+        
+        {/* Static vs Animated comparison */}
+        <div class="bg-card p-8 rounded-xl border border-border md:col-span-2">
+          <h2 class="text-lg font-semibold mb-4">Static vs Animated</h2>
+          <div class="grid grid-cols-2 gap-8">
+            <div class="text-center">
+              <StaticLogo className="w-32 h-32 mx-auto mb-2" />
+              <span class="text-sm text-muted-foreground">Static (lightweight)</span>
+            </div>
+            <div class="text-center">
+              <AnimatedLogo client:load className="w-32 h-32 mx-auto mb-2" />
+              <span class="text-sm text-muted-foreground">Animated (framer-motion)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mt-12 text-center">
+        <p class="text-muted-foreground mb-4">
+          This experimental logo represents file conversion through a document morphing into pixels.
+        </p>
+        <a href="/" class="text-primary hover:underline">← Back to Home</a>
+      </div>
+    </div>
+  </main>
+</Layout>
