@@ -1,7 +1,6 @@
 import React, { useRef } from 'react';
 import AnimatedLogoWrapper from './AnimatedLogoWrapper';
 import type { AnimatedLogoWrapperRef } from './AnimatedLogoWrapper';
-import StaticLogo from './StaticLogo';
 import { RotateCw } from 'lucide-react';
 
 export default function BrandAssets() {
@@ -105,7 +104,11 @@ export default function BrandAssets() {
             <h2 className="text-lg font-semibold mb-4">Static vs Animated</h2>
             <div className="grid grid-cols-2 gap-8">
               <div className="text-center">
-                <StaticLogo className="w-32 h-32 mx-auto mb-2" />
+                <img 
+                  src="/logo.svg" 
+                  alt="FormatFuse Logo" 
+                  className="w-32 h-32 mx-auto mb-2"
+                />
                 <span className="text-sm text-muted-foreground">Static (lightweight)</span>
               </div>
               <div className="text-center">

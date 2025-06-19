@@ -5,10 +5,19 @@ import {
   Layers, FileDown, Scissors, Type, Image,
   QrCode, Braces, Hash, TrendingUp, Sparkles
 } from 'lucide-react';
-import StaticLogo from './StaticLogo';
+import type { LucideIcon } from 'lucide-react';
+
+// Tool type definition
+interface Tool {
+  id: string;
+  name: string;
+  icon: LucideIcon;
+  popular?: boolean;
+  new?: boolean;
+}
 
 // Tool definitions
-const pdfTools = [
+const pdfTools: Tool[] = [
   { id: 'pdf-to-word', name: 'PDF to Word', icon: FileText, popular: true },
   { id: 'pdf-merge', name: 'Merge PDF', icon: Layers },
   { id: 'pdf-compress', name: 'Compress PDF', icon: FileDown },
@@ -18,7 +27,7 @@ const pdfTools = [
   { id: 'pdf-to-jpg', name: 'PDF to JPG', icon: Image },
 ];
 
-const imageTools = [
+const imageTools: Tool[] = [
   { id: 'png-to-jpg', name: 'PNG to JPG', icon: Image, popular: true },
   { id: 'image-resize', name: 'Resize Image', icon: Image, new: true },
   { id: 'image-compress', name: 'Compress Image', icon: FileDown },
@@ -27,7 +36,7 @@ const imageTools = [
   { id: 'background-remove', name: 'Remove Background', icon: Image },
 ];
 
-const devTools = [
+const devTools: Tool[] = [
   { id: 'json-format', name: 'Format JSON', icon: Braces },
   { id: 'base64-encode', name: 'Base64 Encode/Decode', icon: Hash },
   { id: 'qr-generator', name: 'QR Code Generator', icon: QrCode },
@@ -88,7 +97,7 @@ export default function Navigation() {
   const searchResults = React.useMemo(() => {
     if (!searchQuery) return [];
     
-    const results: Array<{tool: typeof pdfTools[0], category: typeof categories[0]}> = [];
+    const results: Array<{tool: Tool, category: typeof categories[0]}> = [];
     
     categories.forEach(category => {
       category.tools.forEach(tool => {
@@ -110,8 +119,12 @@ export default function Navigation() {
           {/* Logo */}
           <div className="flex items-center">
             <a href="/" className="flex items-center space-x-2 group">
-              <StaticLogo className="w-8 h-8 ff-transition group-hover:scale-110" />
-              <span className="text-xl font-bold">FormatFuse</span>
+              <img 
+                src="/logo.svg" 
+                alt="FormatFuse" 
+                className="h-10 w-auto"
+              />
+              <span className="text-xl font-bold">Format Fuse</span>
             </a>
           </div>
 
