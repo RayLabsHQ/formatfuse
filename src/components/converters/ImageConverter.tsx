@@ -15,6 +15,7 @@ import {
 import { Progress } from '../ui/progress';
 import { Slider } from '../ui/slider';
 import { Button } from '../ui/button';
+import VirtualizedFileList from './VirtualizedFileList';
 
 interface FileInfo {
   file: File;
@@ -211,6 +212,20 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
         processFile(index);
       }
     });
+  };
+
+  const downloadFile = (index: number) => {
+    const fileInfo = files[index];
+    if (!fileInfo || fileInfo.status !== 'completed' || !fileInfo.result) return;
+
+    const url = URL.createObjectURL(fileInfo.result);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileInfo.file.name.replace(/\.[^/.]+$/, '') + '.' + (selectedTargetFormat?.extension || 'jpg');
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const downloadAll = async () => {
@@ -435,110 +450,39 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
         {/* File List */}
         {files.length > 0 && (
           <div className="mt-8 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold">Files to convert</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Files to convert ({files.length})</h3>
               <div className="flex items-center gap-3">
                 {files.some(f => f.status === 'completed') && files.length > 1 && (
-                  <button
+                  <Button
                     onClick={downloadAll}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-accent/[0.1] text-accent rounded-md hover:bg-accent/[0.2] ff-transition"
+                    variant="outline"
+                    className="gap-2"
                   >
                     <Package className="w-4 h-4" />
                     Download All
-                  </button>
+                  </Button>
                 )}
-                <button
+                <Button
                   onClick={processAll}
                   disabled={!files.some(f => f.status === 'pending')}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:opacity-90 ff-transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="gap-2"
                 >
                   Convert All
                   <ArrowRight className="w-4 h-4" />
-                </button>
+                </Button>
               </div>
             </div>
 
-            <div className="space-y-3">
-              {files.map((fileInfo, index) => (
-                <div
-                  key={index}
-                  className="bg-card rounded-lg p-4 ff-shadow-tool border-l-4 border-tool-jpg"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3 flex-1">
-                      <Image className="w-5 h-5 text-tool-jpg flex-shrink-0" />
-                      <div className="min-w-0 flex-1">
-                        <p className="font-medium truncate">{fileInfo.file.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {formatFileSize(fileInfo.file.size)}
-                          {fileInfo.isLarge && (
-                            <span className="ml-2 text-amber-600">
-                              • Large file - processing may be slower
-                            </span>
-                          )}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      {fileInfo.status === 'pending' && (
-                        <button
-                          onClick={() => processFile(index)}
-                          className="px-3 py-1 text-sm bg-secondary rounded-md hover:bg-secondary/[0.8] ff-transition"
-                        >
-                          Convert
-                        </button>
-                      )}
-                      
-                      {fileInfo.status === 'processing' && (
-                        <div className="flex items-center gap-2">
-                          <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                          <span className="text-sm font-mono">{Math.round(fileInfo.progress)}%</span>
-                        </div>
-                      )}
-                      
-                      {fileInfo.status === 'completed' && fileInfo.result && (
-                        <button 
-                          onClick={() => {
-                            const url = URL.createObjectURL(fileInfo.result!);
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = fileInfo.file.name.replace(/\.[^/.]+$/, '') + '.' + selectedTargetFormat.extension;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                            URL.revokeObjectURL(url);
-                          }}
-                          className="inline-flex items-center gap-2 px-3 py-1 text-sm bg-accent/[0.1] text-accent rounded-md hover:bg-accent/[0.2] ff-transition"
-                        >
-                          <Download className="w-3 h-3" />
-                          Download
-                        </button>
-                      )}
-
-                      {fileInfo.status === 'error' && (
-                        <span className="text-sm text-destructive">
-                          {fileInfo.error}
-                        </span>
-                      )}
-                      
-                      <button
-                        onClick={() => removeFile(index)}
-                        className="p-1 hover:bg-secondary rounded ff-transition"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {fileInfo.status === 'processing' && (
-                    <div className="mt-3">
-                      <Progress value={fileInfo.progress} className="w-full" />
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+            {/* Use virtualized list for better performance */}
+            <VirtualizedFileList
+              files={files}
+              selectedTargetFormat={selectedTargetFormat}
+              onConvert={processFile}
+              onDownload={downloadFile}
+              onRemove={removeFile}
+              formatFileSize={formatFileSize}
+            />
           </div>
         )}
 
