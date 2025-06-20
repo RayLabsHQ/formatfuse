@@ -1,0 +1,88 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Navigation from '../../components/Navigation.tsx';
+import ImageConverter from '../../components/converters/ImageConverter.tsx';
+import '../../styles/global.css';
+
+export async function getStaticPaths() {
+  // All supported image formats
+  const formats = [
+    { key: 'png', name: 'PNG' },
+    { key: 'jpg', name: 'JPG' },
+    { key: 'jpeg', name: 'JPEG' },
+    { key: 'webp', name: 'WebP' },
+    { key: 'gif', name: 'GIF' },
+    { key: 'bmp', name: 'BMP' },
+    { key: 'ico', name: 'ICO' },
+    { key: 'tiff', name: 'TIFF' },
+    { key: 'avif', name: 'AVIF' },
+    { key: 'svg', name: 'SVG' },
+    { key: 'heic', name: 'HEIC' }
+  ];
+
+  // Generate all possible combinations
+  const paths = [];
+  
+  for (const from of formats) {
+    for (const to of formats) {
+      // Skip same format conversions
+      if (from.key === to.key) continue;
+      
+      // Skip SVG as target (can only be source)
+      if (to.key === 'svg') continue;
+      
+      const title = `${from.name} to ${to.name} Converter - Free Online Tool`;
+      const description = `Convert ${from.name} images to ${to.name} format instantly in your browser. No upload required, 100% private and secure. Supports batch conversion.`;
+      
+      paths.push({
+        params: { from: from.key, to: to.key },
+        props: { 
+          title, 
+          description,
+          fromFormat: from.name,
+          toFormat: to.name
+        }
+      });
+    }
+  }
+  
+  return paths;
+}
+
+const { from, to } = Astro.params;
+const { title, description, fromFormat, toFormat } = Astro.props;
+
+// Schema.org structured data for SEO
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": title,
+  "description": description,
+  "url": `https://formatfuse.com/convert/${from}-to-${to}`,
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Any",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "featureList": [
+    "Browser-based conversion",
+    "No file uploads",
+    "Batch processing",
+    "Privacy-focused",
+    "No watermarks",
+    "Unlimited conversions"
+  ]
+};
+---
+
+<Layout title={title} description={description}>
+  <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
+  
+  <Navigation client:load />
+  
+  <main>
+    <ImageConverter sourceFormat={fromFormat} targetFormat={toFormat} client:load />
+  </main>
+</Layout>

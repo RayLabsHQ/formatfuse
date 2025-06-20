@@ -49,6 +49,26 @@ const tools: Tool[] = [
     accent: 'text-[#9B6DD0] dark:text-[#B794E8]'
   },
   {
+    id: 'webp-converter',
+    name: 'WebP Converter',
+    description: 'Convert images to/from WebP format',
+    searches: '120k/mo',
+    icon: Image,
+    category: 'image',
+    color: 'bg-gradient-to-br from-[#E0EFFF] to-[#D0E0FF] dark:from-[#2A394A] dark:to-[#1F2E3F]',
+    accent: 'text-[#2196F3] dark:text-[#64B5F6]'
+  },
+  {
+    id: 'heic-to-jpg',
+    name: 'HEIC to JPG',
+    description: 'Convert iPhone photos to JPG',
+    searches: '150k/mo',
+    icon: Image,
+    category: 'image',
+    color: 'bg-gradient-to-br from-[#E8E8E8] to-[#D8D8D8] dark:from-[#3A3A3A] dark:to-[#2F2F2F]',
+    accent: 'text-[#607D8B] dark:text-[#90A4AE]'
+  },
+  {
     id: 'pdf-merge',
     name: 'Merge PDF',
     description: 'Combine multiple PDFs into one',
@@ -77,6 +97,16 @@ const tools: Tool[] = [
     category: 'image',
     color: 'bg-gradient-to-br from-[#FFE0F0] to-[#FFD0E5] dark:from-[#4A2A3A] dark:to-[#3F1F2F]',
     accent: 'text-[#E91E63] dark:text-[#F48FB1]'
+  },
+  {
+    id: 'image-converter',
+    name: 'Universal Image Converter',
+    description: 'Convert between any image format',
+    searches: '500k/mo',
+    icon: Image,
+    category: 'image',
+    color: 'bg-gradient-to-br from-[#F0F0FF] to-[#E0E0FF] dark:from-[#3A3A4A] dark:to-[#2F2F3F]',
+    accent: 'text-[#673AB7] dark:text-[#9575CD]'
   }
 ];
 
@@ -102,7 +132,7 @@ export default function ToolGrid() {
           {tools.map((tool) => (
             <a
               key={tool.id}
-              href={`/convert/${tool.id}`}
+              href={tool.id === 'image-converter' ? '/tools/image-converter' : `/convert/${tool.id}`}
               className="group relative block"
             >
               <div className={`
