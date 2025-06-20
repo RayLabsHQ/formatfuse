@@ -3,7 +3,7 @@ import {
   Image, Upload, Download, X, FileUp, 
   Loader2, ArrowRight, FileCheck, Settings, Eye, Package
 } from 'lucide-react';
-import { getImageConverter, IMAGE_FORMATS, type ImageFormat } from '../../lib/image-converter';
+import { getImageConverter, type ImageFormat } from '../../lib/image-converter';
 
 interface FileInfo {
   file: File;

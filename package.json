@@ -7,6 +7,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
+    "check": "astro check",
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage"
@@ -14,6 +15,7 @@
   "dependencies": {
     "@astrojs/mdx": "^4.3.0",
     "@astrojs/react": "^4.3.0",
+    "@lucide/astro": "^0.518.0",
     "@radix-ui/react-navigation-menu": "^1.2.13",
     "@radix-ui/react-select": "^2.2.5",
     "@radix-ui/react-slider": "^1.3.5",
@@ -41,6 +43,7 @@
   },
   "packageManager": "pnpm@10.8.1",
   "devDependencies": {
+    "@astrojs/check": "^0.9.4",
     "@types/jsdom": "^21.1.7",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
@@ -50,6 +53,7 @@
     "jsdom": "^26.1.0",
     "tsx": "^4.20.3",
     "tw-animate-css": "^1.3.4",
+    "typescript": "^5.8.3",
     "vitest": "^3.2.4"
   }
 }

@@ -1,0 +1,159 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navigation from '../components/Navigation.tsx';
+import House from '@lucide/astro/icons/house';
+import Search from '@lucide/astro/icons/search';
+import ArrowLeft from '@lucide/astro/icons/arrow-left';
+import Image from '@lucide/astro/icons/image';
+import '../styles/global.css';
+
+const title = '404 - Page Not Found | FormatFuse';
+const description = 'The page you are looking for could not be found. Return to FormatFuse and explore our free file conversion tools.';
+---
+
+<Layout title={title} description={description}>
+  <Navigation client:load />
+  
+  <main class="min-h-screen bg-background">
+    <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-16">
+      <div class="text-center">
+        {/* Large 404 */}
+        <div class="mb-8">
+          <h1 class="text-[120px] md:text-[160px] font-bold text-muted-foreground/20 leading-none">
+            404
+          </h1>
+        </div>
+        
+        {/* Error Message */}
+        <div class="space-y-4 mb-12">
+          <h2 class="text-3xl font-bold">Page Not Found</h2>
+          <p class="text-lg text-muted-foreground max-w-2xl mx-auto">
+            The page you're looking for doesn't exist or has been moved. 
+            But don't worry, we have plenty of tools to help you convert your files!
+          </p>
+        </div>
+        
+        {/* Action Buttons */}
+        <div class="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+          <a 
+            href="/"
+            class="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-md hover:opacity-90 ff-transition"
+          >
+            <House class="w-5 h-5" />
+            Go to Homepage
+          </a>
+          <button 
+            onclick="history.back()"
+            class="inline-flex items-center gap-2 px-6 py-3 bg-secondary text-foreground rounded-md hover:bg-secondary/80 ff-transition"
+          >
+            <ArrowLeft class="w-5 h-5" />
+            Go Back
+          </button>
+        </div>
+        
+        {/* Popular Tools Section */}
+        <div class="border-t pt-12">
+          <h3 class="text-xl font-semibold mb-8">Popular Conversion Tools</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
+            {/* PDF Tools */}
+            <a 
+              href="/convert/pdf-to-word"
+              class="group p-4 bg-card rounded-lg border hover:border-primary ff-transition text-left"
+            >
+              <div class="flex items-center gap-3 mb-2">
+                <div class="p-2 bg-tool-pdf/10 text-tool-pdf rounded">
+                  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                  </svg>
+                </div>
+                <h4 class="font-medium">PDF to Word</h4>
+              </div>
+              <p class="text-sm text-muted-foreground">Convert PDF documents to editable Word files</p>
+            </a>
+            
+            {/* Image Converter */}
+            <a 
+              href="/tools/image-converter"
+              class="group p-4 bg-card rounded-lg border hover:border-primary ff-transition text-left"
+            >
+              <div class="flex items-center gap-3 mb-2">
+                <div class="p-2 bg-tool-jpg/10 text-tool-jpg rounded">
+                  <Image class="w-5 h-5" />
+                </div>
+                <h4 class="font-medium">Image Converter</h4>
+              </div>
+              <p class="text-sm text-muted-foreground">Convert between PNG, JPG, WebP, and more</p>
+            </a>
+            
+            {/* JPG to PDF */}
+            <a 
+              href="/convert/jpg-to-pdf"
+              class="group p-4 bg-card rounded-lg border hover:border-primary ff-transition text-left"
+            >
+              <div class="flex items-center gap-3 mb-2">
+                <div class="p-2 bg-tool-jpg/10 text-tool-jpg rounded">
+                  <ArrowLeft class="w-5 h-5 rotate-180" />
+                </div>
+                <h4 class="font-medium">JPG to PDF</h4>
+              </div>
+              <p class="text-sm text-muted-foreground">Convert images to PDF documents</p>
+            </a>
+            
+            {/* PNG to JPG */}
+            <a 
+              href="/convert/png-to-jpg"
+              class="group p-4 bg-card rounded-lg border hover:border-primary ff-transition text-left"
+            >
+              <div class="flex items-center gap-3 mb-2">
+                <div class="p-2 bg-tool-png/10 text-tool-png rounded">
+                  <Image class="w-5 h-5" />
+                </div>
+                <h4 class="font-medium">PNG to JPG</h4>
+              </div>
+              <p class="text-sm text-muted-foreground">Convert PNG images to JPG format</p>
+            </a>
+            
+            {/* WebP Converter */}
+            <a 
+              href="/convert/webp-to-png"
+              class="group p-4 bg-card rounded-lg border hover:border-primary ff-transition text-left"
+            >
+              <div class="flex items-center gap-3 mb-2">
+                <div class="p-2 bg-tool-webp/10 text-tool-webp rounded">
+                  <Image class="w-5 h-5" />
+                </div>
+                <h4 class="font-medium">WebP to PNG</h4>
+              </div>
+              <p class="text-sm text-muted-foreground">Convert WebP images to PNG format</p>
+            </a>
+            
+            {/* View All Tools */}
+            <a 
+              href="/tools"
+              class="group p-4 bg-card rounded-lg border hover:border-primary ff-transition text-left"
+            >
+              <div class="flex items-center gap-3 mb-2">
+                <div class="p-2 bg-primary/10 text-primary rounded">
+                  <Search class="w-5 h-5" />
+                </div>
+                <h4 class="font-medium">All Tools</h4>
+              </div>
+              <p class="text-sm text-muted-foreground">Browse all file conversion tools</p>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</Layout>
+
+<style>
+  /* Ensure the 404 numbers have proper styling */
+  h1 {
+    background: linear-gradient(180deg, var(--foreground) 0%, var(--muted-foreground) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+</style>
