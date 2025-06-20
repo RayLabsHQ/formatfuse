@@ -4,44 +4,37 @@ import Navigation from '../../components/Navigation.tsx';
 import ImageConverter from '../../components/converters/ImageConverter.tsx';
 import '../../styles/global.css';
 
+// Pre-render all dynamic routes at build time for SEO
+export const prerender = true;
+
 export async function getStaticPaths() {
-  // All supported image formats
+  // All supported image formats by image-rs
+  // Note: SVG is not supported by image-rs
   const formats = [
     { key: 'png', name: 'PNG' },
     { key: 'jpg', name: 'JPG' },
-    { key: 'jpeg', name: 'JPEG' },
     { key: 'webp', name: 'WebP' },
     { key: 'gif', name: 'GIF' },
     { key: 'bmp', name: 'BMP' },
     { key: 'ico', name: 'ICO' },
     { key: 'tiff', name: 'TIFF' },
-    { key: 'avif', name: 'AVIF' },
-    { key: 'svg', name: 'SVG' },
-    { key: 'heic', name: 'HEIC' }
+    { key: 'avif', name: 'AVIF' }
+    // Note: HEIC is also not directly supported by image-rs
   ];
+
+  // Formats that support quality adjustment (useful for same-format conversion)
+  const qualityFormats = ['jpg', 'webp', 'avif'];
 
   // Generate all possible combinations
   const paths = [];
   
   for (const from of formats) {
     for (const to of formats) {
-      // Skip same format conversions
-      if (from.key === to.key) continue;
-      
-      // Skip SVG as target (can only be source)
-      if (to.key === 'svg') continue;
-      
-      const title = `${from.name} to ${to.name} Converter - Free Online Tool`;
-      const description = `Convert ${from.name} images to ${to.name} format instantly in your browser. No upload required, 100% private and secure. Supports batch conversion.`;
+      // Skip same format conversions EXCEPT for quality-adjustable formats
+      if (from.key === to.key && !qualityFormats.includes(from.key)) continue;
       
       paths.push({
-        params: { from: from.key, to: to.key },
-        props: { 
-          title, 
-          description,
-          fromFormat: from.name,
-          toFormat: to.name
-        }
+        params: { from: from.key, to: to.key }
       });
     }
   }
@@ -49,8 +42,24 @@ export async function getStaticPaths() {
   return paths;
 }
 
-const { from, to } = Astro.params;
-const { title, description, fromFormat, toFormat } = Astro.props;
+// Dynamic route parameters
+const fromKey = Astro.params.from;
+const toKey = Astro.params.to;
+// Human-friendly format names
+const formatNameMap = {
+  png: 'PNG', jpg: 'JPEG/JPG', webp: 'WebP', gif: 'GIF',
+  bmp: 'BMP', ico: 'ICO', tiff: 'TIFF', avif: 'AVIF'
+};
+const fromFormat = formatNameMap[fromKey] || fromKey.toUpperCase();
+const toFormat = formatNameMap[toKey] || toKey.toUpperCase();
+// Title and description logic
+const isSame = fromKey === toKey;
+const title = isSame
+  ? `${fromFormat} Compressor - Optimize & Resize ${fromFormat} Images`
+  : `${fromFormat} to ${toFormat} Converter - Free Online Tool`;
+const description = isSame
+  ? `Compress and optimize ${fromFormat} images by adjusting quality. Reduce file size while maintaining visual quality. No upload required, 100% private.`
+  : `Convert ${fromFormat} images to ${toFormat} format instantly in your browser. No upload required, 100% private and secure. Supports batch conversion.`;
 
 // Schema.org structured data for SEO
 const structuredData = {
@@ -58,7 +67,7 @@ const structuredData = {
   "@type": "WebApplication",
   "name": title,
   "description": description,
-  "url": `https://formatfuse.com/convert/${from}-to-${to}`,
+  "url": `https://formatfuse.com/convert/${fromKey}-to-${toKey}`,
   "applicationCategory": "UtilitiesApplication",
   "operatingSystem": "Any",
   "offers": {
@@ -83,6 +92,6 @@ const structuredData = {
   <Navigation client:load />
   
   <main>
-    <ImageConverter sourceFormat={fromFormat} targetFormat={toFormat} client:load />
+    <ImageConverter sourceFormat={fromKey} targetFormat={toKey} client:load />
   </main>
 </Layout>

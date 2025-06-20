@@ -11,6 +11,7 @@ interface FileInfo {
   progress: number;
   result?: Blob;
   error?: string;
+  isLarge?: boolean;
 }
 
 interface ImageConverterProps {
@@ -18,7 +19,7 @@ interface ImageConverterProps {
   targetFormat?: string;
 }
 
-// Format configuration
+// Format configuration - only formats supported by image-rs
 const FORMATS: Record<string, ImageFormat & { displayName: string }> = {
   PNG: { mime: 'image/png', extension: 'png', name: 'PNG', displayName: 'PNG' },
   JPEG: { mime: 'image/jpeg', extension: 'jpg', name: 'JPEG', displayName: 'JPEG/JPG' },
@@ -52,6 +53,19 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
   const [quality, setQuality] = useState(85);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Update formats when props change (e.g., navigating between routes)
+  useEffect(() => {
+    const newSourceFormat = getFormat(sourceFormat);
+    const newTargetFormat = getFormat(targetFormat);
+    
+    if (newSourceFormat) {
+      setSelectedSourceFormat(newSourceFormat);
+    }
+    if (newTargetFormat) {
+      setSelectedTargetFormat(newTargetFormat);
+    }
+  }, [sourceFormat, targetFormat]);
+
   const showQualitySlider = selectedTargetFormat && ['JPEG', 'WEBP', 'AVIF'].includes(selectedTargetFormat.name);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -74,6 +88,7 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
       file,
       status: 'pending' as const,
       progress: 0,
+      isLarge: file.size > 50 * 1024 * 1024, // Flag files over 50MB
     }));
     setFiles(prev => [...prev, ...newFiles]);
   }, []);
@@ -106,6 +121,7 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
         file,
         status: 'pending' as const,
         progress: 0,
+        isLarge: file.size > 50 * 1024 * 1024, // Flag files over 50MB
       }));
       setFiles(prev => [...prev, ...newFiles]);
     }
@@ -219,19 +235,25 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
                 <div className="p-2 bg-tool-jpg/[0.1] text-tool-jpg rounded-lg">
                   <Image className="w-6 h-6" />
                 </div>
-                {selectedSourceFormat?.displayName || 'Image'} to {selectedTargetFormat?.displayName || 'Image'} Converter
+                {selectedSourceFormat?.name === selectedTargetFormat?.name 
+                  ? `${selectedSourceFormat?.displayName || 'Image'} Compressor`
+                  : `${selectedSourceFormat?.displayName || 'Image'} to ${selectedTargetFormat?.displayName || 'Image'} Converter`
+                }
               </h1>
               <p className="mt-2 text-muted-foreground">
-                Convert {selectedSourceFormat?.displayName || 'your'} images to {selectedTargetFormat?.displayName || 'any'} format instantly. 
-                All processing happens in your browser - 100% private and secure.
+                {selectedSourceFormat?.name === selectedTargetFormat?.name 
+                  ? `Compress and optimize ${selectedSourceFormat?.displayName || 'your'} images by adjusting quality. Reduce file size while maintaining visual quality.`
+                  : `Convert ${selectedSourceFormat?.displayName || 'your'} images to ${selectedTargetFormat?.displayName || 'any'} format instantly.`
+                }
+                {' '}All processing happens in your browser - 100% private and secure.
               </p>
             </div>
             
             {/* Tool Stats */}
             <div className="hidden md:flex items-center gap-4 text-sm">
               <div className="text-center">
-                <div className="font-semibold">50MB</div>
-                <div className="text-muted-foreground">Max file size</div>
+                <div className="font-semibold">Unlimited</div>
+                <div className="text-muted-foreground">File size</div>
               </div>
               <div className="h-8 w-px bg-border" />
               <div className="text-center">
@@ -348,7 +370,7 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
               </span>
               <span className="flex items-center gap-1">
                 <FileUp className="w-3 h-3" />
-                Up to 50MB
+                No file size limit
               </span>
             </div>
           </div>
@@ -393,6 +415,11 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
                         <p className="font-medium truncate">{fileInfo.file.name}</p>
                         <p className="text-sm text-muted-foreground">
                           {formatFileSize(fileInfo.file.size)}
+                          {fileInfo.isLarge && (
+                            <span className="ml-2 text-amber-600">
+                              • Large file - processing may be slower
+                            </span>
+                          )}
                         </p>
                       </div>
                     </div>
