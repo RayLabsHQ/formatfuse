@@ -7,6 +7,12 @@ import react from '@astrojs/react';
 export default defineConfig({
 	integrations: [react()],
 	vite: {
-		plugins: [tailwindcss()]
+		plugins: [tailwindcss()],
+		optimizeDeps: {
+			exclude: ['@refilelabs/image']
+		},
+		worker: {
+			format: 'es'
+		}
 	}
 });

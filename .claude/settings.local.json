@@ -3,7 +3,8 @@
     "allow": [
       "Bash(mkdir:*)",
       "Bash(pnpm dlx:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(pnpm test:*)"
     ],
     "deny": []
   }
