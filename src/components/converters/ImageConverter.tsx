@@ -1,9 +1,20 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { 
   Image, Upload, Download, X, FileUp, 
-  Loader2, ArrowRight, FileCheck, Settings, Eye, Package
+  Loader2, ArrowRight, ArrowLeftRight, FileCheck, Settings, Eye, Package
 } from 'lucide-react';
 import { getImageConverter, type ImageFormat } from '../../lib/image-converter';
+import { getHeicImageConverter } from '../../lib/heic-image-converter';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select';
+import { Progress } from '../ui/progress';
+import { Slider } from '../ui/slider';
+import { Button } from '../ui/button';
 
 interface FileInfo {
   file: File;
@@ -19,7 +30,7 @@ interface ImageConverterProps {
   targetFormat?: string;
 }
 
-// Format configuration - only formats supported by image-rs
+// Format configuration - formats supported by image-rs + HEIC
 const FORMATS: Record<string, ImageFormat & { displayName: string }> = {
   PNG: { mime: 'image/png', extension: 'png', name: 'PNG', displayName: 'PNG' },
   JPEG: { mime: 'image/jpeg', extension: 'jpg', name: 'JPEG', displayName: 'JPEG/JPG' },
@@ -29,6 +40,7 @@ const FORMATS: Record<string, ImageFormat & { displayName: string }> = {
   ICO: { mime: 'image/x-icon', extension: 'ico', name: 'ICO', displayName: 'ICO' },
   TIFF: { mime: 'image/tiff', extension: 'tiff', name: 'TIFF', displayName: 'TIFF' },
   AVIF: { mime: 'image/avif', extension: 'avif', name: 'AVIF', displayName: 'AVIF' },
+  HEIC: { mime: 'image/heic', extension: 'heic', name: 'HEIC', displayName: 'HEIC' },
 };
 
 export default function ImageConverter({ sourceFormat, targetFormat }: ImageConverterProps) {
@@ -140,17 +152,38 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
     ));
 
     try {
-      const converter = getImageConverter();
+      let convertedBlob: Blob;
       
-      const convertedBlob = await converter.convert(
-        fileInfo.file,
-        selectedTargetFormat,
-        (progress) => {
-          setFiles(prev => prev.map((f, i) => 
-            i === index ? { ...f, progress } : f
-          ));
-        }
-      );
+      // Check if the source file is HEIC
+      const isHeicSource = fileInfo.file.type === 'image/heic' || 
+                          fileInfo.file.name.toLowerCase().endsWith('.heic') ||
+                          fileInfo.file.name.toLowerCase().endsWith('.heif');
+      
+      if (isHeicSource) {
+        // Use HEIC converter for HEIC files
+        const heicConverter = getHeicImageConverter();
+        convertedBlob = await heicConverter.convert(
+          fileInfo.file,
+          selectedTargetFormat,
+          (progress) => {
+            setFiles(prev => prev.map((f, i) => 
+              i === index ? { ...f, progress } : f
+            ));
+          }
+        );
+      } else {
+        // Use regular converter for other formats
+        const converter = getImageConverter();
+        convertedBlob = await converter.convert(
+          fileInfo.file,
+          selectedTargetFormat,
+          (progress) => {
+            setFiles(prev => prev.map((f, i) => 
+              i === index ? { ...f, progress } : f
+            ));
+          }
+        );
+      }
 
       setFiles(prev => prev.map((f, i) => 
         i === index ? { 
@@ -267,56 +300,79 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
           <div className="mt-6 flex flex-col sm:flex-row items-center gap-4">
             <div className="flex items-center gap-2">
               <label className="text-sm font-medium">From:</label>
-              <select
+              <Select
                 value={selectedSourceFormat?.name || 'PNG'}
-                onChange={(e) => {
-                  const format = Object.values(FORMATS).find(f => f.name === e.target.value);
+                onValueChange={(value) => {
+                  const format = Object.values(FORMATS).find(f => f.name === value);
                   if (format) setSelectedSourceFormat(format);
                 }}
-                className="px-3 py-1.5 bg-secondary rounded-md text-sm font-medium"
               >
-                {Object.values(FORMATS).map(format => (
-                  <option key={format.name} value={format.name}>
-                    {format.displayName}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.values(FORMATS).map(format => (
+                    <SelectItem key={format.name} value={format.name}>
+                      {format.displayName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            <ArrowRight className="w-4 h-4 text-muted-foreground" />
+            <Button
+              onClick={() => {
+                // Swap source and target formats
+                const temp = selectedSourceFormat;
+                setSelectedSourceFormat(selectedTargetFormat);
+                setSelectedTargetFormat(temp);
+              }}
+              variant="ghost"
+              size="icon"
+              title="Swap formats"
+              aria-label="Swap source and target formats"
+            >
+              <ArrowLeftRight className="h-4 w-4" />
+            </Button>
 
             <div className="flex items-center gap-2">
               <label className="text-sm font-medium">To:</label>
-              <select
+              <Select
                 value={selectedTargetFormat?.name || 'JPEG'}
-                onChange={(e) => {
-                  const format = Object.values(FORMATS).find(f => f.name === e.target.value);
+                onValueChange={(value) => {
+                  const format = Object.values(FORMATS).find(f => f.name === value);
                   if (format) setSelectedTargetFormat(format);
                 }}
-                className="px-3 py-1.5 bg-secondary rounded-md text-sm font-medium"
               >
-                {Object.values(FORMATS).map(format => (
-                  <option key={format.name} value={format.name}>
-                    {format.displayName}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.values(FORMATS).map(format => (
+                    <SelectItem key={format.name} value={format.name}>
+                      {format.displayName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {showQualitySlider && (
-              <div className="flex items-center gap-2 ml-auto">
+              <div className="flex items-center gap-3 ml-auto">
                 <label className="text-sm font-medium">Quality:</label>
-                <input
-                  type="range"
-                  min="10"
-                  max="100"
-                  value={quality}
-                  onChange={(e) => setQuality(Number(e.target.value))}
-                  className="w-24"
-                />
-                <span className="text-sm font-mono bg-secondary px-2 py-0.5 rounded">
-                  {quality}%
-                </span>
+                <div className="flex items-center gap-3">
+                  <Slider
+                    value={[quality]}
+                    onValueChange={(value) => setQuality(value[0])}
+                    min={10}
+                    max={100}
+                    step={1}
+                    className="w-[120px]"
+                  />
+                  <span className="text-sm font-mono bg-secondary px-2 py-0.5 rounded min-w-[48px] text-center">
+                    {quality}%
+                  </span>
+                </div>
               </div>
             )}
           </div>
@@ -477,12 +533,7 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
 
                   {fileInfo.status === 'processing' && (
                     <div className="mt-3">
-                      <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-primary rounded-full ff-transition"
-                          style={{ width: `${fileInfo.progress}%` }}
-                        />
-                      </div>
+                      <Progress value={fileInfo.progress} className="w-full" />
                     </div>
                   )}
                 </div>

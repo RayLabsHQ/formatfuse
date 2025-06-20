@@ -8,8 +8,8 @@ import '../../styles/global.css';
 export const prerender = true;
 
 export async function getStaticPaths() {
-  // All supported image formats by image-rs
-  // Note: SVG is not supported by image-rs
+  // All supported image formats
+  // Note: HEIC is supported via libheif-js, others via image-rs
   const formats = [
     { key: 'png', name: 'PNG' },
     { key: 'jpg', name: 'JPG' },
@@ -18,8 +18,8 @@ export async function getStaticPaths() {
     { key: 'bmp', name: 'BMP' },
     { key: 'ico', name: 'ICO' },
     { key: 'tiff', name: 'TIFF' },
-    { key: 'avif', name: 'AVIF' }
-    // Note: HEIC is also not directly supported by image-rs
+    { key: 'avif', name: 'AVIF' },
+    { key: 'heic', name: 'HEIC' }
   ];
 
   // Formats that support quality adjustment (useful for same-format conversion)
@@ -48,7 +48,7 @@ const toKey = Astro.params.to;
 // Human-friendly format names
 const formatNameMap = {
   png: 'PNG', jpg: 'JPEG/JPG', webp: 'WebP', gif: 'GIF',
-  bmp: 'BMP', ico: 'ICO', tiff: 'TIFF', avif: 'AVIF'
+  bmp: 'BMP', ico: 'ICO', tiff: 'TIFF', avif: 'AVIF', heic: 'HEIC'
 };
 const fromFormat = formatNameMap[fromKey] || fromKey.toUpperCase();
 const toFormat = formatNameMap[toKey] || toKey.toUpperCase();

@@ -22,7 +22,7 @@ export const universalTools: Tool[] = [
   { 
     id: 'image-converter', 
     name: 'Universal Image Converter', 
-    description: 'Convert between PNG, JPG, WebP, GIF, BMP, ICO, TIFF, AVIF and more',
+    description: 'Convert between PNG, JPG, WebP, GIF, BMP, ICO, TIFF, AVIF, HEIC and more',
     icon: Image, 
     searches: '1M+', 
     isPopular: true,
@@ -42,14 +42,15 @@ export const universalTools: Tool[] = [
 ];
 
 // Image format conversions
-const imageFormats = ['png', 'jpg', 'webp', 'gif', 'bmp', 'ico', 'tiff', 'avif'];
+const imageFormats = ['png', 'jpg', 'webp', 'gif', 'bmp', 'ico', 'tiff', 'avif', 'heic'];
 const imageConversions: Tool[] = [];
 
 // Generate all image conversion combinations
 for (const from of imageFormats) {
   for (const to of imageFormats) {
     // Skip same format conversions except for lossy formats (compression)
-    if (from === to && !['jpg', 'webp', 'avif'].includes(from)) continue;
+    // Note: HEIC to HEIC is not supported
+    if (from === to && (!['jpg', 'webp', 'avif'].includes(from) || from === 'heic')) continue;
     
     const fromName = from.toUpperCase();
     const toName = to.toUpperCase();
@@ -78,7 +79,9 @@ function getSearchVolume(from: string, to: string): string {
     'jpg-to-pdf': '300k',
     'webp-to-png': '150k',
     'webp-to-jpg': '120k',
-    'heic-to-jpg': '150k',
+    'heic-to-jpg': '180k',
+    'heic-to-png': '120k',
+    'heic-to-webp': '50k',
     'gif-to-mp4': '100k',
     'png-to-webp': '100k',
     'jpg-to-webp': '90k',
@@ -97,7 +100,8 @@ function getSearchVolume(from: string, to: string): string {
 function isPopularConversion(from: string, to: string): boolean {
   const popular = [
     'png-to-jpg', 'jpg-to-png', 'jpg-to-pdf', 
-    'webp-to-png', 'webp-to-jpg', 'jpg-to-jpg'
+    'webp-to-png', 'webp-to-jpg', 'jpg-to-jpg',
+    'heic-to-jpg', 'heic-to-png'
   ];
   return popular.includes(`${from}-to-${to}`);
 }

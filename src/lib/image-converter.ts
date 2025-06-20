@@ -14,7 +14,6 @@ export const IMAGE_FORMATS: Record<string, ImageFormat> = {
   BMP: { mime: 'image/bmp', extension: 'bmp', name: 'BMP' },
   ICO: { mime: 'image/x-icon', extension: 'ico', name: 'ICO' },
   TIFF: { mime: 'image/tiff', extension: 'tiff', name: 'TIFF' },
-  SVG: { mime: 'image/svg+xml', extension: 'svg', name: 'SVG' },
   AVIF: { mime: 'image/avif', extension: 'avif', name: 'AVIF' },
   HEIC: { mime: 'image/heic', extension: 'heic', name: 'HEIC' }
 };
