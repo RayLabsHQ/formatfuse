@@ -277,36 +277,37 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
       {/* Tool Header */}
       <div className="border-b bg-card/[0.5]">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-3xl font-bold flex items-center gap-3">
-                <div className="p-2 bg-tool-jpg/[0.1] text-tool-jpg rounded-lg">
-                  <Image className="w-6 h-6" />
-                </div>
-                {selectedSourceFormat?.name === selectedTargetFormat?.name 
-                  ? `${selectedSourceFormat?.displayName || 'Image'} Compressor`
-                  : `${selectedSourceFormat?.displayName || 'Image'} to ${selectedTargetFormat?.displayName || 'Image'} Converter`
-                }
-              </h1>
-              <p className="mt-2 text-muted-foreground">
-                {selectedSourceFormat?.name === selectedTargetFormat?.name 
-                  ? `Compress and optimize ${selectedSourceFormat?.displayName || 'your'} images by adjusting quality. Reduce file size while maintaining visual quality.`
-                  : `Convert ${selectedSourceFormat?.displayName || 'your'} images to ${selectedTargetFormat?.displayName || 'any'} format instantly.`
-                }
-                {' '}All processing happens in your browser - 100% private and secure.
-              </p>
-            </div>
-            
-            {/* Tool Stats */}
-            <div className="hidden md:flex items-center gap-4 text-sm">
-              <div className="text-center">
-                <div className="font-semibold">Unlimited</div>
-                <div className="text-muted-foreground">File size</div>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-3">
+              <div className="p-2 bg-tool-jpg/[0.1] text-tool-jpg rounded-lg">
+                <Image className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-              <div className="h-8 w-px bg-border" />
-              <div className="text-center">
-                <div className="font-semibold">Batch</div>
-                <div className="text-muted-foreground">Multi-file support</div>
+              {selectedSourceFormat?.name === selectedTargetFormat?.name 
+                ? `${selectedSourceFormat?.displayName || 'Image'} Compressor`
+                : `${selectedSourceFormat?.displayName || 'Image'} to ${selectedTargetFormat?.displayName || 'Image'} Converter`
+              }
+            </h1>
+            <p className="mt-2 text-sm sm:text-base text-muted-foreground max-w-3xl">
+              {selectedSourceFormat?.name === selectedTargetFormat?.name 
+                ? `Compress and optimize ${selectedSourceFormat?.displayName || 'your'} images online. Reduce file size while maintaining visual quality with our free image compressor.`
+                : `Convert ${selectedSourceFormat?.displayName || 'your'} images to ${selectedTargetFormat?.displayName || 'any'} format online for free. Fast, secure browser-based image converter.`
+              }
+              {' '}100% private - all processing happens in your browser.
+            </p>
+            
+            {/* Tool Features */}
+            <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                <span className="font-medium">No file size limits</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                <span className="font-medium">Batch convert multiple files</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                <span className="font-medium">Free & no sign-up required</span>
               </div>
             </div>
           </div>
