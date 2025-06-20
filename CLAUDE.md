@@ -38,6 +38,57 @@ pnpm test:watch
 pnpm test:coverage
 ```
 
+## Worker Communication with Comlink
+
+We're migrating from postMessage to Comlink for cleaner worker communication. Here's how to implement new workers:
+
+### Creating a Worker with Comlink
+
+```typescript
+// worker.ts
+import * as Comlink from 'comlink';
+
+class MyConverterWorker {
+  async convert(input: Uint8Array, options: any, onProgress?: (p: number) => void) {
+    onProgress?.(10);
+    const result = await processData(input, options);
+    onProgress?.(100);
+    // Transfer ArrayBuffer without copying
+    return Comlink.transfer(result, [result.buffer]);
+  }
+}
+
+Comlink.expose(MyConverterWorker);
+```
+
+### Using the Worker
+
+```typescript
+// main.ts
+import * as Comlink from 'comlink';
+
+const worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
+const Converter = Comlink.wrap<typeof MyConverterWorker>(worker);
+const converter = await new Converter();
+
+// Use like a normal async function
+const result = await converter.convert(
+  data,
+  options,
+  Comlink.proxy((progress) => setProgress(progress))
+);
+
+// Clean up when done
+converter[Comlink.releaseProxy]();
+```
+
+### Benefits of Comlink
+- **No postMessage boilerplate** - Just call methods directly
+- **Full TypeScript support** - IntelliSense works perfectly
+- **Easy progress callbacks** - Use Comlink.proxy()
+- **Automatic error handling** - Errors propagate naturally
+- **Tiny overhead** - Only 1.1kB gzipped
+
 ## Architecture Overview
 
 ### Tech Stack
@@ -50,24 +101,38 @@ pnpm test:coverage
 - **Worker Communication**: Comlink for clean async worker APIs
 - **Image Processing**: @refilelabs/image + extended WASM libraries
 
-### Planned Architecture (from docs/plan.md and docs/development.md)
+### Current Architecture
 
 ```
 /src
 ├── components/
-│   ├── core/           # FileUploader, ProgressBar, ResultDisplay
-│   ├── tools/          # ToolLayout, SettingsPanel, BatchProcessor
-│   ├── ui/             # Reusable UI components
-│   └── ads/            # AdSlot, AdManager
-├── workers/            # Web Workers for WASM processing
-│   ├── pdf/
-│   ├── image/
-│   └── document/
-├── lib/                # Utilities for WASM loading, validation
+│   ├── converters/     # Tool components (ImageConverter, PdfToWord, etc.)
+│   ├── ui/             # Radix UI components (button, dialog, etc.)
+│   ├── layout/         # Layout components (Footer.astro)
+│   ├── Navigation.tsx  # Smart nav with fuzzy search
+│   ├── Hero.tsx        # Landing page hero
+│   └── AllToolsGrid.tsx # Tools listing
+├── workers/            # Web Workers (migrating to Comlink)
+│   ├── image-converter.ts              # Legacy postMessage
+│   ├── image-converter-comlink.worker.ts # New Comlink pattern
+│   ├── pdf-to-word.worker.ts          # PDF conversion
+│   └── jpg-to-pdf.worker.ts           # Image to PDF
+├── lib/                # Core utilities
+│   ├── image-converter.ts              # Legacy converter class
+│   ├── image-converter-comlink.ts      # Comlink converter
+│   ├── codec-registry.ts               # Format detection & loading
+│   └── heic-converter.ts               # HEIC support
+├── hooks/              # React hooks
+│   └── useImageConverter.ts            # Comlink-based converter hook
 ├── pages/              # Astro pages
-│   ├── convert/        # Dynamic tool pages
-│   └── api/
-└── styles/             # Global styles and themes
+│   ├── index.astro     # Landing page
+│   ├── tools.astro     # All tools page
+│   └── convert/
+│       └── [from]-to-[to].astro        # Dynamic converter pages
+├── data/
+│   └── tools.ts        # Tool definitions and metadata
+└── styles/
+    └── global.css      # Tailwind CSS v4 with oklch colors
 ```
 
 ### Key Design Decisions
