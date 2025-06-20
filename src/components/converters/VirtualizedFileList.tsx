@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Progress } from '../ui/progress';
+import { ImageCarouselModal } from './ImageCarouselModal';
 import type { ImageFormat } from '../../lib/image-converter';
 
 interface FileInfo {
@@ -35,17 +36,20 @@ interface FileRowProps {
   formatFileSize: (bytes: number) => string;
 }
 
-const FileRow: React.FC<FileRowProps> = ({ 
+interface ExtendedFileRowProps extends FileRowProps {
+  onPreviewClick: (index: number) => void;
+}
+
+const FileRow: React.FC<ExtendedFileRowProps> = ({ 
   fileInfo, 
   index,
-  selectedTargetFormat,
   onConvert,
   onDownload,
   onRemove,
-  formatFileSize
+  formatFileSize,
+  onPreviewClick
 }) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [showPreview, setShowPreview] = useState(false);
   const isImageFile = fileInfo.file.type.startsWith('image/');
 
   useEffect(() => {
@@ -80,7 +84,7 @@ const FileRow: React.FC<FileRowProps> = ({
                 <>
                   <div 
                     className="w-16 h-16 rounded-lg overflow-hidden cursor-pointer bg-muted/50 border border-border"
-                    onClick={() => setShowPreview(true)}
+                    onClick={() => onPreviewClick(index)}
                   >
                     <img 
                       src={previewUrl} 
@@ -92,7 +96,7 @@ const FileRow: React.FC<FileRowProps> = ({
                     size="sm"
                     variant="secondary"
                     className="absolute -top-2 -right-2 w-6 h-6 p-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
-                    onClick={() => setShowPreview(true)}
+                    onClick={() => onPreviewClick(index)}
                   >
                     <Maximize2 className="w-3 h-3" />
                   </Button>
@@ -184,34 +188,7 @@ const FileRow: React.FC<FileRowProps> = ({
         )}
       </div>
 
-      {/* Image Preview Modal */}
-      {showPreview && previewUrl && (
-        <div 
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center z-50 p-4"
-          onClick={() => setShowPreview(false)}
-        >
-          <div className="relative max-w-[90vw] max-h-[90vh]">
-            <img 
-              src={previewUrl} 
-              alt={fileInfo.file.name}
-              className="max-w-full max-h-[80vh] rounded-lg shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
-            />
-            <Button
-              size="sm"
-              variant="secondary"
-              className="absolute top-4 right-4"
-              onClick={() => setShowPreview(false)}
-            >
-              <X className="w-4 h-4" />
-            </Button>
-            <div className="absolute bottom-4 left-4 bg-background/90 backdrop-blur-sm rounded-lg px-3 py-2">
-              <p className="text-sm font-medium">{fileInfo.file.name}</p>
-              <p className="text-xs text-muted-foreground">{formatFileSize(fileInfo.file.size)}</p>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Image Preview Modal will be rendered at the parent level */}
     </div>
   );
 };
@@ -225,6 +202,8 @@ export default function VirtualizedFileList({
   formatFileSize
 }: VirtualizedFileListProps) {
   const parentRef = useRef<HTMLDivElement>(null);
+  const [showCarousel, setShowCarousel] = useState(false);
+  const [carouselStartIndex, setCarouselStartIndex] = useState(0);
 
   const virtualizer = useVirtualizer({
     count: files.length,
@@ -277,12 +256,25 @@ export default function VirtualizedFileList({
                   onDownload={onDownload}
                   onRemove={onRemove}
                   formatFileSize={formatFileSize}
+                  onPreviewClick={(idx) => {
+                    setCarouselStartIndex(idx);
+                    setShowCarousel(true);
+                  }}
                 />
               </div>
             );
           })}
         </div>
       </div>
+      
+      {/* Carousel Modal */}
+      <ImageCarouselModal
+        isOpen={showCarousel}
+        onClose={() => setShowCarousel(false)}
+        files={files}
+        currentIndex={carouselStartIndex}
+        formatFileSize={formatFileSize}
+      />
     </div>
   );
 }
