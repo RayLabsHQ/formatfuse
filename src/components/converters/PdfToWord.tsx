@@ -177,9 +177,12 @@ export default function PdfToWord() {
                   <FileText className="w-6 h-6" />
                 </div>
                 PDF to Word Converter
+                <span className="text-sm font-normal bg-amber-500/20 text-amber-700 dark:text-amber-400 px-2 py-1 rounded-full">
+                  Beta - In Development
+                </span>
               </h1>
               <p className="mt-2 text-muted-foreground">
-                Convert PDF documents to editable Word files. Preserves formatting and layout.
+                Convert PDF documents to editable Word files. Note: This tool is currently in beta and produces basic text extraction only. Full formatting preservation coming soon.
               </p>
             </div>
             
@@ -191,8 +194,8 @@ export default function PdfToWord() {
               </div>
               <div className="h-8 w-px bg-border" />
               <div className="text-center">
-                <div className="font-semibold">Unlimited</div>
-                <div className="text-muted-foreground">Free conversions</div>
+                <div className="font-semibold">Beta</div>
+                <div className="text-muted-foreground">Limited features</div>
               </div>
             </div>
           </div>

@@ -75,10 +75,20 @@ export default function Navigation() {
   const [activeDropdown, setActiveDropdown] = React.useState<string | null>(null);
   const [mobileCategory, setMobileCategory] = React.useState<string | null>(null);
   const [showSearchResults, setShowSearchResults] = React.useState(false);
+  const [dropdownTimeout, setDropdownTimeout] = React.useState<NodeJS.Timeout | null>(null);
 
   React.useEffect(() => {
     setIsDark(document.documentElement.classList.contains('dark'));
   }, []);
+
+  // Cleanup timeout on unmount
+  React.useEffect(() => {
+    return () => {
+      if (dropdownTimeout) {
+        clearTimeout(dropdownTimeout);
+      }
+    };
+  }, [dropdownTimeout]);
 
   const toggleTheme = () => {
     const html = document.documentElement;
@@ -134,24 +144,46 @@ export default function Navigation() {
               <div
                 key={category.name}
                 className="relative"
-                onMouseEnter={() => setActiveDropdown(category.name)}
-                onMouseLeave={() => setActiveDropdown(null)}
+                onMouseEnter={() => {
+                  if (dropdownTimeout) {
+                    clearTimeout(dropdownTimeout);
+                    setDropdownTimeout(null);
+                  }
+                  setActiveDropdown(category.name);
+                }}
+                onMouseLeave={() => {
+                  const timeout = setTimeout(() => {
+                    setActiveDropdown(null);
+                  }, 300); // 300ms delay before closing
+                  setDropdownTimeout(timeout);
+                }}
               >
-                <button className="group px-4 py-2 text-sm font-medium hover:text-foreground text-muted-foreground ff-transition flex items-center gap-1">
+                <button 
+                  className="group px-4 py-2 text-sm font-medium hover:text-foreground text-muted-foreground ff-transition flex items-center gap-1 h-full"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (dropdownTimeout) {
+                      clearTimeout(dropdownTimeout);
+                      setDropdownTimeout(null);
+                    }
+                    setActiveDropdown(activeDropdown === category.name ? null : category.name);
+                  }}
+                >
                   {category.name}
                   <ChevronDown className={`w-3 h-3 ff-transition ${activeDropdown === category.name ? 'rotate-180' : ''}`} />
                 </button>
                 
                 {activeDropdown === category.name && (
-                  <div className="absolute top-full left-0 mt-2 w-[600px] bg-card rounded-lg shadow-lg border p-4 z-50">
-                    <div className="mb-3 flex items-center justify-between">
-                      <h3 className="font-semibold text-sm">{category.name}</h3>
-                      <a href="/tools" className="text-xs text-primary hover:underline flex items-center gap-1">
-                        View all
-                        <ArrowRight className="w-3 h-3" />
-                      </a>
-                    </div>
-                    <div className="grid grid-cols-2 gap-1">
+                  <div className="absolute top-[calc(100%-1px)] left-0 pt-3 w-[600px] z-50">
+                    <div className="bg-card rounded-lg shadow-lg border p-4">
+                      <div className="mb-3 flex items-center justify-between">
+                        <h3 className="font-semibold text-sm">{category.name}</h3>
+                        <a href="/tools" className="text-xs text-primary hover:underline flex items-center gap-1">
+                          View all
+                          <ArrowRight className="w-3 h-3" />
+                        </a>
+                      </div>
+                      <div className="grid grid-cols-2 gap-1">
                       {category.tools.map((tool) => (
                         <a
                           key={tool.id}
@@ -172,10 +204,16 @@ export default function Navigation() {
                               {tool.new && (
                                 <Sparkles className="w-3 h-3 text-accent" />
                               )}
+                              {tool.beta && (
+                                <span className="text-xs bg-amber-500/20 text-amber-700 dark:text-amber-400 px-1 py-0.5 rounded ml-1">
+                                  Beta
+                                </span>
+                              )}
                             </div>
                           </div>
                         </a>
                       ))}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -227,6 +265,11 @@ export default function Navigation() {
                         </div>
                         {tool.popular && <TrendingUp className="w-3 h-3 text-primary" />}
                         {tool.new && <Sparkles className="w-3 h-3 text-accent" />}
+                        {tool.beta && (
+                          <span className="text-xs bg-amber-500/20 text-amber-700 dark:text-amber-400 px-1 py-0.5 rounded">
+                            Beta
+                          </span>
+                        )}
                       </a>
                     ))}
                   </div>

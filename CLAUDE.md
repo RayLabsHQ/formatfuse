@@ -6,6 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 FormatFuse is a privacy-first, browser-based file conversion platform built with Astro and React. The goal is to reach 1M+ monthly pageviews within 6-8 months while generating $5k+ monthly revenue through minimal ads.
 
+## License Policy
+
+**IMPORTANT**: Only use libraries with commercial-friendly licenses (MIT, Apache-2.0, BSD, ISC). Never use GPL, LGPL, AGPL, or any copyleft licenses. See `docs/LICENSE-POLICY.md` for details.
+
 ## Development Commands
 
 ```bash

@@ -159,27 +159,117 @@ type WorkerMessage =
 
 ## 🚀 Development Status
 
-### ✅ Completed (Phase 1)
+### ✅ Completed (Pre-Week 1)
 - Astro + React setup with TypeScript
 - Tailwind CSS v4 with oklch colors
 - Component library with Radix UI
 - Dark/light mode toggle
 - Mobile-responsive design
 - Fuzzy search implementation
-- PDF to Word converter (WASM)
 - Web Worker architecture
 - File upload/download system
 - Progress tracking
 - Error handling
 
-### 🚧 In Progress (Phase 2)
-- Additional tool implementations
-- SEO optimizations
-- Performance monitoring
-- Analytics setup
+### 🚧 Week 1 Implementation Plan (13 Tools)
 
-### 📋 Upcoming
-- Batch processing UI
+#### License Requirements
+- ✅ **Only use libraries with commercial-friendly licenses**: MIT, Apache-2.0, BSD, ISC
+- ❌ **Do NOT use**: GPL, LGPL, AGPL, or any copyleft licenses
+- Always check license before adding any dependency
+
+#### PDF Tools (pdf-lib ~200KB MIT, pdf.js ~1MB Apache-2.0)
+1. **PDF Merge** - TRIVIAL
+   ```typescript
+   // Implementation: 3-step process
+   const doc = await PDFDocument.create();
+   const pages = await doc.copyPages(sourcePdf, pageIndices);
+   const pdfBytes = await doc.save();
+   ```
+
+2. **PDF Split/Re-order** - TRIVIAL
+   - Same as merge with page selection UI
+   - Drag-and-drop page reordering
+
+3. **JPG to PDF** - TRIVIAL
+   ```typescript
+   const doc = await PDFDocument.create();
+   const jpgImage = await doc.embedJpg(jpgBytes);
+   const page = doc.addPage([jpgImage.width, jpgImage.height]);
+   page.drawImage(jpgImage);
+   ```
+
+4. **PDF to PNG/JPG** - EASY
+   ```typescript
+   const page = await pdfDoc.getPage(pageNum);
+   const canvas = new OffscreenCanvas(width, height);
+   await page.render({ canvasContext: canvas.getContext('2d') }).promise;
+   const blob = await canvas.convertToBlob({ type: 'image/png' });
+   ```
+
+5. **PDF Compress** - EASY
+   - pdfcpu WASM with lazy loading
+   - Quality presets: low/medium/high
+
+#### Image Tools (photon-rs ~250KB)
+6. **Image Resize/Compress** - TRIVIAL
+   - Preset dimensions: thumbnail, web, HD
+   - Custom dimensions input
+   - Quality slider
+
+7. **EXIF Strip** - TRIVIAL
+   ```typescript
+   import piexif from 'piexifjs';
+   const cleanedDataUrl = piexif.remove(originalDataUrl);
+   ```
+
+8. **Palette Extract** - TRIVIAL
+   ```typescript
+   import ColorThief from 'colorthief';
+   const palette = colorThief.getPalette(img, colorCount);
+   // Generate Tailwind color config
+   ```
+
+#### Developer Tools
+9. **JSON↔YAML↔CSV** - TRIVIAL
+   - Auto-detect input format
+   - Syntax validation
+   - Pretty print options
+
+10. **JS/TS Minify** - EASY
+    ```typescript
+    await esbuild.initialize({ wasmURL });
+    const result = await esbuild.transform(code, { 
+      minify: true, 
+      loader: 'ts' 
+    });
+    ```
+
+11. **Base64/URL Encode-Decode** - TRIVIAL
+    - Native browser APIs
+    - Two-way conversion
+    - Copy buttons
+
+12. **Hash/UUID Generator** - TRIVIAL
+    ```typescript
+    // Multiple algorithms
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const uuid = crypto.randomUUID();
+    ```
+
+### 🚧 In Development
+- **PDF to Word** - Complex extraction, evaluating MIT/Apache licensed solutions only
+  - ❌ Cannot use: pandoc-wasm (GPL-2.0 license)
+  - ✅ Exploring: Custom solution with pdf.js (Apache-2.0) + docx (MIT)
+- Performance monitoring setup
+- Analytics integration
+
+### 📋 Week 2+ Roadmap
+- Word to PDF
+- QR Code Generator
+- WebP Converter
+- HEIC to JPG
+- Background Remover (ML model)
 - PWA features
 - Browser extension
 - API endpoints

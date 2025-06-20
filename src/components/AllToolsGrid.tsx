@@ -397,6 +397,11 @@ export default function AllToolsGrid() {
                                 Hot
                               </span>
                             )}
+                            {tool.isBeta && (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-500/20 text-amber-700 dark:text-amber-400 text-xs font-medium rounded-full">
+                                Beta
+                              </span>
+                            )}
                           </div>
                         </div>
 

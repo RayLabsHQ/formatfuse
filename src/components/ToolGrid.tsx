@@ -13,6 +13,7 @@ interface Tool {
   category: 'pdf' | 'image' | 'doc';
   color: string;
   accent: string;
+  beta?: boolean;
 }
 
 const tools: Tool[] = [
@@ -24,7 +25,8 @@ const tools: Tool[] = [
     icon: FileText,
     category: 'pdf',
     color: 'bg-gradient-to-br from-[#FFE0E0] to-[#FFD0D0] dark:from-[#4A3333] dark:to-[#3A2525]',
-    accent: 'text-[#FF6B6B] dark:text-[#FFB8B8]'
+    accent: 'text-[#FF6B6B] dark:text-[#FFB8B8]',
+    beta: true
   },
   {
     id: 'jpg-to-pdf',
@@ -118,8 +120,13 @@ export default function ToolGrid() {
                 </div>
                 
                 {/* Content */}
-                <h3 className="text-lg font-semibold mb-2">
+                <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
                   {tool.name}
+                  {tool.beta && (
+                    <span className="text-xs font-normal bg-amber-500/20 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded">
+                      Beta
+                    </span>
+                  )}
                 </h3>
                 <p className="text-sm text-muted-foreground mb-4">
                   {tool.description}
