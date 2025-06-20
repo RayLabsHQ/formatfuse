@@ -79,6 +79,9 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
     }
   }, [sourceFormat, targetFormat]);
 
+  // WASM preloading is now handled by WasmPrefetch.astro component
+  // which uses <link rel="prefetch"> for better performance
+
   const showQualitySlider = selectedTargetFormat && ['JPEG', 'WEBP', 'AVIF'].includes(selectedTargetFormat.name);
 
   const handleDrop = useCallback((e: React.DragEvent) => {

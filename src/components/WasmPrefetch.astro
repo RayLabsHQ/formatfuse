@@ -1,0 +1,84 @@
+---
+// Component to handle WASM prefetching based on route
+export interface Props {
+  sourceFormat?: string;
+  targetFormat?: string;
+}
+
+const { sourceFormat, targetFormat } = Astro.props;
+
+// Determine which WASM modules to prefetch based on formats
+const formats = [sourceFormat?.toLowerCase(), targetFormat?.toLowerCase()].filter(Boolean);
+const shouldPrefetchResvg = formats.includes('svg');
+const shouldPrefetchImageRs = !shouldPrefetchResvg && formats.length > 0;
+const shouldPrefetchHeif = formats.includes('heic');
+
+// In production, these will be hashed filenames
+// We'll use glob imports to get the actual paths
+const wasmModules = import.meta.glob('/src/workers/*.wasm');
+---
+
+{/* Prefetch WASM modules based on the tool being used */}
+{shouldPrefetchImageRs && (
+  <link
+    rel="prefetch"
+    href="/_astro/refilelabs_image_bg-Bjjb7Nlt.wasm"
+    as="fetch"
+    type="application/wasm"
+    crossorigin
+  />
+)}
+
+{shouldPrefetchResvg && (
+  <link
+    rel="prefetch"
+    href="/_astro/index_bg-Blvrv-U2.wasm"
+    as="fetch"
+    type="application/wasm"
+    crossorigin
+  />
+)}
+
+{/* Always prefetch the main image WASM on converter pages */}
+{(sourceFormat || targetFormat) && (
+  <>
+    <link
+      rel="prefetch"
+      href="/_astro/refilelabs_image_bg-Bjjb7Nlt.wasm"
+      as="fetch"
+      type="application/wasm"
+      crossorigin
+    />
+    {/* If it's a critical path (user explicitly navigated to a tool), use preload instead */}
+    {Astro.url.pathname.includes('/convert/') && (
+      <link
+        rel="preload"
+        href="/_astro/refilelabs_image_bg-Bjjb7Nlt.wasm"
+        as="fetch"
+        type="application/wasm"
+        crossorigin
+      />
+    )}
+  </>
+)}
+
+<script>
+  // Defer WASM instantiation until after page is interactive
+  if ('requestIdleCallback' in window) {
+    // Trigger preload instantiation on idle
+    window.requestIdleCallback(() => {
+      // Import will trigger the module loading
+      if (window.location.pathname.includes('/convert/')) {
+        // This will start loading the workers in the background
+        import('../lib/preload-converters').then(({ preloadConvertersForFormats }) => {
+          const path = window.location.pathname;
+          const match = path.match(/\/convert\/([^-]+)-to-([^/]+)/);
+          if (match) {
+            const [, source, target] = match;
+            preloadConvertersForFormats(source, target);
+          }
+        });
+      }
+    }, { timeout: 2000 }); // Fallback after 2 seconds
+  }
+</script>

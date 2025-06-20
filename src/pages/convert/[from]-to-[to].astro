@@ -85,7 +85,7 @@ const structuredData = {
 };
 ---
 
-<Layout title={title} description={description}>
+<Layout title={title} description={description} sourceFormat={fromKey} targetFormat={toKey}>
   <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
   
   <main>

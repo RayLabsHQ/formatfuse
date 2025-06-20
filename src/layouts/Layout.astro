@@ -2,13 +2,21 @@
 import '../styles/global.css';
 import Navigation from '../components/Navigation';
 import Footer from '../components/layout/Footer.astro';
+import WasmPrefetch from '../components/WasmPrefetch.astro';
 
 export interface Props {
   title: string;
   description?: string;
+  sourceFormat?: string;
+  targetFormat?: string;
 }
 
-const { title, description = "Free online file converters - PDF, Image, Document. No uploads, 100% private." } = Astro.props;
+const { 
+  title, 
+  description = "Free online file converters - PDF, Image, Document. No uploads, 100% private.",
+  sourceFormat,
+  targetFormat
+} = Astro.props;
 ---
 
 <!DOCTYPE html>
@@ -48,6 +56,9 @@ const { title, description = "Free online file converters - PDF, Image, Document
         document.documentElement.classList.remove('dark');
       }
     </script>
+    
+    <!-- WASM Prefetch hints -->
+    <WasmPrefetch sourceFormat={sourceFormat} targetFormat={targetFormat} />
   </head>
   <body class="min-h-screen antialiased flex flex-col">
     <Navigation client:load />

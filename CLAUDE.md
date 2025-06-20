@@ -190,6 +190,20 @@ converter[Comlink.releaseProxy]();
 - Lighthouse score: >90
 - Core Web Vitals: All green
 
+## WASM Preloading Strategy (Two-Phase Loading)
+- **Phase 1 - Prefetch**: Use `<link rel="prefetch">` hints in document head to download WASM files at idle priority
+- **Phase 2 - Instantiation**: Defer WebAssembly instantiation using `requestIdleCallback` after LCP
+- **Smart Loading**: Different strategies based on intent:
+  - Generic pages: Use `rel="prefetch"` (won't block critical resources)
+  - Tool pages (`/convert/*`): Use `rel="preload"` for faster availability
+- **Implementation**: 
+  - `WasmPrefetch.astro` component adds prefetch hints based on route
+  - Instantiation happens via `requestIdleCallback` in the same component
+- **Benefits**:
+  - Doesn't impact Core Web Vitals (LCP, FID, CLS)
+  - WASM downloads in background while user reads interface
+  - WebAssembly compilation happens when browser is idle
+
 ## Revenue & Ad Strategy
 - **Month 1**: No ads - focus on growth and user experience
 - **Month 2+**: Strategic ad integration
