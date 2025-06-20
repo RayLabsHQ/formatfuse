@@ -27,7 +27,7 @@ export function useImageConverter(): UseImageConverterReturn {
         );
 
         const WorkerClass = Comlink.wrap<any>(workerRef.current);
-        workerApiRef.current = await new WorkerClass();
+        workerApiRef.current = await new (WorkerClass as any)();
       } catch (err) {
         console.error('Failed to initialize image converter worker:', err);
         setError('Failed to initialize converter');

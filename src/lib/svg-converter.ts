@@ -18,7 +18,7 @@ export class SvgConverter {
     if (this.initialized) return;
 
     const WorkerClass = Comlink.wrap<any>(this.worker);
-    this.workerApi = await new WorkerClass();
+    this.workerApi = await new (WorkerClass as any)();
     this.initialized = true;
   }
 

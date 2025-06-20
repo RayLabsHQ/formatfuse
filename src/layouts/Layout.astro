@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import Navigation from '../components/Navigation';
 import Footer from '../components/layout/Footer.astro';
 
 export interface Props {
@@ -49,6 +50,7 @@ const { title, description = "Free online file converters - PDF, Image, Document
     </script>
   </head>
   <body class="min-h-screen antialiased flex flex-col">
+    <Navigation client:load />
     <div class="flex-1">
       <slot />
     </div>

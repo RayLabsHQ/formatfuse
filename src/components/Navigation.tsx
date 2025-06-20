@@ -12,26 +12,28 @@ interface Tool {
   id: string;
   name: string;
   icon: LucideIcon;
-  popular?: boolean;
-  new?: boolean;
+  isPopular?: boolean;
+  isNew?: boolean;
+  isBeta?: boolean;
 }
 
 // Tool definitions
 const pdfTools: Tool[] = [
-  { id: 'pdf-to-word', name: 'PDF to Word', icon: FileText, popular: true },
+  { id: 'pdf-to-word', name: 'PDF to Word', icon: FileText, isPopular: true },
   { id: 'pdf-merge', name: 'Merge PDF', icon: Layers },
   { id: 'pdf-compress', name: 'Compress PDF', icon: FileDown },
   { id: 'pdf-split', name: 'Split PDF', icon: Scissors },
-  { id: 'jpg-to-pdf', name: 'JPG to PDF', icon: Image, popular: true },
+  { id: 'jpg-to-pdf', name: 'JPG to PDF', icon: Image, isPopular: true },
   { id: 'word-to-pdf', name: 'Word to PDF', icon: Type },
   { id: 'pdf-to-jpg', name: 'PDF to JPG', icon: Image },
 ];
 
 const imageTools: Tool[] = [
-  { id: 'png-to-jpg', name: 'PNG to JPG', icon: Image, popular: true },
-  { id: 'image-resize', name: 'Resize Image', icon: Image, new: true },
+  { id: 'png-to-jpg', name: 'PNG to JPG', icon: Image, isPopular: true },
+  { id: 'svg-to-png', name: 'SVG to PNG', icon: Image, isPopular: true },
+  { id: 'image-resize', name: 'Resize Image', icon: Image, isNew: true },
   { id: 'image-compress', name: 'Compress Image', icon: FileDown },
-  { id: 'heic-to-jpg', name: 'HEIC to JPG', icon: Image, new: true },
+  { id: 'heic-to-jpg', name: 'HEIC to JPG', icon: Image, isNew: true },
   { id: 'webp-convert', name: 'WebP Converter', icon: Image },
   { id: 'background-remove', name: 'Remove Background', icon: Image },
 ];
@@ -341,10 +343,10 @@ export default function Navigation() {
                         {category.name}
                       </span>
                     </div>
-                    {tool.popular && (
+                    {tool.isPopular && (
                       <TrendingUp className="w-3 h-3 text-primary" />
                     )}
-                    {tool.new && (
+                    {tool.isNew && (
                       <Sparkles className="w-3 h-3 text-accent" />
                     )}
                   </a>
@@ -378,10 +380,10 @@ export default function Navigation() {
                         >
                           <tool.icon className={`w-4 h-4 ${category.color}`} />
                           <span className="text-sm">{tool.name}</span>
-                          {tool.popular && (
+                          {tool.isPopular && (
                             <TrendingUp className="w-3 h-3 text-primary ml-auto" />
                           )}
-                          {tool.new && (
+                          {tool.isNew && (
                             <Sparkles className="w-3 h-3 text-accent ml-auto" />
                           )}
                         </a>

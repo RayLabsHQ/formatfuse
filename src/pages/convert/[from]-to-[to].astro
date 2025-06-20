@@ -46,12 +46,12 @@ export async function getStaticPaths() {
 const fromKey = Astro.params.from;
 const toKey = Astro.params.to;
 // Human-friendly format names
-const formatNameMap = {
+const formatNameMap: Record<string, string> = {
   png: 'PNG', jpg: 'JPEG/JPG', webp: 'WebP', gif: 'GIF',
   bmp: 'BMP', ico: 'ICO', tiff: 'TIFF', avif: 'AVIF', heic: 'HEIC'
 };
-const fromFormat = formatNameMap[fromKey] || fromKey.toUpperCase();
-const toFormat = formatNameMap[toKey] || toKey.toUpperCase();
+const fromFormat = formatNameMap[fromKey as string] || fromKey?.toUpperCase();
+const toFormat = formatNameMap[toKey as string] || toKey?.toUpperCase();
 // Title and description logic
 const isSame = fromKey === toKey;
 const title = isSame

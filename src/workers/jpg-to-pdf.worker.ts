@@ -61,9 +61,9 @@ async function convertJpgToPdf(images: Array<{ data: ArrayBuffer; name: string }
     
     self.postMessage({ type: 'progress', progress: 100 } as ProgressMessage);
 
-    return pdfBytes.buffer;
+    return pdfBytes.buffer as ArrayBuffer;
   } catch (error) {
-    throw new Error(`Conversion failed: ${error.message}`);
+    throw new Error(`Conversion failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 

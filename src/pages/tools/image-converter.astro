@@ -1,7 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import Navigation from '../../components/Navigation.tsx';
-import ImageConverter from '../../components/converters/ImageConverter.tsx';
+import ImageConverterComponent from '../../components/converters/ImageConverter.tsx';
 import '../../styles/global.css';
 
 const title = 'Universal Image Converter - Convert Any Image Format';
@@ -9,9 +8,7 @@ const description = 'Convert between PNG, JPG, WebP, GIF, BMP, ICO, TIFF, AVIF a
 ---
 
 <Layout title={title} description={description}>
-  <Navigation client:load />
-  
   <main>
-    <ImageConverter client:load />
+    <ImageConverterComponent client:load />
   </main>
 </Layout>

@@ -35,7 +35,7 @@ export class ImageConverterComlink {
 
     // Wrap with Comlink
     const WorkerClass = Comlink.wrap<any>(this.worker);
-    this.workerApi = await new WorkerClass();
+    this.workerApi = await new (WorkerClass as any)();
   }
 
   async convert(
