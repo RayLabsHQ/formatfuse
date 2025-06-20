@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { 
-  Image, Upload, Download, X, FileUp, 
-  Loader2, ArrowRight, ArrowLeftRight, FileCheck, Settings, Eye, Package
+  Image, Upload, FileUp, 
+  ArrowRight, ArrowLeftRight, FileCheck, Settings, Eye, Package
 } from 'lucide-react';
 import { getImageConverter, type ImageFormat } from '../../lib/image-converter';
 import { getHeicImageConverter } from '../../lib/heic-image-converter';
@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
-import { Progress } from '../ui/progress';
+// Progress component removed - not used
 import { Slider } from '../ui/slider';
 import { Button } from '../ui/button';
 import VirtualizedFileList from './VirtualizedFileList';

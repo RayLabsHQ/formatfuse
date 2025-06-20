@@ -16,7 +16,7 @@ async function convertPdfToWord(pdfData: ArrayBuffer): Promise<ArrayBuffer> {
 
   // Create a simple text file as placeholder
   const encoder = new TextEncoder();
-  return encoder.encode(extractedText).buffer;
+  return encoder.encode(extractedText).buffer as ArrayBuffer;
 }
 
 describe('PDF to Word Converter', () => {

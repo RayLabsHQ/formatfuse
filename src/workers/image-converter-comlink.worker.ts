@@ -1,7 +1,7 @@
 import * as Comlink from 'comlink';
 import init, { convertImage, loadMetadata, getPixels } from '@refilelabs/image';
 
-export class ImageConverterWorker {
+class ImageConverterWorker {
   private wasmInitialized = false;
 
   private async ensureWasmInitialized() {

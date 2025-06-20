@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import * as Comlink from 'comlink';
-import type { ImageConverterWorker } from '../workers/image-converter-comlink.worker';
+// ImageConverterWorker type is defined in the worker file
 import type { ImageFormat } from '../lib/image-converter-comlink';
 
 interface UseImageConverterReturn {
@@ -15,7 +15,7 @@ export function useImageConverter(): UseImageConverterReturn {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const workerRef = useRef<Worker | null>(null);
-  const workerApiRef = useRef<Comlink.Remote<ImageConverterWorker> | null>(null);
+  const workerApiRef = useRef<any>(null);
 
   useEffect(() => {
     // Initialize worker on mount
@@ -26,7 +26,7 @@ export function useImageConverter(): UseImageConverterReturn {
           { type: 'module' }
         );
 
-        const WorkerClass = Comlink.wrap<typeof ImageConverterWorker>(workerRef.current);
+        const WorkerClass = Comlink.wrap<any>(workerRef.current);
         workerApiRef.current = await new WorkerClass();
       } catch (err) {
         console.error('Failed to initialize image converter worker:', err);

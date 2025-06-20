@@ -1,5 +1,4 @@
 import * as Comlink from 'comlink';
-import type { ImageConverterWorker } from '../workers/image-converter-comlink.worker';
 
 export interface ImageFormat {
   mime: string;
@@ -21,7 +20,7 @@ export const IMAGE_FORMATS: Record<string, ImageFormat> = {
 
 export class ImageConverterComlink {
   private worker: Worker | null = null;
-  private workerApi: Comlink.Remote<ImageConverterWorker> | null = null;
+  private workerApi: any = null;
 
   constructor() {
     this.initWorker();
@@ -35,7 +34,7 @@ export class ImageConverterComlink {
     );
 
     // Wrap with Comlink
-    const WorkerClass = Comlink.wrap<typeof ImageConverterWorker>(this.worker);
+    const WorkerClass = Comlink.wrap<any>(this.worker);
     this.workerApi = await new WorkerClass();
   }
 

@@ -278,3 +278,5 @@ export default function VirtualizedFileList({
     </div>
   );
 }
+
+export { VirtualizedFileList };

@@ -192,7 +192,7 @@ describe('Image Converter - Format Tests', () => {
       const data = new Uint8Array(readFileSync(join(__dirname, 'fixtures/images/large.png')));
       let progressCalled = false;
       
-      convertImage(data, 'image/png', 'image/jpeg', (progress) => {
+      convertImage(data, 'image/png', 'image/jpeg', (progress: number) => {
         progressCalled = true;
         expect(progress).toBeGreaterThanOrEqual(0);
         expect(progress).toBeLessThanOrEqual(100);

@@ -337,6 +337,16 @@ export const otherImageTools: Tool[] = [
     isPopular: true,
     category: 'image',
     route: '/tools/background-remove'
+  },
+  {
+    id: 'svg-to-png',
+    name: 'SVG to PNG',
+    description: 'Convert SVG vector graphics to PNG, JPEG, WebP, or AVIF formats',
+    icon: Image,
+    searches: '250k',
+    isPopular: true,
+    category: 'image',
+    route: '/convert/svg-to-png'
   }
 ];
 

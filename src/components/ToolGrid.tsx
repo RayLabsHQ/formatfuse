@@ -76,6 +76,7 @@ export default function ToolGrid() {
         {/* Tool grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {featuredTools.map((tool, index) => {
+            if (!tool) return null;
             const scheme = colorSchemes[index % colorSchemes.length];
             return (
               <a

@@ -5,7 +5,7 @@ type Props = { className?: string };
 
 const AnimatedLogo: React.FC<Props> = ({ className }) => {
   // Stagger animation for pixel blocks
-  const pixelVariants = {
+  const pixelVariants: any = {
     hidden: { scale: 0, opacity: 0 },
     visible: (i: number) => ({
       scale: 1,

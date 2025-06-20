@@ -60,9 +60,9 @@ async function convertPdfToWord(pdfData: ArrayBuffer): Promise<ArrayBuffer> {
 
     self.postMessage({ type: 'progress', progress: 100 } as ProgressMessage);
 
-    return result;
+    return result as ArrayBuffer;
   } catch (error) {
-    throw new Error(`Conversion failed: ${error.message}`);
+    throw new Error(`Conversion failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 

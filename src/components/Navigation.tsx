@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
   Search, Sun, Moon, Menu, X, ChevronDown,
-  FileText, Code, ArrowRight,
+  FileText, ArrowRight,
   Layers, FileDown, Scissors, Type, Image,
   QrCode, Braces, Hash, TrendingUp, Sparkles
 } from 'lucide-react';
@@ -198,13 +198,13 @@ export default function Navigation() {
                               <span className="text-sm font-medium group-hover/item:text-primary ff-transition">
                                 {tool.name}
                               </span>
-                              {tool.popular && (
+                              {tool.isPopular && (
                                 <TrendingUp className="w-3 h-3 text-primary" />
                               )}
-                              {tool.new && (
+                              {tool.isNew && (
                                 <Sparkles className="w-3 h-3 text-accent" />
                               )}
-                              {tool.beta && (
+                              {tool.isBeta && (
                                 <span className="text-xs bg-amber-500/20 text-amber-700 dark:text-amber-400 px-1 py-0.5 rounded ml-1">
                                   Beta
                                 </span>
@@ -263,9 +263,9 @@ export default function Navigation() {
                           <div className="text-sm font-medium">{tool.name}</div>
                           <div className="text-xs text-muted-foreground">{category.name}</div>
                         </div>
-                        {tool.popular && <TrendingUp className="w-3 h-3 text-primary" />}
-                        {tool.new && <Sparkles className="w-3 h-3 text-accent" />}
-                        {tool.beta && (
+                        {tool.isPopular && <TrendingUp className="w-3 h-3 text-primary" />}
+                        {tool.isNew && <Sparkles className="w-3 h-3 text-accent" />}
+                        {tool.isBeta && (
                           <span className="text-xs bg-amber-500/20 text-amber-700 dark:text-amber-400 px-1 py-0.5 rounded">
                             Beta
                           </span>

@@ -72,7 +72,7 @@ describe('Image Converter', () => {
         pngArray,
         'image/png',
         'image/jpeg',
-        (progress) => {
+        (progress: number) => {
           progressCalled = true;
           expect(progress).toBeGreaterThanOrEqual(0);
           expect(progress).toBeLessThanOrEqual(100);
