@@ -56,6 +56,8 @@ Build a privacy-first, browser-based file conversion platform that reaches 1M+ m
 - ✅ Web Worker architecture for WASM tools
 - ✅ File handling system (drag & drop, validation)
 - ✅ Progress tracking and error handling
+- 🚧 **Comlink integration** - Cleaner worker messaging (1.1kB)
+- 🚧 **Codec Registry** - Unified format handling
 - ⏳ Basic analytics (Plausible) - Ready to add
 - ⏳ Cloudflare deployment - Ready to deploy
 
@@ -126,10 +128,12 @@ Build a privacy-first, browser-based file conversion platform that reaches 1M+ m
     - Quality comparison
     - Batch conversion
 
-11. **HEIC to JPG** (~150k searches/month)
-    - iOS photo support
+11. **HEIC to JPG** (~150k searches/month) 🚀 ENHANCED
+    - Full iOS photo support with libheif-js
+    - HEIF/AVIF format support
     - Metadata preservation
     - Batch processing
+    - **New**: Support for all modern formats
 
 12. **QR Code Generator** (~200k searches/month)
     - Custom colors/logos
@@ -150,6 +154,34 @@ Build a privacy-first, browser-based file conversion platform that reaches 1M+ m
     - Page range selection
     - Extract pages
     - Multiple outputs
+
+### 🚀 Enhanced Tool Capabilities (NEW)
+
+With the addition of modern WASM libraries, we can now offer:
+
+**"Open ANY Photo" Universal Converter**
+- Support HEIC, HEIF, AVIF, JPEG-XL, WebP, and 100+ formats
+- Drag & drop any image file
+- Auto-detect format and convert to common formats
+- **Time to implement**: 1 day
+- **Search potential**: 500k+ searches/month combined
+
+**Smart Image Optimizer Suite**
+- Lossless JPEG optimization with mozjpeg
+- PNG optimization with oxipng
+- Side-by-side before/after comparison
+- Batch processing with ZIP download
+- **Time to implement**: 1 day
+- **Revenue potential**: High engagement = more ad views
+
+**Professional Tools**
+- E-commerce image resizer with smart crop
+- SVG to PNG with multiple sizes (favicon generator)
+- Animated GIF editor (trim, resize, optimize)
+- **Time to implement**: 2-3 days total
+- **Target audience**: Content creators, developers
+
+See [WASM Libraries Guide](./wasm-libraries.md) for full technical details.
 
 ---
 

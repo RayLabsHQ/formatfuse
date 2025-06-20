@@ -122,9 +122,11 @@
 - Error boundaries
 - Result display with download
 
-#### 2. Worker Communication
+#### 2. Worker Communication (Migrating to Comlink)
+
+**Current Implementation:**
 ```typescript
-// Current implementation
+// Legacy postMessage pattern
 type WorkerMessage = 
   | { type: 'INIT'; wasmUrl: string }
   | { type: 'CONVERT'; file: ArrayBuffer }
@@ -132,6 +134,54 @@ type WorkerMessage =
   | { type: 'COMPLETE'; result: ArrayBuffer }
   | { type: 'ERROR'; error: string };
 ```
+
+**New Comlink Pattern (Migration in Progress):**
+```typescript
+// worker.ts
+import * as Comlink from 'comlink';
+import { loadWasm } from '../lib/wasm-loader';
+
+class ImageConverter {
+  private wasmModule: any;
+  
+  async init(wasmUrl: string) {
+    this.wasmModule = await loadWasm(wasmUrl);
+  }
+  
+  async convert(
+    file: ArrayBuffer,
+    options: ConvertOptions,
+    onProgress?: (percent: number) => void
+  ): Promise<ArrayBuffer> {
+    // Progress callback works seamlessly with Comlink.proxy
+    const result = await this.wasmModule.convert(file, options, onProgress);
+    return Comlink.transfer(result, [result]);
+  }
+}
+
+Comlink.expose(ImageConverter);
+
+// main.ts
+import * as Comlink from 'comlink';
+
+const worker = new Worker('./worker.js');
+const ImageConverter = Comlink.wrap<typeof ImageConverter>(worker);
+const converter = await new ImageConverter();
+
+await converter.init('/wasm/converter.wasm');
+const result = await converter.convert(
+  fileBuffer,
+  { format: 'jpeg', quality: 85 },
+  Comlink.proxy((percent) => setProgress(percent))
+);
+```
+
+Benefits of Comlink:
+- **Cleaner API**: No more postMessage boilerplate
+- **Type Safety**: Full TypeScript support
+- **Async/Await**: Natural async patterns
+- **Callbacks**: Easy progress reporting with Comlink.proxy
+- **Tiny**: Only 1.1kB gzipped
 
 #### 3. Fuzzy Search Implementation
 - Character-by-character matching in order
@@ -265,10 +315,33 @@ type WorkerMessage =
 - Analytics integration
 
 ### 📋 Week 2+ Roadmap
+
+#### Extended Format Support
+See [WASM Libraries Guide](./wasm-libraries.md) for full implementation details.
+
+**Immediate Priorities (Week 2):**
+- **AVIF Support** - @jsquash/avif (MIT, ~1MB)
+- **HEIC/HEIF Support** - libheif-js (MIT, ~4MB) for iPhone photos
+- **WebP Optimization** - webp-wasm (Apache-2.0, ~700KB)
+- **JPEG Optimization** - mozjpeg-wasm (MIT, ~600KB)
+- **PNG Optimization** - @jsquash/oxipng (MIT, ~350KB)
+
+**Advanced Tools (Week 3):**
+- **"Open ANY Photo"** - Universal image viewer/converter
+- **Smart Image Optimizer** - Lossless compression with comparison
+- **GIF Editor** - gifsicle-wasm-browser (MIT, ~150KB)
+- **SVG to PNG** - Multiple sizes for favicons
+- **Batch Processor** - Multi-format with ZIP download
+
+**Infrastructure Improvements:**
+- **Comlink Integration** - Cleaner worker communication
+- **Codec Registry** - Unified format handling
+- **Worker Pool** - Parallel processing
+- **Service Worker Cache** - WASM module caching
+
+**Existing Roadmap:**
 - Word to PDF
 - QR Code Generator
-- WebP Converter
-- HEIC to JPG
 - Background Remover (ML model)
 - PWA features
 - Browser extension

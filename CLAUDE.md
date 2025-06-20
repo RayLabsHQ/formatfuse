@@ -47,6 +47,8 @@ pnpm test:coverage
 - **Package Manager**: pnpm (v10.8.1)
 - **Type Safety**: TypeScript with strict config
 - **Testing**: Vitest with real file conversion tests (no mocking)
+- **Worker Communication**: Comlink for clean async worker APIs
+- **Image Processing**: @refilelabs/image + extended WASM libraries
 
 ### Planned Architecture (from docs/plan.md and docs/development.md)
 

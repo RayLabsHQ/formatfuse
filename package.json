@@ -37,6 +37,7 @@
     "canvas-confetti": "^1.9.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "comlink": "^4.4.2",
     "embla-carousel-react": "^8.6.0",
     "file-saver": "^2.0.5",
     "framer-motion": "^12.18.1",
