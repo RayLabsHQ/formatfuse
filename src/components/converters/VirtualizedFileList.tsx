@@ -1,7 +1,7 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { 
-  Image, X, Download, Loader2, Check, AlertCircle
+  Image, X, Download, Loader2, Check, AlertCircle, Maximize2
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Progress } from '../ui/progress';
@@ -44,6 +44,17 @@ const FileRow: React.FC<FileRowProps> = ({
   onRemove,
   formatFileSize
 }) => {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const isImageFile = fileInfo.file.type.startsWith('image/');
+
+  useEffect(() => {
+    if (isImageFile) {
+      const url = URL.createObjectURL(fileInfo.file);
+      setPreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    }
+  }, [fileInfo.file, isImageFile]);
 
   const getStatusIcon = () => {
     switch (fileInfo.status) {
@@ -64,8 +75,33 @@ const FileRow: React.FC<FileRowProps> = ({
         <div className="flex items-center justify-between gap-4">
           {/* File Info */}
           <div className="flex items-center gap-3 flex-1 min-w-0">
-            <div className="relative">
-              <Image className="w-10 h-10 text-muted-foreground" />
+            <div className="relative group">
+              {isImageFile && previewUrl ? (
+                <>
+                  <div 
+                    className="w-16 h-16 rounded-lg overflow-hidden cursor-pointer bg-muted/50 border border-border"
+                    onClick={() => setShowPreview(true)}
+                  >
+                    <img 
+                      src={previewUrl} 
+                      alt={fileInfo.file.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="absolute -top-2 -right-2 w-6 h-6 p-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                    onClick={() => setShowPreview(true)}
+                  >
+                    <Maximize2 className="w-3 h-3" />
+                  </Button>
+                </>
+              ) : (
+                <div className="w-16 h-16 rounded-lg bg-muted/50 border border-border flex items-center justify-center">
+                  <Image className="w-8 h-8 text-muted-foreground" />
+                </div>
+              )}
               {getStatusIcon() && (
                 <div className="absolute -bottom-1 -right-1 bg-background rounded-full p-0.5">
                   {getStatusIcon()}
@@ -147,6 +183,35 @@ const FileRow: React.FC<FileRowProps> = ({
           </div>
         )}
       </div>
+
+      {/* Image Preview Modal */}
+      {showPreview && previewUrl && (
+        <div 
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center z-50 p-4"
+          onClick={() => setShowPreview(false)}
+        >
+          <div className="relative max-w-[90vw] max-h-[90vh]">
+            <img 
+              src={previewUrl} 
+              alt={fileInfo.file.name}
+              className="max-w-full max-h-[80vh] rounded-lg shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            />
+            <Button
+              size="sm"
+              variant="secondary"
+              className="absolute top-4 right-4"
+              onClick={() => setShowPreview(false)}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+            <div className="absolute bottom-4 left-4 bg-background/90 backdrop-blur-sm rounded-lg px-3 py-2">
+              <p className="text-sm font-medium">{fileInfo.file.name}</p>
+              <p className="text-xs text-muted-foreground">{formatFileSize(fileInfo.file.size)}</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -164,7 +229,7 @@ export default function VirtualizedFileList({
   const virtualizer = useVirtualizer({
     count: files.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 96, // Estimated height of each item
+    estimateSize: () => 104, // Estimated height of each item with preview
     overscan: 5, // Render 5 items outside of the visible area
   });
 
