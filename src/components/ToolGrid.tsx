@@ -112,10 +112,7 @@ export default function ToolGrid() {
                   </p>
                   
                   {/* Footer */}
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">
-                      {tool.searches ? `${tool.searches} searches` : 'Free tool'}
-                    </span>
+                  <div className="flex items-center justify-end text-xs">
                     <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
                   </div>
                 </div>

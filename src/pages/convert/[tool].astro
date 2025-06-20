@@ -1,6 +1,5 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import Navigation from '../../components/Navigation.tsx';
 import PdfToWord from '../../components/converters/PdfToWord.tsx';
 import '../../styles/global.css';
 
@@ -18,8 +17,6 @@ const { title, component } = Astro.props;
 ---
 
 <Layout title={title}>
-  <Navigation client:load />
-  
   <main>
     {component === 'PdfToWord' && <PdfToWord client:load />}
     {/* Add more component conditions here */}

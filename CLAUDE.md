@@ -259,3 +259,11 @@ Use `tests/workers/converter-test-template.ts` as your starting point for all ne
 - Ensure tools work with actual user files
 - Performance matters - set reasonable time limits
 - Validate both format and content preservation
+
+## UI/UX Guidelines
+
+### Design Principles
+- **Clean and Minimal**: Keep interfaces uncluttered and focused on functionality
+- **No Search Metrics**: DO NOT display search counts (like "450k searches", "1M+ searches") in tool cards or anywhere in the UI
+- **Performance First**: Every UI decision must consider performance impact
+- **Mobile Responsive**: All components must work well on mobile devices

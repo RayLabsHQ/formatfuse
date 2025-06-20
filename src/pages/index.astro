@@ -1,14 +1,11 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import Navigation from '../components/Navigation.tsx';
 import Hero from '../components/Hero.tsx';
 import ToolGrid from '../components/ToolGrid.tsx';
 import '../styles/global.css';
 ---
 
 <Layout title="Free Online File Converters">
-  <Navigation client:load />
-  
   <main>
     <Hero client:load />
     <ToolGrid client:load />

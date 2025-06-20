@@ -1,6 +1,5 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import Navigation from '../../components/Navigation.tsx';
 import ImageConverter from '../../components/converters/ImageConverter.tsx';
 import '../../styles/global.css';
 
@@ -88,8 +87,6 @@ const structuredData = {
 
 <Layout title={title} description={description}>
   <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
-  
-  <Navigation client:load />
   
   <main>
     <ImageConverter sourceFormat={fromKey} targetFormat={toKey} client:load />

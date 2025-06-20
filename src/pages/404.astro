@@ -1,6 +1,5 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import Navigation from '../components/Navigation.tsx';
 import House from '@lucide/astro/icons/house';
 import Search from '@lucide/astro/icons/search';
 import ArrowLeft from '@lucide/astro/icons/arrow-left';
@@ -12,8 +11,6 @@ const description = 'The page you are looking for could not be found. Return to 
 ---
 
 <Layout title={title} description={description}>
-  <Navigation client:load />
-  
   <main class="min-h-screen bg-background">
     <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-16">
       <div class="text-center">
