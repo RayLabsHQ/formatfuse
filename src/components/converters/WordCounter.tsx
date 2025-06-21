@@ -1,5 +1,9 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { FileText, Upload, Clock, Hash, Type, AlignLeft, TrendingUp } from 'lucide-react';
+import { Textarea } from '../ui/textarea';
+import { Button } from '../ui/button';
+import { Label } from '../ui/label';
+import { Input } from '../ui/input';
 
 interface TextStats {
   words: number;
@@ -177,12 +181,12 @@ ${text}`;
       <div className="mb-4 p-4 rounded-lg border bg-card">
         <div className="flex flex-wrap items-center gap-6">
           <div className="flex items-center gap-2">
-            <label className="text-sm font-medium">Reading Speed:</label>
-            <input
+            <Label>Reading Speed:</Label>
+            <Input
               type="number"
               value={readingSpeed}
               onChange={(e) => setReadingSpeed(Number(e.target.value))}
-              className="w-20 px-2 py-1 border rounded-md bg-background text-sm"
+              className="w-20 h-8"
               min="100"
               max="500"
             />
@@ -190,12 +194,12 @@ ${text}`;
           </div>
           
           <div className="flex items-center gap-2">
-            <label className="text-sm font-medium">Speaking Speed:</label>
-            <input
+            <Label>Speaking Speed:</Label>
+            <Input
               type="number"
               value={speakingSpeed}
               onChange={(e) => setSpeakingSpeed(Number(e.target.value))}
-              className="w-20 px-2 py-1 border rounded-md bg-background text-sm"
+              className="w-20 h-8"
               min="100"
               max="300"
             />
@@ -210,20 +214,23 @@ ${text}`;
               className="hidden"
               id="file-upload"
             />
-            <label
-              htmlFor="file-upload"
-              className="px-3 py-1 text-sm border rounded-md hover:bg-secondary cursor-pointer"
+            <Button
+              variant="outline"
+              size="sm"
+              asChild
             >
-              <Upload className="w-4 h-4 inline mr-1" />
-              Upload Text
-            </label>
-            <button
+              <label htmlFor="file-upload" className="cursor-pointer">
+                <Upload className="w-4 h-4 mr-1" />
+                Upload Text
+              </label>
+            </Button>
+            <Button
               onClick={handleExport}
               disabled={stats.words === 0}
-              className="px-3 py-1 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+              size="sm"
             >
               Export Report
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -232,11 +239,12 @@ ${text}`;
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Text Input */}
         <div className="lg:col-span-2 space-y-2">
-          <textarea
+          <Label>Your Text</Label>
+          <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="Type or paste your text here..."
-            className="w-full h-[500px] p-4 border rounded-lg bg-background resize-none focus:outline-none focus:ring-1 focus:ring-ring"
+            className="min-h-[500px] resize-none"
             spellCheck={false}
           />
         </div>
@@ -328,12 +336,13 @@ ${text}`;
               <TrendingUp className="w-4 h-4" />
               Top Keywords
             </h3>
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setShowKeywords(!showKeywords)}
-              className="text-sm text-primary hover:underline"
             >
               {showKeywords ? 'Hide' : 'Show'}
-            </button>
+            </Button>
           </div>
           
           {showKeywords && stats.keywordDensity.length > 0 && (

@@ -292,9 +292,11 @@ export default function Base64Encoder() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Input */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">
-            {mode === 'encode' ? 'Input' : 'Base64 String'}
-          </label>
+          <div className="flex items-center justify-between h-10">
+            <label className="text-sm font-medium">
+              {mode === 'encode' ? 'Input' : 'Base64 String'}
+            </label>
+          </div>
           
           {mode === 'encode' && inputType === 'file' ? (
             <div className="h-[400px] border-2 border-dashed rounded-lg flex items-center justify-center bg-secondary/10">
@@ -344,11 +346,11 @@ export default function Base64Encoder() {
 
         {/* Output */}
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between h-10">
             <label className="text-sm font-medium">
               {mode === 'encode' ? 'Base64 Output' : 'Decoded Output'}
             </label>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               {result && inputType === 'file' && mode === 'encode' && (
                 <button
                   onClick={() => {
@@ -366,7 +368,7 @@ export default function Base64Encoder() {
               <button
                 onClick={handleCopy}
                 disabled={!result}
-                className="p-2 text-sm hover:bg-secondary rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                className="h-8 w-8 inline-flex items-center justify-center text-sm hover:bg-secondary rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Copy to clipboard"
               >
                 {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
@@ -374,7 +376,7 @@ export default function Base64Encoder() {
               <button
                 onClick={handleDownload}
                 disabled={!result}
-                className="p-2 text-sm hover:bg-secondary rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                className="h-8 w-8 inline-flex items-center justify-center text-sm hover:bg-secondary rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Download"
               >
                 <Download className="w-4 h-4" />
