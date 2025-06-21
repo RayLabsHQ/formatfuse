@@ -207,22 +207,22 @@ export const pdfTools: Tool[] = [
 // Developer Tools
 export const devTools: Tool[] = [
   { 
-    id: 'json-format', 
-    name: 'Format JSON', 
-    description: 'Beautify and validate JSON data',
+    id: 'json-formatter', 
+    name: 'JSON Formatter', 
+    description: 'Beautify, minify and validate JSON data with error detection',
     icon: Braces, 
     searches: '150k',
     category: 'dev',
-    route: '/tools/json-format'
+    route: '/tools/json-formatter'
   },
   { 
-    id: 'base64-encode', 
+    id: 'base64-encoder', 
     name: 'Base64 Encode/Decode', 
-    description: 'Encode and decode Base64 strings',
+    description: 'Encode and decode Base64 strings with file support',
     icon: Hash, 
     searches: '100k',
     category: 'dev',
-    route: '/tools/base64-encode'
+    route: '/tools/base64-encoder'
   },
   { 
     id: 'qr-generator', 

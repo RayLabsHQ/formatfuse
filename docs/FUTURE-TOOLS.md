@@ -31,30 +31,37 @@ This document tracks tools that are planned for implementation but not yet avail
    - Split by page count
 
 ### Developer Tools
-1. **QR Code Generator** (200k searches/month)
+1. **QR Code Generator** (200k searches/month) - ✅ Ready to implement
    - Text, URL, WiFi, vCard support
    - Custom colors and logos
    - Multiple download formats
 
-2. **JSON Formatter** (150k searches/month)
-   - Validate and beautify JSON
-   - Minify option
-   - Syntax highlighting
+2. ~~**JSON Formatter** (150k searches/month) - ✅ Implemented~~
+   - ✅ Validate and beautify JSON with syntax error highlighting
+   - ✅ Minify option and auto-fix common errors
+   - ✅ Statistics and keyword counting
 
-3. **URL Shortener** (150k searches/month)
-   - Create short links
-   - QR codes for URLs
-   - Analytics (optional)
+3. ~~**Word Counter** (120k searches/month) - ✅ Implemented~~
+   - ✅ Count words, characters, sentences, paragraphs
+   - ✅ Reading and speaking time estimates
+   - ✅ Keyword density analysis with export
 
-4. **Word Counter** (120k searches/month)
-   - Count words, characters, sentences
-   - Reading time estimate
-   - Keyword density
+4. ~~**Base64 Encoder** (100k searches/month) - ✅ Implemented~~
+   - ✅ Encode/decode text and files with auto-detection
+   - ✅ URL-safe encoding and Data URI generation
+   - ✅ Live preview for images
 
-5. **Base64 Encoder** (100k searches/month)
-   - Encode/decode text and files
-   - URL-safe encoding
-   - Live preview
+5. **Hash Generator** (80k searches/month) - ✅ Ready to implement
+   - MD5, SHA-1, SHA-256, SHA-512
+   - File and text hashing
+   - HMAC support
+
+6. **Case Converter** (90k searches/month) - ✅ Ready to implement
+   - Multiple case formats
+   - Programming conventions
+   - Batch conversion
+
+~~3. **URL Shortener** (150k searches/month) - ❌ Skipped (requires backend)~~
 
 ### Image Tools
 1. **Background Remover** (300k searches/month)

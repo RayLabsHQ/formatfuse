@@ -1,0 +1,11 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import JsonFormatter from '../../components/converters/JsonFormatter';
+
+const title = 'JSON Formatter - Validate, Format & Minify JSON Online';
+const description = 'Free online JSON formatter and validator. Beautify, minify, and validate JSON data with syntax highlighting and error detection.';
+---
+
+<Layout title={title} description={description}>
+  <JsonFormatter client:load />
+</Layout>
