@@ -3,7 +3,7 @@ import {
   Search, Sun, Moon, Menu, X, ChevronDown,
   FileText, ArrowRight,
   Layers, FileDown, Scissors, Type, Image,
-  QrCode, Braces, Hash, TrendingUp, Sparkles
+  QrCode, Braces, Hash, TrendingUp, Sparkles, RotateCw
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -23,6 +23,7 @@ const pdfTools: Tool[] = [
   { id: 'pdf-merge', name: 'Merge PDF', icon: Layers },
   { id: 'pdf-compress', name: 'Compress PDF', icon: FileDown },
   { id: 'pdf-split', name: 'Split PDF', icon: Scissors },
+  { id: 'pdf-rotate', name: 'Rotate PDF', icon: RotateCw },
   { id: 'jpg-to-pdf', name: 'JPG to PDF', icon: Image, isPopular: true },
   { id: 'word-to-pdf', name: 'Word to PDF', icon: Type },
   { id: 'pdf-to-jpg', name: 'PDF to JPG', icon: Image },

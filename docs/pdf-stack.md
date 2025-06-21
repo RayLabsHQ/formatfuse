@@ -28,9 +28,20 @@ All PDF operations run in Web Workers using Comlink for clean async APIs:
    - Shows file metadata and page count
    - Progress tracking
 
+2. **PDF Merge** (`/convert/pdf-merge`)
+   - Merge multiple PDFs with drag-to-reorder
+   - Shows page count and file size for each PDF
+   - Downloads merged PDF
+   - Progress tracking
+
+3. **PDF Rotate** (`/convert/pdf-rotate`)
+   - Rotate by 90°, 180°, or 270°
+   - Rotate all pages or specific page ranges
+   - Visual rotation selection
+   - Progress tracking
+
 ### 🚧 In Progress (Phase 1)
-2. **PDF Merge** - Next priority
-3. **PDF Rotate** - Simple operation
+4. **Enhanced JPG to PDF** - Add multi-image support
 
 ### 📋 Planned (Phase 2)
 4. **Enhanced JPG to PDF** - Multi-image support
