@@ -119,6 +119,20 @@
     transition: transform 150ms ease-out, opacity 150ms ease-out;
   }
   
+  /* Shimmer animation for progress */
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(200%);
+    }
+  }
+  
+  .animate-shimmer {
+    animation: shimmer 2s infinite;
+  }
+  
   /* Custom focus styles */
   *:focus-visible {
     @apply outline-2 outline-offset-2 outline-primary rounded-sm;

@@ -3,7 +3,7 @@ import {
   Search, Sun, Moon, Menu, X, ChevronDown,
   FileText, ArrowRight,
   Layers, FileDown, Scissors, Type, Image,
-  QrCode, Braces, Hash, TrendingUp, Sparkles
+  QrCode, Braces, Hash, TrendingUp, Sparkles, RotateCw
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -19,14 +19,14 @@ interface Tool {
 
 // Tool definitions
 const pdfTools: Tool[] = [
-  { id: 'pdf-to-word', name: 'PDF to Word', icon: FileText, isPopular: true, isBeta: true },
-  { id: 'jpg-to-pdf', name: 'JPG to PDF', icon: Image, isPopular: true, isBeta: true },
-  // Coming soon - not yet implemented:
-  // { id: 'pdf-merge', name: 'Merge PDF', icon: Layers },
-  // { id: 'pdf-compress', name: 'Compress PDF', icon: FileDown },
-  // { id: 'pdf-split', name: 'Split PDF', icon: Scissors },
-  // { id: 'word-to-pdf', name: 'Word to PDF', icon: Type },
-  // { id: 'pdf-to-jpg', name: 'PDF to JPG', icon: Image },
+  { id: 'pdf-to-word', name: 'PDF to Word', icon: FileText, isPopular: true },
+  { id: 'pdf-merge', name: 'Merge PDF', icon: Layers },
+  { id: 'pdf-compress', name: 'Compress PDF', icon: FileDown },
+  { id: 'pdf-split', name: 'Split PDF', icon: Scissors },
+  { id: 'pdf-rotate', name: 'Rotate PDF', icon: RotateCw },
+  { id: 'jpg-to-pdf', name: 'JPG to PDF', icon: Image, isPopular: true },
+  { id: 'word-to-pdf', name: 'Word to PDF', icon: Type },
+  { id: 'pdf-to-jpg', name: 'PDF to JPG', icon: Image },
 ];
 
 const imageTools: Tool[] = [
@@ -45,8 +45,6 @@ const devTools: Tool[] = [
   { id: 'word-counter', name: 'Word Counter', icon: Type },
   { id: 'base64-encoder', name: 'Base64 Encode/Decode', icon: Hash },
   { id: 'case-converter', name: 'Case Converter', icon: Type, isNew: true },
-  // Coming soon - not yet implemented:
-  // { id: 'qr-generator', name: 'QR Code Generator', icon: QrCode },
 ];
 
 const categories = [
@@ -179,7 +177,7 @@ export default function Navigation() {
                 </button>
                 
                 {activeDropdown === category.name && (
-                  <div className="absolute top-[calc(100%-1px)] left-0 pt-3 w-[600px] z-50">
+                  <div className="absolute top-full left-0 mt-1 w-[600px] z-[100] pointer-events-auto">
                     <div className="bg-card rounded-lg shadow-lg border p-4">
                       <div className="mb-3 flex items-center justify-between">
                         <h3 className="font-semibold text-sm">{category.name}</h3>
@@ -259,7 +257,7 @@ export default function Navigation() {
                 
                 {/* Search Results Dropdown */}
                 {showSearchResults && searchResults.length > 0 && (
-                  <div className="absolute top-full mt-2 w-80 bg-card rounded-lg shadow-lg border p-2 z-50">
+                  <div className="absolute top-full mt-2 w-80 bg-card rounded-lg shadow-lg border p-2 z-[100]">
                     <div className="text-xs text-muted-foreground px-2 py-1 mb-1">
                       {searchResults.length} results
                     </div>

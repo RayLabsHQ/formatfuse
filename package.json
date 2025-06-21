@@ -24,6 +24,7 @@
     "@radix-ui/react-collapsible": "^1.1.11",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-hover-card": "^1.1.14",
+    "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-navigation-menu": "^1.2.13",
     "@radix-ui/react-progress": "^1.1.7",
     "@radix-ui/react-select": "^2.2.5",
@@ -51,6 +52,7 @@
     "lucide-react": "^0.517.0",
     "next-themes": "^0.4.6",
     "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^5.3.31",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-window": "^1.8.11",
@@ -63,6 +65,7 @@
   "packageManager": "pnpm@10.8.1",
   "devDependencies": {
     "@astrojs/check": "^0.9.4",
+    "@types/file-saver": "^2.0.7",
     "@types/jsdom": "^21.1.7",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",

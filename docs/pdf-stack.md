@@ -1,19 +1,134 @@
-# PDF Processing Stack Research & Feasibility
+# PDF Stack Implementation
 
 ## Overview
+This document tracks the implementation of PDF tools in FormatFuse, leveraging lessons learned from analyzing Stirling-PDF's MIT-licensed implementation.
 
-This document analyzes the feasibility of implementing browser-based PDF tools for FormatFuse, covering technical options, performance considerations, and implementation strategies for our top PDF tools.
+## Technology Stack
 
-## Target PDF Tools Priority
+### Core Libraries
+- **pdf-lib** (^1.17.1) - PDF manipulation (split, merge, rotate, metadata)
+- **pdfjs-dist** (^5.3.31) - PDF rendering and conversion to images
+- **Comlink** (^4.4.2) - Clean worker communication pattern
+- **JSZip** (^3.10.1) - Creating ZIP archives for multi-file downloads
+- **file-saver** (^2.0.5) - Downloading files in the browser
 
-Based on search volume from our plan:
-1. **PDF to Word** (450k/mo) - Most complex
-2. **Word to PDF** (380k/mo) - Requires document parsing
-3. **JPG to PDF** (300k/mo) - Simpler, image-based
-4. **PDF Merge** (250k/mo) - Medium complexity
-5. **PDF Compress** (200k/mo) - Requires optimization algorithms
-6. **PDF to JPG** (180k/mo) - Rendering challenge
-7. **PDF Split** (180k/mo) - Simple manipulation
+### Architecture
+All PDF operations run in Web Workers using Comlink for clean async APIs:
+- `pdf-operations.worker.ts` - Central worker for all PDF operations
+- `pdf-operations.ts` - Main thread API wrapper
+- `usePdfOperations.ts` - React hook for component integration
+
+## Implementation Status
+
+### ✅ Completed (Phase 1)
+1. **PDF Split** (`/convert/pdf-split`)
+   - Split by custom page ranges (e.g., "1-3, 5, 7-10")
+   - Split every N pages
+   - Download individual parts or all as ZIP
+   - Shows file metadata and page count
+   - Progress tracking
+
+2. **PDF Merge** (`/convert/pdf-merge`)
+   - Merge multiple PDFs with drag-to-reorder
+   - Shows page count and file size for each PDF
+   - Downloads merged PDF
+   - Progress tracking
+
+3. **PDF Rotate** (`/convert/pdf-rotate`)
+   - Rotate by 90°, 180°, or 270°
+   - Rotate all pages or specific page ranges
+   - Visual rotation selection
+   - Progress tracking
+
+4. **Enhanced JPG to PDF** (`/convert/jpg-to-pdf`)
+   - Support for multiple images
+   - Drag-to-reorder functionality
+   - Preview thumbnails
+   - Batch processing
+
+5. **PDF to JPG** (`/convert/pdf-to-jpg`)
+   - Convert all or specific pages
+   - JPEG/PNG output formats
+   - Adjustable quality and resolution
+   - Batch download as ZIP
+
+### 📋 Planned (Phase 2)
+6. **Extract Pages** - Variant of split
+
+### 🔮 Future (Phase 3)
+7. **PDF Compress** - Needs WASM solution
+8. **Word to PDF** - Needs DOCX parsing
+9. **Excel to PDF** - Needs spreadsheet parsing
+
+## Key Learnings from Stirling-PDF
+
+### What Works Client-Side
+- Basic PDF manipulation (split, merge, rotate) works well with pdf-lib
+- PDF.js handles rendering for preview and conversion to images
+- File operations can be batched and downloaded as ZIP
+
+### What Needs Server/WASM
+- PDF compression (they use qpdf command-line tool)
+- OCR functionality (they use Tesseract)
+- Office format conversions (they use LibreOffice)
+
+### UI/UX Patterns
+- Visual page preview helps users select pages
+- Drag-and-drop for reordering pages in merge
+- Clear progress indication for long operations
+- Batch download as ZIP for multiple outputs
+
+## Implementation Guide
+
+### Adding a New PDF Tool
+
+1. **Create the Worker Method** in `pdf-operations.worker.ts`:
+```typescript
+async yourOperation(
+  pdfData: Uint8Array,
+  options: YourOptions,
+  onProgress?: (progress: number) => void
+): Promise<Uint8Array> {
+  // Implementation
+}
+```
+
+2. **Add to Main Thread API** in `pdf-operations.ts`:
+```typescript
+async yourOperation(
+  pdfData: Uint8Array,
+  options: YourOptions,
+  onProgress?: (progress: number) => void
+): Promise<Uint8Array> {
+  return this.api.yourOperation(
+    pdfData,
+    options,
+    onProgress ? Comlink.proxy(onProgress) : undefined
+  );
+}
+```
+
+3. **Create React Component** following the pattern in `PdfSplit.tsx`
+
+4. **Add Route** in `pages/convert/[tool].astro`
+
+5. **Update Tool Registry** in `data/tools.ts`
+
+6. **Write Tests** in `tests/workers/pdf-operations.test.ts`
+
+## Performance Considerations
+
+### Current Optimizations
+- Web Workers prevent UI blocking
+- Comlink transfers ArrayBuffers without copying
+- Progress callbacks for user feedback
+- Lazy loading of PDF.js worker
+
+### Future Optimizations
+- WASM modules for compression
+- Streaming for large files
+- IndexedDB caching for repeated operations
+- Service Worker for offline functionality
 
 ## Browser-Based PDF Libraries Analysis
 
