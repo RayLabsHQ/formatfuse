@@ -1,32 +1,43 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { Button } from '../ui/button';
-import { Progress } from '../ui/progress';
 import { usePdfOperations } from '../../hooks/usePdfOperations';
 import { 
   Layers, Download, FileText, AlertCircle, Upload, FileUp,
-  FileCheck, CheckCircle, Loader2, X, GripVertical
+  FileCheck, CheckCircle, Loader2, X, GripVertical, Eye,
+  EyeOff, Plus, FileStack, ChevronUp, ChevronDown, Info
 } from 'lucide-react';
 import FileSaver from 'file-saver';
+import { DropZone } from '../ui/drop-zone';
+import { PdfPreview } from '../ui/pdf-preview';
+import { ProgressIndicator, MultiStepProgress } from '../ui/progress-indicator';
 const { saveAs } = FileSaver;
 
 interface FileWithPreview {
   file: File;
   id: string;
   pageCount?: number;
+  data?: Uint8Array;
+  showPreview?: boolean;
 }
 
 export const PdfMerge: React.FC = () => {
   const [files, setFiles] = useState<FileWithPreview[]>([]);
   const [mergedResult, setMergedResult] = useState<Uint8Array | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
   const [draggedFile, setDraggedFile] = useState<string | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [showGlobalPreview, setShowGlobalPreview] = useState(false);
+  const [processingSteps, setProcessingSteps] = useState<any[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const { merge, getPageCount, isProcessing, progress, error } = usePdfOperations();
+  const { merge, getPageCount, getMetadata, isProcessing, progress, error } = usePdfOperations();
 
   const handleFileSelect = useCallback(async (selectedFiles: FileList) => {
     const newFiles: FileWithPreview[] = [];
+    
+    // Set processing steps for visual feedback
+    setProcessingSteps([
+      { id: 'read', label: `Reading ${selectedFiles.length} file(s)`, status: 'processing' }
+    ]);
     
     for (let i = 0; i < selectedFiles.length; i++) {
       const file = selectedFiles[i];
@@ -37,14 +48,17 @@ export const PdfMerge: React.FC = () => {
           newFiles.push({
             file,
             id: `${Date.now()}-${i}`,
-            pageCount
+            pageCount,
+            data: fileData,
+            showPreview: false
           });
         } catch (err) {
           console.error('Error reading PDF:', err);
           newFiles.push({
             file,
             id: `${Date.now()}-${i}`,
-            pageCount: undefined
+            pageCount: undefined,
+            showPreview: false
           });
         }
       }
@@ -52,6 +66,7 @@ export const PdfMerge: React.FC = () => {
     
     setFiles(prev => [...prev, ...newFiles]);
     setMergedResult(null);
+    setProcessingSteps([]);
   }, [getPageCount]);
 
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,23 +76,10 @@ export const PdfMerge: React.FC = () => {
     }
   }, [handleFileSelect]);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const droppedFiles = e.dataTransfer.files;
-    if (droppedFiles) {
-      handleFileSelect(droppedFiles);
-    }
-  }, [handleFileSelect]);
-
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
+  const toggleFilePreview = useCallback((id: string) => {
+    setFiles(prev => prev.map(f => 
+      f.id === id ? { ...f, showPreview: !f.showPreview } : f
+    ));
   }, []);
 
   const removeFile = useCallback((id: string) => {
@@ -116,18 +118,56 @@ export const PdfMerge: React.FC = () => {
     setMergedResult(null);
   }, [files, draggedFile]);
 
+  const moveFile = useCallback((index: number, direction: 'up' | 'down') => {
+    const newFiles = [...files];
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= files.length) return;
+    
+    [newFiles[index], newFiles[newIndex]] = [newFiles[newIndex], newFiles[index]];
+    setFiles(newFiles);
+    setMergedResult(null);
+  }, [files]);
+
   const handleMerge = useCallback(async () => {
     if (files.length < 2) return;
 
     try {
+      // Set up processing steps for visual feedback
+      setProcessingSteps([
+        { id: 'prepare', label: 'Preparing files', status: 'processing' },
+        { id: 'merge', label: `Merging ${files.length} PDFs`, status: 'pending' },
+        { id: 'finalize', label: 'Creating final document', status: 'pending' }
+      ]);
+
+      // Use existing data if available, otherwise load it
       const fileDataArray = await Promise.all(
-        files.map(async (f) => new Uint8Array(await f.file.arrayBuffer()))
+        files.map(async (f) => f.data || new Uint8Array(await f.file.arrayBuffer()))
       );
       
+      setProcessingSteps(prev => prev.map(step => ({
+        ...step,
+        status: step.id === 'prepare' ? 'completed' : step.id === 'merge' ? 'processing' : step.status
+      })));
+      
       const merged = await merge({ files: fileDataArray });
+      
+      setProcessingSteps(prev => prev.map(step => ({
+        ...step,
+        status: step.id === 'finalize' ? 'processing' : step.status === 'pending' ? 'completed' : step.status
+      })));
+      
       setMergedResult(merged);
+      
+      setProcessingSteps(prev => prev.map(step => ({
+        ...step,
+        status: 'completed'
+      })));
     } catch (err) {
       console.error('Error merging PDFs:', err);
+      setProcessingSteps(prev => prev.map((step, idx) => ({
+        ...step,
+        status: idx === 0 ? 'error' : 'pending'
+      })));
     }
   }, [files, merge]);
 
@@ -162,7 +202,7 @@ export const PdfMerge: React.FC = () => {
               Merge PDF Files
             </h1>
             <p className="mt-2 text-sm sm:text-base text-muted-foreground max-w-3xl">
-              Combine multiple PDF files into one document. Drag to reorder pages before merging.
+              Combine multiple PDF files into one document. Preview pages, drag to reorder, and merge with confidence.
               100% private - all processing happens in your browser.
             </p>
             
@@ -170,7 +210,7 @@ export const PdfMerge: React.FC = () => {
             <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                <span className="font-medium">No file size limits</span>
+                <span className="font-medium">Page preview</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
@@ -178,7 +218,7 @@ export const PdfMerge: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                <span className="font-medium">Preserve quality</span>
+                <span className="font-medium">Batch processing</span>
               </div>
             </div>
           </div>
@@ -188,61 +228,19 @@ export const PdfMerge: React.FC = () => {
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
         {/* Drop Zone */}
         {files.length === 0 && (
-          <div
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            className={`relative border-2 border-dashed rounded-lg p-12 text-center ff-transition ${
-              isDragging 
-                ? 'border-primary bg-primary/[0.05] drop-zone-active' 
-                : 'border-border drop-zone hover:border-primary/[0.5]'
-            }`}
-          >
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".pdf,application/pdf"
-              multiple
-              onChange={handleFileChange}
-              className="hidden"
-            />
-            
-            <div className="space-y-4">
-              <div className="mx-auto w-16 h-16 bg-primary/[0.1] rounded-full flex items-center justify-center">
-                <Upload className="w-8 h-8 text-primary" />
-              </div>
-              
-              <div>
-                <h3 className="text-lg font-semibold">Drop PDF files here</h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  or{' '}
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="text-primary hover:underline font-medium"
-                  >
-                    browse files
-                  </button>
-                  {' '}from your computer
-                </p>
-              </div>
-              
-              <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <FileCheck className="w-3 h-3" />
-                  Multiple PDFs
-                </span>
-                <span className="flex items-center gap-1">
-                  <FileUp className="w-3 h-3" />
-                  No file size limit
-                </span>
-              </div>
-            </div>
-          </div>
+          <DropZone
+            onDrop={handleFileSelect}
+            accept=".pdf,application/pdf"
+            multiple={true}
+            maxSize={100 * 1024 * 1024} // 100MB per file
+            className="h-64"
+          />
         )}
 
         {/* File List */}
         {files.length > 0 && (
           <div className="space-y-6">
+            {/* File Management Card */}
             <div className="bg-card border rounded-lg p-6">
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -251,58 +249,169 @@ export const PdfMerge: React.FC = () => {
                     {files.length} files • {totalPages} total pages
                   </p>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <Upload className="w-4 h-4 mr-2" />
-                  Add more
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowGlobalPreview(!showGlobalPreview)}
+                  >
+                    {showGlobalPreview ? (
+                      <>
+                        <EyeOff className="w-4 h-4 mr-2" />
+                        Hide All Previews
+                      </>
+                    ) : (
+                      <>
+                        <Eye className="w-4 h-4 mr-2" />
+                        Show All Previews
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add more
+                  </Button>
+                </div>
               </div>
               
-              <div className="space-y-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,application/pdf"
+                multiple
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              
+              {/* Info Box */}
+              <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-lg p-3 mb-4">
+                <div className="flex items-start gap-2">
+                  <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5" />
+                  <div className="text-sm text-blue-700 dark:text-blue-300">
+                    Drag files to reorder them. Click the eye icon to preview pages from each PDF.
+                    The final merged PDF will preserve all formatting and quality.
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
                 {files.map((fileInfo, index) => (
-                  <div
-                    key={fileInfo.id}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, fileInfo.id)}
-                    onDragOver={(e) => handleDragOverFile(e, index)}
-                    onDrop={(e) => handleDropFile(e, index)}
-                    onDragEnd={() => {
-                      setDragOverIndex(null);
-                      setDraggedFile(null);
-                    }}
-                    className={`flex items-center gap-3 p-3 bg-secondary/[0.3] rounded-lg cursor-move ff-transition ${
-                      dragOverIndex === index ? 'ring-2 ring-primary' : ''
-                    } ${draggedFile === fileInfo.id ? 'opacity-50' : ''}`}
-                  >
-                    <GripVertical className="w-4 h-4 text-muted-foreground" />
-                    <div className="p-1.5 bg-tool-pdf/[0.1] text-tool-pdf rounded">
-                      <FileText className="h-4 w-4" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="font-medium text-sm">{fileInfo.file.name}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {fileInfo.pageCount ? `${fileInfo.pageCount} pages • ` : ''}
-                        {formatFileSize(fileInfo.file.size)}
+                  <div key={fileInfo.id} className="space-y-2">
+                    <div
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, fileInfo.id)}
+                      onDragOver={(e) => handleDragOverFile(e, index)}
+                      onDrop={(e) => handleDropFile(e, index)}
+                      onDragEnd={() => {
+                        setDragOverIndex(null);
+                        setDraggedFile(null);
+                      }}
+                      className={`flex items-center gap-3 p-3 bg-secondary/[0.3] rounded-lg cursor-move ff-transition ${
+                        dragOverIndex === index ? 'ring-2 ring-primary scale-[1.02]' : ''
+                      } ${draggedFile === fileInfo.id ? 'opacity-50' : ''} hover:bg-secondary/[0.5]`}
+                    >
+                      <GripVertical className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                      
+                      <div className="p-1.5 bg-tool-pdf/[0.1] text-tool-pdf rounded">
+                        <FileText className="h-4 w-4" />
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-sm truncate">{fileInfo.file.name}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {fileInfo.pageCount ? `${fileInfo.pageCount} pages • ` : ''}
+                          {formatFileSize(fileInfo.file.size)}
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFilePreview(fileInfo.id);
+                          }}
+                        >
+                          {fileInfo.showPreview || showGlobalPreview ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </Button>
+                        
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => moveFile(index, 'up')}
+                          disabled={index === 0}
+                        >
+                          <ChevronUp className="h-4 w-4" />
+                        </Button>
+                        
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => moveFile(index, 'down')}
+                          disabled={index === files.length - 1}
+                        >
+                          <ChevronDown className="h-4 w-4" />
+                        </Button>
+                        
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => removeFile(fileInfo.id)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeFile(fileInfo.id)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
+                    
+                    {/* Individual File Preview */}
+                    {(fileInfo.showPreview || showGlobalPreview) && fileInfo.data && (
+                      <div className="ml-8 p-4 bg-background rounded-lg border">
+                        <PdfPreview
+                          pdfData={fileInfo.data}
+                          mode="strip"
+                          showPageNumbers={true}
+                          maxHeight={150}
+                        />
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
-              
-              <p className="text-xs text-muted-foreground mt-3">
-                Drag files to reorder them before merging
-              </p>
             </div>
+
+            {/* Smart Merge Options */}
+            {files.length > 2 && (
+              <div className="bg-card border rounded-lg p-6">
+                <h3 className="font-medium mb-3">Merge order summary</h3>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {files.map((file, index) => (
+                    <React.Fragment key={file.id}>
+                      <div className="flex items-center gap-2 px-3 py-1.5 bg-secondary/[0.5] rounded-full text-sm">
+                        <FileStack className="w-3 h-3" />
+                        <span className="truncate max-w-[150px]">{file.file.name}</span>
+                        <span className="text-xs text-muted-foreground">({file.pageCount || '?'} pages)</span>
+                      </div>
+                      {index < files.length - 1 && (
+                        <span className="text-muted-foreground">→</span>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Action Button */}
             <Button
@@ -319,7 +428,7 @@ export const PdfMerge: React.FC = () => {
               ) : (
                 <>
                   <Layers className="w-4 h-4 mr-2" />
-                  Merge {files.length} PDFs
+                  Merge {files.length} PDFs into one
                 </>
               )}
             </Button>
@@ -328,14 +437,22 @@ export const PdfMerge: React.FC = () => {
 
         {/* Progress */}
         {isProcessing && (
-          <div className="bg-card border rounded-lg p-4 mt-6">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span>Merging PDFs...</span>
-                <span className="font-mono">{Math.round(progress)}%</span>
+          <div className="mt-6">
+            <ProgressIndicator
+              progress={progress}
+              status="processing"
+              message="Merging your PDFs..."
+              showDetails={true}
+            />
+            
+            {processingSteps.length > 0 && (
+              <div className="mt-4">
+                <MultiStepProgress
+                  steps={processingSteps}
+                  currentStep={processingSteps.find(s => s.status === 'processing')?.id}
+                />
               </div>
-              <Progress value={progress} className="h-2" />
-            </div>
+            )}
           </div>
         )}
 

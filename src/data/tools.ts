@@ -290,6 +290,16 @@ export const documentTools: Tool[] = [
     searches: '90k',
     category: 'document',
     route: '/tools/markdown-to-html'
+  },
+  {
+    id: 'markdown-to-pdf',
+    name: 'Markdown to PDF',
+    description: 'Convert Markdown to PDF with live preview',
+    icon: Code,
+    searches: '110k',
+    isPopular: true,
+    category: 'document',
+    route: '/convert/markdown-to-pdf'
   }
 ];
 

@@ -3,9 +3,13 @@ import { Button } from '../ui/button';
 import { Progress } from '../ui/progress';
 import { 
   Image, Download, FileText, AlertCircle, Upload, FileUp,
-  FileCheck, CheckCircle, Loader2, X, GripVertical, Plus
+  FileCheck, CheckCircle, Loader2, X, GripVertical, Plus,
+  ChevronUp, ChevronDown, Info, Eye, EyeOff,
+  Settings
 } from 'lucide-react';
 import FileSaver from 'file-saver';
+import { DropZone } from '../ui/drop-zone';
+import { ProgressIndicator, MultiStepProgress } from '../ui/progress-indicator';
 const { saveAs } = FileSaver;
 
 interface ImageWithPreview {
@@ -29,12 +33,13 @@ interface ResponseMessage {
 export const JpgToPdf: React.FC = () => {
   const [images, setImages] = useState<ImageWithPreview[]>([]);
   const [pdfResult, setPdfResult] = useState<ArrayBuffer | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
   const [draggedImage, setDraggedImage] = useState<string | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<Error | null>(null);
+  const [showThumbnails, setShowThumbnails] = useState(true);
+  const [processingSteps, setProcessingSteps] = useState<any[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const workerRef = useRef<Worker | null>(null);
 
@@ -51,11 +56,23 @@ export const JpgToPdf: React.FC = () => {
       if (type === 'progress' && event.data.progress !== undefined) {
         setProgress(event.data.progress);
       } else if (type === 'complete' && event.data.result) {
+        setProcessingSteps(prev => prev.map(step => ({
+          ...step,
+          status: step.id === 'finalize' ? 'processing' : step.status === 'pending' ? 'completed' : step.status
+        })));
         setPdfResult(event.data.result);
         setIsProcessing(false);
+        setProcessingSteps(prev => prev.map(step => ({
+          ...step,
+          status: 'completed'
+        })));
       } else if (type === 'error') {
         setError(new Error(event.data.error || 'Conversion failed'));
         setIsProcessing(false);
+        setProcessingSteps(prev => prev.map((step, idx) => ({
+          ...step,
+          status: idx === 0 ? 'error' : 'pending'
+        })));
       }
     });
 
@@ -91,24 +108,6 @@ export const JpgToPdf: React.FC = () => {
     }
   }, [handleFileSelect]);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const droppedFiles = e.dataTransfer.files;
-    if (droppedFiles) {
-      handleFileSelect(droppedFiles);
-    }
-  }, [handleFileSelect]);
-
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-  }, []);
 
   const removeImage = useCallback((id: string) => {
     setImages(prev => {
@@ -152,12 +151,29 @@ export const JpgToPdf: React.FC = () => {
     setPdfResult(null);
   }, [images, draggedImage]);
 
+  const moveImage = useCallback((index: number, direction: 'up' | 'down') => {
+    const newImages = [...images];
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= images.length) return;
+    
+    [newImages[index], newImages[newIndex]] = [newImages[newIndex], newImages[index]];
+    setImages(newImages);
+    setPdfResult(null);
+  }, [images]);
+
   const handleConvert = useCallback(async () => {
     if (images.length === 0 || !workerRef.current) return;
 
     setIsProcessing(true);
     setProgress(0);
     setError(null);
+    
+    // Set up processing steps for visual feedback
+    setProcessingSteps([
+      { id: 'prepare', label: 'Preparing images', status: 'processing' },
+      { id: 'convert', label: `Converting ${images.length} images`, status: 'pending' },
+      { id: 'finalize', label: 'Creating PDF', status: 'pending' }
+    ]);
 
     try {
       const imageDataArray = await Promise.all(
@@ -166,6 +182,11 @@ export const JpgToPdf: React.FC = () => {
           name: img.file.name
         }))
       );
+      
+      setProcessingSteps(prev => prev.map(step => ({
+        ...step,
+        status: step.id === 'prepare' ? 'completed' : step.id === 'convert' ? 'processing' : step.status
+      })));
 
       const message: WorkerMessage = {
         type: 'convert',
@@ -176,6 +197,10 @@ export const JpgToPdf: React.FC = () => {
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Conversion failed'));
       setIsProcessing(false);
+      setProcessingSteps(prev => prev.map((step, idx) => ({
+        ...step,
+        status: idx === 0 ? 'error' : 'pending'
+      })));
     }
   }, [images]);
 
@@ -215,7 +240,7 @@ export const JpgToPdf: React.FC = () => {
               JPG to PDF Converter
             </h1>
             <p className="mt-2 text-sm sm:text-base text-muted-foreground max-w-3xl">
-              Convert JPG, PNG, and other image formats to PDF. Combine multiple images into a single PDF document.
+              Convert multiple images into a single PDF document. Preview pages, drag to reorder, and create perfect PDFs.
               100% private - all processing happens in your browser.
             </p>
             
@@ -223,7 +248,7 @@ export const JpgToPdf: React.FC = () => {
             <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                <span className="font-medium">Multiple images</span>
+                <span className="font-medium">Image preview</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
@@ -231,7 +256,7 @@ export const JpgToPdf: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                <span className="font-medium">Preserves quality</span>
+                <span className="font-medium">Batch processing</span>
               </div>
             </div>
           </div>
@@ -241,56 +266,13 @@ export const JpgToPdf: React.FC = () => {
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
         {/* Drop Zone */}
         {images.length === 0 && (
-          <div
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            className={`relative border-2 border-dashed rounded-lg p-12 text-center ff-transition ${
-              isDragging 
-                ? 'border-primary bg-primary/[0.05] drop-zone-active' 
-                : 'border-border drop-zone hover:border-primary/[0.5]'
-            }`}
-          >
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleFileChange}
-              className="hidden"
-            />
-            
-            <div className="space-y-4">
-              <div className="mx-auto w-16 h-16 bg-primary/[0.1] rounded-full flex items-center justify-center">
-                <Upload className="w-8 h-8 text-primary" />
-              </div>
-              
-              <div>
-                <h3 className="text-lg font-semibold">Drop images here</h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  or{' '}
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="text-primary hover:underline font-medium"
-                  >
-                    browse files
-                  </button>
-                  {' '}from your computer
-                </p>
-              </div>
-              
-              <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <FileCheck className="w-3 h-3" />
-                  JPG, PNG, GIF, BMP
-                </span>
-                <span className="flex items-center gap-1">
-                  <FileUp className="w-3 h-3" />
-                  Multiple files
-                </span>
-              </div>
-            </div>
-          </div>
+          <DropZone
+            onDrop={handleFileSelect}
+            accept="image/*"
+            multiple={true}
+            maxSize={50 * 1024 * 1024} // 50MB per image
+            className="h-64"
+          />
         )}
 
         {/* Image List */}

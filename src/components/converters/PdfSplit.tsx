@@ -1,107 +1,197 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { Button } from '../ui/button';
-import { Progress } from '../ui/progress';
 import { Input } from '../ui/input';
 import { usePdfOperations } from '../../hooks/usePdfOperations';
 import { parsePageRanges, formatPageRanges } from '../../lib/pdf-operations';
 import { 
-  Scissors, Download, FileText, AlertCircle, Upload, FileUp,
-  FileCheck, CheckCircle, Loader2
+  Scissors, Download, FileText, AlertCircle, Eye, Package,
+  CheckCircle, Loader2, Info, Zap, FileOutput
 } from 'lucide-react';
 import JSZip from 'jszip';
 import FileSaver from 'file-saver';
+import { DropZone } from '../ui/drop-zone';
+import { PdfPreview } from '../ui/pdf-preview';
+import { ProgressIndicator, MultiStepProgress } from '../ui/progress-indicator';
 const { saveAs } = FileSaver;
+
+interface SplitPreset {
+  id: string;
+  name: string;
+  description: string;
+  icon: React.ReactNode;
+  getRanges: (pageCount: number) => Array<{ start: number; end: number }>;
+}
+
+const SPLIT_PRESETS: SplitPreset[] = [
+  {
+    id: 'individual',
+    name: 'Individual Pages',
+    description: 'Split into separate files for each page',
+    icon: <FileOutput className="w-4 h-4" />,
+    getRanges: (pageCount) => Array.from({ length: pageCount }, (_, i) => ({ start: i + 1, end: i + 1 }))
+  },
+  {
+    id: 'halves',
+    name: 'Split in Half',
+    description: 'Divide the PDF into two equal parts',
+    icon: <Scissors className="w-4 h-4" />,
+    getRanges: (pageCount) => {
+      const mid = Math.ceil(pageCount / 2);
+      return [
+        { start: 1, end: mid },
+        { start: mid + 1, end: pageCount }
+      ];
+    }
+  },
+  {
+    id: 'thirds',
+    name: 'Split in Thirds',
+    description: 'Divide into three equal parts',
+    icon: <FileOutput className="w-4 h-4" />,
+    getRanges: (pageCount) => {
+      const third = Math.ceil(pageCount / 3);
+      return [
+        { start: 1, end: third },
+        { start: third + 1, end: third * 2 },
+        { start: third * 2 + 1, end: pageCount }
+      ];
+    }
+  }
+];
 
 export const PdfSplit: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
+  const [fileData, setFileData] = useState<Uint8Array | null>(null);
   const [pageCount, setPageCount] = useState<number>(0);
-  const [splitMode, setSplitMode] = useState<'range' | 'every'>('range');
-  const [pageRangeInput, setPageRangeInput] = useState<string>('');
-  const [everyNPages, setEveryNPages] = useState<number>(1);
-  const [results, setResults] = useState<Uint8Array[]>([]);
   const [metadata, setMetadata] = useState<any>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [splitMode, setSplitMode] = useState<'preset' | 'visual' | 'manual'>('preset');
+  const [selectedPreset, setSelectedPreset] = useState<string>('individual');
+  const [selectedPages, setSelectedPages] = useState<number[]>([]);
+  const [pageRangeInput, setPageRangeInput] = useState<string>('');
+  const [results, setResults] = useState<Uint8Array[]>([]);
+  const [showPreview, setShowPreview] = useState(false);
+  const [processingSteps, setProcessingSteps] = useState<any[]>([]);
   
   const { split, getPageCount, getMetadata, isProcessing, progress, error } = usePdfOperations();
 
-  const handleFileSelect = useCallback(async (selectedFile: File) => {
+  const handleFileSelect = useCallback(async (files: FileList) => {
+    const selectedFile = files[0];
     if (!selectedFile || selectedFile.type !== 'application/pdf') return;
 
     setFile(selectedFile);
     setResults([]);
-    setPageRangeInput('');
+    setSelectedPages([]);
     
     try {
-      const fileData = new Uint8Array(await selectedFile.arrayBuffer());
-      const count = await getPageCount(fileData);
-      const meta = await getMetadata(fileData);
+      const data = new Uint8Array(await selectedFile.arrayBuffer());
+      setFileData(data);
+      
+      const count = await getPageCount(data);
+      const meta = await getMetadata(data);
       setPageCount(count);
       setMetadata(meta);
       
       // Set default range to all pages
       setPageRangeInput(`1-${count}`);
+      
+      // Auto-show preview for better UX
+      if (count <= 20) {
+        setShowPreview(true);
+      }
     } catch (err) {
       console.error('Error reading PDF:', err);
     }
   }, [getPageCount, getMetadata]);
 
-  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      handleFileSelect(selectedFile);
-    }
-  }, [handleFileSelect]);
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile) {
-      handleFileSelect(droppedFile);
-    }
-  }, [handleFileSelect]);
-
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-  }, []);
-
-  const handleSplit = useCallback(async () => {
-    if (!file) return;
-
-    try {
-      const fileData = new Uint8Array(await file.arrayBuffer());
+  const handlePageSelect = useCallback((pages: number[]) => {
+    setSelectedPages(pages);
+    // Convert selected pages to ranges for manual mode
+    if (pages.length > 0) {
+      const ranges = [];
+      let start = pages[0];
+      let end = pages[0];
       
-      let pageRanges: Array<{ start: number; end: number }> = [];
-      
-      if (splitMode === 'range') {
-        pageRanges = parsePageRanges(pageRangeInput, pageCount);
-      } else {
-        // Split every N pages
-        for (let i = 1; i <= pageCount; i += everyNPages) {
-          pageRanges.push({
-            start: i,
-            end: Math.min(i + everyNPages - 1, pageCount)
-          });
+      for (let i = 1; i < pages.length; i++) {
+        if (pages[i] === end + 1) {
+          end = pages[i];
+        } else {
+          ranges.push(start === end ? `${start}` : `${start}-${end}`);
+          start = pages[i];
+          end = pages[i];
         }
       }
+      ranges.push(start === end ? `${start}` : `${start}-${end}`);
+      setPageRangeInput(ranges.join(', '));
+    }
+  }, []);
 
+  const getPageRanges = useCallback((): Array<{ start: number; end: number }> => {
+    if (splitMode === 'preset') {
+      const preset = SPLIT_PRESETS.find(p => p.id === selectedPreset);
+      return preset ? preset.getRanges(pageCount) : [];
+    } else if (splitMode === 'visual') {
+      // Convert selected pages to ranges
+      if (selectedPages.length === 0) return [];
+      
+      const sorted = [...selectedPages].sort((a, b) => a - b);
+      const ranges = [];
+      let start = sorted[0];
+      let end = sorted[0];
+      
+      for (let i = 1; i < sorted.length; i++) {
+        if (sorted[i] === end + 1) {
+          end = sorted[i];
+        } else {
+          ranges.push({ start, end });
+          start = sorted[i];
+          end = sorted[i];
+        }
+      }
+      ranges.push({ start, end });
+      return ranges;
+    } else {
+      return parsePageRanges(pageRangeInput, pageCount);
+    }
+  }, [splitMode, selectedPreset, selectedPages, pageRangeInput, pageCount]);
+
+  const handleSplit = useCallback(async () => {
+    if (!file || !fileData) return;
+
+    try {
+      const pageRanges = getPageRanges();
+      
       if (pageRanges.length === 0) {
         throw new Error('No valid page ranges specified');
       }
 
+      // Set up processing steps for visual feedback
+      setProcessingSteps([
+        { id: 'prepare', label: 'Preparing PDF', status: 'processing' },
+        { id: 'split', label: `Splitting into ${pageRanges.length} parts`, status: 'pending' },
+        { id: 'finalize', label: 'Finalizing files', status: 'pending' }
+      ]);
+
       const splitResults = await split(fileData, { pageRanges });
+      
+      setProcessingSteps(prev => prev.map(step => ({
+        ...step,
+        status: step.id === 'prepare' ? 'completed' : step.id === 'split' ? 'processing' : step.status
+      })));
+      
       setResults(splitResults);
+      
+      setProcessingSteps(prev => prev.map(step => ({
+        ...step,
+        status: 'completed'
+      })));
     } catch (err) {
       console.error('Error splitting PDF:', err);
+      setProcessingSteps(prev => prev.map((step, idx) => ({
+        ...step,
+        status: idx === 0 ? 'error' : 'pending'
+      })));
     }
-  }, [file, split, splitMode, pageRangeInput, pageCount, everyNPages]);
+  }, [file, fileData, split, getPageRanges]);
 
   const downloadSingle = useCallback((data: Uint8Array, index: number) => {
     const blob = new Blob([data], { type: 'application/pdf' });
@@ -142,7 +232,7 @@ export const PdfSplit: React.FC = () => {
               Split PDF
             </h1>
             <p className="mt-2 text-sm sm:text-base text-muted-foreground max-w-3xl">
-              Extract pages or split your PDF into multiple files. Fast and secure PDF splitter that works entirely in your browser.
+              Extract pages or split your PDF into multiple files. Use presets for quick splitting or select pages visually.
               100% private - no file uploads required.
             </p>
             
@@ -150,15 +240,15 @@ export const PdfSplit: React.FC = () => {
             <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                <span className="font-medium">No file size limits</span>
+                <span className="font-medium">Visual page selection</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                <span className="font-medium">Split by pages or ranges</span>
+                <span className="font-medium">Smart presets</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                <span className="font-medium">Download as ZIP</span>
+                <span className="font-medium">Batch download</span>
               </div>
             </div>
           </div>
@@ -168,55 +258,12 @@ export const PdfSplit: React.FC = () => {
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
         {/* Drop Zone */}
         {!file && (
-          <div
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            className={`relative border-2 border-dashed rounded-lg p-12 text-center ff-transition ${
-              isDragging 
-                ? 'border-primary bg-primary/[0.05] drop-zone-active' 
-                : 'border-border drop-zone hover:border-primary/[0.5]'
-            }`}
-          >
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".pdf,application/pdf"
-              onChange={handleFileChange}
-              className="hidden"
-            />
-            
-            <div className="space-y-4">
-              <div className="mx-auto w-16 h-16 bg-primary/[0.1] rounded-full flex items-center justify-center">
-                <Upload className="w-8 h-8 text-primary" />
-              </div>
-              
-              <div>
-                <h3 className="text-lg font-semibold">Drop PDF file here</h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  or{' '}
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="text-primary hover:underline font-medium"
-                  >
-                    browse files
-                  </button>
-                  {' '}from your computer
-                </p>
-              </div>
-              
-              <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <FileCheck className="w-3 h-3" />
-                  PDF files only
-                </span>
-                <span className="flex items-center gap-1">
-                  <FileUp className="w-3 h-3" />
-                  No file size limit
-                </span>
-              </div>
-            </div>
-          </div>
+          <DropZone
+            onDrop={handleFileSelect}
+            accept=".pdf,application/pdf"
+            maxSize={100 * 1024 * 1024} // 100MB
+            className="h-64"
+          />
         )}
 
         {file && pageCount > 0 && (
@@ -239,54 +286,163 @@ export const PdfSplit: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setFile(null);
-                    setResults([]);
-                    setPageCount(0);
-                    setMetadata(null);
-                    if (fileInputRef.current) {
-                      fileInputRef.current.value = '';
-                    }
-                  }}
-                >
-                  Change file
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowPreview(!showPreview)}
+                  >
+                    <Eye className="w-4 h-4 mr-2" />
+                    {showPreview ? 'Hide' : 'Show'} Preview
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setFile(null);
+                      setFileData(null);
+                      setResults([]);
+                      setPageCount(0);
+                      setMetadata(null);
+                      setShowPreview(false);
+                    }}
+                  >
+                    Change file
+                  </Button>
+                </div>
               </div>
             </div>
 
+            {/* PDF Preview */}
+            {showPreview && fileData && (
+              <div className="bg-card border rounded-lg p-6">
+                <h3 className="font-medium mb-4">Page Preview</h3>
+                <PdfPreview
+                  pdfData={fileData}
+                  mode={splitMode === 'visual' ? 'grid' : 'strip'}
+                  selectable={splitMode === 'visual'}
+                  selectedPages={selectedPages}
+                  onPageSelect={handlePageSelect}
+                  maxHeight={400}
+                />
+              </div>
+            )}
+
             {/* Split Options */}
-            <div className="bg-card border rounded-lg p-6 space-y-4">
-              <h3 className="font-medium">Split Options</h3>
+            <div className="bg-card border rounded-lg p-6 space-y-6">
+              <h3 className="font-medium">How would you like to split?</h3>
               
-              <div className="grid grid-cols-2 gap-2">
+              {/* Mode Selection */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <button
-                  onClick={() => setSplitMode('range')}
-                  className={`p-3 rounded-lg border-2 ff-transition ${
-                    splitMode === 'range' 
+                  onClick={() => setSplitMode('preset')}
+                  className={`p-4 rounded-lg border-2 text-left ff-transition ${
+                    splitMode === 'preset' 
                       ? 'border-primary bg-primary/[0.05]' 
                       : 'border-border hover:border-primary/[0.3]'
                   }`}
                 >
-                  <div className="font-medium">Custom ranges</div>
-                  <div className="text-xs text-muted-foreground mt-1">Split by page numbers</div>
+                  <Zap className="w-5 h-5 text-primary mb-2" />
+                  <div className="font-medium">Quick Presets</div>
+                  <div className="text-xs text-muted-foreground mt-1">Use common split patterns</div>
                 </button>
+                
                 <button
-                  onClick={() => setSplitMode('every')}
-                  className={`p-3 rounded-lg border-2 ff-transition ${
-                    splitMode === 'every' 
+                  onClick={() => setSplitMode('visual')}
+                  className={`p-4 rounded-lg border-2 text-left ff-transition ${
+                    splitMode === 'visual' 
                       ? 'border-primary bg-primary/[0.05]' 
                       : 'border-border hover:border-primary/[0.3]'
                   }`}
                 >
-                  <div className="font-medium">Fixed interval</div>
-                  <div className="text-xs text-muted-foreground mt-1">Split every N pages</div>
+                  <Eye className="w-5 h-5 text-primary mb-2" />
+                  <div className="font-medium">Visual Selection</div>
+                  <div className="text-xs text-muted-foreground mt-1">Click pages to select</div>
+                </button>
+                
+                <button
+                  onClick={() => setSplitMode('manual')}
+                  className={`p-4 rounded-lg border-2 text-left ff-transition ${
+                    splitMode === 'manual' 
+                      ? 'border-primary bg-primary/[0.05]' 
+                      : 'border-border hover:border-primary/[0.3]'
+                  }`}
+                >
+                  <FileText className="w-5 h-5 text-primary mb-2" />
+                  <div className="font-medium">Manual Ranges</div>
+                  <div className="text-xs text-muted-foreground mt-1">Enter page numbers</div>
                 </button>
               </div>
 
-              {splitMode === 'range' ? (
+              {/* Preset Options */}
+              {splitMode === 'preset' && (
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">Choose a preset:</p>
+                  <div className="grid gap-2">
+                    {SPLIT_PRESETS.map(preset => (
+                      <button
+                        key={preset.id}
+                        onClick={() => setSelectedPreset(preset.id)}
+                        className={`flex items-center gap-3 p-3 rounded-lg border ff-transition ${
+                          selectedPreset === preset.id
+                            ? 'border-primary bg-primary/[0.05]'
+                            : 'border-border hover:border-primary/[0.3]'
+                        }`}
+                      >
+                        <div className="p-2 bg-secondary rounded">
+                          {preset.icon}
+                        </div>
+                        <div className="flex-1 text-left">
+                          <div className="font-medium">{preset.name}</div>
+                          <div className="text-xs text-muted-foreground">{preset.description}</div>
+                        </div>
+                        {selectedPreset === preset.id && (
+                          <CheckCircle className="w-5 h-5 text-primary" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                  
+                  {/* Preview of split */}
+                  <div className="bg-secondary/30 rounded-lg p-3">
+                    <p className="text-sm text-muted-foreground mb-2">This will create:</p>
+                    <div className="space-y-1">
+                      {SPLIT_PRESETS.find(p => p.id === selectedPreset)?.getRanges(pageCount).map((range, idx) => (
+                        <div key={idx} className="text-sm">
+                          • Part {idx + 1}: Pages {range.start}-{range.end}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Visual Selection Info */}
+              {splitMode === 'visual' && (
+                <div className="space-y-3">
+                  <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-lg p-3">
+                    <div className="flex items-start gap-2">
+                      <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5" />
+                      <div className="text-sm text-blue-700 dark:text-blue-300">
+                        {!showPreview ? (
+                          'Click "Show Preview" above to select pages visually'
+                        ) : (
+                          'Click on pages to select them. Selected pages will be extracted as separate files.'
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {selectedPages.length > 0 && (
+                    <div className="text-sm">
+                      Selected pages: {selectedPages.sort((a, b) => a - b).join(', ')}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Manual Range Input */}
+              {splitMode === 'manual' && (
                 <div className="space-y-2">
                   <label className="text-sm font-medium" htmlFor="page-ranges">
                     Page ranges
@@ -303,34 +459,13 @@ export const PdfSplit: React.FC = () => {
                     Enter page numbers or ranges separated by commas. Example: 1-3, 5, 7-10
                   </p>
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium" htmlFor="every-n-pages">
-                    Split interval
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      id="every-n-pages"
-                      type="number"
-                      min="1"
-                      max={pageCount}
-                      value={everyNPages}
-                      onChange={(e) => setEveryNPages(parseInt(e.target.value) || 1)}
-                      className="w-24"
-                    />
-                    <span className="text-sm text-muted-foreground">pages per file</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Split PDF into files with {everyNPages} page{everyNPages > 1 ? 's' : ''} each
-                  </p>
-                </div>
               )}
             </div>
 
             {/* Action Button */}
             <Button
               onClick={handleSplit}
-              disabled={isProcessing || !file}
+              disabled={isProcessing || !file || (splitMode === 'visual' && selectedPages.length === 0)}
               size="lg"
               className="w-full"
             >
@@ -351,20 +486,28 @@ export const PdfSplit: React.FC = () => {
 
         {/* Progress */}
         {isProcessing && (
-          <div className="bg-card border rounded-lg p-4">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span>Processing PDF...</span>
-                <span className="font-mono">{Math.round(progress)}%</span>
+          <div className="mt-6">
+            <ProgressIndicator
+              progress={progress}
+              status="processing"
+              message="Splitting your PDF..."
+              showDetails={true}
+            />
+            
+            {processingSteps.length > 0 && (
+              <div className="mt-4">
+                <MultiStepProgress
+                  steps={processingSteps}
+                  currentStep={processingSteps.find(s => s.status === 'processing')?.id}
+                />
               </div>
-              <Progress value={progress} className="h-2" />
-            </div>
+            )}
           </div>
         )}
 
         {/* Error Message */}
         {error && (
-          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mt-6">
             <div className="flex items-center gap-2 text-destructive">
               <AlertCircle className="h-4 w-4 flex-shrink-0" />
               <span className="text-sm">{error.message}</span>
@@ -374,7 +517,7 @@ export const PdfSplit: React.FC = () => {
 
         {/* Results */}
         {results.length > 0 && (
-          <div className="space-y-4">
+          <div className="space-y-4 mt-6">
             <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-lg p-4">
               <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
                 <CheckCircle className="h-5 w-5" />
@@ -388,41 +531,40 @@ export const PdfSplit: React.FC = () => {
                 <Button
                   onClick={downloadAll}
                   variant="default"
+                  size="sm"
                 >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download All ({results.length} files)
+                  <Package className="h-4 w-4 mr-2" />
+                  Download All as ZIP
                 </Button>
               </div>
               
-              <div className="space-y-2">
-                {results.map((data, index) => {
-                  const sizeKB = Math.round(data.length / 1024);
-                  return (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-3 bg-secondary/[0.3] rounded-lg hover:bg-secondary/[0.5] ff-transition"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="p-1.5 bg-tool-pdf/[0.1] text-tool-pdf rounded">
-                          <FileText className="h-4 w-4" />
-                        </div>
-                        <div>
-                          <span className="font-medium">Part {index + 1}</span>
-                          <span className="text-sm text-muted-foreground ml-2">
-                            {formatFileSize(data.length)}
-                          </span>
-                        </div>
+              <div className="grid gap-2">
+                {results.map((data, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-3 bg-secondary/[0.3] rounded-lg hover:bg-secondary/[0.5] ff-transition group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-1.5 bg-tool-pdf/[0.1] text-tool-pdf rounded">
+                        <FileText className="h-4 w-4" />
                       </div>
-                      <Button
-                        onClick={() => downloadSingle(data, index)}
-                        size="sm"
-                        variant="ghost"
-                      >
-                        <Download className="h-4 w-4" />
-                      </Button>
+                      <div>
+                        <span className="font-medium">Part {index + 1}</span>
+                        <span className="text-sm text-muted-foreground ml-2">
+                          {formatFileSize(data.length)}
+                        </span>
+                      </div>
                     </div>
-                  );
-                })}
+                    <Button
+                      onClick={() => downloadSingle(data, index)}
+                      size="sm"
+                      variant="ghost"
+                      className="opacity-0 group-hover:opacity-100 ff-transition"
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

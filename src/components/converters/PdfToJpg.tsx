@@ -120,10 +120,10 @@ export const PdfToJpg: React.FC = () => {
         scale
       });
 
-      const convertedResults: ConversionResult[] = images.map((data, index) => ({
-        page: pages ? pages[index] : index + 1,
-        data,
-        size: data.length
+      const convertedResults: ConversionResult[] = images.map((image, index) => ({
+        page: image.page,
+        data: image.data,
+        size: image.data.length
       }));
 
       setResults(convertedResults);

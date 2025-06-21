@@ -6,6 +6,7 @@ import PdfMerge from '../../components/converters/PdfMerge.tsx';
 import PdfRotate from '../../components/converters/PdfRotate.tsx';
 import JpgToPdf from '../../components/converters/JpgToPdf.tsx';
 import PdfToJpg from '../../components/converters/PdfToJpg.tsx';
+import MarkdownToPdf from '../../components/converters/MarkdownToPdf.tsx';
 import '../../styles/global.css';
 
 export function getStaticPaths() {
@@ -16,6 +17,7 @@ export function getStaticPaths() {
     { params: { tool: 'pdf-split' }, props: { title: 'Split PDF - Extract Pages from PDF', component: 'PdfSplit' } },
     { params: { tool: 'pdf-rotate' }, props: { title: 'Rotate PDF Pages', component: 'PdfRotate' } },
     { params: { tool: 'pdf-to-jpg' }, props: { title: 'PDF to JPG Converter', component: 'PdfToJpg' } },
+    { params: { tool: 'markdown-to-pdf' }, props: { title: 'Markdown to PDF Converter', component: 'MarkdownToPdf' } },
     // Add more tools here
   ];
 }
@@ -32,6 +34,7 @@ const { title, component } = Astro.props;
     {component === 'PdfRotate' && <PdfRotate client:load />}
     {component === 'JpgToPdf' && <JpgToPdf client:load />}
     {component === 'PdfToJpg' && <PdfToJpg client:load />}
+    {component === 'MarkdownToPdf' && <MarkdownToPdf client:load />}
     {/* Add more component conditions here */}
   </main>
 </Layout>
