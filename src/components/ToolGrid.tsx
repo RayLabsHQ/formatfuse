@@ -120,9 +120,20 @@ export default function ToolGrid() {
             );
           })}
         </div>
+
+        {/* CTA */}
+        <div className="text-center mt-12">
+          <a
+            href="/tools"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-medium transition-transform hover:scale-105"
+          >
+            View All {allTools.length} Tools
+            <ArrowRight className="w-4 h-4" />
+          </a>
+        </div>
         
         {/* Features */}
-        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="mt-32 grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="text-center">
             <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary mb-4">
               <Zap className="w-5 h-5" />
@@ -152,17 +163,6 @@ export default function ToolGrid() {
               Convert unlimited files, any size
             </p>
           </div>
-        </div>
-        
-        {/* CTA */}
-        <div className="text-center mt-12">
-          <a
-            href="/tools"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-medium transition-transform hover:scale-105"
-          >
-            View All {allTools.length} Tools
-            <ArrowRight className="w-4 h-4" />
-          </a>
         </div>
       </div>
     </section>

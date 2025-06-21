@@ -13,6 +13,7 @@ export interface Tool {
   isNew?: boolean;
   isPopular?: boolean;
   isBeta?: boolean;
+  isImplemented?: boolean; // Flag to hide unimplemented tools
   category: string;
   route?: string; // Custom route if different from id
 }
@@ -26,6 +27,7 @@ export const universalTools: Tool[] = [
     icon: Image, 
     searches: '1M+', 
     isPopular: true,
+    isImplemented: true,
     category: 'image',
     route: '/tools/image-converter'
   },
@@ -36,6 +38,7 @@ export const universalTools: Tool[] = [
     icon: FileDown, 
     searches: '500k', 
     isPopular: true,
+    isImplemented: true,
     category: 'image',
     route: '/tools/image-compressor'
   },
@@ -46,6 +49,7 @@ export const universalTools: Tool[] = [
     icon: Image, 
     searches: '400k', 
     isPopular: true,
+    isImplemented: true,
     category: 'image',
     route: '/tools/image-resizer'
   }
@@ -75,6 +79,7 @@ for (const from of imageFormats) {
       icon: Image,
       searches: getSearchVolume(from, to),
       isPopular: isPopularConversion(from, to),
+      isImplemented: true, // All image conversions are implemented
       category: 'image',
       route: `/convert/${from}-to-${to}`
     });
@@ -116,8 +121,8 @@ function isPopularConversion(from: string, to: string): boolean {
   return popular.includes(`${from}-to-${to}`);
 }
 
-// PDF Tools
-export const pdfTools: Tool[] = [
+// PDF Tools (unfiltered - includes unimplemented for reference)
+const pdfToolsAll: Tool[] = [
   { 
     id: 'pdf-to-word', 
     name: 'PDF to Word', 
@@ -125,6 +130,8 @@ export const pdfTools: Tool[] = [
     icon: FileText, 
     searches: '450k', 
     isPopular: true,
+    isBeta: true, // Basic text extraction only, no formatting
+    isImplemented: true,
     category: 'pdf',
     route: '/convert/pdf-to-word'
   },
@@ -134,6 +141,7 @@ export const pdfTools: Tool[] = [
     description: 'Combine multiple PDFs into one document',
     icon: Layers, 
     searches: '250k',
+    isImplemented: true,
     category: 'pdf',
     route: '/convert/pdf-merge'
   },
@@ -143,6 +151,7 @@ export const pdfTools: Tool[] = [
     description: 'Reduce PDF file size without losing quality',
     icon: FileDown, 
     searches: '200k',
+    isImplemented: false, // TODO: Not implemented
     category: 'pdf',
     route: '/convert/pdf-compress'
   },
@@ -152,6 +161,7 @@ export const pdfTools: Tool[] = [
     description: 'Extract pages or split PDF into multiple files',
     icon: Scissors, 
     searches: '180k',
+    isImplemented: true,
     category: 'pdf',
     route: '/convert/pdf-split'
   },
@@ -162,6 +172,7 @@ export const pdfTools: Tool[] = [
     icon: Image, 
     searches: '300k', 
     isPopular: true,
+    isImplemented: true,
     category: 'pdf',
     route: '/convert/jpg-to-pdf'
   },
@@ -172,6 +183,7 @@ export const pdfTools: Tool[] = [
     icon: Type, 
     searches: '380k',
     isPopular: true,
+    isImplemented: false, // TODO: Not implemented
     category: 'pdf',
     route: '/convert/word-to-pdf'
   },
@@ -181,6 +193,7 @@ export const pdfTools: Tool[] = [
     description: 'Extract images from PDF pages',
     icon: Image, 
     searches: '180k',
+    isImplemented: true,
     category: 'pdf',
     route: '/convert/pdf-to-jpg'
   },
@@ -190,6 +203,7 @@ export const pdfTools: Tool[] = [
     description: 'Convert spreadsheets to PDF format',
     icon: FileSpreadsheet,
     searches: '150k',
+    isImplemented: false, // TODO: Not implemented
     category: 'pdf',
     route: '/convert/excel-to-pdf'
   },
@@ -199,19 +213,21 @@ export const pdfTools: Tool[] = [
     description: 'Rotate PDF pages to correct orientation',
     icon: FileText,
     searches: '120k',
+    isImplemented: true,
     category: 'pdf',
     route: '/convert/pdf-rotate'
   }
 ];
 
-// Developer Tools
-export const devTools: Tool[] = [
+// Developer Tools (unfiltered - includes unimplemented for reference)
+const devToolsAll: Tool[] = [
   { 
     id: 'json-formatter', 
     name: 'JSON Formatter', 
     description: 'Beautify, minify and validate JSON data with error detection',
     icon: Braces, 
     searches: '150k',
+    isImplemented: true,
     category: 'dev',
     route: '/tools/json-formatter'
   },
@@ -221,6 +237,7 @@ export const devTools: Tool[] = [
     description: 'Encode and decode Base64 strings with file support',
     icon: Hash, 
     searches: '100k',
+    isImplemented: true,
     category: 'dev',
     route: '/tools/base64-encoder'
   },
@@ -231,6 +248,7 @@ export const devTools: Tool[] = [
     icon: QrCode, 
     searches: '200k',
     isPopular: true,
+    isImplemented: true,
     category: 'dev',
     route: '/tools/qr-generator'
   },
@@ -240,6 +258,7 @@ export const devTools: Tool[] = [
     description: 'Create short links for long URLs',
     icon: Globe, 
     searches: '150k',
+    isImplemented: false, // TODO: Not implemented
     category: 'dev',
     route: '/tools/url-shorten'
   },
@@ -249,6 +268,7 @@ export const devTools: Tool[] = [
     description: 'Count words, characters, and paragraphs',
     icon: Type, 
     searches: '120k',
+    isImplemented: true,
     category: 'dev',
     route: '/tools/word-counter'
   },
@@ -258,6 +278,7 @@ export const devTools: Tool[] = [
     description: 'Generate MD5, SHA-1, SHA-256, SHA-512 hashes for text and files',
     icon: Hash,
     searches: '80k',
+    isImplemented: true,
     category: 'dev',
     route: '/tools/hash-generator',
     isNew: true
@@ -268,19 +289,21 @@ export const devTools: Tool[] = [
     description: 'Convert text between case formats with smart detection',
     icon: Type,
     searches: '90k',
+    isImplemented: true,
     category: 'dev',
     route: '/tools/case-converter'
   }
 ];
 
-// Document Tools
-export const documentTools: Tool[] = [
+// Document Tools (unfiltered - includes unimplemented for reference)
+const documentToolsAll: Tool[] = [
   {
     id: 'txt-to-pdf',
     name: 'Text to PDF',
     description: 'Convert plain text files to PDF',
     icon: FileText,
     searches: '100k',
+    isImplemented: false, // TODO: Not implemented
     category: 'document',
     route: '/convert/txt-to-pdf'
   },
@@ -290,6 +313,7 @@ export const documentTools: Tool[] = [
     description: 'Convert Rich Text Format files',
     icon: FileText,
     searches: '80k',
+    isImplemented: false, // TODO: Not implemented
     category: 'document',
     route: '/tools/rtf-converter'
   },
@@ -299,6 +323,7 @@ export const documentTools: Tool[] = [
     description: 'Convert Markdown to HTML format',
     icon: Code,
     searches: '90k',
+    isImplemented: false, // TODO: Not implemented
     category: 'document',
     route: '/tools/markdown-to-html'
   },
@@ -309,13 +334,14 @@ export const documentTools: Tool[] = [
     icon: Code,
     searches: '110k',
     isPopular: true,
+    isImplemented: true,
     category: 'document',
     route: '/convert/markdown-to-pdf'
   }
 ];
 
-// Archive Tools
-export const archiveTools: Tool[] = [
+// Archive Tools (unfiltered - includes unimplemented for reference)
+const archiveToolsAll: Tool[] = [
   {
     id: 'zip-extract',
     name: 'Extract ZIP',
@@ -323,6 +349,7 @@ export const archiveTools: Tool[] = [
     icon: FileArchive,
     searches: '150k',
     isNew: true,
+    isImplemented: false, // TODO: Not implemented
     category: 'archive',
     route: '/tools/zip-extract'
   },
@@ -332,13 +359,14 @@ export const archiveTools: Tool[] = [
     description: 'Compress files into ZIP archive',
     icon: FileArchive,
     searches: '120k',
+    isImplemented: false, // TODO: Not implemented
     category: 'archive',
     route: '/tools/create-zip'
   }
 ];
 
-// Other image tools (non-conversion)
-export const otherImageTools: Tool[] = [
+// Other image tools (non-conversion) (unfiltered - includes unimplemented for reference)
+const otherImageToolsAll: Tool[] = [
   { 
     id: 'image-resize', 
     name: 'Resize Image', 
@@ -346,6 +374,7 @@ export const otherImageTools: Tool[] = [
     icon: Image, 
     searches: '400k', 
     isNew: true,
+    isImplemented: true,
     category: 'image',
     route: '/tools/image-resize'
   },
@@ -356,6 +385,7 @@ export const otherImageTools: Tool[] = [
     icon: Image, 
     searches: '300k',
     isPopular: true,
+    isImplemented: false, // TODO: Not implemented
     category: 'image',
     route: '/tools/background-remove'
   },
@@ -366,30 +396,42 @@ export const otherImageTools: Tool[] = [
     icon: Image,
     searches: '250k',
     isPopular: true,
+    isImplemented: true,
     category: 'image',
     route: '/convert/svg-to-png'
   }
 ];
 
+// Filter function to exclude unimplemented tools
+const filterImplemented = (tools: Tool[]) => 
+  tools.filter(tool => tool.isImplemented !== false);
+
+// Export filtered tools
+export const pdfTools = filterImplemented(pdfToolsAll);
+export const devTools = filterImplemented(devToolsAll);
+export const documentTools = filterImplemented(documentToolsAll);
+export const archiveTools = filterImplemented(archiveToolsAll);
+export const otherImageTools = filterImplemented(otherImageToolsAll);
+
 // Combine all tools with universal tools first
-export const imageTools: Tool[] = [
+export const imageTools: Tool[] = filterImplemented([
   ...universalTools,
-  ...otherImageTools,
+  ...otherImageToolsAll,
   ...imageConversions
-];
+]);
 
-// All tools combined
-export const allTools: Tool[] = [
+// All tools combined (filtered)
+export const allTools: Tool[] = filterImplemented([
   ...universalTools,
-  ...pdfTools,
-  ...otherImageTools,
+  ...pdfToolsAll,
+  ...otherImageToolsAll,
   ...imageConversions,
-  ...devTools,
-  ...documentTools,
-  ...archiveTools
-];
+  ...devToolsAll,
+  ...documentToolsAll,
+  ...archiveToolsAll
+]);
 
-// Categories for filtering
+// Categories for filtering (with unimplemented tools filtered out)
 export const categories = [
   { 
     id: 'pdf',
@@ -419,14 +461,8 @@ export const categories = [
     color: 'border-tool-doc text-tool-doc', 
     bgColor: 'bg-tool-doc/10' 
   },
-  { 
-    id: 'archive',
-    name: 'Archive Tools', 
-    tools: archiveTools, 
-    color: 'border-primary text-primary', 
-    bgColor: 'bg-primary/10' 
-  },
-];
+  // Archive Tools category removed as no tools are implemented yet
+].filter(cat => cat.tools.length > 0); // Only show categories with tools
 
 // Search function for tools
 export function searchTools(query: string): Tool[] {

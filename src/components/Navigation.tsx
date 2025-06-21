@@ -1,77 +1,10 @@
 import React from 'react';
 import { 
   Search, Sun, Moon, Menu, X, ChevronDown,
-  FileText, ArrowRight,
-  Layers, FileDown, Scissors, Type, Image,
-  QrCode, Braces, Hash, TrendingUp, Sparkles, RotateCw
+  ArrowRight, TrendingUp, Sparkles
 } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
-
-// Tool type definition
-interface Tool {
-  id: string;
-  name: string;
-  icon: LucideIcon;
-  isPopular?: boolean;
-  isNew?: boolean;
-  isBeta?: boolean;
-}
-
-// Tool definitions
-const pdfTools: Tool[] = [
-  { id: 'pdf-to-word', name: 'PDF to Word', icon: FileText, isPopular: true },
-  { id: 'pdf-merge', name: 'Merge PDF', icon: Layers },
-  { id: 'pdf-compress', name: 'Compress PDF', icon: FileDown },
-  { id: 'pdf-split', name: 'Split PDF', icon: Scissors },
-  { id: 'pdf-rotate', name: 'Rotate PDF', icon: RotateCw },
-  { id: 'jpg-to-pdf', name: 'JPG to PDF', icon: Image, isPopular: true },
-  { id: 'word-to-pdf', name: 'Word to PDF', icon: Type },
-  { id: 'pdf-to-jpg', name: 'PDF to JPG', icon: Image },
-];
-
-const imageTools: Tool[] = [
-  { id: 'png-to-jpg', name: 'PNG to JPG', icon: Image, isPopular: true },
-  { id: 'jpg-to-png', name: 'JPG to PNG', icon: Image },
-  { id: 'webp-to-jpg', name: 'WebP to JPG', icon: Image },
-  { id: 'webp-to-png', name: 'WebP to PNG', icon: Image },
-  { id: 'heic-to-jpg', name: 'HEIC to JPG', icon: Image, isNew: true },
-  { id: 'svg-to-png', name: 'SVG to PNG', icon: Image, isPopular: true },
-  { id: 'image-resizer', name: 'Resize Image', icon: Image, isPopular: true },
-  { id: 'image-compressor', name: 'Compress Image', icon: FileDown, isPopular: true },
-];
-
-const devTools: Tool[] = [
-  { id: 'json-formatter', name: 'JSON Formatter', icon: Braces, isPopular: true },
-  { id: 'word-counter', name: 'Word Counter', icon: Type },
-  { id: 'base64-encoder', name: 'Base64 Encode/Decode', icon: Hash },
-  { id: 'case-converter', name: 'Case Converter', icon: Type, isNew: true },
-  { id: 'hash-generator', name: 'Hash Generator', icon: Hash, isNew: true },
-  { id: 'qr-generator', name: 'QR Code Generator', icon: QrCode, isPopular: true },
-];
-
-const categories = [
-  { name: 'PDF Tools', tools: pdfTools, color: 'text-tool-pdf', bgColor: 'bg-tool-pdf/[0.1]' },
-  { name: 'Image Tools', tools: imageTools, color: 'text-tool-jpg', bgColor: 'bg-tool-jpg/[0.1]' },
-  { name: 'Developer Tools', tools: devTools, color: 'text-accent', bgColor: 'bg-accent/[0.1]' },
-].filter(cat => cat.tools.length > 0); // Only show categories with tools
-
-// Fuzzy search function
-function fuzzySearch(query: string, target: string): boolean {
-  const queryLower = query.toLowerCase();
-  const targetLower = target.toLowerCase();
-  
-  // If query is empty or exact match
-  if (!query || targetLower.includes(queryLower)) return true;
-  
-  // Simple fuzzy match - all characters in query must appear in order
-  let queryIndex = 0;
-  for (let i = 0; i < targetLower.length && queryIndex < queryLower.length; i++) {
-    if (targetLower[i] === queryLower[queryIndex]) {
-      queryIndex++;
-    }
-  }
-  return queryIndex === queryLower.length;
-}
+import { categories, searchTools, pdfTools, imageTools, devTools, allTools } from '../data/tools';
+import type { Tool } from '../data/tools';
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = React.useState(false);
@@ -112,16 +45,14 @@ export default function Navigation() {
   const searchResults = React.useMemo(() => {
     if (!searchQuery) return [];
     
+    const matchedTools = searchTools(searchQuery);
     const results: Array<{tool: Tool, category: typeof categories[0]}> = [];
     
-    categories.forEach(category => {
-      category.tools.forEach(tool => {
-        if (fuzzySearch(searchQuery, tool.name) || 
-            fuzzySearch(searchQuery, tool.name.replace(/\s+/g, '')) ||
-            tool.name.split(' ').map(w => w[0]).join('').toLowerCase().includes(searchQuery.toLowerCase())) {
-          results.push({ tool, category });
-        }
-      });
+    matchedTools.forEach(tool => {
+      const category = categories.find(cat => cat.id === tool.category);
+      if (category) {
+        results.push({ tool, category });
+      }
     });
     
     return results.slice(0, 8); // Limit to 8 results
@@ -183,26 +114,16 @@ export default function Navigation() {
                     <div className="bg-card rounded-lg shadow-lg border p-4">
                       <div className="mb-3 flex items-center justify-between">
                         <h3 className="font-semibold text-sm">{category.name}</h3>
-                        <a href="/tools" className="text-xs text-primary hover:underline flex items-center gap-1">
+                        <a href={`/tools#${category.id}`} className="text-xs text-primary hover:underline flex items-center gap-1">
                           View all
                           <ArrowRight className="w-3 h-3" />
                         </a>
                       </div>
                       <div className="grid grid-cols-2 gap-1">
-                      {category.tools.map((tool) => (
+                      {(category.id === 'image' ? category.tools.slice(0, 6) : category.tools).map((tool) => (
                         <a
                           key={tool.id}
-                          href={
-                            tool.id === 'image-resizer' ? '/tools/image-resizer' : 
-                            tool.id === 'image-compressor' ? '/tools/image-compressor' :
-                            tool.id === 'json-formatter' ? '/tools/json-formatter' :
-                            tool.id === 'word-counter' ? '/tools/word-counter' :
-                            tool.id === 'base64-encoder' ? '/tools/base64-encoder' :
-                            tool.id === 'case-converter' ? '/tools/case-converter' :
-                            tool.id === 'hash-generator' ? '/tools/hash-generator' :
-                            tool.id === 'qr-generator' ? '/tools/qr-generator' :
-                            `/convert/${tool.id}`
-                          }
+                          href={tool.route || `/convert/${tool.id}`}
                           className="group/item flex items-center gap-3 p-3 rounded-md hover:bg-secondary ff-transition"
                         >
                           <div className={`p-1.5 rounded ${category.bgColor} ${category.color}`}>
@@ -403,24 +324,19 @@ export default function Navigation() {
                   
                   {mobileCategory === category.name && (
                     <div className="pl-4 space-y-1">
-                      {category.tools.map((tool) => (
+                      {(category.id === 'image' ? category.tools.slice(0, 6) : category.tools).map((tool) => (
                         <a
                           key={tool.id}
-                          href={
-                            tool.id === 'image-resizer' ? '/tools/image-resizer' : 
-                            tool.id === 'image-compressor' ? '/tools/image-compressor' :
-                            tool.id === 'json-formatter' ? '/tools/json-formatter' :
-                            tool.id === 'word-counter' ? '/tools/word-counter' :
-                            tool.id === 'base64-encoder' ? '/tools/base64-encoder' :
-                            tool.id === 'case-converter' ? '/tools/case-converter' :
-                            tool.id === 'hash-generator' ? '/tools/hash-generator' :
-                            tool.id === 'qr-generator' ? '/tools/qr-generator' :
-                            `/convert/${tool.id}`
-                          }
+                          href={tool.route || `/convert/${tool.id}`}
                           className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-secondary ff-transition"
                         >
                           <tool.icon className={`w-4 h-4 ${category.color}`} />
                           <span className="text-sm">{tool.name}</span>
+                          {tool.isBeta && (
+                            <span className="text-xs bg-amber-500/20 text-amber-700 dark:text-amber-400 px-1 py-0.5 rounded ml-1">
+                              Beta
+                            </span>
+                          )}
                           {tool.isPopular && (
                             <TrendingUp className="w-3 h-3 text-primary ml-auto" />
                           )}
@@ -429,6 +345,15 @@ export default function Navigation() {
                           )}
                         </a>
                       ))}
+                      {category.id === 'image' && category.tools.length > 6 && (
+                        <a
+                          href="/tools#image"
+                          className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-secondary ff-transition text-primary text-sm font-medium"
+                        >
+                          View all {category.tools.length} Image Tools
+                          <ArrowRight className="w-4 h-4 ml-auto" />
+                        </a>
+                      )}
                     </div>
                   )}
                 </div>
