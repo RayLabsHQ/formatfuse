@@ -36,36 +36,36 @@
 :root {
   --radius: 1rem;
   
-  /* Light theme - Soft dawn palette */
-  --background: oklch(0.98 0.01 73);      /* Soft cream */
-  --foreground: oklch(0.25 0.05 285);     /* Deep purple-gray */
+  /* Light theme - Vibrant colors with good contrast */
+  --background: oklch(0.98 0.005 90);      /* Warm white background */
+  --foreground: oklch(0.2 0.02 285);       /* Rich dark purple-gray */
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.25 0.05 285);
+  --card-foreground: oklch(0.2 0.02 285);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.25 0.05 285);
-  --primary: oklch(0.72 0.12 285);        /* Soft lavender */
-  --primary-foreground: oklch(0.98 0.01 73);
-  --secondary: oklch(0.94 0.02 73);
-  --secondary-foreground: oklch(0.25 0.05 285);
-  --muted: oklch(0.96 0.01 73);
-  --muted-foreground: oklch(0.5 0.03 285);
-  --accent: oklch(0.78 0.1 152);          /* Soft mint */
-  --accent-foreground: oklch(0.25 0.05 285);
-  --destructive: oklch(0.65 0.15 15);
-  --border: oklch(0.92 0.01 73);
-  --input: oklch(0.94 0.01 73);
-  --ring: oklch(0.72 0.12 285);
+  --popover-foreground: oklch(0.2 0.02 285);
+  --primary: oklch(0.65 0.22 285);         /* Vibrant purple */
+  --primary-foreground: oklch(0.98 0.005 90);
+  --secondary: oklch(0.92 0.04 285);       /* Light purple tint */
+  --secondary-foreground: oklch(0.2 0.02 285);
+  --muted: oklch(0.94 0.015 285);
+  --muted-foreground: oklch(0.45 0.02 285);
+  --accent: oklch(0.72 0.18 152);          /* Vibrant mint green */
+  --accent-foreground: oklch(0.2 0.02 285);
+  --destructive: oklch(0.65 0.2 15);
+  --border: oklch(0.89 0.02 285);
+  --input: oklch(0.94 0.015 285);
+  --ring: oklch(0.65 0.22 285);
   
-  /* Tool-specific colors - Soft pastels */
-  --tool-pdf: oklch(0.75 0.08 15);       /* Soft coral */
-  --tool-jpg: oklch(0.8 0.08 73);        /* Soft peach */
-  --tool-png: oklch(0.75 0.08 285);      /* Soft lavender */
-  --tool-doc: oklch(0.75 0.08 210);      /* Soft sky */
+  /* Tool-specific colors - More vibrant */
+  --tool-pdf: oklch(0.72 0.18 15);        /* Vibrant coral */
+  --tool-jpg: oklch(0.75 0.16 73);        /* Vibrant peach */
+  --tool-png: oklch(0.7 0.18 285);        /* Vibrant purple */
+  --tool-doc: oklch(0.72 0.16 210);       /* Vibrant sky blue */
   
-  /* Gradient colors */
-  --gradient-1: oklch(0.85 0.08 285);    /* Light purple */
-  --gradient-2: oklch(0.85 0.06 152);    /* Light mint */
-  --gradient-3: oklch(0.85 0.06 73);     /* Light peach */
+  /* Gradient colors - More saturated */
+  --gradient-1: oklch(0.8 0.15 285);      /* Purple gradient */
+  --gradient-2: oklch(0.8 0.12 152);      /* Mint gradient */
+  --gradient-3: oklch(0.8 0.12 73);       /* Peach gradient */
 }
 
 .dark {
