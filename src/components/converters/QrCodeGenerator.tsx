@@ -1,9 +1,9 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import QRCode from 'qrcode';
-import { 
-  QrCode, Download, Copy, Check, Palette, Settings, 
+import {
+  QrCode, Download, Copy, Check, Palette, Settings,
   Wifi, User, Globe, Phone, Mail, Calendar, MapPin,
-  Smartphone, CreditCard, Package, Share2, Sparkles
+  Smartphone, Package, Share2, Sparkles
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';

@@ -1,6 +1,25 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { codeToHtml } from 'shiki';
+import { createHighlighterCore } from 'shiki/core';
+import { createOnigurumaEngine } from 'shiki/engine/oniguruma';
+import json from '@shikijs/langs/json';
+import githubDark from '@shikijs/themes/github-dark';
+import githubLight from '@shikijs/themes/github-light';
 import { cn } from '@/lib/utils';
+
+// Create a singleton highlighter instance with only JSON support
+let highlighter: any = null;
+
+const getHighlighter = async () => {
+  if (!highlighter) {
+    highlighter = await createHighlighterCore({
+      themes: [githubDark, githubLight],
+      langs: [json],
+      // @ts-ignore - WASM import
+      engine: createOnigurumaEngine(import('shiki/wasm'))
+    });
+  }
+  return highlighter;
+};
 
 interface CodeEditorProps {
   value: string;
@@ -44,8 +63,9 @@ export function CodeEditor({
       }
 
       try {
-        const highlighted = await codeToHtml(value || '', {
-          lang: language,
+        const hl = await getHighlighter();
+        const highlighted = hl.codeToHtml(value || '', {
+          lang: 'json', // Always use JSON since that's all we support
           theme,
         });
         setHtml(highlighted);

@@ -13,6 +13,18 @@ export default defineConfig({
 		},
 		worker: {
 			format: 'es'
+		},
+		build: {
+			rollupOptions: {
+				output: {
+					manualChunks: {
+						// Only include JSON highlighting
+						'shiki-json': ['shiki/langs/json.mjs'],
+						// Group UI libraries for JSON formatter
+						'ui-libs': ['@radix-ui/react-dialog', '@radix-ui/react-select']
+					}
+				}
+			}
 		}
 	}
 });
