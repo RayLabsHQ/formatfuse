@@ -227,7 +227,7 @@ export const devTools: Tool[] = [
   { 
     id: 'qr-generator', 
     name: 'QR Code Generator', 
-    description: 'Create QR codes for URLs and text',
+    description: 'Create QR codes for URLs, WiFi, contacts, and more with custom styling',
     icon: QrCode, 
     searches: '200k',
     isPopular: true,

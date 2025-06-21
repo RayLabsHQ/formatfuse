@@ -46,6 +46,7 @@ const devTools: Tool[] = [
   { id: 'base64-encoder', name: 'Base64 Encode/Decode', icon: Hash },
   { id: 'case-converter', name: 'Case Converter', icon: Type, isNew: true },
   { id: 'hash-generator', name: 'Hash Generator', icon: Hash, isNew: true },
+  { id: 'qr-generator', name: 'QR Code Generator', icon: QrCode, isPopular: true },
 ];
 
 const categories = [
@@ -199,6 +200,7 @@ export default function Navigation() {
                             tool.id === 'base64-encoder' ? '/tools/base64-encoder' :
                             tool.id === 'case-converter' ? '/tools/case-converter' :
                             tool.id === 'hash-generator' ? '/tools/hash-generator' :
+                            tool.id === 'qr-generator' ? '/tools/qr-generator' :
                             `/convert/${tool.id}`
                           }
                           className="group/item flex items-center gap-3 p-3 rounded-md hover:bg-secondary ff-transition"
@@ -274,6 +276,7 @@ export default function Navigation() {
                           tool.id === 'base64-encoder' ? '/tools/base64-encoder' :
                           tool.id === 'case-converter' ? '/tools/case-converter' :
                           tool.id === 'hash-generator' ? '/tools/hash-generator' :
+                          tool.id === 'qr-generator' ? '/tools/qr-generator' :
                           `/convert/${tool.id}`
                         }
                         className="flex items-center gap-3 p-2 rounded-md hover:bg-secondary ff-transition"
@@ -411,6 +414,7 @@ export default function Navigation() {
                             tool.id === 'base64-encoder' ? '/tools/base64-encoder' :
                             tool.id === 'case-converter' ? '/tools/case-converter' :
                             tool.id === 'hash-generator' ? '/tools/hash-generator' :
+                            tool.id === 'qr-generator' ? '/tools/qr-generator' :
                             `/convert/${tool.id}`
                           }
                           className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-secondary ff-transition"

@@ -31,10 +31,10 @@ This document tracks tools that are planned for implementation but not yet avail
    - Split by page count
 
 ### Developer Tools
-1. **QR Code Generator** (200k searches/month) - ✅ Ready to implement
-   - Text, URL, WiFi, vCard support
-   - Custom colors and logos
-   - Multiple download formats
+1. ~~**QR Code Generator** (200k searches/month) - ✅ Implemented~~
+   - ✅ Text, URL, WiFi, vCard, Email, SMS, Event, Location support
+   - ✅ Custom colors and styling options
+   - ✅ PNG and SVG download formats with live preview
 
 2. ~~**JSON Formatter** (150k searches/month) - ✅ Implemented~~
    - ✅ Validate and beautify JSON with syntax error highlighting
@@ -51,10 +51,10 @@ This document tracks tools that are planned for implementation but not yet avail
    - ✅ URL-safe encoding and Data URI generation
    - ✅ Live preview for images
 
-5. **Hash Generator** (80k searches/month) - ✅ Ready to implement
-   - MD5, SHA-1, SHA-256, SHA-512
-   - File and text hashing
-   - HMAC support
+5. ~~**Hash Generator** (80k searches/month) - ✅ Implemented~~
+   - ✅ SHA-1, SHA-256, SHA-384, SHA-512 (MD5 marked as legacy)
+   - ✅ File and text hashing with dual input modes
+   - ✅ HMAC support with secret key
 
 6. ~~**Case Converter** (90k searches/month) - ✅ Implemented~~
    - ✅ Multiple case formats (12 different formats)
