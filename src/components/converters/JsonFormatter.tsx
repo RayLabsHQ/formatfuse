@@ -139,20 +139,25 @@ export default function JsonFormatter() {
 
   return (
     <div className="w-full max-w-7xl mx-auto p-4">
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold mb-2">JSON Formatter</h1>
-        <p className="text-muted-foreground">
+      <div className="mb-6 sm:mb-8 text-center">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2 flex items-center justify-center gap-2">
+          <div className="p-1.5 sm:p-2 bg-primary/10 text-primary rounded-lg">
+            <FileJson className="w-4 h-4 sm:w-5 sm:h-5" />
+          </div>
+          JSON Formatter
+        </h1>
+        <p className="text-sm sm:text-base text-muted-foreground px-2">
           Validate, format, and minify JSON data with syntax highlighting
         </p>
       </div>
 
-      {/* Options Bar */}
-      <div className="mb-4 p-4 rounded-lg border bg-card">
-        <div className="flex flex-wrap items-center gap-4">
+      {/* Options Bar - Mobile optimized */}
+      <div className="mb-4 p-3 sm:p-4 rounded-lg border bg-card">
+        <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-3 sm:gap-4">
           <div className="flex items-center gap-2">
-            <Label htmlFor="indent-size">Indent:</Label>
+            <Label htmlFor="indent-size" className="text-sm">Indent:</Label>
             <Select value={indentSize} onValueChange={setIndentSize}>
-              <SelectTrigger id="indent-size" className="w-[120px]">
+              <SelectTrigger id="indent-size" className="w-[100px] sm:w-[120px] text-xs sm:text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -168,17 +173,21 @@ export default function JsonFormatter() {
               variant={viewMode === 'formatted' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setViewMode('formatted')}
+              className="text-xs sm:text-sm"
             >
-              <Maximize2 className="w-4 h-4 mr-1" />
-              Formatted
+              <Maximize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
+              <span className="hidden sm:inline">Formatted</span>
+              <span className="sm:hidden">Format</span>
             </Button>
             <Button
               variant={viewMode === 'minified' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setViewMode('minified')}
+              className="text-xs sm:text-sm"
             >
-              <Minimize2 className="w-4 h-4 mr-1" />
-              Minified
+              <Minimize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
+              <span className="hidden sm:inline">Minified</span>
+              <span className="sm:hidden">Minify</span>
             </Button>
           </div>
 
@@ -186,18 +195,19 @@ export default function JsonFormatter() {
             variant="secondary"
             size="sm"
             onClick={handleFormat}
+            className="text-xs sm:text-sm"
           >
             Auto-fix & Format
           </Button>
         </div>
       </div>
 
-      {/* Main Editor Area */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {/* Main Editor Area - Mobile optimized */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
         {/* Input */}
         <div className="space-y-2">
-          <div className="flex items-center justify-between h-10">
-            <Label>Input</Label>
+          <div className="flex items-center justify-between h-8 sm:h-10">
+            <Label className="text-sm">Input</Label>
             {error && (
               <span className="text-xs text-destructive flex items-center gap-1">
                 <AlertCircle className="w-3 h-3" />
@@ -211,7 +221,7 @@ export default function JsonFormatter() {
             value={input}
             onChange={setInput}
             placeholder="Paste your JSON here..."
-            className="h-[500px]"
+            className="h-[300px] sm:h-[400px] lg:h-[500px]"
             error={!!error}
             language="json"
           />
@@ -251,31 +261,31 @@ export default function JsonFormatter() {
             value={displayValue}
             readOnly
             placeholder={error ? 'Invalid JSON' : 'Output will appear here...'}
-            className="h-[500px]"
+            className="h-[300px] sm:h-[400px] lg:h-[500px]"
             language="json"
           />
         </div>
       </div>
 
-      {/* Statistics */}
+      {/* Statistics - Mobile optimized */}
       {stats && (
-        <div className="mt-4 p-4 rounded-lg border bg-card">
-          <div className="flex flex-wrap gap-6 text-sm">
+        <div className="mt-4 p-3 sm:p-4 rounded-lg border bg-card">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 sm:gap-6 text-xs sm:text-sm">
             <div>
               <span className="text-muted-foreground">Keys:</span>
-              <span className="ml-2 font-medium">{stats.keys}</span>
+              <span className="ml-1 sm:ml-2 font-medium">{stats.keys}</span>
             </div>
             <div>
               <span className="text-muted-foreground">Formatted:</span>
-              <span className="ml-2 font-medium">{formatFileSize(stats.formattedSize)}</span>
+              <span className="ml-1 sm:ml-2 font-medium">{formatFileSize(stats.formattedSize)}</span>
             </div>
             <div>
               <span className="text-muted-foreground">Minified:</span>
-              <span className="ml-2 font-medium">{formatFileSize(stats.size)}</span>
+              <span className="ml-1 sm:ml-2 font-medium">{formatFileSize(stats.size)}</span>
             </div>
             <div>
               <span className="text-muted-foreground">Compression:</span>
-              <span className="ml-2 font-medium text-green-600 dark:text-green-400">
+              <span className="ml-1 sm:ml-2 font-medium text-green-600 dark:text-green-400">
                 {stats.compression}% smaller
               </span>
             </div>
@@ -283,19 +293,19 @@ export default function JsonFormatter() {
         </div>
       )}
 
-      {/* Features */}
-      <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-4 rounded-lg border">
-          <FileJson className="w-8 h-8 mb-2 text-primary" />
-          <h3 className="font-semibold mb-1">Smart Validation</h3>
-          <p className="text-sm text-muted-foreground">
+      {/* Features - Mobile optimized */}
+      <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <FileJson className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">Smart Validation</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Identifies and highlights JSON syntax errors with line numbers
           </p>
         </div>
-        <div className="p-4 rounded-lg border">
-          <Maximize2 className="w-8 h-8 mb-2 text-primary" />
-          <h3 className="font-semibold mb-1">Format & Minify</h3>
-          <p className="text-sm text-muted-foreground">
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <Maximize2 className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">Format & Minify</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Switch between beautified and minified views instantly
           </p>
         </div>

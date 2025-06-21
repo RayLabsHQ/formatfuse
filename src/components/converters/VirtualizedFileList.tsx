@@ -74,16 +74,16 @@ const FileRow: React.FC<ExtendedFileRowProps> = ({
   };
 
   return (
-    <div className="px-4 py-2">
-      <div className="bg-card rounded-lg p-4 border border-border hover:border-primary/20 transition-colors">
-        <div className="flex items-center justify-between gap-4">
+    <div className="px-2 sm:px-4 py-1.5 sm:py-2">
+      <div className="bg-card rounded-lg p-3 sm:p-4 border border-border hover:border-primary/20 transition-colors">
+        <div className="flex items-center justify-between gap-2 sm:gap-4">
           {/* File Info */}
-          <div className="flex items-center gap-3 flex-1 min-w-0">
+          <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
             <div className="relative group">
               {isImageFile && previewUrl ? (
                 <>
                   <div 
-                    className="w-16 h-16 rounded-lg overflow-hidden cursor-pointer bg-muted/50 border border-border"
+                    className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden cursor-pointer bg-muted/50 border border-border"
                     onClick={() => onPreviewClick(index)}
                   >
                     <img 
@@ -95,32 +95,33 @@ const FileRow: React.FC<ExtendedFileRowProps> = ({
                   <Button
                     size="sm"
                     variant="secondary"
-                    className="absolute -top-2 -right-2 w-6 h-6 p-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                    className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 w-5 h-5 sm:w-6 sm:h-6 p-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hidden sm:flex"
                     onClick={() => onPreviewClick(index)}
                   >
                     <Maximize2 className="w-3 h-3" />
                   </Button>
                 </>
               ) : (
-                <div className="w-16 h-16 rounded-lg bg-muted/50 border border-border flex items-center justify-center">
-                  <Image className="w-8 h-8 text-muted-foreground" />
+                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg bg-muted/50 border border-border flex items-center justify-center">
+                  <Image className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground" />
                 </div>
               )}
               {getStatusIcon() && (
-                <div className="absolute -bottom-1 -right-1 bg-background rounded-full p-0.5">
+                <div className="absolute -bottom-0.5 -right-0.5 sm:-bottom-1 sm:-right-1 bg-background rounded-full p-0.5">
                   {getStatusIcon()}
                 </div>
               )}
             </div>
             
             <div className="flex-1 min-w-0">
-              <p className="font-medium truncate text-sm">{fileInfo.file.name}</p>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <p className="font-medium truncate text-xs sm:text-sm">{fileInfo.file.name}</p>
+              <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-muted-foreground">
                 <span>{formatFileSize(fileInfo.file.size)}</span>
                 {fileInfo.isLarge && (
                   <>
                     <span className="text-amber-600">•</span>
-                    <span className="text-amber-600">Large file</span>
+                    <span className="text-amber-600 hidden sm:inline">Large file</span>
+                    <span className="text-amber-600 sm:hidden">Large</span>
                   </>
                 )}
                 {fileInfo.status === 'processing' && (
@@ -133,15 +134,17 @@ const FileRow: React.FC<ExtendedFileRowProps> = ({
             </div>
           </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-2">
+          {/* Actions - Mobile optimized */}
+          <div className="flex items-center gap-1 sm:gap-2">
             {fileInfo.status === 'pending' && (
               <Button
                 onClick={() => onConvert(index)}
                 size="sm"
                 variant="secondary"
+                className="text-xs px-2 py-1 h-7 sm:text-sm sm:px-3 sm:py-2 sm:h-auto"
               >
-                Convert
+                <span className="hidden sm:inline">Convert</span>
+                <span className="sm:hidden">Go</span>
               </Button>
             )}
             
@@ -150,14 +153,14 @@ const FileRow: React.FC<ExtendedFileRowProps> = ({
                 onClick={() => onDownload(index)}
                 size="sm"
                 variant="ghost"
-                className="text-accent hover:text-accent"
+                className="text-accent hover:text-accent h-7 w-7 p-0 sm:h-8 sm:w-8"
               >
-                <Download className="w-4 h-4" />
+                <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </Button>
             )}
 
             {fileInfo.status === 'error' && (
-              <span className="text-xs text-destructive px-2">
+              <span className="text-[10px] sm:text-xs text-destructive px-1 sm:px-2">
                 Failed
               </span>
             )}
@@ -166,9 +169,9 @@ const FileRow: React.FC<ExtendedFileRowProps> = ({
               onClick={() => onRemove(index)}
               size="sm"
               variant="ghost"
-              className="h-8 w-8 p-0"
+              className="h-7 w-7 p-0 sm:h-8 sm:w-8"
             >
-              <X className="w-4 h-4" />
+              <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </Button>
           </div>
         </div>
@@ -208,14 +211,23 @@ export default function VirtualizedFileList({
   const virtualizer = useVirtualizer({
     count: files.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 104, // Estimated height of each item with preview
+    estimateSize: () => window.innerWidth < 640 ? 88 : 104, // Smaller height on mobile
     overscan: 5, // Render 5 items outside of the visible area
   });
+
+  // Calculate responsive height based on viewport
+  const getListHeight = () => {
+    const viewportHeight = window.innerHeight;
+    const isMobile = window.innerWidth < 640;
+    const maxHeight = isMobile ? 400 : 600;
+    const offset = isMobile ? 300 : 400;
+    return Math.min(maxHeight, viewportHeight - offset);
+  };
 
   return (
     <div className="relative">
       {files.length > 10 && (
-        <div className="text-sm text-muted-foreground mb-2">
+        <div className="text-xs sm:text-sm text-muted-foreground mb-2">
           Showing {files.length} files (virtualized for performance)
         </div>
       )}
@@ -224,7 +236,7 @@ export default function VirtualizedFileList({
         ref={parentRef}
         className="border border-border rounded-lg bg-background overflow-auto scrollbar-thin"
         style={{
-          height: `${Math.min(600, window.innerHeight - 400)}px`,
+          height: `${getListHeight()}px`,
         }}
       >
         <div

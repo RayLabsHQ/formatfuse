@@ -167,48 +167,50 @@ export default function PdfToWord() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Tool Header */}
+      {/* Tool Header - Mobile optimized */}
       <div className="border-b bg-card/[0.5]">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-3xl font-bold flex items-center gap-3">
-                <div className="p-2 bg-tool-pdf/[0.1] text-tool-pdf rounded-lg">
-                  <FileText className="w-6 h-6" />
-                </div>
-                PDF to Word Converter
-                <span className="text-sm font-normal bg-amber-500/20 text-amber-700 dark:text-amber-400 px-2 py-1 rounded-full">
-                  Beta - In Development
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div className="flex-1">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold flex items-center gap-2 sm:gap-3">
+                  <div className="p-1.5 sm:p-2 bg-tool-pdf/[0.1] text-tool-pdf rounded-lg flex-shrink-0">
+                    <FileText className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
+                  </div>
+                  <span>PDF to Word Converter</span>
+                </h1>
+                <span className="text-xs sm:text-sm font-normal bg-amber-500/20 text-amber-700 dark:text-amber-400 px-2 py-0.5 sm:py-1 rounded-full inline-block">
+                  Beta
                 </span>
-              </h1>
-              <p className="mt-2 text-muted-foreground">
+              </div>
+              <p className="mt-2 text-sm sm:text-base text-muted-foreground">
                 Convert PDF documents to editable Word files. Note: This tool is currently in beta and produces basic text extraction only. Full formatting preservation coming soon.
               </p>
             </div>
             
-            {/* Tool Stats */}
-            <div className="hidden md:flex items-center gap-4 text-sm">
+            {/* Tool Stats - Responsive */}
+            <div className="flex items-center gap-4 text-xs sm:text-sm">
               <div className="text-center">
                 <div className="font-semibold">100MB</div>
-                <div className="text-muted-foreground">Max file size</div>
+                <div className="text-muted-foreground">Max size</div>
               </div>
-              <div className="h-8 w-px bg-border" />
+              <div className="h-6 sm:h-8 w-px bg-border" />
               <div className="text-center">
                 <div className="font-semibold">Beta</div>
-                <div className="text-muted-foreground">Limited features</div>
+                <div className="text-muted-foreground">Limited</div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
-        {/* Drop Zone */}
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {/* Drop Zone - Mobile optimized */}
         <div
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
-          className={`relative border-2 border-dashed rounded-lg p-12 text-center ff-transition ${
+          className={`relative border-2 border-dashed rounded-lg p-8 sm:p-10 lg:p-12 text-center ff-transition ${
             isDragging 
               ? 'border-primary bg-primary/[0.05] drop-zone-active' 
               : 'border-border drop-zone hover:border-primary/[0.5]'
@@ -223,26 +225,26 @@ export default function PdfToWord() {
             className="hidden"
           />
           
-          <div className="space-y-4">
-            <div className="mx-auto w-16 h-16 bg-primary/[0.1] rounded-full flex items-center justify-center">
-              <Upload className="w-8 h-8 text-primary" />
+          <div className="space-y-3 sm:space-y-4">
+            <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-primary/[0.1] rounded-full flex items-center justify-center">
+              <Upload className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
             </div>
             
             <div>
-              <h3 className="text-lg font-semibold">Drop PDF files here</h3>
+              <h3 className="text-base sm:text-lg font-semibold">Drop PDF files here</h3>
               <p className="mt-1 text-sm text-muted-foreground">
                 or{' '}
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="text-primary hover:underline font-medium"
+                  className="text-primary hover:underline font-medium touch-target"
                 >
                   browse files
                 </button>
-                {' '}from your computer
+                {' '}from your device
               </p>
             </div>
             
-            <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
                 <FileCheck className="w-3 h-3" />
                 PDF format only
@@ -255,18 +257,18 @@ export default function PdfToWord() {
           </div>
         </div>
 
-        {/* File List */}
+        {/* File List - Mobile optimized */}
         {files.length > 0 && (
-          <div className="mt-8 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold">Files to convert</h3>
+          <div className="mt-6 sm:mt-8 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <h3 className="text-base sm:text-lg font-semibold">Files to convert ({files.length})</h3>
               <button
                 onClick={processAll}
                 disabled={!files.some(f => f.status === 'pending')}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:opacity-90 ff-transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 bg-primary text-primary-foreground text-sm rounded-md hover:opacity-90 ff-transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Convert All
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
             </div>
 
@@ -274,33 +276,33 @@ export default function PdfToWord() {
               {files.map((fileInfo, index) => (
                 <div
                   key={index}
-                  className="bg-card rounded-lg p-4 ff-shadow-tool border-l-4 border-tool-pdf"
+                  className="bg-card rounded-lg p-3 sm:p-4 ff-shadow-tool border-l-4 border-tool-pdf"
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3 flex-1">
-                      <FileText className="w-5 h-5 text-tool-pdf flex-shrink-0" />
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                      <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-tool-pdf flex-shrink-0" />
                       <div className="min-w-0 flex-1">
-                        <p className="font-medium truncate">{fileInfo.file.name}</p>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="font-medium truncate text-sm">{fileInfo.file.name}</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground">
                           {formatFileSize(fileInfo.file.size)}
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-end gap-2 sm:gap-3">
                       {fileInfo.status === 'pending' && (
                         <button
                           onClick={() => processFile(index)}
-                          className="px-3 py-1 text-sm bg-secondary rounded-md hover:bg-secondary/[0.8] ff-transition"
+                          className="px-2.5 sm:px-3 py-1 text-xs sm:text-sm bg-secondary rounded-md hover:bg-secondary/[0.8] ff-transition"
                         >
                           Convert
                         </button>
                       )}
                       
                       {fileInfo.status === 'processing' && (
-                        <div className="flex items-center gap-2">
-                          <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                          <span className="text-sm font-mono">{fileInfo.progress}%</span>
+                        <div className="flex items-center gap-1.5 sm:gap-2">
+                          <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin text-primary" />
+                          <span className="text-xs sm:text-sm font-mono">{fileInfo.progress}%</span>
                         </div>
                       )}
                       
@@ -316,18 +318,19 @@ export default function PdfToWord() {
                             document.body.removeChild(a);
                             URL.revokeObjectURL(url);
                           }}
-                          className="inline-flex items-center gap-2 px-3 py-1 text-sm bg-accent/[0.1] text-accent rounded-md hover:bg-accent/[0.2] ff-transition"
+                          className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 text-xs sm:text-sm bg-accent/[0.1] text-accent rounded-md hover:bg-accent/[0.2] ff-transition"
                         >
-                          <Download className="w-3 h-3" />
-                          Download
+                          <Download className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                          <span className="hidden sm:inline">Download</span>
+                          <span className="sm:hidden">Save</span>
                         </button>
                       )}
                       
                       <button
                         onClick={() => removeFile(index)}
-                        className="p-1 hover:bg-secondary rounded ff-transition"
+                        className="p-1.5 sm:p-1 hover:bg-secondary rounded ff-transition"
                       >
-                        <X className="w-4 h-4" />
+                        <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       </button>
                     </div>
                   </div>
@@ -348,34 +351,34 @@ export default function PdfToWord() {
           </div>
         )}
 
-        {/* Features */}
-        <div className="mt-16 grid md:grid-cols-3 gap-6">
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-secondary rounded-lg text-primary mb-3">
-              <Settings className="w-6 h-6" />
+        {/* Features - Mobile optimized grid */}
+        <div className="mt-12 sm:mt-16 grid sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
+          <div className="text-center px-4 sm:px-0">
+            <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-secondary rounded-lg text-primary mb-2 sm:mb-3">
+              <Settings className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <h3 className="font-semibold mb-1">Format Preservation</h3>
-            <p className="text-sm text-muted-foreground">
+            <h3 className="font-semibold text-sm sm:text-base mb-1">Format Preservation</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
               Maintains layout, fonts, and images from your PDF
             </p>
           </div>
           
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-secondary rounded-lg text-accent mb-3">
-              <Eye className="w-6 h-6" />
+          <div className="text-center px-4 sm:px-0">
+            <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-secondary rounded-lg text-accent mb-2 sm:mb-3">
+              <Eye className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <h3 className="font-semibold mb-1">Preview Mode</h3>
-            <p className="text-sm text-muted-foreground">
+            <h3 className="font-semibold text-sm sm:text-base mb-1">Preview Mode</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
               Check conversion quality before downloading
             </p>
           </div>
           
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-secondary rounded-lg text-tool-pdf mb-3">
-              <FileCheck className="w-6 h-6" />
+          <div className="text-center px-4 sm:px-0 sm:col-span-2 md:col-span-1">
+            <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-secondary rounded-lg text-tool-pdf mb-2 sm:mb-3">
+              <FileCheck className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <h3 className="font-semibold mb-1">Batch Processing</h3>
-            <p className="text-sm text-muted-foreground">
+            <h3 className="font-semibold text-sm sm:text-base mb-1">Batch Processing</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
               Convert multiple PDFs at once to save time
             </p>
           </div>

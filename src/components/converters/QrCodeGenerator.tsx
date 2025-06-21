@@ -298,36 +298,41 @@ export default function QrCodeGenerator() {
 
   return (
     <div className="w-full max-w-6xl mx-auto p-4">
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold mb-2">QR Code Generator</h1>
-        <p className="text-muted-foreground">
+      <div className="mb-6 sm:mb-8 text-center">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2 flex items-center justify-center gap-2">
+          <div className="p-1.5 sm:p-2 bg-primary/10 text-primary rounded-lg">
+            <QrCode className="w-4 h-4 sm:w-5 sm:h-5" />
+          </div>
+          QR Code Generator
+        </h1>
+        <p className="text-sm sm:text-base text-muted-foreground px-2">
           Create QR codes for URLs, WiFi, contacts, and more
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
         {/* Input Section */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Template Selection */}
           <div>
-            <Label className="mb-3 block">QR Code Type</Label>
+            <Label className="mb-2 sm:mb-3 block text-sm sm:text-base">QR Code Type</Label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {qrTemplates.map((template) => (
                 <button
                   key={template.id}
                   onClick={() => setSelectedTemplate(template)}
                   className={cn(
-                    "p-3 rounded-lg border text-left transition-all hover:border-primary",
+                    "p-2.5 sm:p-3 rounded-lg border text-left transition-all hover:border-primary",
                     selectedTemplate.id === template.id
                       ? "border-primary bg-primary/5"
                       : "border-border"
                   )}
                 >
-                  <div className="flex items-center gap-2 mb-1">
-                    <template.icon className="w-4 h-4 text-primary" />
-                    <span className="font-medium text-sm">{template.name}</span>
+                  <div className="flex items-center gap-1.5 sm:gap-2 mb-0.5 sm:mb-1">
+                    <template.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary flex-shrink-0" />
+                    <span className="font-medium text-xs sm:text-sm truncate">{template.name}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-[10px] sm:text-xs text-muted-foreground line-clamp-2">
                     {template.description}
                   </p>
                 </button>
@@ -336,10 +341,10 @@ export default function QrCodeGenerator() {
           </div>
 
           {/* Dynamic Form Fields */}
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {selectedTemplate.fields.map((field) => (
               <div key={field.name}>
-                <Label htmlFor={field.name} className="mb-1.5 block">
+                <Label htmlFor={field.name} className="mb-1 sm:mb-1.5 block text-sm">
                   {field.label}
                   {field.required && <span className="text-destructive ml-1">*</span>}
                 </Label>
@@ -349,7 +354,7 @@ export default function QrCodeGenerator() {
                     value={formData[field.name] || ''}
                     onChange={(e) => handleFieldChange(field.name, e.target.value)}
                     placeholder={field.placeholder}
-                    className="resize-none"
+                    className="resize-none text-sm"
                     rows={3}
                   />
                 ) : (
@@ -359,6 +364,7 @@ export default function QrCodeGenerator() {
                     value={formData[field.name] || ''}
                     onChange={(e) => handleFieldChange(field.name, e.target.value)}
                     placeholder={field.placeholder}
+                    className="text-sm"
                   />
                 )}
               </div>
@@ -479,26 +485,28 @@ export default function QrCodeGenerator() {
         </div>
 
         {/* Output Section */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* QR Code Display */}
           <div className="flex flex-col items-center">
-            <div className="p-8 rounded-lg border bg-white dark:bg-secondary">
+            <div className="p-4 sm:p-6 lg:p-8 rounded-lg border bg-white dark:bg-secondary">
               <canvas
                 ref={canvasRef}
                 className={cn(
-                  "transition-opacity",
+                  "transition-opacity max-w-full h-auto",
                   isGenerating ? "opacity-50" : "opacity-100"
                 )}
+                style={{ maxWidth: '100%', height: 'auto' }}
               />
             </div>
 
             {/* Action Buttons */}
             {qrDataUrl && (
-              <div className="flex gap-2 mt-4">
+              <div className="flex flex-wrap justify-center gap-2 mt-3 sm:mt-4">
                 <Button
                   onClick={copyQrCode}
                   variant="outline"
                   size="sm"
+                  className="text-xs sm:text-sm"
                 >
                   {copied ? (
                     <>
@@ -516,16 +524,18 @@ export default function QrCodeGenerator() {
                   onClick={() => downloadQrCode('png')}
                   variant="outline"
                   size="sm"
+                  className="text-xs sm:text-sm"
                 >
-                  <Download className="w-4 h-4 mr-2" />
+                  <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
                   PNG
                 </Button>
                 <Button
                   onClick={() => downloadQrCode('svg')}
                   variant="outline"
                   size="sm"
+                  className="text-xs sm:text-sm"
                 >
-                  <Download className="w-4 h-4 mr-2" />
+                  <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
                   SVG
                 </Button>
               </div>

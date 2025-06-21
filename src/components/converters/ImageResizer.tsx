@@ -197,21 +197,26 @@ export default function ImageResizer() {
 
   return (
     <div className="w-full max-w-6xl mx-auto p-4">
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold mb-2">Image Resizer</h1>
-        <p className="text-muted-foreground">
+      <div className="mb-6 sm:mb-8 text-center">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2 flex items-center justify-center gap-2">
+          <div className="p-1.5 sm:p-2 bg-tool-jpg/[0.1] text-tool-jpg rounded-lg">
+            <Maximize2 className="w-4 h-4 sm:w-5 sm:h-5" />
+          </div>
+          Image Resizer
+        </h1>
+        <p className="text-sm sm:text-base text-muted-foreground px-2">
           Resize multiple images at once with advanced options
         </p>
       </div>
 
-      {/* Options Panel */}
-      <div className="mb-6 p-6 rounded-lg border bg-card">
-        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Settings2 className="w-5 h-5" />
+      {/* Options Panel - Mobile optimized */}
+      <div className="mb-6 p-4 sm:p-6 rounded-lg border bg-card">
+        <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2">
+          <Settings2 className="w-4 h-4 sm:w-5 sm:h-5" />
           Resize Options
         </h3>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-3 sm:mb-4">
           {/* Preset Selector */}
           <div>
             <label className="block text-sm font-medium mb-2">Preset Dimensions</label>

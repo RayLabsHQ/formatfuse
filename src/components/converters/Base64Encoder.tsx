@@ -197,17 +197,22 @@ export default function Base64Encoder() {
 
   return (
     <div className="w-full max-w-6xl mx-auto p-4">
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold mb-2">Base64 Encoder/Decoder</h1>
-        <p className="text-muted-foreground">
+      <div className="mb-6 sm:mb-8 text-center">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2 flex items-center justify-center gap-2">
+          <div className="p-1.5 sm:p-2 bg-primary/10 text-primary rounded-lg">
+            <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
+          </div>
+          Base64 Encoder/Decoder
+        </h1>
+        <p className="text-sm sm:text-base text-muted-foreground px-2">
           Encode and decode Base64 strings with support for text and files
         </p>
       </div>
 
-      {/* Controls */}
-      <div className="mb-6 p-4 rounded-lg border bg-card">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
+      {/* Controls - Mobile optimized */}
+      <div className="mb-4 sm:mb-6 p-3 sm:p-4 rounded-lg border bg-card">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
             {/* Mode Toggle */}
             <div className="flex items-center gap-2">
               <button
@@ -215,7 +220,7 @@ export default function Base64Encoder() {
                   setMode('encode');
                   setError(null);
                 }}
-                className={`px-4 py-2 rounded-md transition-colors ${
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base rounded-md transition-colors ${
                   mode === 'encode' 
                     ? 'bg-primary text-primary-foreground' 
                     : 'hover:bg-secondary'
@@ -223,14 +228,14 @@ export default function Base64Encoder() {
               >
                 Encode
               </button>
-              <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
+              <ArrowUpDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground" />
               <button
                 onClick={() => {
                   setMode('decode');
                   setError(null);
                   setInputType('text');
                 }}
-                className={`px-4 py-2 rounded-md transition-colors ${
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base rounded-md transition-colors ${
                   mode === 'decode' 
                     ? 'bg-primary text-primary-foreground' 
                     : 'hover:bg-secondary'
@@ -242,27 +247,27 @@ export default function Base64Encoder() {
 
             {/* Input Type (only for encode) */}
             {mode === 'encode' && (
-              <div className="flex items-center gap-2 border-l pl-4">
+              <div className="flex items-center gap-2 sm:border-l sm:pl-4">
                 <button
                   onClick={() => setInputType('text')}
-                  className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                  className={`px-2.5 sm:px-3 py-1 text-xs sm:text-sm rounded-md transition-colors ${
                     inputType === 'text' 
                       ? 'bg-secondary text-foreground' 
                       : 'hover:bg-secondary/50'
                   }`}
                 >
-                  <FileText className="w-4 h-4 inline mr-1" />
+                  <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1" />
                   Text
                 </button>
                 <button
                   onClick={() => setInputType('file')}
-                  className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                  className={`px-2.5 sm:px-3 py-1 text-xs sm:text-sm rounded-md transition-colors ${
                     inputType === 'file' 
                       ? 'bg-secondary text-foreground' 
                       : 'hover:bg-secondary/50'
                   }`}
                 >
-                  <Upload className="w-4 h-4 inline mr-1" />
+                  <Upload className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1" />
                   File
                 </button>
               </div>
@@ -270,26 +275,26 @@ export default function Base64Encoder() {
           </div>
 
           {/* Options */}
-          <div className="flex items-center gap-4">
-            <label className="flex items-center gap-2 text-sm">
+          <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm">
+            <label className="flex items-center gap-1.5 sm:gap-2">
               <input
                 type="checkbox"
                 checked={urlSafe}
                 onChange={(e) => setUrlSafe(e.target.checked)}
-                className="rounded"
+                className="rounded h-3.5 w-3.5 sm:h-4 sm:w-4"
               />
-              URL-safe
+              <span>URL-safe</span>
             </label>
             
-            <span className="text-xs text-muted-foreground">
-              {mode === 'encode' ? '🔒 Encoding locally' : '🔓 Decoding locally'}
+            <span className="text-[10px] sm:text-xs text-muted-foreground">
+              {mode === 'encode' ? '🔒 Local' : '🔓 Local'}
             </span>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {/* Main Content - Mobile optimized */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
         {/* Input */}
         <div className="space-y-2">
           <div className="flex items-center justify-between h-10">
@@ -338,7 +343,7 @@ export default function Base64Encoder() {
                   ? 'Enter text to encode...' 
                   : 'Paste Base64 string to decode...'
               }
-              className="w-full h-[400px] p-4 font-mono text-sm border rounded-lg bg-background resize-none focus:outline-none focus:ring-1 focus:ring-ring"
+              className="w-full h-[300px] sm:h-[400px] p-3 sm:p-4 font-mono text-xs sm:text-sm border rounded-lg bg-background resize-none focus:outline-none focus:ring-1 focus:ring-ring"
               spellCheck={false}
             />
           )}
@@ -359,33 +364,34 @@ export default function Base64Encoder() {
                     setCopied(true);
                     setTimeout(() => setCopied(false), 2000);
                   }}
-                  className="px-2 py-1 text-xs border rounded hover:bg-secondary"
+                  className="px-2 py-1 text-[10px] sm:text-xs border rounded hover:bg-secondary"
                   title="Copy as Data URI"
                 >
-                  Copy Data URI
+                  <span className="hidden sm:inline">Copy Data URI</span>
+                  <span className="sm:hidden">Data URI</span>
                 </button>
               )}
               <button
                 onClick={handleCopy}
                 disabled={!result}
-                className="h-8 w-8 inline-flex items-center justify-center text-sm hover:bg-secondary rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                className="h-7 w-7 sm:h-8 sm:w-8 inline-flex items-center justify-center text-sm hover:bg-secondary rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Copy to clipboard"
               >
-                {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                {copied ? <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-500" /> : <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
               </button>
               <button
                 onClick={handleDownload}
                 disabled={!result}
-                className="h-8 w-8 inline-flex items-center justify-center text-sm hover:bg-secondary rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                className="h-7 w-7 sm:h-8 sm:w-8 inline-flex items-center justify-center text-sm hover:bg-secondary rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Download"
               >
-                <Download className="w-4 h-4" />
+                <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
             </div>
           </div>
           
           {showPreview ? (
-            <div className="h-[400px] border rounded-lg overflow-hidden bg-secondary/10 flex items-center justify-center">
+            <div className="h-[300px] sm:h-[400px] border rounded-lg overflow-hidden bg-secondary/10 flex items-center justify-center">
               <img 
                 src={`data:image/png;base64,${base64Input}`} 
                 alt="Preview" 
@@ -397,7 +403,7 @@ export default function Base64Encoder() {
               value={result}
               readOnly
               placeholder={error || 'Output will appear here...'}
-              className={`w-full h-[400px] p-4 font-mono text-sm border rounded-lg bg-secondary/20 resize-none ${
+              className={`w-full h-[300px] sm:h-[400px] p-3 sm:p-4 font-mono text-xs sm:text-sm border rounded-lg bg-secondary/20 resize-none ${
                 error ? 'text-destructive placeholder:text-destructive' : ''
               }`}
             />
@@ -413,26 +419,26 @@ export default function Base64Encoder() {
         </div>
       )}
 
-      {/* Features */}
-      <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-4 rounded-lg border">
-          <ArrowUpDown className="w-8 h-8 mb-2 text-primary" />
-          <h3 className="font-semibold mb-1">Auto-detect Format</h3>
-          <p className="text-sm text-muted-foreground">
+      {/* Features - Mobile optimized */}
+      <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <ArrowUpDown className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">Auto-detect Format</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Automatically detects if input is encoded or needs encoding
           </p>
         </div>
-        <div className="p-4 rounded-lg border">
-          <ImageIcon className="w-8 h-8 mb-2 text-primary" />
-          <h3 className="font-semibold mb-1">File Support</h3>
-          <p className="text-sm text-muted-foreground">
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <ImageIcon className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">File Support</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Encode any file type including images, PDFs, and documents
           </p>
         </div>
-        <div className="p-4 rounded-lg border">
-          <FileText className="w-8 h-8 mb-2 text-primary" />
-          <h3 className="font-semibold mb-1">Data URI Generator</h3>
-          <p className="text-sm text-muted-foreground">
+        <div className="p-3 sm:p-4 rounded-lg border sm:col-span-2 md:col-span-1">
+          <FileText className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">Data URI Generator</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Generate data URIs for embedding in HTML/CSS
           </p>
         </div>

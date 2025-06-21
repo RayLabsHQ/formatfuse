@@ -279,16 +279,18 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
     <div className="min-h-screen bg-background">
       {/* Tool Header */}
       <div className="border-b bg-card/[0.5]">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-3">
-              <div className="p-2 bg-tool-jpg/[0.1] text-tool-jpg rounded-lg">
-                <Image className="w-5 h-5 sm:w-6 sm:h-6" />
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-tool-jpg/[0.1] text-tool-jpg rounded-lg">
+                <Image className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
               </div>
-              {selectedSourceFormat?.name === selectedTargetFormat?.name 
-                ? `${selectedSourceFormat?.displayName || 'Image'} Compressor`
-                : `${selectedSourceFormat?.displayName || 'Image'} to ${selectedTargetFormat?.displayName || 'Image'} Converter`
-              }
+              <span className="break-words">
+                {selectedSourceFormat?.name === selectedTargetFormat?.name 
+                  ? `${selectedSourceFormat?.displayName || 'Image'} Compressor`
+                  : `${selectedSourceFormat?.displayName || 'Image'} to ${selectedTargetFormat?.displayName || 'Image'} Converter`
+                }
+              </span>
             </h1>
             <p className="mt-2 text-sm sm:text-base text-muted-foreground max-w-3xl">
               {selectedSourceFormat?.name === selectedTargetFormat?.name 
@@ -298,86 +300,91 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
               {' '}100% private - all processing happens in your browser.
             </p>
             
-            {/* Tool Features */}
-            <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+            {/* Tool Features - Better mobile layout */}
+            <div className="mt-4 grid grid-cols-1 sm:flex sm:flex-wrap gap-3 sm:gap-x-6 sm:gap-y-2 text-sm">
               <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0" />
                 <span className="font-medium">No file size limits</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0" />
                 <span className="font-medium">Batch convert multiple files</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0" />
                 <span className="font-medium">Free & no sign-up required</span>
               </div>
             </div>
           </div>
 
-          {/* Format Selector */}
-          <div className="mt-6 flex flex-col sm:flex-row items-center gap-4">
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium">From:</label>
-              <Select
-                value={selectedSourceFormat?.name || 'PNG'}
-                onValueChange={(value) => {
-                  const format = Object.values(FORMATS).find(f => f.name === value);
-                  if (format) setSelectedSourceFormat(format);
+          {/* Format Selector - Improved mobile layout */}
+          <div className="mt-6 space-y-4 sm:space-y-0 sm:flex sm:items-center sm:gap-4">
+            {/* Format selectors wrapper */}
+            <div className="flex items-center justify-center gap-2 sm:gap-4">
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium">From:</label>
+                <Select
+                  value={selectedSourceFormat?.name || 'PNG'}
+                  onValueChange={(value) => {
+                    const format = Object.values(FORMATS).find(f => f.name === value);
+                    if (format) setSelectedSourceFormat(format);
+                  }}
+                >
+                  <SelectTrigger className="w-[110px] sm:w-[140px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.values(FORMATS).map(format => (
+                      <SelectItem key={format.name} value={format.name}>
+                        {format.displayName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <Button
+                onClick={() => {
+                  // Swap source and target formats
+                  const temp = selectedSourceFormat;
+                  setSelectedSourceFormat(selectedTargetFormat);
+                  setSelectedTargetFormat(temp);
                 }}
+                variant="ghost"
+                size="sm"
+                className="h-9 w-9 p-0"
+                title="Swap formats"
+                aria-label="Swap source and target formats"
               >
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.values(FORMATS).map(format => (
-                    <SelectItem key={format.name} value={format.name}>
-                      {format.displayName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <ArrowLeftRight className="h-4 w-4" />
+              </Button>
+
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium">To:</label>
+                <Select
+                  value={selectedTargetFormat?.name || 'JPEG'}
+                  onValueChange={(value) => {
+                    const format = Object.values(FORMATS).find(f => f.name === value);
+                    if (format) setSelectedTargetFormat(format);
+                  }}
+                >
+                  <SelectTrigger className="w-[110px] sm:w-[140px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.values(FORMATS).map(format => (
+                      <SelectItem key={format.name} value={format.name}>
+                        {format.displayName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
-            <Button
-              onClick={() => {
-                // Swap source and target formats
-                const temp = selectedSourceFormat;
-                setSelectedSourceFormat(selectedTargetFormat);
-                setSelectedTargetFormat(temp);
-              }}
-              variant="ghost"
-              size="icon"
-              title="Swap formats"
-              aria-label="Swap source and target formats"
-            >
-              <ArrowLeftRight className="h-4 w-4" />
-            </Button>
-
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium">To:</label>
-              <Select
-                value={selectedTargetFormat?.name || 'JPEG'}
-                onValueChange={(value) => {
-                  const format = Object.values(FORMATS).find(f => f.name === value);
-                  if (format) setSelectedTargetFormat(format);
-                }}
-              >
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.values(FORMATS).map(format => (
-                    <SelectItem key={format.name} value={format.name}>
-                      {format.displayName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
+            {/* Quality slider - Separate row on mobile */}
             {showQualitySlider && (
-              <div className="flex items-center gap-3 ml-auto">
+              <div className="flex items-center justify-center gap-3 sm:ml-auto">
                 <label className="text-sm font-medium">Quality:</label>
                 <div className="flex items-center gap-3">
                   <Slider
@@ -386,7 +393,7 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
                     min={10}
                     max={100}
                     step={1}
-                    className="w-[120px]"
+                    className="w-[100px] sm:w-[120px]"
                   />
                   <span className="text-sm font-mono bg-secondary px-2 py-0.5 rounded min-w-[48px] text-center">
                     {quality}%
@@ -398,13 +405,13 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
         </div>
       </div>
 
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
-        {/* Drop Zone */}
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {/* Drop Zone - Mobile optimized */}
         <div
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
-          className={`relative border-2 border-dashed rounded-lg p-12 text-center ff-transition ${
+          className={`relative border-2 border-dashed rounded-lg p-8 sm:p-10 lg:p-12 text-center ff-transition ${
             isDragging 
               ? 'border-primary bg-primary/[0.05] drop-zone-active' 
               : 'border-border drop-zone hover:border-primary/[0.5]'
@@ -419,26 +426,27 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
             className="hidden"
           />
           
-          <div className="space-y-4">
-            <div className="mx-auto w-16 h-16 bg-primary/[0.1] rounded-full flex items-center justify-center">
-              <Upload className="w-8 h-8 text-primary" />
+          <div className="space-y-3 sm:space-y-4">
+            <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-primary/[0.1] rounded-full flex items-center justify-center">
+              <Upload className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
             </div>
             
             <div>
-              <h3 className="text-lg font-semibold">Drop {selectedSourceFormat?.displayName || 'image'} files here</h3>
+              <h3 className="text-base sm:text-lg font-semibold">Drop {selectedSourceFormat?.displayName || 'image'} files here</h3>
               <p className="mt-1 text-sm text-muted-foreground">
                 or{' '}
-                <button
+                <Button
                   onClick={() => fileInputRef.current?.click()}
-                  className="text-primary hover:underline font-medium"
+                  variant="link"
+                  className="text-primary p-0 h-auto font-medium"
                 >
                   browse files
-                </button>
-                {' '}from your computer
+                </Button>
+                {' '}from your device
               </p>
             </div>
             
-            <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
                 <FileCheck className="w-3 h-3" />
                 .{selectedSourceFormat?.extension || '*'} format
@@ -453,27 +461,30 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
 
         {/* File List */}
         {files.length > 0 && (
-          <div className="mt-8 space-y-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Files to convert ({files.length})</h3>
-              <div className="flex items-center gap-3">
+          <div className="mt-6 sm:mt-8 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+              <h3 className="text-base sm:text-lg font-semibold">Files to convert ({files.length})</h3>
+              <div className="flex items-center gap-2 sm:gap-3">
                 {files.some(f => f.status === 'completed') && files.length > 1 && (
                   <Button
                     onClick={downloadAll}
                     variant="outline"
-                    className="gap-2"
+                    size="sm"
+                    className="gap-1.5 sm:gap-2 text-xs sm:text-sm"
                   >
-                    <Package className="w-4 h-4" />
-                    Download All
+                    <Package className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline">Download All</span>
+                    <span className="sm:hidden">All</span>
                   </Button>
                 )}
                 <Button
                   onClick={processAll}
                   disabled={!files.some(f => f.status === 'pending')}
-                  className="gap-2"
+                  size="sm"
+                  className="gap-1.5 sm:gap-2 text-xs sm:text-sm"
                 >
                   Convert All
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </Button>
               </div>
             </div>
@@ -490,34 +501,34 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
           </div>
         )}
 
-        {/* Features */}
-        <div className="mt-16 grid md:grid-cols-3 gap-6">
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-secondary rounded-lg text-primary mb-3">
-              <Settings className="w-6 h-6" />
+        {/* Features - Mobile optimized grid */}
+        <div className="mt-12 sm:mt-16 grid sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
+          <div className="text-center px-4 sm:px-0">
+            <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-secondary rounded-lg text-primary mb-2 sm:mb-3">
+              <Settings className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <h3 className="font-semibold mb-1">Format Flexibility</h3>
-            <p className="text-sm text-muted-foreground">
+            <h3 className="font-semibold text-sm sm:text-base mb-1">Format Flexibility</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
               Convert between 10+ image formats instantly
             </p>
           </div>
           
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-secondary rounded-lg text-accent mb-3">
-              <Eye className="w-6 h-6" />
+          <div className="text-center px-4 sm:px-0">
+            <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-secondary rounded-lg text-accent mb-2 sm:mb-3">
+              <Eye className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <h3 className="font-semibold mb-1">Quality Control</h3>
-            <p className="text-sm text-muted-foreground">
+            <h3 className="font-semibold text-sm sm:text-base mb-1">Quality Control</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
               Adjust quality settings for optimal results
             </p>
           </div>
           
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-secondary rounded-lg text-tool-jpg mb-3">
-              <FileCheck className="w-6 h-6" />
+          <div className="text-center px-4 sm:px-0 sm:col-span-2 md:col-span-1">
+            <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-secondary rounded-lg text-tool-jpg mb-2 sm:mb-3">
+              <FileCheck className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <h3 className="font-semibold mb-1">Batch Processing</h3>
-            <p className="text-sm text-muted-foreground">
+            <h3 className="font-semibold text-sm sm:text-base mb-1">Batch Processing</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
               Convert multiple images at once with ZIP download
             </p>
           </div>
