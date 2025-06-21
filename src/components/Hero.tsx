@@ -64,7 +64,7 @@ export default function Hero() {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
             <Sparkles className="w-4 h-4" />
-            50+ Free Tools, No Sign-up Required
+            90+ Free Tools, No Sign-up Required
           </div>
           
           {/* Heading */}
@@ -115,7 +115,7 @@ export default function Hero() {
           {/* Stats */}
           <div className="mt-16 grid grid-cols-3 gap-8 max-w-2xl mx-auto">
             <div>
-              <div className="text-3xl font-bold text-primary">50+</div>
+              <div className="text-3xl font-bold text-primary">90+</div>
               <div className="text-sm text-muted-foreground">Free Tools</div>
             </div>
             <div>
