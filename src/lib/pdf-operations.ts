@@ -1,7 +1,7 @@
 import * as Comlink from 'comlink';
 import type { Remote } from 'comlink';
 
-type PDFOperationsWorker = typeof import('../workers/pdf-operations.worker');
+import type { PDFOperationsWorker } from '../workers/pdf-operations.worker';
 
 export interface SplitOptions {
   pageRanges: Array<{ start: number; end: number }>;
@@ -40,14 +40,14 @@ export interface PdfMetadata {
 
 export class PDFOperations {
   private worker: Worker;
-  private api: Remote<InstanceType<PDFOperationsWorker>>;
+  private api: Remote<PDFOperationsWorker>;
 
   constructor() {
     this.worker = new Worker(
       new URL('../workers/pdf-operations.worker.ts', import.meta.url),
       { type: 'module' }
     );
-    this.api = Comlink.wrap<InstanceType<PDFOperationsWorker>>(this.worker);
+    this.api = Comlink.wrap<PDFOperationsWorker>(this.worker);
   }
 
   async split(

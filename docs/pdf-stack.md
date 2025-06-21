@@ -40,12 +40,19 @@ All PDF operations run in Web Workers using Comlink for clean async APIs:
    - Visual rotation selection
    - Progress tracking
 
-### 🚧 In Progress (Phase 1)
-4. **Enhanced JPG to PDF** - Add multi-image support
+4. **Enhanced JPG to PDF** (`/convert/jpg-to-pdf`)
+   - Support for multiple images
+   - Drag-to-reorder functionality
+   - Preview thumbnails
+   - Batch processing
+
+5. **PDF to JPG** (`/convert/pdf-to-jpg`)
+   - Convert all or specific pages
+   - JPEG/PNG output formats
+   - Adjustable quality and resolution
+   - Batch download as ZIP
 
 ### 📋 Planned (Phase 2)
-4. **Enhanced JPG to PDF** - Multi-image support
-5. **PDF to JPG** - Using PDF.js rendering
 6. **Extract Pages** - Variant of split
 
 ### 🔮 Future (Phase 3)

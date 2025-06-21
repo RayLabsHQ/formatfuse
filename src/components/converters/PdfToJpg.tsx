@@ -1,33 +1,50 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { Button } from '../ui/button';
 import { Progress } from '../ui/progress';
+import { Input } from '../ui/input';
 import { usePdfOperations } from '../../hooks/usePdfOperations';
-import { parsePageRanges } from '../../lib/pdf-operations';
 import { 
-  RotateCw, Download, FileText, AlertCircle, Upload, FileUp,
-  FileCheck, CheckCircle, Loader2
+  Image, Download, FileText, AlertCircle, Upload, FileUp,
+  FileCheck, CheckCircle, Loader2, Package, Settings
 } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select';
+import { Slider } from '../ui/slider';
+import JSZip from 'jszip';
 import FileSaver from 'file-saver';
 const { saveAs } = FileSaver;
 
-export const PdfRotate: React.FC = () => {
+interface ConversionResult {
+  page: number;
+  data: Uint8Array;
+  size: number;
+}
+
+export const PdfToJpg: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [pageCount, setPageCount] = useState<number>(0);
   const [metadata, setMetadata] = useState<any>(null);
-  const [rotatedResult, setRotatedResult] = useState<Uint8Array | null>(null);
+  const [results, setResults] = useState<ConversionResult[]>([]);
   const [isDragging, setIsDragging] = useState(false);
-  const [selectedRotation, setSelectedRotation] = useState<90 | 180 | 270>(90);
-  const [rotateAll, setRotateAll] = useState(true);
+  const [conversionMode, setConversionMode] = useState<'all' | 'specific'>('all');
   const [specificPages, setSpecificPages] = useState<string>('');
+  const [format, setFormat] = useState<'jpeg' | 'png'>('jpeg');
+  const [quality, setQuality] = useState(85);
+  const [scale, setScale] = useState(1.5);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const { rotate, getPageCount, getMetadata, isProcessing, progress, error } = usePdfOperations();
+  const { pdfToImages, getPageCount, getMetadata, isProcessing, progress, error } = usePdfOperations();
 
   const handleFileSelect = useCallback(async (selectedFile: File) => {
     if (!selectedFile || selectedFile.type !== 'application/pdf') return;
 
     setFile(selectedFile);
-    setRotatedResult(null);
+    setResults([]);
     setSpecificPages('');
     
     try {
@@ -70,39 +87,78 @@ export const PdfRotate: React.FC = () => {
     setIsDragging(false);
   }, []);
 
-  const handleRotate = useCallback(async () => {
+  const handleConvert = useCallback(async () => {
     if (!file) return;
 
     try {
       const fileData = new Uint8Array(await file.arrayBuffer());
       
-      const pageRanges = rotateAll ? [] : parsePageRanges(specificPages, pageCount);
-      const pageNumbers = pageRanges.flatMap(range => {
-        const pages = [];
-        for (let i = range.start; i <= range.end; i++) {
-          pages.push(i);
+      let pages: number[] | undefined;
+      if (conversionMode === 'specific' && specificPages) {
+        // Parse page ranges
+        const ranges = specificPages.split(',').map(r => r.trim());
+        pages = [];
+        for (const range of ranges) {
+          if (range.includes('-')) {
+            const [start, end] = range.split('-').map(n => parseInt(n.trim()));
+            for (let i = start; i <= end && i <= pageCount; i++) {
+              if (i > 0) pages.push(i);
+            }
+          } else {
+            const page = parseInt(range);
+            if (page > 0 && page <= pageCount) pages.push(page);
+          }
         }
-        return pages;
-      });
-      
-      const rotated = await rotate(fileData, {
-        angle: selectedRotation,
-        pages: pageNumbers
-      });
-      
-      setRotatedResult(rotated);
-    } catch (err) {
-      console.error('Error rotating PDF:', err);
-    }
-  }, [file, rotate, selectedRotation, rotateAll, specificPages]);
+        // Remove duplicates and sort
+        pages = [...new Set(pages)].sort((a, b) => a - b);
+      }
 
-  const downloadRotated = useCallback(() => {
-    if (!rotatedResult) return;
-    
-    const blob = new Blob([rotatedResult], { type: 'application/pdf' });
-    const fileName = file?.name.replace('.pdf', '') || 'rotated';
-    saveAs(blob, `${fileName}_rotated_${selectedRotation}deg.pdf`);
-  }, [rotatedResult, file, selectedRotation]);
+      const images = await pdfToImages(fileData, {
+        pages,
+        format,
+        quality: format === 'jpeg' ? quality / 100 : undefined,
+        scale
+      });
+
+      const convertedResults: ConversionResult[] = images.map((data, index) => ({
+        page: pages ? pages[index] : index + 1,
+        data,
+        size: data.length
+      }));
+
+      setResults(convertedResults);
+    } catch (err) {
+      console.error('Error converting PDF:', err);
+    }
+  }, [file, pdfToImages, conversionMode, specificPages, pageCount, format, quality, scale]);
+
+  const downloadSingle = useCallback((result: ConversionResult) => {
+    const blob = new Blob([result.data], { 
+      type: format === 'jpeg' ? 'image/jpeg' : 'image/png' 
+    });
+    const baseName = file?.name.replace('.pdf', '') || 'page';
+    saveAs(blob, `${baseName}_page${result.page}.${format === 'jpeg' ? 'jpg' : 'png'}`);
+  }, [file, format]);
+
+  const downloadAll = useCallback(async () => {
+    if (results.length === 0) return;
+
+    if (results.length === 1) {
+      downloadSingle(results[0]);
+      return;
+    }
+
+    const zip = new JSZip();
+    const baseName = file?.name.replace('.pdf', '') || 'pages';
+
+    results.forEach((result) => {
+      const fileName = `${baseName}_page${result.page}.${format === 'jpeg' ? 'jpg' : 'png'}`;
+      zip.file(fileName, result.data);
+    });
+
+    const zipBlob = await zip.generateAsync({ type: 'blob' });
+    saveAs(zipBlob, `${baseName}_images.zip`);
+  }, [results, file, format, downloadSingle]);
 
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return bytes + ' B';
@@ -118,12 +174,12 @@ export const PdfRotate: React.FC = () => {
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-3">
               <div className="p-2 bg-tool-pdf/[0.1] text-tool-pdf rounded-lg">
-                <RotateCw className="w-5 h-5 sm:w-6 sm:h-6" />
+                <Image className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-              Rotate PDF
+              PDF to JPG Converter
             </h1>
             <p className="mt-2 text-sm sm:text-base text-muted-foreground max-w-3xl">
-              Rotate PDF pages or entire documents. Choose 90°, 180°, or 270° rotation.
+              Convert PDF pages to high-quality JPG or PNG images. Extract all pages or select specific ones.
               100% private - all processing happens in your browser.
             </p>
             
@@ -135,11 +191,11 @@ export const PdfRotate: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                <span className="font-medium">Rotate all or specific pages</span>
+                <span className="font-medium">Adjustable quality</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                <span className="font-medium">Instant preview</span>
+                <span className="font-medium">Batch download</span>
               </div>
             </div>
           </div>
@@ -225,7 +281,7 @@ export const PdfRotate: React.FC = () => {
                   size="sm"
                   onClick={() => {
                     setFile(null);
-                    setRotatedResult(null);
+                    setResults([]);
                     setPageCount(0);
                     setMetadata(null);
                     if (fileInputRef.current) {
@@ -238,96 +294,120 @@ export const PdfRotate: React.FC = () => {
               </div>
             </div>
 
-            {/* Rotation Options */}
+            {/* Conversion Options */}
             <div className="bg-card border rounded-lg p-6 space-y-6">
-              <h3 className="font-medium">Rotation Options</h3>
+              <h3 className="font-medium flex items-center gap-2">
+                <Settings className="w-4 h-4" />
+                Conversion Options
+              </h3>
               
-              {/* Rotation Angle Selection */}
-              <div className="space-y-3">
-                <label className="text-sm font-medium">Rotation angle</label>
-                <div className="grid grid-cols-3 gap-3">
-                  {([90, 180, 270] as const).map((angle) => (
-                    <button
-                      key={angle}
-                      onClick={() => setSelectedRotation(angle)}
-                      className={`p-4 rounded-lg border-2 ff-transition ${
-                        selectedRotation === angle 
-                          ? 'border-primary bg-primary/[0.05]' 
-                          : 'border-border hover:border-primary/[0.3]'
-                      }`}
-                    >
-                      <div className="flex flex-col items-center gap-2">
-                        <div className="relative">
-                          <RotateCw 
-                            className="w-6 h-6" 
-                            style={{ transform: `rotate(${angle}deg)` }}
-                          />
-                        </div>
-                        <span className="font-medium">{angle}°</span>
-                        <span className="text-xs text-muted-foreground">
-                          {angle === 90 && 'Clockwise'}
-                          {angle === 180 && 'Upside down'}
-                          {angle === 270 && 'Counter-clockwise'}
-                        </span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               {/* Page Selection */}
               <div className="space-y-3">
-                <label className="text-sm font-medium">Pages to rotate</label>
-                <div className="space-y-3">
+                <label className="text-sm font-medium">Pages to convert</label>
+                <div className="grid grid-cols-2 gap-2">
                   <button
-                    onClick={() => setRotateAll(true)}
-                    className={`w-full p-3 rounded-lg border-2 text-left ff-transition ${
-                      rotateAll 
+                    onClick={() => setConversionMode('all')}
+                    className={`p-3 rounded-lg border-2 ff-transition ${
+                      conversionMode === 'all' 
                         ? 'border-primary bg-primary/[0.05]' 
                         : 'border-border hover:border-primary/[0.3]'
                     }`}
                   >
                     <div className="font-medium">All pages</div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      Rotate every page in the document
-                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">Convert every page</div>
                   </button>
-                  
                   <button
-                    onClick={() => setRotateAll(false)}
-                    className={`w-full p-3 rounded-lg border-2 text-left ff-transition ${
-                      !rotateAll 
+                    onClick={() => setConversionMode('specific')}
+                    className={`p-3 rounded-lg border-2 ff-transition ${
+                      conversionMode === 'specific' 
                         ? 'border-primary bg-primary/[0.05]' 
                         : 'border-border hover:border-primary/[0.3]'
                     }`}
                   >
                     <div className="font-medium">Specific pages</div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      Choose which pages to rotate
-                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">Choose pages to convert</div>
                   </button>
-                  
-                  {!rotateAll && (
-                    <div className="pl-3">
-                      <input
-                        type="text"
-                        placeholder="e.g., 1-3, 5, 7-10"
-                        value={specificPages}
-                        onChange={(e) => setSpecificPages(e.target.value)}
-                        className="w-full px-3 py-2 text-sm border rounded-md bg-background"
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Enter page numbers or ranges separated by commas
-                      </p>
-                    </div>
-                  )}
                 </div>
+                
+                {conversionMode === 'specific' && (
+                  <div className="space-y-2">
+                    <Input
+                      type="text"
+                      placeholder="e.g., 1-3, 5, 7-10"
+                      value={specificPages}
+                      onChange={(e) => setSpecificPages(e.target.value)}
+                      className="font-mono"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Enter page numbers or ranges separated by commas
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Format and Quality */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Output format</label>
+                  <Select
+                    value={format}
+                    onValueChange={(value: 'jpeg' | 'png') => setFormat(value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="jpeg">JPEG (smaller size)</SelectItem>
+                      <SelectItem value="png">PNG (higher quality)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {format === 'jpeg' && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Quality</label>
+                    <div className="flex items-center gap-3">
+                      <Slider
+                        value={[quality]}
+                        onValueChange={(value) => setQuality(value[0])}
+                        min={10}
+                        max={100}
+                        step={5}
+                        className="flex-1"
+                      />
+                      <span className="text-sm font-mono bg-secondary px-2 py-0.5 rounded min-w-[48px] text-center">
+                        {quality}%
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Scale */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Resolution scale</label>
+                <div className="flex items-center gap-3">
+                  <Slider
+                    value={[scale]}
+                    onValueChange={(value) => setScale(value[0])}
+                    min={0.5}
+                    max={3}
+                    step={0.1}
+                    className="flex-1"
+                  />
+                  <span className="text-sm font-mono bg-secondary px-2 py-0.5 rounded min-w-[48px] text-center">
+                    {scale.toFixed(1)}x
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Higher scale = better quality but larger file size
+                </p>
               </div>
             </div>
 
             {/* Action Button */}
             <Button
-              onClick={handleRotate}
+              onClick={handleConvert}
               disabled={isProcessing || !file}
               size="lg"
               className="w-full"
@@ -335,12 +415,12 @@ export const PdfRotate: React.FC = () => {
               {isProcessing ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Rotating PDF...
+                  Converting to {format.toUpperCase()}...
                 </>
               ) : (
                 <>
-                  <RotateCw className="w-4 h-4 mr-2" />
-                  Rotate PDF
+                  <Image className="w-4 h-4 mr-2" />
+                  Convert to {format.toUpperCase()}
                 </>
               )}
             </Button>
@@ -352,7 +432,7 @@ export const PdfRotate: React.FC = () => {
           <div className="bg-card border rounded-lg p-4 mt-6">
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span>Rotating pages...</span>
+                <span>Converting pages...</span>
                 <span className="font-mono">{Math.round(progress)}%</span>
               </div>
               <Progress value={progress} className="h-2" />
@@ -370,33 +450,55 @@ export const PdfRotate: React.FC = () => {
           </div>
         )}
 
-        {/* Result */}
-        {rotatedResult && (
+        {/* Results */}
+        {results.length > 0 && (
           <div className="space-y-4 mt-6">
             <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-lg p-4">
               <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
                 <CheckCircle className="h-5 w-5" />
-                <span className="font-medium">PDF rotated successfully!</span>
+                <span className="font-medium">Successfully converted {results.length} pages!</span>
               </div>
             </div>
 
             <div className="bg-card border rounded-lg p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-tool-pdf/[0.1] text-tool-pdf rounded">
-                    <FileText className="h-5 w-5" />
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-medium">Converted Images</h3>
+                {results.length > 1 && (
+                  <Button
+                    onClick={downloadAll}
+                    variant="default"
+                  >
+                    <Package className="h-4 w-4 mr-2" />
+                    Download All ({results.length} images)
+                  </Button>
+                )}
+              </div>
+              
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {results.map((result) => (
+                  <div
+                    key={result.page}
+                    className="group relative aspect-[3/4] bg-secondary/[0.3] rounded-lg overflow-hidden hover:ring-2 hover:ring-primary ff-transition"
+                  >
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-center">
+                        <FileText className="w-8 h-8 text-muted-foreground mb-2" />
+                        <p className="text-sm font-medium">Page {result.page}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {formatFileSize(result.size)}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => downloadSingle(result)}
+                      size="sm"
+                      className="absolute bottom-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 ff-transition"
+                    >
+                      <Download className="h-3 w-3 mr-1" />
+                      Download
+                    </Button>
                   </div>
-                  <div>
-                    <h3 className="font-medium">Rotated PDF</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {rotateAll ? 'All pages' : specificPages} rotated {selectedRotation}° • {formatFileSize(rotatedResult.length)}
-                    </p>
-                  </div>
-                </div>
-                <Button onClick={downloadRotated}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Download
-                </Button>
+                ))}
               </div>
             </div>
           </div>
@@ -406,4 +508,4 @@ export const PdfRotate: React.FC = () => {
   );
 };
 
-export default PdfRotate;
+export default PdfToJpg;

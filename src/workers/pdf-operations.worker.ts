@@ -32,7 +32,7 @@ interface PdfToImageOptions {
   scale?: number; // Default 1.5 for good quality
 }
 
-class PDFOperationsWorker {
+export class PDFOperationsWorker {
   private async loadPdfDocument(data: Uint8Array): Promise<PDFDocument> {
     return PDFDocument.load(data);
   }
@@ -194,12 +194,12 @@ class PDFOperationsWorker {
       
       // Create canvas
       const canvas = new OffscreenCanvas(viewport.width, viewport.height);
-      const context = canvas.getContext('2d');
+      const context = canvas.getContext('2d') as OffscreenCanvasRenderingContext2D;
       if (!context) throw new Error('Failed to create canvas context');
       
       // Render PDF page to canvas
       await page.render({
-        canvasContext: context,
+        canvasContext: context as any,
         viewport: viewport,
       }).promise;
       
