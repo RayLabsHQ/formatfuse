@@ -1,0 +1,11 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import CaseConverter from '../../components/converters/CaseConverter';
+
+const title = 'Case Converter - Convert Text Case Formats Online';
+const description = 'Convert text between different case formats: UPPERCASE, lowercase, camelCase, PascalCase, snake_case, kebab-case and more. Smart detection and keyboard shortcuts.';
+---
+
+<Layout title={title} description={description}>
+  <CaseConverter client:load />
+</Layout>

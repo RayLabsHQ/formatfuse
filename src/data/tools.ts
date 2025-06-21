@@ -37,7 +37,17 @@ export const universalTools: Tool[] = [
     searches: '500k', 
     isPopular: true,
     category: 'image',
-    route: '/tools/image-converter'
+    route: '/tools/image-compressor'
+  },
+  { 
+    id: 'image-resizer', 
+    name: 'Image Resizer', 
+    description: 'Resize images to exact dimensions with bulk processing support',
+    icon: Image, 
+    searches: '400k', 
+    isPopular: true,
+    category: 'image',
+    route: '/tools/image-resizer'
   }
 ];
 
@@ -197,22 +207,22 @@ export const pdfTools: Tool[] = [
 // Developer Tools
 export const devTools: Tool[] = [
   { 
-    id: 'json-format', 
-    name: 'Format JSON', 
-    description: 'Beautify and validate JSON data',
+    id: 'json-formatter', 
+    name: 'JSON Formatter', 
+    description: 'Beautify, minify and validate JSON data with error detection',
     icon: Braces, 
     searches: '150k',
     category: 'dev',
-    route: '/tools/json-format'
+    route: '/tools/json-formatter'
   },
   { 
-    id: 'base64-encode', 
+    id: 'base64-encoder', 
     name: 'Base64 Encode/Decode', 
-    description: 'Encode and decode Base64 strings',
+    description: 'Encode and decode Base64 strings with file support',
     icon: Hash, 
     searches: '100k',
     category: 'dev',
-    route: '/tools/base64-encode'
+    route: '/tools/base64-encoder'
   },
   { 
     id: 'qr-generator', 
@@ -254,7 +264,7 @@ export const devTools: Tool[] = [
   {
     id: 'case-converter',
     name: 'Case Converter',
-    description: 'Convert text case (upper, lower, title)',
+    description: 'Convert text between case formats with smart detection',
     icon: Type,
     searches: '90k',
     category: 'dev',
