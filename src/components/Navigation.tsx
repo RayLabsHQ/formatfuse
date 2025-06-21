@@ -19,38 +19,41 @@ interface Tool {
 
 // Tool definitions
 const pdfTools: Tool[] = [
-  { id: 'pdf-to-word', name: 'PDF to Word', icon: FileText, isPopular: true },
-  { id: 'pdf-merge', name: 'Merge PDF', icon: Layers },
-  { id: 'pdf-compress', name: 'Compress PDF', icon: FileDown },
-  { id: 'pdf-split', name: 'Split PDF', icon: Scissors },
-  { id: 'jpg-to-pdf', name: 'JPG to PDF', icon: Image, isPopular: true },
-  { id: 'word-to-pdf', name: 'Word to PDF', icon: Type },
-  { id: 'pdf-to-jpg', name: 'PDF to JPG', icon: Image },
+  { id: 'pdf-to-word', name: 'PDF to Word', icon: FileText, isPopular: true, isBeta: true },
+  { id: 'jpg-to-pdf', name: 'JPG to PDF', icon: Image, isPopular: true, isBeta: true },
+  // Coming soon - not yet implemented:
+  // { id: 'pdf-merge', name: 'Merge PDF', icon: Layers },
+  // { id: 'pdf-compress', name: 'Compress PDF', icon: FileDown },
+  // { id: 'pdf-split', name: 'Split PDF', icon: Scissors },
+  // { id: 'word-to-pdf', name: 'Word to PDF', icon: Type },
+  // { id: 'pdf-to-jpg', name: 'PDF to JPG', icon: Image },
 ];
 
 const imageTools: Tool[] = [
   { id: 'png-to-jpg', name: 'PNG to JPG', icon: Image, isPopular: true },
+  { id: 'jpg-to-png', name: 'JPG to PNG', icon: Image },
+  { id: 'webp-to-jpg', name: 'WebP to JPG', icon: Image },
+  { id: 'webp-to-png', name: 'WebP to PNG', icon: Image },
+  { id: 'heic-to-jpg', name: 'HEIC to JPG', icon: Image, isNew: true },
   { id: 'svg-to-png', name: 'SVG to PNG', icon: Image, isPopular: true },
   { id: 'image-resizer', name: 'Resize Image', icon: Image, isPopular: true },
-  { id: 'image-compressor', name: 'Compress Image', icon: FileDown },
-  { id: 'heic-to-jpg', name: 'HEIC to JPG', icon: Image, isNew: true },
-  { id: 'webp-convert', name: 'WebP Converter', icon: Image },
-  { id: 'background-remove', name: 'Remove Background', icon: Image },
+  { id: 'image-compressor', name: 'Compress Image', icon: FileDown, isPopular: true },
 ];
 
 const devTools: Tool[] = [
-  { id: 'json-format', name: 'Format JSON', icon: Braces },
-  { id: 'base64-encode', name: 'Base64 Encode/Decode', icon: Hash },
-  { id: 'qr-generator', name: 'QR Code Generator', icon: QrCode },
-  { id: 'url-shorten', name: 'URL Shortener', icon: ArrowRight },
-  { id: 'word-counter', name: 'Word Counter', icon: Type },
+  // Coming soon - not yet implemented:
+  // { id: 'json-format', name: 'Format JSON', icon: Braces },
+  // { id: 'base64-encode', name: 'Base64 Encode/Decode', icon: Hash },
+  // { id: 'qr-generator', name: 'QR Code Generator', icon: QrCode },
+  // { id: 'url-shorten', name: 'URL Shortener', icon: ArrowRight },
+  // { id: 'word-counter', name: 'Word Counter', icon: Type },
 ];
 
 const categories = [
   { name: 'PDF Tools', tools: pdfTools, color: 'text-tool-pdf', bgColor: 'bg-tool-pdf/[0.1]' },
   { name: 'Image Tools', tools: imageTools, color: 'text-tool-jpg', bgColor: 'bg-tool-jpg/[0.1]' },
-  { name: 'Developer Tools', tools: devTools, color: 'text-accent', bgColor: 'bg-accent/[0.1]' },
-];
+  // { name: 'Developer Tools', tools: devTools, color: 'text-accent', bgColor: 'bg-accent/[0.1]' },
+].filter(cat => cat.tools.length > 0); // Only show categories with tools
 
 // Fuzzy search function
 function fuzzySearch(query: string, target: string): boolean {
