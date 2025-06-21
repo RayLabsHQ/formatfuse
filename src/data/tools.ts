@@ -264,7 +264,7 @@ export const devTools: Tool[] = [
   {
     id: 'case-converter',
     name: 'Case Converter',
-    description: 'Convert text case (upper, lower, title)',
+    description: 'Convert text between case formats with smart detection',
     icon: Type,
     searches: '90k',
     category: 'dev',

@@ -56,10 +56,10 @@ This document tracks tools that are planned for implementation but not yet avail
    - File and text hashing
    - HMAC support
 
-6. **Case Converter** (90k searches/month) - ✅ Ready to implement
-   - Multiple case formats
-   - Programming conventions
-   - Batch conversion
+6. ~~**Case Converter** (90k searches/month) - ✅ Implemented~~
+   - ✅ Multiple case formats (12 different formats)
+   - ✅ Smart format detection and keyboard shortcuts
+   - ✅ Preserves acronyms and programming conventions
 
 ~~3. **URL Shortener** (150k searches/month) - ❌ Skipped (requires backend)~~
 

@@ -44,6 +44,7 @@ const devTools: Tool[] = [
   { id: 'json-formatter', name: 'JSON Formatter', icon: Braces, isPopular: true },
   { id: 'word-counter', name: 'Word Counter', icon: Type },
   { id: 'base64-encoder', name: 'Base64 Encode/Decode', icon: Hash },
+  { id: 'case-converter', name: 'Case Converter', icon: Type, isNew: true },
   // Coming soon - not yet implemented:
   // { id: 'qr-generator', name: 'QR Code Generator', icon: QrCode },
 ];
@@ -197,6 +198,7 @@ export default function Navigation() {
                             tool.id === 'json-formatter' ? '/tools/json-formatter' :
                             tool.id === 'word-counter' ? '/tools/word-counter' :
                             tool.id === 'base64-encoder' ? '/tools/base64-encoder' :
+                            tool.id === 'case-converter' ? '/tools/case-converter' :
                             `/convert/${tool.id}`
                           }
                           className="group/item flex items-center gap-3 p-3 rounded-md hover:bg-secondary ff-transition"
@@ -270,6 +272,7 @@ export default function Navigation() {
                           tool.id === 'json-formatter' ? '/tools/json-formatter' :
                           tool.id === 'word-counter' ? '/tools/word-counter' :
                           tool.id === 'base64-encoder' ? '/tools/base64-encoder' :
+                          tool.id === 'case-converter' ? '/tools/case-converter' :
                           `/convert/${tool.id}`
                         }
                         className="flex items-center gap-3 p-2 rounded-md hover:bg-secondary ff-transition"
@@ -355,6 +358,7 @@ export default function Navigation() {
                       tool.id === 'json-formatter' ? '/tools/json-formatter' :
                       tool.id === 'word-counter' ? '/tools/word-counter' :
                       tool.id === 'base64-encoder' ? '/tools/base64-encoder' :
+                      tool.id === 'case-converter' ? '/tools/case-converter' :
                       `/convert/${tool.id}`
                     }
                     className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-secondary ff-transition"
@@ -404,6 +408,7 @@ export default function Navigation() {
                             tool.id === 'json-formatter' ? '/tools/json-formatter' :
                             tool.id === 'word-counter' ? '/tools/word-counter' :
                             tool.id === 'base64-encoder' ? '/tools/base64-encoder' :
+                            tool.id === 'case-converter' ? '/tools/case-converter' :
                             `/convert/${tool.id}`
                           }
                           className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-secondary ff-transition"
