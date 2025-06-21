@@ -37,7 +37,17 @@ export const universalTools: Tool[] = [
     searches: '500k', 
     isPopular: true,
     category: 'image',
-    route: '/tools/image-converter'
+    route: '/tools/image-compressor'
+  },
+  { 
+    id: 'image-resizer', 
+    name: 'Image Resizer', 
+    description: 'Resize images to exact dimensions with bulk processing support',
+    icon: Image, 
+    searches: '400k', 
+    isPopular: true,
+    category: 'image',
+    route: '/tools/image-resizer'
   }
 ];
 

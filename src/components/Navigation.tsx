@@ -31,8 +31,8 @@ const pdfTools: Tool[] = [
 const imageTools: Tool[] = [
   { id: 'png-to-jpg', name: 'PNG to JPG', icon: Image, isPopular: true },
   { id: 'svg-to-png', name: 'SVG to PNG', icon: Image, isPopular: true },
-  { id: 'image-resize', name: 'Resize Image', icon: Image, isNew: true },
-  { id: 'image-compress', name: 'Compress Image', icon: FileDown },
+  { id: 'image-resizer', name: 'Resize Image', icon: Image, isPopular: true },
+  { id: 'image-compressor', name: 'Compress Image', icon: FileDown },
   { id: 'heic-to-jpg', name: 'HEIC to JPG', icon: Image, isNew: true },
   { id: 'webp-convert', name: 'WebP Converter', icon: Image },
   { id: 'background-remove', name: 'Remove Background', icon: Image },
@@ -189,7 +189,7 @@ export default function Navigation() {
                       {category.tools.map((tool) => (
                         <a
                           key={tool.id}
-                          href={`/convert/${tool.id}`}
+                          href={tool.id === 'image-resizer' ? '/tools/image-resizer' : tool.id === 'image-compressor' ? '/tools/image-compressor' : `/convert/${tool.id}`}
                           className="group/item flex items-center gap-3 p-3 rounded-md hover:bg-secondary ff-transition"
                         >
                           <div className={`p-1.5 rounded ${category.bgColor} ${category.color}`}>
@@ -333,7 +333,7 @@ export default function Navigation() {
                 {searchResults.map(({ tool, category }, index) => (
                   <a
                     key={`${tool.id}-${index}`}
-                    href={`/convert/${tool.id}`}
+                    href={tool.id === 'image-resizer' ? '/tools/image-resizer' : tool.id === 'image-compressor' ? '/tools/image-compressor' : `/convert/${tool.id}`}
                     className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-secondary ff-transition"
                   >
                     <tool.icon className={`w-4 h-4 ${category.color}`} />
@@ -375,7 +375,7 @@ export default function Navigation() {
                       {category.tools.map((tool) => (
                         <a
                           key={tool.id}
-                          href={`/convert/${tool.id}`}
+                          href={tool.id === 'image-resizer' ? '/tools/image-resizer' : tool.id === 'image-compressor' ? '/tools/image-compressor' : `/convert/${tool.id}`}
                           className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-secondary ff-transition"
                         >
                           <tool.icon className={`w-4 h-4 ${category.color}`} />

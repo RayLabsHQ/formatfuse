@@ -1,0 +1,11 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import ImageResizer from '../../components/converters/ImageResizer';
+
+const title = 'Image Resizer - Bulk Resize Images Online';
+const description = 'Resize images to exact dimensions with advanced options. Batch processing, preset dimensions, and multiple output formats supported.';
+---
+
+<Layout title={title} description={description}>
+  <ImageResizer client:load />
+</Layout>
