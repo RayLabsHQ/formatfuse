@@ -255,11 +255,12 @@ export const devTools: Tool[] = [
   {
     id: 'hash-generator',
     name: 'Hash Generator',
-    description: 'Generate MD5, SHA-1, SHA-256 hashes',
+    description: 'Generate MD5, SHA-1, SHA-256, SHA-512 hashes for text and files',
     icon: Hash,
     searches: '80k',
     category: 'dev',
-    route: '/tools/hash-generator'
+    route: '/tools/hash-generator',
+    isNew: true
   },
   {
     id: 'case-converter',
