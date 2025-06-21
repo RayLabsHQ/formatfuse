@@ -125,7 +125,7 @@ export default function Navigation() {
   }, [searchQuery]);
 
   return (
-    <nav className="sticky top-0 z-50 bg-background border-b">
+    <nav className="sticky top-0 z-50 bg-background border-b relative">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -176,7 +176,7 @@ export default function Navigation() {
                 </button>
                 
                 {activeDropdown === category.name && (
-                  <div className="absolute top-[calc(100%-1px)] left-0 pt-3 w-[600px] z-50">
+                  <div className="absolute top-full left-0 mt-1 w-[600px] z-[100] pointer-events-auto">
                     <div className="bg-card rounded-lg shadow-lg border p-4">
                       <div className="mb-3 flex items-center justify-between">
                         <h3 className="font-semibold text-sm">{category.name}</h3>
@@ -248,7 +248,7 @@ export default function Navigation() {
                 
                 {/* Search Results Dropdown */}
                 {showSearchResults && searchResults.length > 0 && (
-                  <div className="absolute top-full mt-2 w-80 bg-card rounded-lg shadow-lg border p-2 z-50">
+                  <div className="absolute top-full mt-2 w-80 bg-card rounded-lg shadow-lg border p-2 z-[100]">
                     <div className="text-xs text-muted-foreground px-2 py-1 mb-1">
                       {searchResults.length} results
                     </div>
