@@ -18,6 +18,7 @@ interface FileWithPreview {
   pageCount?: number;
   data?: Uint8Array;
   showPreview?: boolean;
+  previewKey?: number;
 }
 
 export const PdfMerge: React.FC = () => {
@@ -26,6 +27,7 @@ export const PdfMerge: React.FC = () => {
   const [draggedFile, setDraggedFile] = useState<string | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [showGlobalPreview, setShowGlobalPreview] = useState(false);
+  const [globalPreviewKey, setGlobalPreviewKey] = useState(0);
   const [processingSteps, setProcessingSteps] = useState<any[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -78,7 +80,11 @@ export const PdfMerge: React.FC = () => {
 
   const toggleFilePreview = useCallback((id: string) => {
     setFiles(prev => prev.map(f => 
-      f.id === id ? { ...f, showPreview: !f.showPreview } : f
+      f.id === id ? { 
+        ...f, 
+        showPreview: !f.showPreview,
+        previewKey: (f.previewKey || 0) + 1
+      } : f
     ));
   }, []);
 
@@ -253,7 +259,15 @@ export const PdfMerge: React.FC = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setShowGlobalPreview(!showGlobalPreview)}
+                    onClick={() => {
+                      setShowGlobalPreview(!showGlobalPreview);
+                      setGlobalPreviewKey(prev => prev + 1);
+                      // Update preview keys for all files
+                      setFiles(prev => prev.map(f => ({ 
+                        ...f, 
+                        previewKey: (f.previewKey || 0) + 1
+                      })));
+                    }}
                   >
                     {showGlobalPreview ? (
                       <>
@@ -378,12 +392,13 @@ export const PdfMerge: React.FC = () => {
                     
                     {/* Individual File Preview */}
                     {(fileInfo.showPreview || showGlobalPreview) && fileInfo.data && (
-                      <div className="ml-8 p-4 bg-background rounded-lg border">
+                      <div className="ml-8 mt-4">
                         <PdfPreview
-                          pdfData={fileInfo.data}
+                          key={`pdf-preview-${fileInfo.id}-${fileInfo.previewKey || 0}`}
+                          pdfData={new Uint8Array(fileInfo.data)}
                           mode="strip"
                           showPageNumbers={true}
-                          maxHeight={150}
+                          maxHeight={200}
                         />
                       </div>
                     )}

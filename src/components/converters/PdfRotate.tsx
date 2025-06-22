@@ -24,7 +24,8 @@ export const PdfRotate: React.FC = () => {
   const [rotateMode, setRotateMode] = useState<'all' | 'visual' | 'manual'>('all');
   const [selectedPages, setSelectedPages] = useState<number[]>([]);
   const [specificPages, setSpecificPages] = useState<string>('');
-  const [showPreview, setShowPreview] = useState(false);
+  const [showPreview, setShowPreview] = useState(true);
+  const [previewKey, setPreviewKey] = useState(0);
   const [processingSteps, setProcessingSteps] = useState<any[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -51,10 +52,8 @@ export const PdfRotate: React.FC = () => {
       // Set default to all pages
       setSpecificPages(`1-${count}`);
       
-      // Auto-show preview for smaller PDFs
-      if (count <= 20) {
-        setShowPreview(true);
-      }
+      // Always show preview for better UX
+      setShowPreview(true);
     } catch (err) {
       console.error('Error reading PDF:', err);
     }
@@ -223,46 +222,35 @@ export const PdfRotate: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowPreview(!showPreview)}
-                  >
-                    <Eye className="w-4 h-4 mr-2" />
-                    {showPreview ? 'Hide' : 'Show'} Preview
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setFile(null);
-                      setFileData(null);
-                      setRotatedResult(null);
-                      setPageCount(0);
-                      setMetadata(null);
-                      setShowPreview(false);
-                    }}
-                  >
-                    Change file
-                  </Button>
-                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setFile(null);
+                    setFileData(null);
+                    setRotatedResult(null);
+                    setPageCount(0);
+                    setMetadata(null);
+                    setShowPreview(false);
+                  }}
+                >
+                  Change file
+                </Button>
               </div>
             </div>
 
-            {/* PDF Preview */}
+            {/* PDF Preview - Show directly without card wrapper */}
             {showPreview && fileData && (
-              <div className="bg-card border rounded-lg p-6">
-                <h3 className="font-medium mb-4">Page Preview</h3>
-                <PdfPreview
-                  pdfData={fileData}
-                  mode={rotateMode === 'visual' ? 'grid' : 'strip'}
-                  selectable={rotateMode === 'visual'}
-                  selectedPages={selectedPages}
-                  onPageSelect={handlePageSelect}
-                  maxHeight={400}
-                />
-              </div>
+              <PdfPreview
+                key={`pdf-preview-${previewKey}`}
+                pdfData={new Uint8Array(fileData)}
+                mode={rotateMode === 'visual' ? 'grid' : 'strip'}
+                selectable={rotateMode === 'visual'}
+                selectedPages={selectedPages}
+                onPageSelect={handlePageSelect}
+                maxHeight={500}
+                className="mb-6"
+              />
             )}
 
             {/* Rotation Options */}
@@ -376,11 +364,7 @@ export const PdfRotate: React.FC = () => {
                     <div className="flex items-start gap-2">
                       <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5" />
                       <div className="text-sm text-blue-700 dark:text-blue-300">
-                        {!showPreview ? (
-                          'Click "Show Preview" above to select pages visually'
-                        ) : (
-                          'Click on pages to select them for rotation. Selected pages will be rotated by the angle you choose.'
-                        )}
+                        'Click on pages to select them for rotation. Selected pages will be rotated by the angle you choose. Use the enlarge button on each page for full-screen view.'
                       </div>
                     </div>
                   </div>
