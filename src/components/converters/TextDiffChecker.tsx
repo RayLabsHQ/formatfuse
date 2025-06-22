@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { 
   FileText, Copy, Check, GitBranch, Eye, EyeOff,
-  Split, Columns, Rows, Download, Upload, Palette,
+  Columns, Rows, Download, Upload, Palette,
   Settings, Info, ChevronDown, ChevronUp, X, Plus,
   Minus, RefreshCw, FileJson, Code, Type
 } from 'lucide-react';
