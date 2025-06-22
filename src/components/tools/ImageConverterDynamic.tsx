@@ -380,12 +380,6 @@ export function ImageConverterDynamic({
           )}
         </div>
 
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-5 pointer-events-none">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(0,0,0,.05) 35px, rgba(0,0,0,.05) 70px)`
-          }} />
-        </div>
       </motion.div>
 
       {/* Quality Slider */}

@@ -187,26 +187,13 @@
 
 /* Drag and drop zone */
 .drop-zone {
-  background-image: 
-    repeating-linear-gradient(
-      45deg,
-      theme('colors.border'),
-      theme('colors.border') 10px,
-      transparent 10px,
-      transparent 20px
-    );
-  background-size: 28px 28px;
+  /* Removed distracting striped background */
+  background-color: transparent;
 }
 
 .drop-zone-active {
-  background-image: 
-    repeating-linear-gradient(
-      45deg,
-      oklch(from var(--primary) l c h / 0.2),
-      oklch(from var(--primary) l c h / 0.2) 10px,
-      transparent 10px,
-      transparent 20px
-    );
+  /* Subtle background when dragging */
+  background-color: oklch(from var(--primary) l c h / 0.05);
 }
 
 /* Custom scrollbar */
