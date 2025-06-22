@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import ReactDOM from 'react-dom';
-import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Maximize2 } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Maximize2, RotateCcw } from 'lucide-react';
 import { Button } from './button';
 import { cn } from '../../lib/utils';
 import useEmblaCarousel from 'embla-carousel-react';
@@ -187,6 +187,16 @@ export const PdfCarouselModal: React.FC<PdfCarouselModalProps> = ({
                 disabled={scale >= 3}
               >
                 <ZoomIn className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-white hover:bg-white/20"
+                onClick={() => setScale(1)}
+                disabled={scale === 1}
+                title="Reset zoom"
+              >
+                <RotateCcw className="h-4 w-4" />
               </Button>
             </div>
           </div>
