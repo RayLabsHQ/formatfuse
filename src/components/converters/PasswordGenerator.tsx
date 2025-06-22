@@ -1,5 +1,8 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Copy, RefreshCw, Check, Lock, Sparkles } from 'lucide-react';
+import { 
+  Copy, RefreshCw, Check, Lock, Sparkles, Shield, 
+  Key, Zap, Info, AlertCircle, Binary
+} from 'lucide-react';
 import { Button } from '../ui/button';
 import { Label } from '../ui/label';
 import { Switch } from '../ui/switch';
@@ -222,89 +225,99 @@ export default function PasswordGenerator() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <div className="text-center mb-8">
+    <div className="w-full max-w-4xl mx-auto p-4">
+      <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold mb-2">Password Generator</h1>
-        <p className="text-neutral-600 dark:text-neutral-400">
-          Generate secure passwords instantly
+        <p className="text-muted-foreground">
+          Generate secure passwords with customizable options
         </p>
       </div>
 
       {/* Mode Toggle */}
-      <div className="flex justify-center mb-8">
-        <div className="inline-flex rounded-lg bg-neutral-100 dark:bg-neutral-800 p-1">
+      <div className="mb-6">
+        <div className="flex space-x-1 mb-4">
           <button
             onClick={() => setMode('random')}
             className={cn(
-              "px-6 py-2 rounded-md text-sm font-medium",
+              "flex-1 py-2 px-4 rounded-lg font-medium transition-colors",
               mode === 'random'
-                ? "bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 shadow-sm"
-                : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100"
+                ? "bg-primary text-primary-foreground"
+                : "bg-secondary hover:bg-secondary/80"
             )}
           >
-            <Lock className="h-4 w-4 inline mr-2" />
+            <Lock className="w-4 h-4 inline-block mr-2" />
             Random
           </button>
           <button
             onClick={() => setMode('memorable')}
             className={cn(
-              "px-6 py-2 rounded-md text-sm font-medium",
+              "flex-1 py-2 px-4 rounded-lg font-medium transition-colors",
               mode === 'memorable'
-                ? "bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 shadow-sm"
-                : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100"
+                ? "bg-primary text-primary-foreground"
+                : "bg-secondary hover:bg-secondary/80"
             )}
           >
-            <Sparkles className="h-4 w-4 inline mr-2" />
+            <Sparkles className="w-4 h-4 inline-block mr-2" />
             Memorable
           </button>
         </div>
       </div>
 
       {/* Password Display */}
-      <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 p-8 mb-6">
-        <div className="font-mono text-xl md:text-2xl break-all text-center mb-6 select-all">
-          {password}
+      <div className="p-6 rounded-lg border hover:bg-secondary/50 transition-colors">
+        <div className="mb-4">
+          <Label className="text-sm text-muted-foreground mb-2 block">Generated Password</Label>
+          <div className="font-mono text-2xl break-all mb-4 select-all p-4 rounded-lg bg-secondary/30">
+            {password || 'Click generate to create a password'}
+          </div>
         </div>
         
-        <div className="flex justify-center gap-3 mb-6">
+        <div className="flex gap-3 mb-4">
           <Button
-            size="lg"
+            onClick={generatePassword}
+            className="flex-1"
+          >
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Generate New
+          </Button>
+          <Button
+            variant="outline"
             onClick={handleCopy}
-            className="min-w-[120px]"
+            className="min-w-[100px]"
+            disabled={!password}
           >
             {copied ? (
               <>
-                <Check className="h-5 w-5 mr-2" />
+                <Check className="w-4 h-4 mr-2 text-green-500" />
                 Copied!
               </>
             ) : (
               <>
-                <Copy className="h-5 w-5 mr-2" />
+                <Copy className="w-4 h-4 mr-2" />
                 Copy
               </>
             )}
-          </Button>
-          <Button
-            size="lg"
-            variant="outline"
-            onClick={generatePassword}
-            className="min-w-[120px]"
-          >
-            <RefreshCw className="h-5 w-5 mr-2" />
-            New
           </Button>
         </div>
 
         {/* Strength Indicator */}
         <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-neutral-600 dark:text-neutral-400">Strength</span>
-            <span className="font-medium">{getStrengthText(strength)}</span>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">Password Strength</span>
+            <span className={cn(
+              "font-medium px-2 py-0.5 rounded text-xs",
+              strength < 40 ? "bg-red-500/20 text-red-700 dark:text-red-400" :
+              strength < 70 ? "bg-amber-500/20 text-amber-700 dark:text-amber-400" :
+              strength < 90 ? "bg-green-500/20 text-green-700 dark:text-green-400" :
+              "bg-blue-500/20 text-blue-700 dark:text-blue-400"
+            )}>
+              {getStrengthText(strength)}
+            </span>
           </div>
-          <div className="h-2 bg-neutral-100 dark:bg-neutral-700 rounded-full overflow-hidden">
+          <div className="h-2 bg-secondary rounded-full overflow-hidden">
             <div
               className={cn(
-                "h-full",
+                "h-full transition-all duration-300",
                 getStrengthColor(strength)
               )}
               style={{ width: `${strength}%` }}
@@ -314,13 +327,19 @@ export default function PasswordGenerator() {
       </div>
 
       {/* Options */}
-      <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 p-6">
+      <div className="p-6 rounded-lg border bg-secondary/30">
+        <h3 className="font-semibold mb-4 flex items-center gap-2">
+          <Key className="w-4 h-4" />
+          Password Options
+        </h3>
         {mode === 'random' ? (
           <div className="space-y-6">
             <div>
-              <div className="flex justify-between mb-2">
-                <Label>Length</Label>
-                <span className="text-sm font-medium">{randomOptions.length}</span>
+              <div className="flex items-center justify-between mb-2">
+                <Label>Password Length</Label>
+                <span className="text-sm font-medium bg-secondary px-2 py-1 rounded">
+                  {randomOptions.length} characters
+                </span>
               </div>
               <Slider
                 value={[randomOptions.length]}
@@ -330,6 +349,10 @@ export default function PasswordGenerator() {
                 step={1}
                 className="w-full"
               />
+              <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                <span>12</span>
+                <span>32</span>
+              </div>
             </div>
 
             <Separator />
@@ -393,9 +416,11 @@ export default function PasswordGenerator() {
         ) : (
           <div className="space-y-6">
             <div>
-              <div className="flex justify-between mb-2">
-                <Label>Words</Label>
-                <span className="text-sm font-medium">{memorableOptions.wordCount}</span>
+              <div className="flex items-center justify-between mb-2">
+                <Label>Number of Words</Label>
+                <span className="text-sm font-medium bg-secondary px-2 py-1 rounded">
+                  {memorableOptions.wordCount} words
+                </span>
               </div>
               <Slider
                 value={[memorableOptions.wordCount]}
@@ -405,6 +430,10 @@ export default function PasswordGenerator() {
                 step={1}
                 className="w-full"
               />
+              <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                <span>3</span>
+                <span>6</span>
+              </div>
             </div>
 
             <div>
@@ -451,14 +480,63 @@ export default function PasswordGenerator() {
               </div>
             </div>
 
-            <div className="text-sm text-neutral-500 dark:text-neutral-400 bg-neutral-50 dark:bg-neutral-900 p-3 rounded">
-              Using the EFF's wordlist with 7,776 words for maximum security. 
-              <a href="https://www.eff.org/dice" target="_blank" rel="noopener noreferrer" className="underline ml-1">
-                Learn more
-              </a>
+            <div className="mt-4 p-3 rounded-lg bg-primary/10 border border-primary/20">
+              <p className="text-sm">
+                Using the EFF's wordlist with 7,776 words for maximum security. 
+                <a href="https://www.eff.org/dice" target="_blank" rel="noopener noreferrer" className="underline ml-1 hover:text-primary">
+                  Learn more
+                </a>
+              </p>
             </div>
           </div>
         )}
+      </div>
+
+      {/* Information Section */}
+      <div className="mt-8 p-4 rounded-lg border bg-secondary/30">
+        <div className="flex items-center gap-2 mb-2">
+          <Info className="w-4 h-4 text-primary" />
+          <h3 className="font-semibold">About Password Security</h3>
+        </div>
+        <div className="space-y-2 text-sm text-muted-foreground">
+          <p>
+            • <strong>Random passwords</strong> use cryptographically secure random generation
+          </p>
+          <p>
+            • <strong>Memorable passwords</strong> use EFF's wordlist for high entropy with memorability
+          </p>
+          <p>
+            • <strong>16+ characters</strong> recommended for most accounts
+          </p>
+          <p>
+            • All generation happens locally in your browser - no passwords are sent to any server
+          </p>
+        </div>
+      </div>
+
+      {/* Features */}
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="p-4 rounded-lg border">
+          <Shield className="w-8 h-8 mb-2 text-primary" />
+          <h3 className="font-semibold mb-1">Privacy First</h3>
+          <p className="text-sm text-muted-foreground">
+            All passwords are generated locally in your browser. Nothing is stored or transmitted.
+          </p>
+        </div>
+        <div className="p-4 rounded-lg border">
+          <Binary className="w-8 h-8 mb-2 text-primary" />
+          <h3 className="font-semibold mb-1">Cryptographically Secure</h3>
+          <p className="text-sm text-muted-foreground">
+            Uses Web Crypto API for true randomness, not predictable Math.random().
+          </p>
+        </div>
+        <div className="p-4 rounded-lg border">
+          <Zap className="w-8 h-8 mb-2 text-primary" />
+          <h3 className="font-semibold mb-1">Instant Generation</h3>
+          <p className="text-sm text-muted-foreground">
+            Generate unlimited passwords instantly with real-time strength analysis.
+          </p>
+        </div>
       </div>
     </div>
   );
