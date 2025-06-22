@@ -7,7 +7,6 @@ import { Button } from '../ui/button';
 import { Label } from '../ui/label';
 import { Slider } from '../ui/slider';
 import { Separator } from '../ui/separator';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"; // Updated import
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // Updated import
 import { loadEFFWordlist } from '@/lib/eff-wordlist';
@@ -24,7 +23,8 @@ interface PasswordOptions {
 
 interface MemorableOptions {
   wordCount: number;
-  format: 'hyphen' | 'camelCase' | 'pascalCase' | 'underscore';
+  separator: 'none' | 'hyphen' | 'underscore' | 'space';
+  caseStyle: 'lower' | 'title' | 'camel' | 'pascal';
   addNumbers: boolean;
   addSymbols: boolean;
 }
@@ -37,12 +37,6 @@ const CHARACTER_SETS = {
   similar: 'ilLoO01'
 };
 
-const FORMAT_EXAMPLES = {
-  hyphen: 'Word-Word-Word',
-  camelCase: 'wordWordWord',
-  pascalCase: 'WordWordWord',
-  underscore: 'word_word_word'
-};
 
 export default function PasswordGenerator() {
   const [mode, setMode] = useState<'random' | 'memorable'>('random');
@@ -61,7 +55,8 @@ export default function PasswordGenerator() {
   
   const [memorableOptions, setMemorableOptions] = useState<MemorableOptions>({
     wordCount: 4,
-    format: 'hyphen',
+    separator: 'hyphen',
+    caseStyle: 'title',
     addNumbers: false,
     addSymbols: false
   });
@@ -134,20 +129,40 @@ export default function PasswordGenerator() {
     return newPassword;
   }, [randomOptions]);
 
-  const formatWords = useCallback((words: string[], format: string): string => {
-    switch (format) {
-      case 'hyphen':
-        return words.map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('-');
-      case 'camelCase':
-        return words.map((w, i) => 
+  const formatWords = useCallback((words: string[], separator: string, caseStyle: string): string => {
+    // Apply case style
+    let formattedWords: string[];
+    switch (caseStyle) {
+      case 'lower':
+        formattedWords = words.map(w => w.toLowerCase());
+        break;
+      case 'title':
+        formattedWords = words.map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+        break;
+      case 'camel':
+        formattedWords = words.map((w, i) => 
           i === 0 ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
-        ).join('');
-      case 'pascalCase':
-        return words.map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('');
-      case 'underscore':
-        return words.map(w => w.toLowerCase()).join('_');
+        );
+        break;
+      case 'pascal':
+        formattedWords = words.map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+        break;
       default:
-        return words.map(w => w.toLowerCase()).join('-');
+        formattedWords = words.map(w => w.toLowerCase());
+    }
+    
+    // Apply separator
+    switch (separator) {
+      case 'none':
+        return formattedWords.join('');
+      case 'hyphen':
+        return formattedWords.join('-');
+      case 'underscore':
+        return formattedWords.join('_');
+      case 'space':
+        return formattedWords.join(' ');
+      default:
+        return formattedWords.join('-');
     }
   }, []);
 
@@ -162,7 +177,7 @@ export default function PasswordGenerator() {
       words.push(effWordlist[array[i] % effWordlist.length]);
     }
     
-    let newPassword = formatWords(words, memorableOptions.format);
+    let newPassword = formatWords(words, memorableOptions.separator, memorableOptions.caseStyle);
     
     if (memorableOptions.addNumbers) {
       const numArray = new Uint32Array(1);
@@ -493,23 +508,121 @@ export default function PasswordGenerator() {
                   <span>7</span>
                 </div>
               </div>
-              <div>
-                <Label htmlFor="format-select" className="mb-2 block">Word Format</Label>
-                <Select
-                  value={memorableOptions.format}
-                  onValueChange={(value) => setMemorableOptions(prev => ({ ...prev, format: value as any }))}
-                >
-                  <SelectTrigger id="format-select" className="w-full">
-                    <SelectValue placeholder="Select format" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(FORMAT_EXAMPLES).map(([key, example]) => (
-                      <SelectItem key={key} value={key}>
-                        <span className="font-mono">{example}</span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="space-y-4">
+                <div>
+                  <Label className="mb-3 block">Separator</Label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <button
+                      onClick={() => setMemorableOptions(prev => ({ ...prev, separator: 'none' }))}
+                      className={cn(
+                        "relative p-3 rounded-md border-2 text-center transition-all",
+                        "hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                        memorableOptions.separator === 'none' 
+                          ? "border-primary bg-primary/5 dark:bg-primary/10" 
+                          : "border-muted-foreground/25 hover:border-muted-foreground/40"
+                      )}
+                    >
+                      <div className="font-mono text-sm">wordword</div>
+                      <div className="text-xs text-muted-foreground mt-1">None</div>
+                    </button>
+                    <button
+                      onClick={() => setMemorableOptions(prev => ({ ...prev, separator: 'hyphen' }))}
+                      className={cn(
+                        "relative p-3 rounded-md border-2 text-center transition-all",
+                        "hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                        memorableOptions.separator === 'hyphen' 
+                          ? "border-primary bg-primary/5 dark:bg-primary/10" 
+                          : "border-muted-foreground/25 hover:border-muted-foreground/40"
+                      )}
+                    >
+                      <div className="font-mono text-sm">word-word</div>
+                      <div className="text-xs text-muted-foreground mt-1">Hyphen</div>
+                    </button>
+                    <button
+                      onClick={() => setMemorableOptions(prev => ({ ...prev, separator: 'underscore' }))}
+                      className={cn(
+                        "relative p-3 rounded-md border-2 text-center transition-all",
+                        "hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                        memorableOptions.separator === 'underscore' 
+                          ? "border-primary bg-primary/5 dark:bg-primary/10" 
+                          : "border-muted-foreground/25 hover:border-muted-foreground/40"
+                      )}
+                    >
+                      <div className="font-mono text-sm">word_word</div>
+                      <div className="text-xs text-muted-foreground mt-1">Underscore</div>
+                    </button>
+                    <button
+                      onClick={() => setMemorableOptions(prev => ({ ...prev, separator: 'space' }))}
+                      className={cn(
+                        "relative p-3 rounded-md border-2 text-center transition-all",
+                        "hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                        memorableOptions.separator === 'space' 
+                          ? "border-primary bg-primary/5 dark:bg-primary/10" 
+                          : "border-muted-foreground/25 hover:border-muted-foreground/40"
+                      )}
+                    >
+                      <div className="font-mono text-sm">word word</div>
+                      <div className="text-xs text-muted-foreground mt-1">Space</div>
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <Label className="mb-3 block">Case Style</Label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <button
+                      onClick={() => setMemorableOptions(prev => ({ ...prev, caseStyle: 'lower' }))}
+                      className={cn(
+                        "relative p-3 rounded-md border-2 text-center transition-all",
+                        "hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                        memorableOptions.caseStyle === 'lower' 
+                          ? "border-primary bg-primary/5 dark:bg-primary/10" 
+                          : "border-muted-foreground/25 hover:border-muted-foreground/40"
+                      )}
+                    >
+                      <div className="font-mono text-sm">lowercase</div>
+                      <div className="text-xs text-muted-foreground mt-1">Lower</div>
+                    </button>
+                    <button
+                      onClick={() => setMemorableOptions(prev => ({ ...prev, caseStyle: 'title' }))}
+                      className={cn(
+                        "relative p-3 rounded-md border-2 text-center transition-all",
+                        "hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                        memorableOptions.caseStyle === 'title' 
+                          ? "border-primary bg-primary/5 dark:bg-primary/10" 
+                          : "border-muted-foreground/25 hover:border-muted-foreground/40"
+                      )}
+                    >
+                      <div className="font-mono text-sm">Title Case</div>
+                      <div className="text-xs text-muted-foreground mt-1">Title</div>
+                    </button>
+                    <button
+                      onClick={() => setMemorableOptions(prev => ({ ...prev, caseStyle: 'camel' }))}
+                      className={cn(
+                        "relative p-3 rounded-md border-2 text-center transition-all",
+                        "hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                        memorableOptions.caseStyle === 'camel' 
+                          ? "border-primary bg-primary/5 dark:bg-primary/10" 
+                          : "border-muted-foreground/25 hover:border-muted-foreground/40"
+                      )}
+                    >
+                      <div className="font-mono text-sm">camelCase</div>
+                      <div className="text-xs text-muted-foreground mt-1">Camel</div>
+                    </button>
+                    <button
+                      onClick={() => setMemorableOptions(prev => ({ ...prev, caseStyle: 'pascal' }))}
+                      className={cn(
+                        "relative p-3 rounded-md border-2 text-center transition-all",
+                        "hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                        memorableOptions.caseStyle === 'pascal' 
+                          ? "border-primary bg-primary/5 dark:bg-primary/10" 
+                          : "border-muted-foreground/25 hover:border-muted-foreground/40"
+                      )}
+                    >
+                      <div className="font-mono text-sm">PascalCase</div>
+                      <div className="text-xs text-muted-foreground mt-1">Pascal</div>
+                    </button>
+                  </div>
+                </div>
               </div>
               <Separator />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
