@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { cn } from '../../lib/utils';
-import { Loader2, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, FileText, Check } from 'lucide-react';
+import { Loader2, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, FileText, Check, Maximize2 } from 'lucide-react';
 import { Button } from './button';
+import { PdfCarouselModal } from './pdf-carousel-modal';
 
 interface PdfPreviewProps {
   pdfData: Uint8Array | ArrayBuffer;
@@ -38,6 +39,8 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<number>>(new Set(selectedPages));
+  const [carouselOpen, setCarouselOpen] = useState(false);
+  const [carouselInitialPage, setCarouselInitialPage] = useState(1);
   const containerRef = useRef<HTMLDivElement>(null);
   const mountedRef = useRef<boolean>(true);
 
@@ -155,7 +158,12 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
     setSelected(new Set(selectedPages));
   }, [selectedPages]);
 
-  const handlePageClick = useCallback((pageNum: number) => {
+  const handlePageClick = useCallback((pageNum: number, event?: React.MouseEvent) => {
+    // Check if clicking on enlarge button
+    if (event && (event.target as HTMLElement).closest('.enlarge-button')) {
+      return;
+    }
+    
     if (!selectable) return;
 
     const newSelected = new Set(selected);
@@ -167,6 +175,11 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
     setSelected(newSelected);
     onPageSelect?.(Array.from(newSelected).sort((a, b) => a - b));
   }, [selected, selectable, onPageSelect]);
+
+  const handleEnlarge = useCallback((pageNum: number) => {
+    setCarouselInitialPage(pageNum);
+    setCarouselOpen(true);
+  }, []);
 
   const handleSelectAll = useCallback(() => {
     if (!selectable) return;
@@ -279,7 +292,7 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
             {thumbnails.map((thumb) => (
               <div
                 key={thumb.pageNum}
-                onClick={() => handlePageClick(thumb.pageNum)}
+                onClick={(e) => handlePageClick(thumb.pageNum, e)}
                 className={cn(
                   "relative group cursor-pointer rounded-lg overflow-hidden border-2 ff-transition",
                   selected.has(thumb.pageNum) 
@@ -296,6 +309,15 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
                     className="max-w-full max-h-full object-contain"
                   />
                 </div>
+                
+                {/* Enlarge button */}
+                <button
+                  onClick={() => handleEnlarge(thumb.pageNum)}
+                  className="enlarge-button absolute top-2 left-2 bg-black/60 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80"
+                  title="View full screen"
+                >
+                  <Maximize2 className="w-3 h-3" />
+                </button>
                 
                 {showPageNumbers && (
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
@@ -320,9 +342,9 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
             {thumbnails.map((thumb) => (
               <div
                 key={thumb.pageNum}
-                onClick={() => handlePageClick(thumb.pageNum)}
+                onClick={(e) => handlePageClick(thumb.pageNum, e)}
                 className={cn(
-                  "relative flex-shrink-0 cursor-pointer rounded overflow-hidden border-2 ff-transition",
+                  "relative group flex-shrink-0 cursor-pointer rounded overflow-hidden border-2 ff-transition",
                   selected.has(thumb.pageNum) 
                     ? "border-primary ring-2 ring-primary/20" 
                     : "border-border hover:border-primary/50",
@@ -338,6 +360,15 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
                   alt={`Page ${thumb.pageNum}`}
                   className="w-full h-full object-cover"
                 />
+                
+                {/* Enlarge button */}
+                <button
+                  onClick={() => handleEnlarge(thumb.pageNum)}
+                  className="enlarge-button absolute top-1 left-1 bg-black/60 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80"
+                  title="View full screen"
+                >
+                  <Maximize2 className="w-2.5 h-2.5" />
+                </button>
                 
                 {showPageNumbers && (
                   <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-1 py-0.5">
@@ -397,6 +428,17 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
         <p className="text-xs text-muted-foreground text-center">
           Showing first 50 pages of {totalPages} total pages
         </p>
+      )}
+      
+      {/* Full Screen Carousel Modal */}
+      {pdf && (
+        <PdfCarouselModal
+          isOpen={carouselOpen}
+          onClose={() => setCarouselOpen(false)}
+          pdfDoc={pdf}
+          initialPage={carouselInitialPage}
+          totalPages={totalPages}
+        />
       )}
     </div>
   );

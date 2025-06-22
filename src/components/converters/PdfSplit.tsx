@@ -69,7 +69,7 @@ export const PdfSplit: React.FC = () => {
   const [selectedPages, setSelectedPages] = useState<number[]>([]);
   const [pageRangeInput, setPageRangeInput] = useState<string>('');
   const [results, setResults] = useState<Uint8Array[]>([]);
-  const [showPreview, setShowPreview] = useState(false);
+  const [showPreview, setShowPreview] = useState(true);
   const [previewKey, setPreviewKey] = useState(0);
   const [processingSteps, setProcessingSteps] = useState<any[]>([]);
   
@@ -96,10 +96,8 @@ export const PdfSplit: React.FC = () => {
       // Set default range to all pages
       setPageRangeInput(`1-${count}`);
       
-      // Auto-show preview for better UX
-      if (count <= 20) {
-        setShowPreview(true);
-      }
+      // Always show preview for better UX
+      setShowPreview(true);
     } catch (err) {
       console.error('Error reading PDF:', err);
     }
@@ -290,50 +288,35 @@ export const PdfSplit: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setShowPreview(!showPreview);
-                      setPreviewKey(prev => prev + 1);
-                    }}
-                  >
-                    <Eye className="w-4 h-4 mr-2" />
-                    {showPreview ? 'Hide' : 'Show'} Preview
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setFile(null);
-                      setFileData(null);
-                      setResults([]);
-                      setPageCount(0);
-                      setMetadata(null);
-                      setShowPreview(false);
-                    }}
-                  >
-                    Change file
-                  </Button>
-                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setFile(null);
+                    setFileData(null);
+                    setResults([]);
+                    setPageCount(0);
+                    setMetadata(null);
+                    setShowPreview(false);
+                  }}
+                >
+                  Change file
+                </Button>
               </div>
             </div>
 
-            {/* PDF Preview */}
+            {/* PDF Preview - Show directly without card wrapper */}
             {showPreview && fileData && (
-              <div className="bg-card border rounded-lg p-6">
-                <h3 className="font-medium mb-4">Page Preview</h3>
-                <PdfPreview
-                  key={`pdf-preview-${previewKey}`}
-                  pdfData={new Uint8Array(fileData)}
-                  mode={splitMode === 'visual' ? 'grid' : 'strip'}
-                  selectable={splitMode === 'visual'}
-                  selectedPages={selectedPages}
-                  onPageSelect={handlePageSelect}
-                  maxHeight={400}
-                />
-              </div>
+              <PdfPreview
+                key={`pdf-preview-${previewKey}`}
+                pdfData={new Uint8Array(fileData)}
+                mode={splitMode === 'visual' ? 'grid' : 'strip'}
+                selectable={splitMode === 'visual'}
+                selectedPages={selectedPages}
+                onPageSelect={handlePageSelect}
+                maxHeight={500}
+                className="mb-6"
+              />
             )}
 
             {/* Split Options */}
@@ -432,11 +415,7 @@ export const PdfSplit: React.FC = () => {
                     <div className="flex items-start gap-2">
                       <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5" />
                       <div className="text-sm text-blue-700 dark:text-blue-300">
-                        {!showPreview ? (
-                          'Click "Show Preview" above to select pages visually'
-                        ) : (
-                          'Click on pages to select them. Selected pages will be extracted as separate files.'
-                        )}
+                        Click on pages to select them. Selected pages will be extracted as separate files. Use the enlarge button on each page for full-screen view.
                       </div>
                     </div>
                   </div>
