@@ -1,0 +1,15 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import UuidGenerator from '../../components/converters/UuidGenerator';
+
+const title = 'UUID Generator - Generate Unique Identifiers Online';
+const description = 'Free online UUID generator. Create version 1, 3, 4, and 5 UUIDs in various formats. Supports bulk generation, validation, and custom namespaces.';
+---
+
+<Layout
+  title={title}
+  description={description}
+  keywords="uuid generator, guid generator, unique identifier, uuid v4, uuid v1, bulk uuid generator"
+>
+  <UuidGenerator client:load />
+</Layout>

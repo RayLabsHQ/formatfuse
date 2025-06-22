@@ -281,3 +281,11 @@ Use `tests/workers/converter-test-template.ts` as your starting point for all ne
 - **No Search Metrics**: DO NOT display search counts (like "450k searches", "1M+ searches") in tool cards or anywhere in the UI
 - **Performance First**: Every UI decision must consider performance impact
 - **Mobile Responsive**: All components must work well on mobile devices
+
+## Git Commit Guidelines
+
+### Commit Message Strategy
+- Use simple, concise commit messages
+- Focus on describing the purpose or impact of the change
+- Avoid mentioning AI or Claude Code in commit messages
+- Keep commit messages straightforward and clear

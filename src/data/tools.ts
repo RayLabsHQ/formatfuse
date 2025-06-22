@@ -1,7 +1,7 @@
 import { 
   FileText, Code, ArrowRight, TrendingUp, Sparkles,
   Layers, FileDown, Scissors, Type, Image, QrCode, Braces, 
-  Hash, FileSpreadsheet, FileArchive, Globe, ArrowLeftRight
+  Hash, FileSpreadsheet, FileArchive, Globe, ArrowLeftRight, Lock
 } from 'lucide-react';
 
 export interface Tool {
@@ -304,6 +304,29 @@ const devToolsAll: Tool[] = [
     isPopular: true,
     category: 'dev',
     route: '/tools/json-yaml-converter'
+  },
+  {
+    id: 'uuid-generator',
+    name: 'UUID Generator',
+    description: 'Generate UUIDs (v1, v3, v4, v5) in various formats with bulk generation',
+    icon: Hash,
+    searches: '150k',
+    isImplemented: true,
+    isNew: true,
+    category: 'dev',
+    route: '/tools/uuid-generator'
+  },
+  {
+    id: 'password-generator',
+    name: 'Password Generator',
+    description: 'Generate secure passwords with customizable length, characters, and strength',
+    icon: Lock,
+    searches: '200k',
+    isImplemented: true,
+    isNew: true,
+    isPopular: true,
+    category: 'dev',
+    route: '/tools/password-generator'
   }
 ];
 
