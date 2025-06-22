@@ -14,14 +14,6 @@ export const fileTypeToTools: Record<string, ToolOption[]> = {
   // PDF conversions
   'pdf': [
     { 
-      id: 'pdf-to-word', 
-      name: 'PDF to Word', 
-      description: 'Convert to editable Word document',
-      icon: FileText,
-      popularity: 'high',
-      searches: '450k'
-    },
-    { 
       id: 'pdf-compress', 
       name: 'Compress PDF', 
       description: 'Reduce file size',

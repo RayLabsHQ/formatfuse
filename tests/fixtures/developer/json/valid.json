@@ -2,7 +2,7 @@
   "name": "FormatFuse Test",
   "version": "1.0.0",
   "features": [
-    "pdf-to-word",
+    "pdf-split",
     "image-resize",
     "json-format"
   ],

@@ -106,7 +106,7 @@ converter[Comlink.releaseProxy]();
 ```
 /src
 ├── components/
-│   ├── converters/     # Tool components (ImageConverter, PdfToWord, etc.)
+│   ├── converters/     # Tool components (ImageConverter, PdfSplit, etc.)
 │   ├── ui/             # Radix UI components (button, dialog, etc.)
 │   ├── layout/         # Layout components (Footer.astro)
 │   ├── Navigation.tsx  # Smart nav with fuzzy search
@@ -115,7 +115,7 @@ converter[Comlink.releaseProxy]();
 ├── workers/            # Web Workers (migrating to Comlink)
 │   ├── image-converter.ts              # Legacy postMessage
 │   ├── image-converter-comlink.worker.ts # New Comlink pattern
-│   ├── pdf-to-word.worker.ts          # PDF conversion
+│   ├── pdf-operations.worker.ts        # PDF operations (split, merge, rotate)
 │   └── jpg-to-pdf.worker.ts           # Image to PDF
 ├── lib/                # Core utilities
 │   ├── image-converter.ts              # Legacy converter class
@@ -145,8 +145,7 @@ converter[Comlink.releaseProxy]();
 ## Tool Implementation Status
 
 ### 🚧 Priority Tools Implementation Progress
-1. ⚠️ PDF to Word (450k/mo) - **Beta/Placeholder** - Only basic text extraction, no formatting
-2. ⚠️ JPG to PDF (300k/mo) - **Basic implementation** - Uses pdf-lib, no advanced features
+1. ⚠️ JPG to PDF (300k/mo) - **Basic implementation** - Uses pdf-lib, no advanced features
 3. ✅ PNG to JPG (350k/mo) - via universal image converter
 4. ❌ PDF Merge (250k/mo) - **Not implemented**
 5. ❌ PDF Compress (200k/mo) - **Not implemented**
@@ -169,19 +168,14 @@ converter[Comlink.releaseProxy]();
 
 ### 🔴 Major Missing Implementations
 **PDF Tools** (High Priority - These drive significant traffic):
-- PDF Merge (250k/mo)
 - PDF Compress (200k/mo)
 - Word to PDF (380k/mo)
-- PDF to JPG (180k/mo)
-- PDF Split (180k/mo)
 - Excel to PDF (claimed but not implemented)
-- PDF Rotate (claimed but not implemented)
 
-**Note**: The PDF to Word and JPG to PDF tools have basic workers but are not production-ready. They need proper libraries for:
-- PDF text extraction with formatting
-- DOCX generation
-- PDF manipulation (merge, split, compress)
-- PDF to image conversion
+**Note**: JPG to PDF tool has basic implementation but could be enhanced with:
+- Better image optimization
+- Page size options
+- Multi-page layout options
 
 ## Performance Targets
 - First paint: <1.5s

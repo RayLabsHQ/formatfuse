@@ -1,6 +1,5 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import PdfToWord from '../../components/converters/PdfToWord.tsx';
 import PdfSplit from '../../components/converters/PdfSplit.tsx';
 import PdfMerge from '../../components/converters/PdfMerge.tsx';
 import PdfRotate from '../../components/converters/PdfRotate.tsx';
@@ -11,7 +10,6 @@ import '../../styles/global.css';
 
 export function getStaticPaths() {
   return [
-    { params: { tool: 'pdf-to-word' }, props: { title: 'PDF to Word Converter', component: 'PdfToWord' } },
     { params: { tool: 'jpg-to-pdf' }, props: { title: 'JPG to PDF Converter', component: 'JpgToPdf' } },
     { params: { tool: 'pdf-merge' }, props: { title: 'Merge PDF Files', component: 'PdfMerge' } },
     { params: { tool: 'pdf-split' }, props: { title: 'Split PDF - Extract Pages from PDF', component: 'PdfSplit' } },
@@ -28,7 +26,6 @@ const { title, component } = Astro.props;
 
 <Layout title={title}>
   <main>
-    {component === 'PdfToWord' && <PdfToWord client:load />}
     {component === 'PdfSplit' && <PdfSplit client:load />}
     {component === 'PdfMerge' && <PdfMerge client:load />}
     {component === 'PdfRotate' && <PdfRotate client:load />}

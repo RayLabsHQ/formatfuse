@@ -136,7 +136,7 @@ async function generateJSONSamples() {
   const validJson = {
     name: "FormatFuse Test",
     version: "1.0.0",
-    features: ["pdf-to-word", "image-resize", "json-format"],
+    features: ["pdf-split", "image-resize", "json-format"],
     nested: {
       deep: {
         value: 42

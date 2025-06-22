@@ -125,18 +125,6 @@ function isPopularConversion(from: string, to: string): boolean {
 // PDF Tools (unfiltered - includes unimplemented for reference)
 const pdfToolsAll: Tool[] = [
   { 
-    id: 'pdf-to-word', 
-    name: 'PDF to Word', 
-    description: 'Convert PDF documents to editable Word files',
-    icon: FileText, 
-    searches: '450k', 
-    isPopular: true,
-    isBeta: true, // Basic text extraction only, no formatting
-    isImplemented: true,
-    category: 'pdf',
-    route: '/convert/pdf-to-word'
-  },
-  { 
     id: 'pdf-merge', 
     name: 'Merge PDF', 
     description: 'Combine multiple PDFs into one document',

@@ -17,7 +17,7 @@ pnpm test:watch
 pnpm test:coverage
 
 # Run specific test file
-pnpm test tests/workers/pdf-to-word.test.ts
+pnpm test tests/workers/pdf-split.test.ts
 ```
 
 ## Directory Structure
@@ -31,7 +31,7 @@ tests/
 │   ├── developer/     # Developer tool samples
 │   └── outputs/       # Test outputs (gitignored)
 ├── workers/           # Worker tests
-│   ├── pdf-to-word.test.ts
+│   ├── pdf-split.test.ts
 │   └── converter-test-template.ts
 ├── setup.ts           # Test utilities
 └── TESTING.md         # This file
