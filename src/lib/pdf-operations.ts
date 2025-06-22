@@ -1,8 +1,6 @@
 import * as Comlink from 'comlink';
 import type { Remote } from 'comlink';
 
-import type { PDFOperationsWorker } from '../workers/pdf-operations.worker';
-
 export interface SplitOptions {
   pageRanges: Array<{ start: number; end: number }>;
 }
@@ -38,16 +36,26 @@ export interface PdfMetadata {
   pageCount: number;
 }
 
+interface PDFOperationsWorkerAPI {
+  split(pdfData: Uint8Array, options: SplitOptions, onProgress?: (progress: number) => void): Promise<Uint8Array[]>;
+  merge(options: MergeOptions, onProgress?: (progress: number) => void): Promise<Uint8Array>;
+  rotate(pdfData: Uint8Array, options: RotateOptions, onProgress?: (progress: number) => void): Promise<Uint8Array>;
+  extract(pdfData: Uint8Array, options: ExtractOptions, onProgress?: (progress: number) => void): Promise<Uint8Array>;
+  pdfToImages(pdfData: Uint8Array, options: PdfToImageOptions, onProgress?: (progress: number) => void): Promise<{ page: number; data: Uint8Array; mimeType: string }[]>;
+  getPageCount(pdfData: Uint8Array): Promise<number>;
+  getMetadata(pdfData: Uint8Array): Promise<PdfMetadata>;
+}
+
 export class PDFOperations {
   private worker: Worker;
-  private api: Remote<PDFOperationsWorker>;
+  private api: Remote<PDFOperationsWorkerAPI>;
 
   constructor() {
     this.worker = new Worker(
       new URL('../workers/pdf-operations.worker.ts', import.meta.url),
       { type: 'module' }
     );
-    this.api = Comlink.wrap<PDFOperationsWorker>(this.worker);
+    this.api = Comlink.wrap<PDFOperationsWorkerAPI>(this.worker);
   }
 
   async split(

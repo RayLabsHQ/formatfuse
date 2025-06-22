@@ -32,7 +32,7 @@ interface PdfToImageOptions {
   scale?: number; // Default 1.5 for good quality
 }
 
-export class PDFOperationsWorker {
+class PDFOperationsWorker {
   private async loadPdfDocument(data: Uint8Array): Promise<PDFDocument> {
     return PDFDocument.load(data);
   }
@@ -258,4 +258,4 @@ export class PDFOperationsWorker {
   }
 }
 
-Comlink.expose(PDFOperationsWorker);
+Comlink.expose(new PDFOperationsWorker());
