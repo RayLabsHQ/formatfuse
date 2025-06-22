@@ -5,7 +5,6 @@ import {
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Label } from '../ui/label';
-import { Switch } from '../ui/switch';
 import { Slider } from '../ui/slider';
 import { Separator } from '../ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
@@ -326,29 +325,144 @@ export default function PasswordGenerator() {
                 </div>
               </div>
               <Separator />
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="uppercase" className="cursor-pointer flex-1">Uppercase (A-Z)</Label>
-                  <Switch id="uppercase" checked={randomOptions.uppercase} onCheckedChange={(checked) => setRandomOptions(prev => ({ ...prev, uppercase: checked }))} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="lowercase" className="cursor-pointer flex-1">Lowercase (a-z)</Label>
-                  <Switch id="lowercase" checked={randomOptions.lowercase} onCheckedChange={(checked) => setRandomOptions(prev => ({ ...prev, lowercase: checked }))} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="numbers" className="cursor-pointer flex-1">Numbers (0-9)</Label>
-                  <Switch id="numbers" checked={randomOptions.numbers} onCheckedChange={(checked) => setRandomOptions(prev => ({ ...prev, numbers: checked }))} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="symbols" className="cursor-pointer flex-1">Symbols (!@#$%)</Label>
-                  <Switch id="symbols" checked={randomOptions.symbols} onCheckedChange={(checked) => setRandomOptions(prev => ({ ...prev, symbols: checked }))} />
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  onClick={() => setRandomOptions(prev => ({ ...prev, uppercase: !prev.uppercase }))}
+                  className={cn(
+                    "relative p-4 rounded-lg border-2 text-left transition-all",
+                    "hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                    randomOptions.uppercase 
+                      ? "border-primary bg-primary/5 dark:bg-primary/10" 
+                      : "border-muted-foreground/25 hover:border-muted-foreground/40"
+                  )}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="font-medium">Uppercase</div>
+                      <div className="text-sm text-muted-foreground mt-0.5">A-Z</div>
+                    </div>
+                    <div className={cn(
+                      "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors",
+                      randomOptions.uppercase
+                        ? "border-primary bg-primary"
+                        : "border-muted-foreground/40"
+                    )}>
+                      {randomOptions.uppercase && (
+                        <Check className="w-3 h-3 text-primary-foreground" />
+                      )}
+                    </div>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setRandomOptions(prev => ({ ...prev, lowercase: !prev.lowercase }))}
+                  className={cn(
+                    "relative p-4 rounded-lg border-2 text-left transition-all",
+                    "hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                    randomOptions.lowercase 
+                      ? "border-primary bg-primary/5 dark:bg-primary/10" 
+                      : "border-muted-foreground/25 hover:border-muted-foreground/40"
+                  )}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="font-medium">Lowercase</div>
+                      <div className="text-sm text-muted-foreground mt-0.5">a-z</div>
+                    </div>
+                    <div className={cn(
+                      "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors",
+                      randomOptions.lowercase
+                        ? "border-primary bg-primary"
+                        : "border-muted-foreground/40"
+                    )}>
+                      {randomOptions.lowercase && (
+                        <Check className="w-3 h-3 text-primary-foreground" />
+                      )}
+                    </div>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setRandomOptions(prev => ({ ...prev, numbers: !prev.numbers }))}
+                  className={cn(
+                    "relative p-4 rounded-lg border-2 text-left transition-all",
+                    "hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                    randomOptions.numbers 
+                      ? "border-primary bg-primary/5 dark:bg-primary/10" 
+                      : "border-muted-foreground/25 hover:border-muted-foreground/40"
+                  )}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="font-medium">Numbers</div>
+                      <div className="text-sm text-muted-foreground mt-0.5">0-9</div>
+                    </div>
+                    <div className={cn(
+                      "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors",
+                      randomOptions.numbers
+                        ? "border-primary bg-primary"
+                        : "border-muted-foreground/40"
+                    )}>
+                      {randomOptions.numbers && (
+                        <Check className="w-3 h-3 text-primary-foreground" />
+                      )}
+                    </div>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setRandomOptions(prev => ({ ...prev, symbols: !prev.symbols }))}
+                  className={cn(
+                    "relative p-4 rounded-lg border-2 text-left transition-all",
+                    "hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                    randomOptions.symbols 
+                      ? "border-primary bg-primary/5 dark:bg-primary/10" 
+                      : "border-muted-foreground/25 hover:border-muted-foreground/40"
+                  )}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="font-medium">Symbols</div>
+                      <div className="text-sm text-muted-foreground mt-0.5">!@#$%</div>
+                    </div>
+                    <div className={cn(
+                      "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors",
+                      randomOptions.symbols
+                        ? "border-primary bg-primary"
+                        : "border-muted-foreground/40"
+                    )}>
+                      {randomOptions.symbols && (
+                        <Check className="w-3 h-3 text-primary-foreground" />
+                      )}
+                    </div>
+                  </div>
+                </button>
               </div>
               <Separator />
-              <div className="flex items-center justify-between">
-                <Label htmlFor="exclude-similar" className="cursor-pointer flex-1">Exclude similar characters (i,l,1,L,o,0,O)</Label>
-                <Switch id="exclude-similar" checked={randomOptions.excludeSimilar} onCheckedChange={(checked) => setRandomOptions(prev => ({ ...prev, excludeSimilar: checked }))} />
-              </div>
+              <button
+                onClick={() => setRandomOptions(prev => ({ ...prev, excludeSimilar: !prev.excludeSimilar }))}
+                className={cn(
+                  "relative p-4 rounded-lg border-2 text-left transition-all w-full",
+                  "hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                  randomOptions.excludeSimilar 
+                    ? "border-primary bg-primary/5 dark:bg-primary/10" 
+                    : "border-muted-foreground/25 hover:border-muted-foreground/40"
+                )}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="font-medium">Exclude similar characters</div>
+                    <div className="text-sm text-muted-foreground mt-0.5">i, l, 1, L, o, 0, O</div>
+                  </div>
+                  <div className={cn(
+                    "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors",
+                    randomOptions.excludeSimilar
+                      ? "border-primary bg-primary"
+                      : "border-muted-foreground/40"
+                  )}>
+                    {randomOptions.excludeSimilar && (
+                      <Check className="w-3 h-3 text-primary-foreground" />
+                    )}
+                  </div>
+                </div>
+              </button>
             </CardContent>
           </Card>
         </TabsContent>
@@ -400,15 +514,61 @@ export default function PasswordGenerator() {
                 </Select>
               </div>
               <Separator />
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="add-numbers" className="cursor-pointer flex-1">Add numbers (e.g., 123)</Label>
-                  <Switch id="add-numbers" checked={memorableOptions.addNumbers} onCheckedChange={(checked) => setMemorableOptions(prev => ({ ...prev, addNumbers: checked }))} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="add-symbols" className="cursor-pointer flex-1">Add a symbol (e.g., !@#)</Label>
-                  <Switch id="add-symbols" checked={memorableOptions.addSymbols} onCheckedChange={(checked) => setMemorableOptions(prev => ({ ...prev, addSymbols: checked }))} />
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  onClick={() => setMemorableOptions(prev => ({ ...prev, addNumbers: !prev.addNumbers }))}
+                  className={cn(
+                    "relative p-4 rounded-lg border-2 text-left transition-all",
+                    "hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                    memorableOptions.addNumbers 
+                      ? "border-primary bg-primary/5 dark:bg-primary/10" 
+                      : "border-muted-foreground/25 hover:border-muted-foreground/40"
+                  )}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="font-medium">Add numbers</div>
+                      <div className="text-sm text-muted-foreground mt-0.5">e.g., 123</div>
+                    </div>
+                    <div className={cn(
+                      "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors",
+                      memorableOptions.addNumbers
+                        ? "border-primary bg-primary"
+                        : "border-muted-foreground/40"
+                    )}>
+                      {memorableOptions.addNumbers && (
+                        <Check className="w-3 h-3 text-primary-foreground" />
+                      )}
+                    </div>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setMemorableOptions(prev => ({ ...prev, addSymbols: !prev.addSymbols }))}
+                  className={cn(
+                    "relative p-4 rounded-lg border-2 text-left transition-all",
+                    "hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                    memorableOptions.addSymbols 
+                      ? "border-primary bg-primary/5 dark:bg-primary/10" 
+                      : "border-muted-foreground/25 hover:border-muted-foreground/40"
+                  )}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="font-medium">Add a symbol</div>
+                      <div className="text-sm text-muted-foreground mt-0.5">e.g., !@#</div>
+                    </div>
+                    <div className={cn(
+                      "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors",
+                      memorableOptions.addSymbols
+                        ? "border-primary bg-primary"
+                        : "border-muted-foreground/40"
+                    )}>
+                      {memorableOptions.addSymbols && (
+                        <Check className="w-3 h-3 text-primary-foreground" />
+                      )}
+                    </div>
+                  </div>
+                </button>
               </div>
               <div className="mt-4 p-3 rounded-md bg-blue-50 border border-blue-200 dark:bg-blue-900/30 dark:border-blue-700/50">
                 <p className="text-sm text-blue-700 dark:text-blue-300">
