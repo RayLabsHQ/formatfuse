@@ -9,14 +9,20 @@ export interface Props {
   description?: string;
   sourceFormat?: string;
   targetFormat?: string;
+  keywords?: string;
+  ogImage?: string;
 }
 
 const { 
   title, 
   description = "Free online file converters - PDF, Image, Document. No uploads, 100% private.",
   sourceFormat,
-  targetFormat
+  targetFormat,
+  keywords = "file converter, online converter, pdf converter, image converter, free converter, privacy-first, no upload",
+  ogImage = "/og-image.png"
 } = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 ---
 
 <!DOCTYPE html>
@@ -28,6 +34,11 @@ const {
     <meta name="generator" content={Astro.generator} />
     <title>{title} - FormatFuse</title>
     <meta name="description" content={description} />
+    <meta name="keywords" content={keywords} />
+    <link rel="canonical" href={canonicalURL} />
+    
+    <!-- Sitemap -->
+    <link rel="sitemap" href="/sitemap-index.xml" />
     
     <!-- Preload critical fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -37,6 +48,19 @@ const {
     <meta property="og:title" content={`${title} - FormatFuse`} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:image" content={new URL(ogImage, Astro.site)} />
+    <meta property="og:site_name" content="FormatFuse" />
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={`${title} - FormatFuse`} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={new URL(ogImage, Astro.site)} />
+    
+    <!-- Additional SEO -->
+    <meta name="robots" content="index, follow" />
+    <meta name="author" content="FormatFuse" />
     
     <!-- Theme detection -->
     <script is:inline>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#0A0A0A"/>
+  <path d="M600 240L620 280H580L600 240Z" fill="#8B5CF6"/>
+  <path d="M580 280H620V320H580V280Z" fill="#7C3AED"/>
+  <path d="M580 320L600 360L620 320H580Z" fill="#6D28D9"/>
+  <text x="600" y="420" font-family="system-ui, -apple-system, sans-serif" font-size="48" font-weight="700" text-anchor="middle" fill="white">FormatFuse</text>
+  <text x="600" y="470" font-family="system-ui, -apple-system, sans-serif" font-size="24" text-anchor="middle" fill="#A1A1AA">Free Online File Converters</text>
+</svg>

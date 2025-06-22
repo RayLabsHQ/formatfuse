@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://formatfuse.com/sitemap-index.xml
+
+# Disallow development/test files
+Disallow: /api/
+Disallow: *.json$
+Disallow: /test/
+Disallow: /tests/
+
+# Crawl delay
+Crawl-delay: 1
