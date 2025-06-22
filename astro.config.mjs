@@ -3,6 +3,9 @@ import { defineConfig } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
+import opengraphImages from 'astro-opengraph-images';
+import { toolOGImageFinal } from './src/og-image-renderer-final.tsx';
+import fs from 'fs';
 
 // https://astro.build/config
 export default defineConfig({
@@ -11,6 +14,31 @@ export default defineConfig({
 		react(), 
 		sitemap({
 			filter: (page) => !page.includes('/404')
+		}),
+		opengraphImages({
+			options: {
+				fonts: [
+					{
+						name: 'Inter',
+						weight: 400,
+						style: 'normal',
+						data: fs.readFileSync('node_modules/@fontsource/inter/files/inter-latin-400-normal.woff'),
+					},
+					{
+						name: 'Inter',
+						weight: 700,
+						style: 'normal',
+						data: fs.readFileSync('node_modules/@fontsource/inter/files/inter-latin-700-normal.woff'),
+					},
+					{
+						name: 'Inter',
+						weight: 900,
+						style: 'normal',
+						data: fs.readFileSync('node_modules/@fontsource/inter/files/inter-latin-900-normal.woff'),
+					},
+				],
+			},
+			render: toolOGImageFinal,
 		})
 	],
 	vite: {

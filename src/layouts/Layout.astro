@@ -3,6 +3,7 @@ import '../styles/global.css';
 import Navigation from '../components/Navigation.tsx';
 import Footer from '../components/layout/Footer.astro';
 import WasmPrefetch from '../components/WasmPrefetch.astro';
+import { getImagePath } from 'astro-opengraph-images';
 
 export interface Props {
   title: string;
@@ -11,6 +12,7 @@ export interface Props {
   targetFormat?: string;
   keywords?: string;
   ogImage?: string;
+  toolType?: string;
 }
 
 const { 
@@ -19,10 +21,25 @@ const {
   sourceFormat,
   targetFormat,
   keywords = "file converter, online converter, pdf converter, image converter, free converter, privacy-first, no upload",
-  ogImage = "/og-image.png"
+  ogImage,
+  toolType
 } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+
+// Generate OG image path
+const generatedOgImageUrl = getImagePath({ 
+  url: Astro.url, 
+  site: Astro.site,
+  // Pass custom props for our renderer
+  title,
+  description,
+  toolType,
+  sourceFormat,
+  targetFormat
+});
+
+const finalOgImage = ogImage || generatedOgImageUrl;
 ---
 
 <!DOCTYPE html>
@@ -49,14 +66,14 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonicalURL} />
-    <meta property="og:image" content={new URL(ogImage, Astro.site)} />
+    <meta property="og:image" content={new URL(finalOgImage, Astro.site)} />
     <meta property="og:site_name" content="FormatFuse" />
     
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={`${title} - FormatFuse`} />
     <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content={new URL(ogImage, Astro.site)} />
+    <meta name="twitter:image" content={new URL(finalOgImage, Astro.site)} />
     
     <!-- Additional SEO -->
     <meta name="robots" content="index, follow" />
