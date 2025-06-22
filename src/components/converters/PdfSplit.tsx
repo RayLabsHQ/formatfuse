@@ -70,6 +70,7 @@ export const PdfSplit: React.FC = () => {
   const [pageRangeInput, setPageRangeInput] = useState<string>('');
   const [results, setResults] = useState<Uint8Array[]>([]);
   const [showPreview, setShowPreview] = useState(false);
+  const [previewKey, setPreviewKey] = useState(0);
   const [processingSteps, setProcessingSteps] = useState<any[]>([]);
   
   const { split, getPageCount, getMetadata, isProcessing, progress, error } = usePdfOperations();
@@ -83,7 +84,8 @@ export const PdfSplit: React.FC = () => {
     setSelectedPages([]);
     
     try {
-      const data = new Uint8Array(await selectedFile.arrayBuffer());
+      const arrayBuffer = await selectedFile.arrayBuffer();
+      const data = new Uint8Array(arrayBuffer);
       setFileData(data);
       
       const count = await getPageCount(data);
@@ -171,7 +173,9 @@ export const PdfSplit: React.FC = () => {
         { id: 'finalize', label: 'Finalizing files', status: 'pending' }
       ]);
 
-      const splitResults = await split(fileData, { pageRanges });
+      // Create a copy to avoid ArrayBuffer issues
+      const splitData = new Uint8Array(fileData);
+      const splitResults = await split(splitData, { pageRanges });
       
       setProcessingSteps(prev => prev.map(step => ({
         ...step,
@@ -290,7 +294,10 @@ export const PdfSplit: React.FC = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setShowPreview(!showPreview)}
+                    onClick={() => {
+                      setShowPreview(!showPreview);
+                      setPreviewKey(prev => prev + 1);
+                    }}
                   >
                     <Eye className="w-4 h-4 mr-2" />
                     {showPreview ? 'Hide' : 'Show'} Preview
@@ -318,7 +325,8 @@ export const PdfSplit: React.FC = () => {
               <div className="bg-card border rounded-lg p-6">
                 <h3 className="font-medium mb-4">Page Preview</h3>
                 <PdfPreview
-                  pdfData={fileData}
+                  key={`pdf-preview-${previewKey}`}
+                  pdfData={new Uint8Array(fileData)}
                   mode={splitMode === 'visual' ? 'grid' : 'strip'}
                   selectable={splitMode === 'visual'}
                   selectedPages={selectedPages}

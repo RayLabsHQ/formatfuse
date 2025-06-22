@@ -36,14 +36,36 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
   const [scale, setScale] = useState(1);
   const [thumbnails, setThumbnails] = useState<PageThumbnail[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<number>>(new Set(selectedPages));
   const containerRef = useRef<HTMLDivElement>(null);
+  const mountedRef = useRef<boolean>(true);
 
-  // Load PDF
+  // Reset mounted ref on mount
   useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  // Load PDF - separate from selectedPages to avoid re-renders
+  useEffect(() => {
+    let cancelled = false;
+    let pdfDoc: any = null;
+
     const loadPdf = async () => {
+      if (!pdfData) {
+        setLoading(false);
+        return;
+      }
+
       try {
+        console.log('Starting PDF load...');
         setLoading(true);
+        setError(null);
+        setThumbnails([]);
+        setPdf(null);
         
         // Dynamically import PDF.js only on client side
         const pdfjsLib = await import('pdfjs-dist');
@@ -55,46 +77,78 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
         ).toString();
         
         const loadingTask = pdfjsLib.getDocument({ data: pdfData });
-        const pdfDoc = await loadingTask.promise;
+        pdfDoc = await loadingTask.promise;
+        
+        if (cancelled || !mountedRef.current) {
+          console.log('Component unmounted, cleaning up...');
+          if (pdfDoc) pdfDoc.destroy();
+          return;
+        }
+
+        console.log(`PDF loaded: ${pdfDoc.numPages} pages`);
         setPdf(pdfDoc);
         setTotalPages(pdfDoc.numPages);
         
         // Generate thumbnails
         const thumbs: PageThumbnail[] = [];
-        for (let i = 1; i <= Math.min(pdfDoc.numPages, 50); i++) { // Limit to 50 pages for performance
-          const page = await pdfDoc.getPage(i);
-          const viewport = page.getViewport({ scale: 0.3 }); // Small thumbnails
+        const maxThumbs = Math.min(pdfDoc.numPages, 50);
+        
+        for (let i = 1; i <= maxThumbs; i++) {
+          if (cancelled || !mountedRef.current) break;
           
-          const canvas = document.createElement('canvas');
-          const context = canvas.getContext('2d');
-          if (context) {
-            canvas.width = viewport.width;
-            canvas.height = viewport.height;
+          try {
+            const page = await pdfDoc.getPage(i);
+            const viewport = page.getViewport({ scale: 0.3 });
             
-            await page.render({
-              canvasContext: context,
-              viewport: viewport,
-            }).promise;
-            
-            thumbs.push({
-              pageNum: i,
-              canvas,
-              selected: selectedPages.includes(i)
-            });
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            if (context) {
+              canvas.width = viewport.width;
+              canvas.height = viewport.height;
+              
+              await page.render({
+                canvasContext: context,
+                viewport: viewport,
+              }).promise;
+              
+              thumbs.push({
+                pageNum: i,
+                canvas,
+                selected: selectedPages.includes(i)
+              });
+            }
+          } catch (pageError) {
+            console.error(`Error rendering page ${i}:`, pageError);
           }
         }
-        setThumbnails(thumbs);
+        
+        if (!cancelled && mountedRef.current) {
+          console.log(`Generated ${thumbs.length} thumbnails`);
+          setThumbnails(thumbs);
+          setLoading(false);
+        }
       } catch (error) {
         console.error('Error loading PDF:', error);
-      } finally {
-        setLoading(false);
+        if (!cancelled && mountedRef.current) {
+          setError(error instanceof Error ? error.message : 'Failed to load PDF');
+          setThumbnails([]);
+          setPdf(null);
+          setLoading(false);
+        }
       }
     };
 
-    if (pdfData) {
-      loadPdf();
-    }
-  }, [pdfData, selectedPages]);
+    loadPdf();
+
+    // Cleanup function
+    return () => {
+      cancelled = true;
+      if (pdfDoc) {
+        console.log('Destroying PDF document...');
+        pdfDoc.destroy();
+      }
+    };
+  }, [pdfData]);
 
   // Update selected pages
   useEffect(() => {
@@ -136,6 +190,16 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
     return (
       <div className={cn("flex items-center justify-center h-48", className)}>
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={cn("flex flex-col items-center justify-center h-48 text-muted-foreground", className)}>
+        <FileText className="w-8 h-8 mb-2" />
+        <span>Error loading PDF</span>
+        <span className="text-xs mt-1">{error}</span>
       </div>
     );
   }

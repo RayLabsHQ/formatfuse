@@ -63,8 +63,10 @@ export class PDFOperations {
     options: SplitOptions,
     onProgress?: (progress: number) => void
   ): Promise<Uint8Array[]> {
+    // Create a copy to avoid transferring the original
+    const dataCopy = new Uint8Array(pdfData);
     return this.api.split(
-      pdfData,
+      dataCopy,
       options,
       onProgress ? Comlink.proxy(onProgress) : undefined
     );
@@ -85,8 +87,10 @@ export class PDFOperations {
     options: RotateOptions,
     onProgress?: (progress: number) => void
   ): Promise<Uint8Array> {
+    // Create a copy to avoid transferring the original
+    const dataCopy = new Uint8Array(pdfData);
     return this.api.rotate(
-      pdfData,
+      dataCopy,
       options,
       onProgress ? Comlink.proxy(onProgress) : undefined
     );
@@ -97,8 +101,10 @@ export class PDFOperations {
     options: ExtractOptions,
     onProgress?: (progress: number) => void
   ): Promise<Uint8Array> {
+    // Create a copy to avoid transferring the original
+    const dataCopy = new Uint8Array(pdfData);
     return this.api.extract(
-      pdfData,
+      dataCopy,
       options,
       onProgress ? Comlink.proxy(onProgress) : undefined
     );
@@ -109,19 +115,25 @@ export class PDFOperations {
     options: PdfToImageOptions,
     onProgress?: (progress: number) => void
   ): Promise<{ page: number; data: Uint8Array; mimeType: string }[]> {
+    // Create a copy to avoid transferring the original
+    const dataCopy = new Uint8Array(pdfData);
     return this.api.pdfToImages(
-      pdfData,
+      dataCopy,
       options,
       onProgress ? Comlink.proxy(onProgress) : undefined
     );
   }
 
   async getPageCount(pdfData: Uint8Array): Promise<number> {
-    return this.api.getPageCount(pdfData);
+    // Create a copy to avoid transferring the original
+    const dataCopy = new Uint8Array(pdfData);
+    return this.api.getPageCount(dataCopy);
   }
 
   async getMetadata(pdfData: Uint8Array): Promise<PdfMetadata> {
-    return this.api.getMetadata(pdfData);
+    // Create a copy to avoid transferring the original
+    const dataCopy = new Uint8Array(pdfData);
+    return this.api.getMetadata(dataCopy);
   }
 
   dispose(): void {
