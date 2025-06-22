@@ -9,7 +9,7 @@ import { Slider } from '../ui/slider';
 import { Separator } from '../ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"; // Updated import
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"; // Updated import
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // Updated import
 import { loadEFFWordlist } from '@/lib/eff-wordlist';
 import { cn } from '@/lib/utils';
 
@@ -216,7 +216,7 @@ export default function PasswordGenerator() {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto p-4 sm:p-6 space-y-8">
+    <div className="w-full max-w-3xl mx-auto p-4 sm:p-6 space-y-8">
       <div className="text-center">
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Password Generator</h1>
         <p className="text-muted-foreground mt-2">
@@ -225,8 +225,33 @@ export default function PasswordGenerator() {
       </div>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-lg">Generated Password</CardTitle>
+          <div className="flex gap-2">
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={generatePassword}
+              className="h-8 w-8"
+              title="Generate New Password"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={handleCopy}
+              className="h-8 w-8"
+              disabled={!password}
+              title="Copy Password"
+            >
+              {copied ? (
+                <Check className="w-4 h-4 text-green-500" />
+              ) : (
+                <Copy className="w-4 h-4" />
+              )}
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="font-mono text-xl sm:text-2xl break-all select-all p-4 rounded-md bg-muted/50 border min-h-[60px] flex items-center justify-center text-center">
@@ -257,33 +282,6 @@ export default function PasswordGenerator() {
             </div>
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col sm:flex-row gap-3">
-          <Button
-            onClick={generatePassword}
-            className="w-full sm:flex-1"
-          >
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Generate New
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleCopy}
-            className="w-full sm:min-w-[120px]"
-            disabled={!password}
-          >
-            {copied ? (
-              <>
-                <Check className="w-4 h-4 mr-2 text-green-500" />
-                Copied!
-              </>
-            ) : (
-              <>
-                <Copy className="w-4 h-4 mr-2" />
-                Copy
-              </>
-            )}
-          </Button>
-        </CardFooter>
       </Card>
 
       <Tabs value={mode} onValueChange={(value) => setMode(value as 'random' | 'memorable')} className="w-full">
