@@ -239,7 +239,6 @@ ${text}`;
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Text Input */}
         <div className="lg:col-span-2 space-y-2">
-          <Label>Your Text</Label>
           <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
