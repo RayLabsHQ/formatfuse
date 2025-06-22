@@ -1,0 +1,19 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import { TextDiffChecker } from '@/components/converters/TextDiffChecker';
+import WasmPrefetch from '@/components/WasmPrefetch.astro';
+
+const title = 'Text Diff Checker - Compare and Visualize Text Differences';
+const description = 'Compare two texts side by side and visualize differences. Support for line-by-line and word-by-word comparison with multiple view modes.';
+---
+
+<Layout 
+  title={title}
+  description={description}
+  ogTitle={title}
+  ogDescription={description}
+  canonicalURL={`https://formatfuse.com/tools/text-diff-checker`}
+>
+  <TextDiffChecker client:load />
+  <WasmPrefetch />
+</Layout>

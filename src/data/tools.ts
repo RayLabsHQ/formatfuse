@@ -1,7 +1,8 @@
 import { 
   FileText, Code, ArrowRight, TrendingUp, Sparkles,
   Layers, FileDown, Scissors, Type, Image, QrCode, Braces, 
-  Hash, FileSpreadsheet, FileArchive, Globe, ArrowLeftRight, Lock
+  Hash, FileSpreadsheet, FileArchive, Globe, ArrowLeftRight, Lock,
+  Shield, GitBranch
 } from 'lucide-react';
 
 export interface Tool {
@@ -327,6 +328,29 @@ const devToolsAll: Tool[] = [
     isPopular: true,
     category: 'dev',
     route: '/tools/password-generator'
+  },
+  {
+    id: 'jwt-decoder',
+    name: 'JWT Decoder',
+    description: 'Decode and inspect JSON Web Tokens without sending them to a server',
+    icon: Shield,
+    searches: '180k',
+    isImplemented: true,
+    isNew: true,
+    isPopular: true,
+    category: 'dev',
+    route: '/tools/jwt-decoder'
+  },
+  {
+    id: 'text-diff-checker',
+    name: 'Text Diff Checker',
+    description: 'Compare two texts and visualize differences with multiple view modes',
+    icon: GitBranch,
+    searches: '150k',
+    isImplemented: true,
+    isNew: true,
+    category: 'dev',
+    route: '/tools/text-diff-checker'
   }
 ];
 

@@ -1,0 +1,19 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import { JwtDecoder } from '@/components/converters/JwtDecoder';
+import WasmPrefetch from '@/components/WasmPrefetch.astro';
+
+const title = 'JWT Decoder - Decode and Inspect JSON Web Tokens';
+const description = 'Decode and inspect JSON Web Tokens (JWT) without sending them to a server. View header, payload, signature, and security information.';
+---
+
+<Layout 
+  title={title}
+  description={description}
+  ogTitle={title}
+  ogDescription={description}
+  canonicalURL={`https://formatfuse.com/tools/jwt-decoder`}
+>
+  <JwtDecoder client:load />
+  <WasmPrefetch />
+</Layout>
