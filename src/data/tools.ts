@@ -1,7 +1,7 @@
 import { 
   FileText, Code, ArrowRight, TrendingUp, Sparkles,
   Layers, FileDown, Scissors, Type, Image, QrCode, Braces, 
-  Hash, FileSpreadsheet, FileArchive, Globe
+  Hash, FileSpreadsheet, FileArchive, Globe, ArrowLeftRight
 } from 'lucide-react';
 
 export interface Tool {
@@ -292,6 +292,18 @@ const devToolsAll: Tool[] = [
     isImplemented: true,
     category: 'dev',
     route: '/tools/case-converter'
+  },
+  {
+    id: 'json-yaml-converter',
+    name: 'JSON ↔ YAML Converter',
+    description: 'Convert between JSON and YAML formats with syntax highlighting',
+    icon: ArrowLeftRight,
+    searches: '200k',
+    isImplemented: true,
+    isNew: true,
+    isPopular: true,
+    category: 'dev',
+    route: '/tools/json-yaml-converter'
   }
 ];
 

@@ -2,18 +2,19 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createHighlighterCore } from 'shiki/core';
 import { createOnigurumaEngine } from 'shiki/engine/oniguruma';
 import json from '@shikijs/langs/json';
+import yaml from '@shikijs/langs/yaml';
 import githubDark from '@shikijs/themes/github-dark';
 import githubLight from '@shikijs/themes/github-light';
 import { cn } from '@/lib/utils';
 
-// Create a singleton highlighter instance with only JSON support
+// Create a singleton highlighter instance with JSON and YAML support
 let highlighter: any = null;
 
 const getHighlighter = async () => {
   if (!highlighter) {
     highlighter = await createHighlighterCore({
       themes: [githubDark, githubLight],
-      langs: [json],
+      langs: [json, yaml],
       // @ts-ignore - WASM import
       engine: createOnigurumaEngine(import('shiki/wasm'))
     });
@@ -64,13 +65,15 @@ export function CodeEditor({
 
       try {
         const hl = await getHighlighter();
+        // Use the appropriate language or fallback to plaintext
+        const langToUse = ['json', 'yaml'].includes(language) ? language : 'json';
         const highlighted = hl.codeToHtml(value || '', {
-          lang: 'json', // Always use JSON since that's all we support
+          lang: langToUse,
           theme,
         });
         setHtml(highlighted);
       } catch {
-        // Fallback for invalid JSON
+        // Fallback for invalid syntax
         setHtml(`<pre><code>${value}</code></pre>`);
       }
     };

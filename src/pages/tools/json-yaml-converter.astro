@@ -1,0 +1,15 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import JsonYamlConverter from '../../components/converters/JsonYamlConverter';
+
+const title = 'JSON to YAML Converter - Convert JSON to YAML Online';
+const description = 'Free online JSON to YAML converter. Convert between JSON and YAML formats instantly with syntax highlighting and error detection. No upload required.';
+---
+
+<Layout
+  title={title}
+  description={description}
+  keywords="json to yaml, yaml to json, json yaml converter, convert json to yaml online, yaml converter"
+>
+  <JsonYamlConverter client:load />
+</Layout>
