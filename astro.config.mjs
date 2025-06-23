@@ -5,6 +5,7 @@ import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import opengraphImages from 'astro-opengraph-images';
 import { toolOGImage } from './src/og-image-renderer.tsx';
+import partytown from '@astrojs/partytown';
 import fs from 'fs';
 
 // https://astro.build/config
@@ -39,6 +40,13 @@ export default defineConfig({
 				],
 			},
 			render: toolOGImage,
+		}),
+		partytown({
+			// GTM-MJKP526Z configuration
+			config: {
+				debug: false,
+				forward: ['dataLayer.push']
+			}
 		})
 	],
 	vite: {
