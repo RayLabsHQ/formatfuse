@@ -283,3 +283,7 @@ Use `tests/workers/converter-test-template.ts` as your starting point for all ne
 - Focus on describing the purpose or impact of the change
 - Avoid mentioning AI or Claude Code in commit messages
 - Keep commit messages straightforward and clear
+
+## Terminal Commands
+
+- **Always run date command from terminal**
