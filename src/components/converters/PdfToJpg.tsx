@@ -168,33 +168,33 @@ export const PdfToJpg: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Tool Header */}
+      {/* Tool Header - Mobile optimized */}
       <div className="border-b bg-card/[0.5]">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-3">
-              <div className="p-2 bg-tool-pdf/[0.1] text-tool-pdf rounded-lg">
-                <Image className="w-5 h-5 sm:w-6 sm:h-6" />
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-tool-pdf/[0.1] text-tool-pdf rounded-lg flex-shrink-0">
+                <Image className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
               </div>
-              PDF to JPG Converter
+              <span>PDF to JPG Converter</span>
             </h1>
             <p className="mt-2 text-sm sm:text-base text-muted-foreground max-w-3xl">
               Convert PDF pages to high-quality JPG or PNG images. Extract all pages or select specific ones.
               100% private - all processing happens in your browser.
             </p>
             
-            {/* Tool Features */}
-            <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+            {/* Tool Features - Mobile optimized */}
+            <div className="mt-4 grid grid-cols-1 sm:flex sm:flex-wrap gap-3 sm:gap-x-6 sm:gap-y-2 text-sm">
               <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0" />
                 <span className="font-medium">No file size limits</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0" />
                 <span className="font-medium">Adjustable quality</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0" />
                 <span className="font-medium">Batch download</span>
               </div>
             </div>
@@ -225,13 +225,13 @@ export const PdfToJpg: React.FC = () => {
             />
             
             <div className="space-y-4">
-              <div className="mx-auto w-16 h-16 bg-primary/[0.1] rounded-full flex items-center justify-center">
-                <Upload className="w-8 h-8 text-primary" />
+              <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-primary/[0.1] rounded-full flex items-center justify-center">
+                <Upload className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               </div>
               
               <div>
-                <h3 className="text-lg font-semibold">Drop PDF file here</h3>
-                <p className="mt-1 text-sm text-muted-foreground">
+                <h3 className="text-base sm:text-lg font-semibold">Drop PDF file here</h3>
+                <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
                   or{' '}
                   <button
                     onClick={() => fileInputRef.current?.click()}
@@ -243,7 +243,7 @@ export const PdfToJpg: React.FC = () => {
                 </p>
               </div>
               
-              <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <FileCheck className="w-3 h-3" />
                   PDF files only
@@ -259,20 +259,20 @@ export const PdfToJpg: React.FC = () => {
 
         {file && pageCount > 0 && (
           <div className="space-y-6">
-            {/* File Info Card */}
-            <div className="bg-card border rounded-lg p-4">
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 bg-tool-pdf/[0.1] text-tool-pdf rounded">
-                    <FileText className="w-5 h-5" />
+            {/* File Info Card - Mobile optimized */}
+            <div className="bg-card border rounded-lg p-3 sm:p-4">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                <div className="flex items-start gap-2.5 sm:gap-3">
+                  <div className="p-1.5 sm:p-2 bg-tool-pdf/[0.1] text-tool-pdf rounded flex-shrink-0">
+                    <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
-                  <div>
-                    <h3 className="font-medium">{file.name}</h3>
-                    <div className="mt-1 flex items-center gap-4 text-sm text-muted-foreground">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-medium text-sm sm:text-base truncate">{file.name}</h3>
+                    <div className="mt-0.5 sm:mt-1 flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
                       <span>{pageCount} pages</span>
                       <span>{formatFileSize(file.size)}</span>
                       {metadata?.title && (
-                        <span>Title: {metadata.title}</span>
+                        <span className="hidden sm:inline">Title: {metadata.title}</span>
                       )}
                     </div>
                   </div>
@@ -289,16 +289,17 @@ export const PdfToJpg: React.FC = () => {
                       fileInputRef.current.value = '';
                     }
                   }}
+                  className="self-end sm:self-auto text-xs sm:text-sm"
                 >
                   Change file
                 </Button>
               </div>
             </div>
 
-            {/* Conversion Options */}
-            <div className="bg-card border rounded-lg p-6 space-y-6">
-              <h3 className="font-medium flex items-center gap-2">
-                <Settings className="w-4 h-4" />
+            {/* Conversion Options - Mobile optimized */}
+            <div className="bg-card border rounded-lg p-4 sm:p-6 space-y-4 sm:space-y-6">
+              <h3 className="font-medium text-base sm:text-lg flex items-center gap-2">
+                <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 Conversion Options
               </h3>
               
@@ -346,15 +347,15 @@ export const PdfToJpg: React.FC = () => {
                 )}
               </div>
 
-              {/* Format and Quality */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Format and Quality - Mobile optimized */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Output format</label>
+                  <label className="text-xs sm:text-sm font-medium">Output format</label>
                   <Select
                     value={format}
                     onValueChange={(value: 'jpeg' | 'png') => setFormat(value)}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="text-xs sm:text-sm">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -366,8 +367,8 @@ export const PdfToJpg: React.FC = () => {
 
                 {format === 'jpeg' && (
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Quality</label>
-                    <div className="flex items-center gap-3">
+                    <label className="text-xs sm:text-sm font-medium">Quality</label>
+                    <div className="flex items-center gap-2 sm:gap-3">
                       <Slider
                         value={[quality]}
                         onValueChange={(value) => setQuality(value[0])}
@@ -376,7 +377,7 @@ export const PdfToJpg: React.FC = () => {
                         step={5}
                         className="flex-1"
                       />
-                      <span className="text-sm font-mono bg-secondary px-2 py-0.5 rounded min-w-[48px] text-center">
+                      <span className="text-xs sm:text-sm font-mono bg-secondary px-1.5 sm:px-2 py-0.5 rounded min-w-[40px] sm:min-w-[48px] text-center">
                         {quality}%
                       </span>
                     </div>
@@ -384,10 +385,10 @@ export const PdfToJpg: React.FC = () => {
                 )}
               </div>
 
-              {/* Scale */}
+              {/* Scale - Mobile optimized */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">Resolution scale</label>
-                <div className="flex items-center gap-3">
+                <label className="text-xs sm:text-sm font-medium">Resolution scale</label>
+                <div className="flex items-center gap-2 sm:gap-3">
                   <Slider
                     value={[scale]}
                     onValueChange={(value) => setScale(value[0])}
@@ -396,31 +397,31 @@ export const PdfToJpg: React.FC = () => {
                     step={0.1}
                     className="flex-1"
                   />
-                  <span className="text-sm font-mono bg-secondary px-2 py-0.5 rounded min-w-[48px] text-center">
+                  <span className="text-xs sm:text-sm font-mono bg-secondary px-1.5 sm:px-2 py-0.5 rounded min-w-[40px] sm:min-w-[48px] text-center">
                     {scale.toFixed(1)}x
                   </span>
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[10px] sm:text-xs text-muted-foreground">
                   Higher scale = better quality but larger file size
                 </p>
               </div>
             </div>
 
-            {/* Action Button */}
+            {/* Action Button - Mobile optimized */}
             <Button
               onClick={handleConvert}
               disabled={isProcessing || !file}
-              size="lg"
-              className="w-full"
+              size="default"
+              className="w-full h-11 text-sm sm:text-base"
             >
               {isProcessing ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 animate-spin" />
                   Converting to {format.toUpperCase()}...
                 </>
               ) : (
                 <>
-                  <Image className="w-4 h-4 mr-2" />
+                  <Image className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
                   Convert to {format.toUpperCase()}
                 </>
               )}
@@ -461,31 +462,32 @@ export const PdfToJpg: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-card border rounded-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-medium">Converted Images</h3>
+            <div className="bg-card border rounded-lg p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <h3 className="font-medium text-base sm:text-lg">Converted Images</h3>
                 {results.length > 1 && (
                   <Button
                     onClick={downloadAll}
                     variant="default"
+                    className="w-full sm:w-auto text-xs sm:text-sm"
                   >
-                    <Package className="h-4 w-4 mr-2" />
+                    <Package className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
                     Download All ({results.length} images)
                   </Button>
                 )}
               </div>
               
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
                 {results.map((result) => (
                   <div
                     key={result.page}
                     className="group relative aspect-[3/4] bg-secondary/[0.3] rounded-lg overflow-hidden hover:ring-2 hover:ring-primary ff-transition"
                   >
-                    <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="absolute inset-0 flex items-center justify-center p-2">
                       <div className="text-center">
-                        <FileText className="w-8 h-8 text-muted-foreground mb-2" />
-                        <p className="text-sm font-medium">Page {result.page}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
+                        <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground mb-1.5 sm:mb-2" />
+                        <p className="text-xs sm:text-sm font-medium">Page {result.page}</p>
+                        <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">
                           {formatFileSize(result.size)}
                         </p>
                       </div>
@@ -493,9 +495,9 @@ export const PdfToJpg: React.FC = () => {
                     <Button
                       onClick={() => downloadSingle(result)}
                       size="sm"
-                      className="absolute bottom-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 ff-transition"
+                      className="absolute bottom-1.5 sm:bottom-2 left-1/2 -translate-x-1/2 sm:opacity-0 sm:group-hover:opacity-100 ff-transition text-xs px-2 py-1"
                     >
-                      <Download className="h-3 w-3 mr-1" />
+                      <Download className="h-3 w-3 mr-0.5 sm:mr-1" />
                       Download
                     </Button>
                   </div>

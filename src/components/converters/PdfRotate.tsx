@@ -157,33 +157,33 @@ export const PdfRotate: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Tool Header */}
+      {/* Tool Header - Mobile optimized */}
       <div className="border-b bg-card/[0.5]">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-3">
-              <div className="p-2 bg-tool-pdf/[0.1] text-tool-pdf rounded-lg">
-                <RotateCw className="w-5 h-5 sm:w-6 sm:h-6" />
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-tool-pdf/[0.1] text-tool-pdf rounded-lg flex-shrink-0">
+                <RotateCw className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
               </div>
-              Rotate PDF
+              <span>Rotate PDF</span>
             </h1>
             <p className="mt-2 text-sm sm:text-base text-muted-foreground max-w-3xl">
               Rotate PDF pages or entire documents. Preview pages visually and choose 90°, 180°, or 270° rotation.
               100% private - all processing happens in your browser.
             </p>
             
-            {/* Tool Features */}
-            <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+            {/* Tool Features - Mobile optimized */}
+            <div className="mt-4 grid grid-cols-1 sm:flex sm:flex-wrap gap-3 sm:gap-x-6 sm:gap-y-2 text-sm">
               <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0" />
                 <span className="font-medium">Visual page selection</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0" />
                 <span className="font-medium">Rotation preview</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0" />
                 <span className="font-medium">Batch rotation</span>
               </div>
             </div>
@@ -204,20 +204,20 @@ export const PdfRotate: React.FC = () => {
 
         {file && pageCount > 0 && (
           <div className="space-y-6">
-            {/* File Info Card */}
-            <div className="bg-card border rounded-lg p-4">
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 bg-tool-pdf/[0.1] text-tool-pdf rounded">
-                    <FileText className="w-5 h-5" />
+            {/* File Info Card - Mobile optimized */}
+            <div className="bg-card border rounded-lg p-3 sm:p-4">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                <div className="flex items-start gap-2.5 sm:gap-3">
+                  <div className="p-1.5 sm:p-2 bg-tool-pdf/[0.1] text-tool-pdf rounded flex-shrink-0">
+                    <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
-                  <div>
-                    <h3 className="font-medium">{file.name}</h3>
-                    <div className="mt-1 flex items-center gap-4 text-sm text-muted-foreground">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-medium text-sm sm:text-base truncate">{file.name}</h3>
+                    <div className="mt-0.5 sm:mt-1 flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
                       <span>{pageCount} pages</span>
                       <span>{formatFileSize(file.size)}</span>
                       {metadata?.title && (
-                        <span>Title: {metadata.title}</span>
+                        <span className="hidden sm:inline">Title: {metadata.title}</span>
                       )}
                     </div>
                   </div>
@@ -233,6 +233,7 @@ export const PdfRotate: React.FC = () => {
                     setMetadata(null);
                     setShowPreview(false);
                   }}
+                  className="self-end sm:self-auto text-xs sm:text-sm"
                 >
                   Change file
                 </Button>
@@ -253,14 +254,14 @@ export const PdfRotate: React.FC = () => {
               />
             )}
 
-            {/* Rotation Options */}
-            <div className="bg-card border rounded-lg p-6 space-y-6">
-              <h3 className="font-medium">Rotation Options</h3>
+            {/* Rotation Options - Mobile optimized */}
+            <div className="bg-card border rounded-lg p-4 sm:p-6 space-y-4 sm:space-y-6">
+              <h3 className="font-medium text-base sm:text-lg">Rotation Options</h3>
               
-              {/* Rotation Angle Selection */}
-              <div className="space-y-3">
-                <label className="text-sm font-medium">Rotation angle</label>
-                <div className="grid grid-cols-3 gap-3">
+              {/* Rotation Angle Selection - Mobile optimized */}
+              <div className="space-y-2 sm:space-y-3">
+                <label className="text-xs sm:text-sm font-medium">Rotation angle</label>
+                <div className="grid grid-cols-3 gap-2 sm:gap-3">
                   {([
                     { angle: 90 as const, label: 'Clockwise', icon: RotateCw },
                     { angle: 180 as const, label: 'Upside down', icon: RotateCw },
@@ -269,42 +270,42 @@ export const PdfRotate: React.FC = () => {
                     <button
                       key={angle}
                       onClick={() => setSelectedRotation(angle)}
-                      className={`relative p-6 rounded-lg border-2 ff-transition ${
+                      className={`relative p-3 sm:p-6 rounded-lg border-2 ff-transition ${
                         selectedRotation === angle 
                           ? 'border-primary bg-primary/[0.05] ring-2 ring-primary/20' 
                           : 'border-border hover:border-primary/[0.3]'
                       }`}
                     >
-                      <div className="flex flex-col items-center gap-3">
-                        {/* Visual rotation preview */}
-                        <div className="relative w-16 h-16 bg-secondary rounded flex items-center justify-center">
+                      <div className="flex flex-col items-center gap-2 sm:gap-3">
+                        {/* Visual rotation preview - Smaller on mobile */}
+                        <div className="relative w-12 h-12 sm:w-16 sm:h-16 bg-secondary rounded flex items-center justify-center">
                           <div 
-                            className="w-12 h-16 bg-card border-2 border-primary/20 rounded ff-transition"
+                            className="w-9 h-12 sm:w-12 sm:h-16 bg-card border-2 border-primary/20 rounded ff-transition"
                             style={{ transform: `rotate(${angle}deg)` }}
                           >
                             <div className="h-full flex flex-col">
-                              <div className="h-2 bg-primary/20 rounded-t" />
-                              <div className="flex-1 p-1">
-                                <div className="h-1 bg-border rounded mb-1" />
-                                <div className="h-1 bg-border rounded mb-1" />
-                                <div className="h-1 bg-border rounded" />
+                              <div className="h-1.5 sm:h-2 bg-primary/20 rounded-t" />
+                              <div className="flex-1 p-0.5 sm:p-1">
+                                <div className="h-0.5 sm:h-1 bg-border rounded mb-0.5 sm:mb-1" />
+                                <div className="h-0.5 sm:h-1 bg-border rounded mb-0.5 sm:mb-1" />
+                                <div className="h-0.5 sm:h-1 bg-border rounded" />
                               </div>
                             </div>
                           </div>
                         </div>
                         <div className="text-center">
-                          <div className="flex items-center gap-2 justify-center">
-                            <Icon className="w-4 h-4" />
-                            <span className="font-medium">{angle}°</span>
+                          <div className="flex items-center gap-1 sm:gap-2 justify-center">
+                            <Icon className="w-3 h-3 sm:w-4 sm:h-4" />
+                            <span className="font-medium text-xs sm:text-sm">{angle}°</span>
                           </div>
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-[10px] sm:text-xs text-muted-foreground">
                             {label}
                           </span>
                         </div>
                       </div>
                       {selectedRotation === angle && (
-                        <div className="absolute top-2 right-2 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
-                          <CheckCircle className="w-4 h-4" />
+                        <div className="absolute top-1 right-1 sm:top-2 sm:right-2 w-5 h-5 sm:w-6 sm:h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
+                          <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
                         </div>
                       )}
                     </button>
@@ -316,55 +317,56 @@ export const PdfRotate: React.FC = () => {
               <div className="space-y-3">
                 <label className="text-sm font-medium">Which pages to rotate?</label>
                 
-                {/* Mode Selection */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {/* Mode Selection - Mobile optimized */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
                   <button
                     onClick={() => setRotateMode('all')}
-                    className={`p-4 rounded-lg border-2 text-left ff-transition ${
+                    className={`p-3 sm:p-4 rounded-lg border-2 text-left ff-transition ${
                       rotateMode === 'all' 
                         ? 'border-primary bg-primary/[0.05]' 
                         : 'border-border hover:border-primary/[0.3]'
                     }`}
                   >
-                    <FileOutput className="w-5 h-5 text-primary mb-2" />
-                    <div className="font-medium">All Pages</div>
-                    <div className="text-xs text-muted-foreground mt-1">Rotate entire document</div>
+                    <FileOutput className="w-4 h-4 sm:w-5 sm:h-5 text-primary mb-1.5 sm:mb-2" />
+                    <div className="font-medium text-sm sm:text-base">All Pages</div>
+                    <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">Rotate entire document</div>
                   </button>
                   
                   <button
                     onClick={() => setRotateMode('visual')}
-                    className={`p-4 rounded-lg border-2 text-left ff-transition ${
+                    className={`p-3 sm:p-4 rounded-lg border-2 text-left ff-transition ${
                       rotateMode === 'visual' 
                         ? 'border-primary bg-primary/[0.05]' 
                         : 'border-border hover:border-primary/[0.3]'
                     }`}
                   >
-                    <Eye className="w-5 h-5 text-primary mb-2" />
-                    <div className="font-medium">Visual Selection</div>
-                    <div className="text-xs text-muted-foreground mt-1">Click pages to select</div>
+                    <Eye className="w-4 h-4 sm:w-5 sm:h-5 text-primary mb-1.5 sm:mb-2" />
+                    <div className="font-medium text-sm sm:text-base">Visual Selection</div>
+                    <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">Click pages to select</div>
                   </button>
                   
                   <button
                     onClick={() => setRotateMode('manual')}
-                    className={`p-4 rounded-lg border-2 text-left ff-transition ${
+                    className={`p-3 sm:p-4 rounded-lg border-2 text-left ff-transition ${
                       rotateMode === 'manual' 
                         ? 'border-primary bg-primary/[0.05]' 
                         : 'border-border hover:border-primary/[0.3]'
                     }`}
                   >
-                    <FileText className="w-5 h-5 text-primary mb-2" />
-                    <div className="font-medium">Manual Ranges</div>
-                    <div className="text-xs text-muted-foreground mt-1">Enter page numbers</div>
+                    <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-primary mb-1.5 sm:mb-2" />
+                    <div className="font-medium text-sm sm:text-base">Manual Ranges</div>
+                    <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">Enter page numbers</div>
                   </button>
                 </div>
 
-                {/* Visual Selection Info */}
+                {/* Visual Selection Info - Mobile optimized */}
                 {rotateMode === 'visual' && (
                   <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-lg p-3">
                     <div className="flex items-start gap-2">
-                      <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5" />
-                      <div className="text-sm text-blue-700 dark:text-blue-300">
-                        'Click on pages to select them for rotation. Selected pages will be rotated by the angle you choose. Use the enlarge button on each page for full-screen view.'
+                      <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                      <div className="text-xs sm:text-sm text-blue-700 dark:text-blue-300">
+                        <span className="hidden sm:inline">Click on pages to select them for rotation. Selected pages will be rotated by the angle you choose. Use the enlarge button on each page for full-screen view.</span>
+                        <span className="sm:hidden">Tap pages to select them for rotation. Selected pages will be rotated by the chosen angle.</span>
                       </div>
                     </div>
                   </div>
@@ -400,21 +402,21 @@ export const PdfRotate: React.FC = () => {
               </div>
             </div>
 
-            {/* Action Button */}
+            {/* Action Button - Mobile optimized */}
             <Button
               onClick={handleRotate}
               disabled={isProcessing || !file}
-              size="lg"
-              className="w-full"
+              size="default"
+              className="w-full h-11 text-sm sm:text-base"
             >
               {isProcessing ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 animate-spin" />
                   Rotating PDF...
                 </>
               ) : (
                 <>
-                  <RotateCw className="w-4 h-4 mr-2" />
+                  <RotateCw className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
                   Rotate PDF
                 </>
               )}
@@ -463,22 +465,22 @@ export const PdfRotate: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-card border rounded-lg p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-tool-pdf/[0.1] text-tool-pdf rounded">
-                    <FileText className="h-5 w-5" />
+            <div className="bg-card border rounded-lg p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex items-center gap-2.5 sm:gap-3">
+                  <div className="p-1.5 sm:p-2 bg-tool-pdf/[0.1] text-tool-pdf rounded flex-shrink-0">
+                    <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
                   <div>
-                    <h3 className="font-medium">Rotated PDF</h3>
-                    <p className="text-sm text-muted-foreground">
+                    <h3 className="font-medium text-sm sm:text-base">Rotated PDF</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       {rotateMode === 'all' 
                         ? `All ${pageCount} pages` 
                         : `${getPageNumbers().length} pages`} rotated {selectedRotation}° • {formatFileSize(rotatedResult.length)}
                     </p>
                   </div>
                 </div>
-                <Button onClick={downloadRotated}>
+                <Button onClick={downloadRotated} className="w-full sm:w-auto">
                   <Download className="h-4 w-4 mr-2" />
                   Download
                 </Button>

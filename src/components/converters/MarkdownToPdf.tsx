@@ -183,105 +183,108 @@ export const MarkdownToPdf: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Tool Header */}
+      {/* Tool Header - Mobile optimized */}
       <div className="border-b">
-        <div className="px-6 py-4">
-          <h1 className="text-2xl font-bold text-center">Markdown to PDF</h1>
-          <p className="text-center text-muted-foreground mt-1">
+        <div className="px-4 sm:px-6 py-3 sm:py-4">
+          <h1 className="text-xl sm:text-2xl font-bold text-center">Markdown to PDF</h1>
+          <p className="text-center text-xs sm:text-sm text-muted-foreground mt-1">
             Convert Markdown to PDF with live preview and syntax highlighting
           </p>
         </div>
       </div>
 
-      {/* Controls Bar */}
-      <div className="border-b px-6 py-3 flex items-center justify-between bg-card/50">
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-muted-foreground">Font:</span>
-          <Select
-            value={fontFamily}
-            onValueChange={(value: 'Helvetica' | 'Times' | 'Courier') => setFontFamily(value)}
-          >
-            <SelectTrigger className="w-[140px] h-8">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Helvetica">Helvetica</SelectItem>
-              <SelectItem value="Times">Times</SelectItem>
-              <SelectItem value="Courier">Courier</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <span className="text-sm text-muted-foreground ml-4">Size:</span>
-          <Select
-            value={fontSize}
-            onValueChange={(value: 'small' | 'medium' | 'large') => setFontSize(value)}
-          >
-            <SelectTrigger className="w-[100px] h-8">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="small">Small</SelectItem>
-              <SelectItem value="medium">Medium</SelectItem>
-              <SelectItem value="large">Large</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          {pdfResult && (
-            <Button
-              onClick={downloadPdf}
-              size="sm"
-              className="bg-primary hover:bg-primary/90"
+      {/* Controls Bar - Mobile optimized */}
+      <div className="border-b px-3 sm:px-6 py-2 sm:py-3 bg-card/50">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+            <span className="text-xs sm:text-sm text-muted-foreground">Font:</span>
+            <Select
+              value={fontFamily}
+              onValueChange={(value: 'Helvetica' | 'Times' | 'Courier') => setFontFamily(value)}
             >
-              <Download className="w-4 h-4 mr-2" />
-              Download PDF
+              <SelectTrigger className="w-[110px] sm:w-[140px] h-7 sm:h-8 text-xs sm:text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Helvetica">Helvetica</SelectItem>
+                <SelectItem value="Times">Times</SelectItem>
+                <SelectItem value="Courier">Courier</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <span className="text-xs sm:text-sm text-muted-foreground ml-2 sm:ml-4">Size:</span>
+            <Select
+              value={fontSize}
+              onValueChange={(value: 'small' | 'medium' | 'large') => setFontSize(value)}
+            >
+              <SelectTrigger className="w-[80px] sm:w-[100px] h-7 sm:h-8 text-xs sm:text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="small">Small</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="large">Large</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            {pdfResult && (
+              <Button
+                onClick={downloadPdf}
+                size="sm"
+                className="bg-primary hover:bg-primary/90 text-xs sm:text-sm h-8 sm:h-9"
+              >
+                <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                Download PDF
+              </Button>
+            )}
+            <Button
+              onClick={handleConvert}
+              disabled={isProcessing || !markdownContent.trim()}
+              size="sm"
+              variant={pdfResult ? "outline" : "default"}
+              className="text-xs sm:text-sm h-8 sm:h-9"
+            >
+              {isProcessing ? "Converting..." : "Convert to PDF"}
             </Button>
-          )}
-          <Button
-            onClick={handleConvert}
-            disabled={isProcessing || !markdownContent.trim()}
-            size="sm"
-            variant={pdfResult ? "outline" : "default"}
-          >
-            {isProcessing ? "Converting..." : "Convert to PDF"}
-          </Button>
+          </div>
         </div>
       </div>
 
-      {/* Main Content - Split Screen */}
-      <div className="flex-1 flex overflow-hidden">
+      {/* Main Content - Split Screen for Desktop, Stacked for Mobile */}
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         {/* Input Panel */}
-        <div className="flex-1 flex flex-col border-r">
-          <div className="border-b px-4 py-2 flex items-center justify-between bg-card/30">
-            <span className="text-sm font-medium">Input</span>
-            <div className="flex items-center gap-2">
+        <div className="flex-1 flex flex-col lg:border-r">
+          <div className="border-b px-3 sm:px-4 py-2 flex items-center justify-between bg-card/30">
+            <span className="text-xs sm:text-sm font-medium">Input</span>
+            <div className="flex items-center gap-1 sm:gap-2">
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7"
+                className="h-6 w-6 sm:h-7 sm:w-7"
                 onClick={handlePaste}
                 title="Paste from clipboard"
               >
-                <Copy className="h-4 w-4" />
+                <Copy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </Button>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7"
+                className="h-6 w-6 sm:h-7 sm:w-7"
                 onClick={() => fileInputRef.current?.click()}
                 title="Upload markdown file"
               >
-                <Upload className="h-4 w-4" />
+                <Upload className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </Button>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7"
+                className="h-6 w-6 sm:h-7 sm:w-7 hidden sm:inline-flex"
                 onClick={() => setIsFullscreen(!isFullscreen)}
                 title="Toggle fullscreen"
               >
-                {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+                {isFullscreen ? <Minimize2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : <Maximize2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
               </Button>
             </div>
           </div>
@@ -295,8 +298,8 @@ export const MarkdownToPdf: React.FC = () => {
             aria-label="Select Markdown files"
           />
           
-          <div className="flex-1 relative">
-            <div className="absolute left-0 top-0 bottom-0 w-12 bg-muted/30 border-r flex flex-col items-center pt-4 text-xs text-muted-foreground select-none">
+          <div className="flex-1 relative min-h-[200px] lg:min-h-0">
+            <div className="absolute left-0 top-0 bottom-0 w-8 sm:w-12 bg-muted/30 border-r flex flex-col items-center pt-3 sm:pt-4 text-[10px] sm:text-xs text-muted-foreground select-none">
               {markdownContent.split('\n').map((_, index) => (
                 <div key={index} className="h-[1.5rem] flex items-center">
                   {index + 1}
@@ -311,7 +314,7 @@ export const MarkdownToPdf: React.FC = () => {
                 setPdfResult(null);
               }}
               placeholder="Paste your Markdown here..."
-              className={`w-full h-full pl-16 pr-4 py-4 bg-transparent resize-none outline-none font-mono text-sm leading-6 ${
+              className={`w-full h-full pl-12 sm:pl-16 pr-3 sm:pr-4 py-3 sm:py-4 bg-transparent resize-none outline-none font-mono text-xs sm:text-sm leading-6 ${
                 isFullscreen ? 'fixed inset-0 z-50 bg-background' : ''
               }`}
               spellCheck={false}
@@ -320,25 +323,25 @@ export const MarkdownToPdf: React.FC = () => {
         </div>
 
         {/* Output Panel */}
-        <div className="flex-1 flex flex-col">
-          <div className="border-b px-4 py-2 flex items-center justify-between bg-card/30">
-            <span className="text-sm font-medium">Output</span>
-            <div className="flex items-center gap-2">
+        <div className="flex-1 flex flex-col border-t lg:border-t-0">
+          <div className="border-b px-3 sm:px-4 py-2 flex items-center justify-between bg-card/30">
+            <span className="text-xs sm:text-sm font-medium">Output</span>
+            <div className="flex items-center gap-1 sm:gap-2">
               {pdfResult && (
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7"
+                  className="h-6 w-6 sm:h-7 sm:w-7"
                   onClick={downloadPdf}
                   title="Download PDF"
                 >
-                  <FileDown className="h-4 w-4" />
+                  <FileDown className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 </Button>
               )}
             </div>
           </div>
           
-          <div className="flex-1 overflow-auto p-6 bg-muted/10">
+          <div className="flex-1 overflow-auto p-4 sm:p-6 bg-muted/10 min-h-[200px] lg:min-h-0">
             {error && (
               <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mb-4">
                 <div className="flex items-center gap-2 text-destructive">
@@ -349,7 +352,7 @@ export const MarkdownToPdf: React.FC = () => {
             )}
             
             {!pdfResult && !error && (
-              <div className="prose prose-sm dark:prose-invert max-w-none">
+              <div className="prose prose-xs sm:prose-sm dark:prose-invert max-w-none">
                 <div 
                   dangerouslySetInnerHTML={{ __html: renderMarkdownPreview(markdownContent) }}
                   style={{ 
@@ -361,19 +364,19 @@ export const MarkdownToPdf: React.FC = () => {
             )}
             
             {pdfResult && (
-              <div className="text-center py-8">
-                <div className="inline-flex flex-col items-center gap-4">
-                  <div className="p-4 bg-green-100 dark:bg-green-900/20 rounded-full">
-                    <FileText className="h-8 w-8 text-green-600 dark:text-green-400" />
+              <div className="text-center py-6 sm:py-8">
+                <div className="inline-flex flex-col items-center gap-3 sm:gap-4">
+                  <div className="p-3 sm:p-4 bg-green-100 dark:bg-green-900/20 rounded-full">
+                    <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-green-600 dark:text-green-400" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-lg">PDF Ready</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <h3 className="font-medium text-base sm:text-lg">PDF Ready</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1">
                       Your PDF has been generated successfully
                     </p>
                   </div>
-                  <Button onClick={downloadPdf} className="mt-2">
-                    <Download className="h-4 w-4 mr-2" />
+                  <Button onClick={downloadPdf} className="mt-2 text-xs sm:text-sm h-9 sm:h-10">
+                    <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
                     Download PDF
                   </Button>
                 </div>
