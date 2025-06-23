@@ -268,6 +268,7 @@ export function SvgConverter() {
             multiple
             onChange={handleFileSelect}
             className="hidden"
+            aria-label="Select SVG files to convert"
           />
         </div>
       ) : (
@@ -319,6 +320,7 @@ export function SvgConverter() {
               multiple
               onChange={handleFileSelect}
               className="hidden"
+              aria-label="Select additional SVG files to convert"
             />
           </div>
 

@@ -310,6 +310,7 @@ export default function ImageCompressor() {
             onChange={handleFileSelect}
             className="hidden"
             id="file-input"
+            aria-label="Select images to compress"
           />
           <label htmlFor="file-input" className="cursor-pointer">
             <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
@@ -343,6 +344,7 @@ export default function ImageCompressor() {
                 onChange={handleFileSelect}
                 className="hidden"
                 id="add-more"
+                aria-label="Select additional images to compress"
               />
               <label
                 htmlFor="add-more"

@@ -118,6 +118,7 @@ export default function Hero() {
                 accept="*"
                 onChange={handleFileSelect}
                 disabled={isProcessing}
+                aria-label="Select files to upload"
               />
               <div 
                 className="p-12 rounded-2xl border-2 border-dashed border-border bg-card/50 group-hover:border-primary/50 group-hover:bg-primary/[0.02] transition-colors"

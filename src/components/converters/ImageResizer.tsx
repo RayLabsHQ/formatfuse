@@ -365,6 +365,7 @@ export default function ImageResizer() {
             onChange={handleFileSelect}
             className="hidden"
             id="file-input"
+            aria-label="Select images to resize"
           />
           <label htmlFor="file-input" className="cursor-pointer">
             <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
@@ -391,6 +392,7 @@ export default function ImageResizer() {
                 onChange={handleFileSelect}
                 className="hidden"
                 id="add-more"
+                aria-label="Select additional images to resize"
               />
               <label
                 htmlFor="add-more"

@@ -310,6 +310,7 @@ export default function Base64Encoder() {
                 onChange={handleFileUpload}
                 className="hidden"
                 id="file-input"
+                aria-label="Select files to encode"
               />
               <label htmlFor="file-input" className="cursor-pointer text-center">
                 {fileData ? (

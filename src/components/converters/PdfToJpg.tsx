@@ -221,6 +221,7 @@ export const PdfToJpg: React.FC = () => {
               accept=".pdf,application/pdf"
               onChange={handleFileChange}
               className="hidden"
+              aria-label="Select PDF files"
             />
             
             <div className="space-y-4">

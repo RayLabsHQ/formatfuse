@@ -86,25 +86,28 @@ export default function Hero() {
             <div className="relative group">
               <input
                 type="file"
+                id="file-upload"
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                 accept="*"
                 onChange={handleFileSelect}
                 disabled={isProcessing}
+                aria-label="Upload a file to convert"
               />
-              <div 
-                className="p-8 rounded-2xl border-2 border-dashed border-border bg-card/50 group-hover:border-primary/50 group-hover:bg-primary/[0.02] transition-colors"
+              <label 
+                htmlFor="file-upload"
+                className="p-8 rounded-2xl border-2 border-dashed border-border bg-card/50 group-hover:border-primary/50 group-hover:bg-primary/[0.02] transition-colors block cursor-pointer"
                 onDrop={handleDrop}
                 onDragOver={(e) => e.preventDefault()}
                 onDragEnter={(e) => e.preventDefault()}
               >
-                <Upload className="w-10 h-10 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-base font-medium mb-2">
+                <Upload className="w-10 h-10 mx-auto mb-4 text-muted-foreground pointer-events-none" />
+                <p className="text-base font-medium mb-2 pointer-events-none">
                   Drop a file here to start
                 </p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground pointer-events-none">
                   or click to browse
                 </p>
-              </div>
+              </label>
             </div>
             
             <p className="text-xs text-muted-foreground mt-4">

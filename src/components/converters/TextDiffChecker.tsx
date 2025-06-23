@@ -377,6 +377,7 @@ export function TextDiffChecker() {
                 className="hidden"
                 accept=".txt,.md,.json,.js,.ts,.css,.html"
                 onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'left')}
+                aria-label="Select text file for original text"
               />
               <Button
                 variant="ghost"
@@ -416,6 +417,7 @@ export function TextDiffChecker() {
                 className="hidden"
                 accept=".txt,.md,.json,.js,.ts,.css,.html"
                 onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'right')}
+                aria-label="Select text file for modified text"
               />
               <Button
                 variant="ghost"

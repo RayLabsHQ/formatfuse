@@ -171,6 +171,7 @@ export const DropZone: React.FC<DropZoneProps> = ({
         onChange={handleFileSelect}
         className="hidden"
         disabled={disabled}
+        aria-label="Select files to upload"
       />
       
       {/* Drag Overlay */}

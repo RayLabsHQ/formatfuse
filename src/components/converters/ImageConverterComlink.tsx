@@ -63,6 +63,7 @@ export default function ImageConverterComlink() {
             file:text-sm file:font-semibold
             file:bg-primary file:text-primary-foreground
             hover:file:bg-primary/90"
+          aria-label="Select images to convert"
         />
       </div>
 

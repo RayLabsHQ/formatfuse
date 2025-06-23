@@ -81,6 +81,7 @@ export function FileUploader({
         multiple={multiple}
         onChange={handleChange}
         className="hidden"
+        aria-label="Select files to upload"
       />
       
       <div

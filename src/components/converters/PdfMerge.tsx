@@ -299,6 +299,7 @@ export const PdfMerge: React.FC = () => {
                 multiple
                 onChange={handleFileChange}
                 className="hidden"
+                aria-label="Select PDF files to merge"
               />
               
               {/* Info Box */}

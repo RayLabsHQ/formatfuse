@@ -254,6 +254,7 @@ export default function HashGenerator() {
                 type="file"
                 onChange={handleFileChange}
                 className="hidden"
+                aria-label="Select files to hash"
               />
               <label 
                 htmlFor="file-input-control"

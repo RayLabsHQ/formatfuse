@@ -292,6 +292,7 @@ export const MarkdownToPdf: React.FC = () => {
             accept=".md,.markdown"
             onChange={(e) => e.target.files && handleFileSelect(e.target.files)}
             className="hidden"
+            aria-label="Select Markdown files"
           />
           
           <div className="flex-1 relative">

@@ -424,6 +424,7 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
             multiple
             onChange={handleFileSelect}
             className="hidden"
+            aria-label="Select images to convert"
           />
           
           <div className="space-y-3 sm:space-y-4">

@@ -213,6 +213,7 @@ ${text}`;
               onChange={handleFileUpload}
               className="hidden"
               id="file-upload"
+              aria-label="Select text files"
             />
             <Button
               variant="outline"

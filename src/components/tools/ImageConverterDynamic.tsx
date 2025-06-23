@@ -341,6 +341,7 @@ export function ImageConverterDynamic({
           multiple
           onChange={(e) => handleFilesSelect(Array.from(e.target.files || []))}
           className="hidden"
+          aria-label="Select images to convert"
         />
 
         <div className="text-center">
