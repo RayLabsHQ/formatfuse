@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import opengraphImages from 'astro-opengraph-images';
-import { toolOGImageFinal } from './src/og-image-renderer-final.tsx';
+import { toolOGImage } from './src/og-image-renderer.tsx';
 import fs from 'fs';
 
 // https://astro.build/config
@@ -38,7 +38,7 @@ export default defineConfig({
 					},
 				],
 			},
-			render: toolOGImageFinal,
+			render: toolOGImage,
 		})
 	],
 	vite: {
