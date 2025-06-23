@@ -197,33 +197,34 @@ export const PdfMerge: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Tool Header */}
+      {/* Tool Header - Mobile optimized */}
       <div className="border-b bg-card/[0.5]">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-3">
-              <div className="p-2 bg-tool-pdf/[0.1] text-tool-pdf rounded-lg">
-                <Layers className="w-5 h-5 sm:w-6 sm:h-6" />
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-tool-pdf/[0.1] text-tool-pdf rounded-lg flex-shrink-0">
+                <Layers className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
               </div>
-              Merge PDF Files
+              <span>Merge PDF Files</span>
             </h1>
             <p className="mt-2 text-sm sm:text-base text-muted-foreground max-w-3xl">
               Combine multiple PDF files into one document. Preview pages, drag to reorder, and merge with confidence.
               100% private - all processing happens in your browser.
             </p>
             
-            {/* Tool Features */}
-            <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+            {/* Tool Features - Mobile optimized */}
+            <div className="mt-4 grid grid-cols-1 sm:flex sm:flex-wrap gap-3 sm:gap-x-6 sm:gap-y-2 text-sm">
               <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0" />
                 <span className="font-medium">Page preview</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                <span className="font-medium">Drag to reorder</span>
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0" />
+                <span className="font-medium hidden sm:inline">Drag to reorder</span>
+                <span className="font-medium sm:hidden">Reorder files</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0" />
                 <span className="font-medium">Batch processing</span>
               </div>
             </div>
@@ -246,16 +247,16 @@ export const PdfMerge: React.FC = () => {
         {/* File List */}
         {files.length > 0 && (
           <div className="space-y-6">
-            {/* File Management Card */}
-            <div className="bg-card border rounded-lg p-6">
-              <div className="flex items-center justify-between mb-4">
+            {/* File Management Card - Mobile optimized */}
+            <div className="bg-card border rounded-lg p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                 <div>
-                  <h3 className="font-medium">Files to merge</h3>
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <h3 className="font-medium text-base sm:text-lg">Files to merge</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1">
                     {files.length} files • {totalPages} total pages
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 sm:gap-2 self-end sm:self-auto">
                   <Button
                     variant="outline"
                     size="sm"
@@ -268,16 +269,19 @@ export const PdfMerge: React.FC = () => {
                         previewKey: (f.previewKey || 0) + 1
                       })));
                     }}
+                    className="text-xs sm:text-sm"
                   >
                     {showGlobalPreview ? (
                       <>
-                        <EyeOff className="w-4 h-4 mr-2" />
-                        Hide All Previews
+                        <EyeOff className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                        <span className="hidden sm:inline">Hide All Previews</span>
+                        <span className="sm:hidden">Hide All</span>
                       </>
                     ) : (
                       <>
-                        <Eye className="w-4 h-4 mr-2" />
-                        Show All Previews
+                        <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                        <span className="hidden sm:inline">Show All Previews</span>
+                        <span className="sm:hidden">Show All</span>
                       </>
                     )}
                   </Button>
@@ -285,8 +289,9 @@ export const PdfMerge: React.FC = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => fileInputRef.current?.click()}
+                    className="text-xs sm:text-sm"
                   >
-                    <Plus className="w-4 h-4 mr-2" />
+                    <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
                     Add more
                   </Button>
                 </div>
@@ -302,13 +307,14 @@ export const PdfMerge: React.FC = () => {
                 aria-label="Select PDF files to merge"
               />
               
-              {/* Info Box */}
+              {/* Info Box - Mobile optimized */}
               <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-lg p-3 mb-4">
                 <div className="flex items-start gap-2">
-                  <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5" />
-                  <div className="text-sm text-blue-700 dark:text-blue-300">
-                    Drag files to reorder them. Click the eye icon to preview pages from each PDF.
-                    The final merged PDF will preserve all formatting and quality.
+                  <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div className="text-xs sm:text-sm text-blue-700 dark:text-blue-300">
+                    <span className="hidden sm:inline">Drag files to reorder them. Click the eye icon to preview pages from each PDF.</span>
+                    <span className="sm:hidden">Use arrow buttons to reorder files. Tap the eye icon to preview pages.</span>
+                    <span className="hidden sm:inline"> The final merged PDF will preserve all formatting and quality.</span>
                   </div>
                 </div>
               </div>
@@ -325,25 +331,27 @@ export const PdfMerge: React.FC = () => {
                         setDragOverIndex(null);
                         setDraggedFile(null);
                       }}
-                      className={`flex items-center gap-3 p-3 bg-secondary/[0.3] rounded-lg cursor-move ff-transition ${
+                      className={`flex items-center gap-2 sm:gap-3 p-3 bg-secondary/[0.3] rounded-lg sm:cursor-move ff-transition ${
                         dragOverIndex === index ? 'ring-2 ring-primary scale-[1.02]' : ''
                       } ${draggedFile === fileInfo.id ? 'opacity-50' : ''} hover:bg-secondary/[0.5]`}
                     >
-                      <GripVertical className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                      {/* Drag handle - hidden on mobile */}
+                      <GripVertical className="w-4 h-4 text-muted-foreground flex-shrink-0 hidden sm:block" />
                       
-                      <div className="p-1.5 bg-tool-pdf/[0.1] text-tool-pdf rounded">
-                        <FileText className="h-4 w-4" />
+                      <div className="p-1 sm:p-1.5 bg-tool-pdf/[0.1] text-tool-pdf rounded flex-shrink-0">
+                        <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </div>
                       
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium text-sm truncate">{fileInfo.file.name}</div>
-                        <div className="text-xs text-muted-foreground">
+                        <div className="font-medium text-xs sm:text-sm truncate">{fileInfo.file.name}</div>
+                        <div className="text-[10px] sm:text-xs text-muted-foreground">
                           {fileInfo.pageCount ? `${fileInfo.pageCount} pages • ` : ''}
                           {formatFileSize(fileInfo.file.size)}
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-1">
+                      {/* Desktop buttons */}
+                      <div className="hidden sm:flex items-center gap-1">
                         <Button
                           variant="ghost"
                           size="icon"
@@ -389,6 +397,56 @@ export const PdfMerge: React.FC = () => {
                           <X className="h-4 w-4" />
                         </Button>
                       </div>
+                      
+                      {/* Mobile buttons - More prominent */}
+                      <div className="flex sm:hidden items-center gap-0.5">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFilePreview(fileInfo.id);
+                          }}
+                        >
+                          {fileInfo.showPreview || showGlobalPreview ? (
+                            <EyeOff className="h-3.5 w-3.5" />
+                          ) : (
+                            <Eye className="h-3.5 w-3.5" />
+                          )}
+                        </Button>
+                        
+                        {index > 0 && (
+                          <Button
+                            variant="secondary"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => moveFile(index, 'up')}
+                          >
+                            <ChevronUp className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                        
+                        {index < files.length - 1 && (
+                          <Button
+                            variant="secondary"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => moveFile(index, 'down')}
+                          >
+                            <ChevronDown className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                        
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => removeFile(fileInfo.id)}
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
                     </div>
                     
                     {/* Individual File Preview */}
@@ -429,21 +487,21 @@ export const PdfMerge: React.FC = () => {
               </div>
             )}
 
-            {/* Action Button */}
+            {/* Action Button - Mobile optimized */}
             <Button
               onClick={handleMerge}
               disabled={isProcessing || files.length < 2}
-              size="lg"
-              className="w-full"
+              size="default"
+              className="w-full h-11 text-sm sm:text-base"
             >
               {isProcessing ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 animate-spin" />
                   Merging PDFs...
                 </>
               ) : (
                 <>
-                  <Layers className="w-4 h-4 mr-2" />
+                  <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
                   Merge {files.length} PDFs into one
                 </>
               )}
@@ -492,20 +550,20 @@ export const PdfMerge: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-card border rounded-lg p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-tool-pdf/[0.1] text-tool-pdf rounded">
-                    <FileText className="h-5 w-5" />
+            <div className="bg-card border rounded-lg p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex items-center gap-2.5 sm:gap-3">
+                  <div className="p-1.5 sm:p-2 bg-tool-pdf/[0.1] text-tool-pdf rounded flex-shrink-0">
+                    <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
                   <div>
-                    <h3 className="font-medium">Merged PDF</h3>
-                    <p className="text-sm text-muted-foreground">
+                    <h3 className="font-medium text-sm sm:text-base">Merged PDF</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       {files.length} files combined • {formatFileSize(mergedResult.length)}
                     </p>
                   </div>
                 </div>
-                <Button onClick={downloadMerged}>
+                <Button onClick={downloadMerged} className="w-full sm:w-auto">
                   <Download className="h-4 w-4 mr-2" />
                   Download
                 </Button>
