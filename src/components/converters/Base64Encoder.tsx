@@ -1,5 +1,21 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { Copy, Download, Upload, ArrowUpDown, Check, FileText, Image as ImageIcon, AlertCircle } from 'lucide-react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import { Copy, Download, Upload, ArrowUpDown, Check, FileText, Image as ImageIcon, AlertCircle, ArrowRightLeft, Settings } from 'lucide-react';
+import {
+  MobileToolLayout,
+  MobileToolHeader,
+  MobileToolContent,
+  BottomSheet,
+  MobileActionBar,
+  ActionButton,
+  ActionIconButton,
+  MobileTabs,
+  MobileTabsList,
+  MobileTabsTrigger,
+  MobileTabsContent,
+  MobileFileUpload,
+  SegmentedControl
+} from '../ui/mobile';
+import { cn } from '@/lib/utils';
 
 type Mode = 'encode' | 'decode';
 type InputType = 'text' | 'file';
@@ -12,6 +28,17 @@ interface FileData {
 }
 
 export default function Base64Encoder() {
+  // Mobile detection
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   const [mode, setMode] = useState<Mode>('encode');
   const [inputType, setInputType] = useState<InputType>('text');
   const [textInput, setTextInput] = useState('');
@@ -20,6 +47,8 @@ export default function Base64Encoder() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [urlSafe, setUrlSafe] = useState(false);
+  const [activeTab, setActiveTab] = useState<'input' | 'output'>('input');
+  const [showOptionsSheet, setShowOptionsSheet] = useState(false);
 
   // Auto-detect mode based on input
   const autoDetectMode = useCallback((input: string) => {
@@ -37,11 +66,15 @@ export default function Base64Encoder() {
         setMode('decode');
         setBase64Input(input);
         setTextInput('');
+        // Auto-switch to output tab on mobile when result is ready
+        if (isMobile) {
+          setActiveTab('output');
+        }
       } catch {
         // Not valid base64, keep in encode mode
       }
     }
-  }, []);
+  }, [isMobile]);
 
   const handleTextChange = (value: string) => {
     setError(null);
@@ -96,6 +129,13 @@ export default function Base64Encoder() {
     
     return '';
   }, [mode, inputType, textInput, base64Input, fileData, encodeText, decodeBase64]);
+  
+  // Auto-switch to output tab on mobile when we have a result
+  useEffect(() => {
+    if (isMobile && result && activeTab === 'input') {
+      setActiveTab('output');
+    }
+  }, [result, isMobile, activeTab]);
 
   const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -195,6 +235,186 @@ export default function Base64Encoder() {
     return false;
   }, [mode, base64Input]);
 
+  // Mobile layout
+  if (isMobile) {
+    return (
+      <MobileToolLayout>
+        <MobileToolHeader
+          title="Base64 Encoder"
+          description={mode === 'encode' ? 'Encode text or files' : 'Decode Base64'}
+          action={
+            <ActionIconButton
+              onClick={() => setShowOptionsSheet(true)}
+              icon={<Settings />}
+              label="Options"
+              variant="ghost"
+            />
+          }
+        />
+
+        {/* Mode toggle */}
+        <div className="px-4 pb-2">
+          <SegmentedControl
+            options={[
+              { value: 'encode', label: 'Encode', icon: <ArrowRightLeft className="h-4 w-4" /> },
+              { value: 'decode', label: 'Decode', icon: <ArrowRightLeft className="h-4 w-4 rotate-180" /> }
+            ]}
+            value={mode}
+            onChange={(v) => {
+              setMode(v as Mode);
+              setError(null);
+              if (v === 'decode') setInputType('text');
+            }}
+          />
+        </div>
+
+        <MobileTabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'input' | 'output')}>
+          <div className="px-4">
+            <MobileTabsList variant="default">
+              <MobileTabsTrigger value="input">
+                {mode === 'encode' ? 'Input' : 'Base64'}
+              </MobileTabsTrigger>
+              <MobileTabsTrigger value="output" badge={result ? 'Ready' : undefined}>
+                {mode === 'encode' ? 'Base64' : 'Decoded'}
+              </MobileTabsTrigger>
+            </MobileTabsList>
+          </div>
+
+          <MobileTabsContent value="input">
+            <MobileToolContent>
+              {mode === 'encode' && (
+                <div className="mb-4">
+                  <SegmentedControl
+                    options={[
+                      { value: 'text', label: 'Text', icon: <FileText className="h-4 w-4" /> },
+                      { value: 'file', label: 'File', icon: <Upload className="h-4 w-4" /> }
+                    ]}
+                    value={inputType}
+                    onChange={(v) => setInputType(v as InputType)}
+                  />
+                </div>
+              )}
+
+              {mode === 'encode' && inputType === 'file' ? (
+                <MobileFileUpload
+                  onFileSelect={(files) => {
+                    const e = { target: { files } } as React.ChangeEvent<HTMLInputElement>;
+                    handleFileUpload(e);
+                  }}
+                  selectedFile={fileData ? new File([fileData.data], fileData.name, { type: fileData.type }) : null}
+                  onClear={() => setFileData(null)}
+                  compact={false}
+                />
+              ) : (
+                <textarea
+                  value={mode === 'encode' ? textInput : base64Input}
+                  onChange={(e) => handleTextChange(e.target.value)}
+                  placeholder={
+                    mode === 'encode' 
+                      ? 'Enter text to encode...' 
+                      : 'Paste Base64 string to decode...'
+                  }
+                  className="w-full h-[300px] p-4 font-mono text-sm border rounded-lg bg-background resize-none focus:outline-none focus:ring-1 focus:ring-ring"
+                  spellCheck={false}
+                />
+              )}
+
+              {error && (
+                <div className="mt-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-destructive flex-shrink-0" />
+                  <p className="text-sm">{error}</p>
+                </div>
+              )}
+            </MobileToolContent>
+          </MobileTabsContent>
+
+          <MobileTabsContent value="output">
+            <MobileToolContent className="min-h-[400px]">
+              {result ? (
+                <>
+                  {showPreview ? (
+                    <div className="h-[300px] border rounded-lg overflow-hidden bg-secondary/10 flex items-center justify-center mb-4">
+                      <img 
+                        src={`data:image/png;base64,${base64Input}`} 
+                        alt="Preview" 
+                        className="max-w-full max-h-full object-contain"
+                      />
+                    </div>
+                  ) : (
+                    <textarea
+                      value={result}
+                      readOnly
+                      className="w-full h-[300px] p-4 font-mono text-sm border rounded-lg bg-secondary/20 resize-none mb-4"
+                    />
+                  )}
+
+                  <div className="flex gap-3 justify-center">
+                    <ActionButton
+                      onClick={handleCopy}
+                      icon={copied ? <Check /> : <Copy />}
+                      label={copied ? "Copied!" : "Copy"}
+                      variant="secondary"
+                    />
+                    <ActionButton
+                      onClick={handleDownload}
+                      icon={<Download />}
+                      label="Download"
+                      variant="secondary"
+                    />
+                    {result && inputType === 'file' && mode === 'encode' && (
+                      <ActionButton
+                        onClick={() => {
+                          const dataUri = getDataUri();
+                          navigator.clipboard.writeText(dataUri);
+                          setCopied(true);
+                          setTimeout(() => setCopied(false), 2000);
+                        }}
+                        icon={<Copy />}
+                        label="Data URI"
+                        variant="secondary"
+                        size="sm"
+                      />
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full text-center">
+                  <FileText className="w-16 h-16 text-muted-foreground/20 mb-4" />
+                  <p className="text-muted-foreground">
+                    {mode === 'encode' ? 'Enter text or select a file to encode' : 'Enter Base64 to decode'}
+                  </p>
+                </div>
+              )}
+            </MobileToolContent>
+          </MobileTabsContent>
+        </MobileTabs>
+
+        {/* Options bottom sheet */}
+        <BottomSheet
+          open={showOptionsSheet}
+          onOpenChange={setShowOptionsSheet}
+          title="Encoding Options"
+        >
+          <div className="space-y-4">
+            <label className="flex items-center justify-between py-3">
+              <span className="font-medium">URL-safe encoding</span>
+              <input
+                type="checkbox"
+                checked={urlSafe}
+                onChange={(e) => setUrlSafe(e.target.checked)}
+                className="rounded h-5 w-5"
+              />
+            </label>
+            <p className="text-sm text-muted-foreground">
+              URL-safe encoding replaces + with -, / with _, and removes = padding.
+            </p>
+          </div>
+        </BottomSheet>
+      </MobileToolLayout>
+    );
+  }
+
+  // Desktop layout
   return (
     <div className="w-full max-w-6xl mx-auto p-4">
       <div className="mb-6 sm:mb-8 text-center">
