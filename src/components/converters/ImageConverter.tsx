@@ -502,34 +502,26 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
           </div>
         )}
 
-        {/* Features - Mobile optimized grid */}
-        <div className="mt-12 sm:mt-16 grid sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
-          <div className="text-center px-4 sm:px-0">
-            <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-secondary rounded-lg text-primary mb-2 sm:mb-3">
-              <Settings className="w-5 h-5 sm:w-6 sm:h-6" />
-            </div>
+        {/* Features - Mobile optimized */}
+        <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+          <div className="p-3 sm:p-4 rounded-lg border">
+            <Settings className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
             <h3 className="font-semibold text-sm sm:text-base mb-1">Format Flexibility</h3>
-            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Convert between 10+ image formats instantly
             </p>
           </div>
-          
-          <div className="text-center px-4 sm:px-0">
-            <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-secondary rounded-lg text-accent mb-2 sm:mb-3">
-              <Eye className="w-5 h-5 sm:w-6 sm:h-6" />
-            </div>
+          <div className="p-3 sm:p-4 rounded-lg border">
+            <Eye className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
             <h3 className="font-semibold text-sm sm:text-base mb-1">Quality Control</h3>
-            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Adjust quality settings for optimal results
             </p>
           </div>
-          
-          <div className="text-center px-4 sm:px-0 sm:col-span-2 md:col-span-1">
-            <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-secondary rounded-lg text-tool-jpg mb-2 sm:mb-3">
-              <FileCheck className="w-5 h-5 sm:w-6 sm:h-6" />
-            </div>
+          <div className="p-3 sm:p-4 rounded-lg border">
+            <FileCheck className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
             <h3 className="font-semibold text-sm sm:text-base mb-1">Batch Processing</h3>
-            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Convert multiple images at once with ZIP download
             </p>
           </div>
