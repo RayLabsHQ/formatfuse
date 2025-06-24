@@ -116,7 +116,22 @@
   
   /* Minimal transitions for performance */
   .ff-transition {
-    transition: transform 150ms ease-out, opacity 150ms ease-out;
+    transition: transform 150ms ease-out, opacity 150ms ease-out, background-color 150ms ease-out;
+  }
+  
+  /* Touch-specific utilities */
+  .touch-manipulation {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    user-select: none;
+  }
+  
+  /* Prevent 300ms tap delay on mobile */
+  @media (hover: none) and (pointer: coarse) {
+    .touch-manipulation {
+      cursor: pointer;
+    }
   }
   
   /* Shimmer animation for progress */

@@ -226,7 +226,7 @@ export default function Navigation() {
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-md hover:bg-secondary ff-transition"
+              className="p-2 md:p-2 rounded-md hover:bg-secondary active:bg-secondary/80 ff-transition touch-manipulation min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0"
               aria-label="Toggle theme"
             >
               {isDark ? (
@@ -239,7 +239,7 @@ export default function Navigation() {
             {/* Mobile Menu */}
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="lg:hidden p-2 rounded-md hover:bg-secondary ff-transition"
+              className="lg:hidden p-3 rounded-md hover:bg-secondary active:bg-secondary/80 ff-transition touch-manipulation"
               aria-label="Toggle menu"
             >
               {isOpen ? (
@@ -286,7 +286,8 @@ export default function Navigation() {
                       tool.id === 'case-converter' ? '/tools/case-converter' :
                       `/convert/${tool.id}`
                     }
-                    className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-secondary ff-transition"
+                    className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-secondary active:bg-secondary/80 ff-transition touch-manipulation min-h-[48px]"
+                    onClick={() => setIsOpen(false)}
                   >
                     <tool.icon className={`w-4 h-4 ${category.color}`} />
                     <div className="flex-1">
@@ -312,7 +313,7 @@ export default function Navigation() {
                     onClick={() => setMobileCategory(
                       mobileCategory === category.name ? null : category.name
                     )}
-                    className="w-full flex items-center justify-between px-3 py-2 rounded-md hover:bg-secondary ff-transition"
+                    className="w-full flex items-center justify-between px-4 py-3 rounded-md hover:bg-secondary active:bg-secondary/80 ff-transition touch-manipulation min-h-[48px]"
                   >
                     <span className="text-sm font-medium">{category.name}</span>
                     <ChevronDown 
@@ -328,7 +329,8 @@ export default function Navigation() {
                         <a
                           key={tool.id}
                           href={tool.route || `/convert/${tool.id}`}
-                          className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-secondary ff-transition"
+                          className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-secondary active:bg-secondary/80 ff-transition touch-manipulation min-h-[48px]"
+                          onClick={() => setIsOpen(false)}
                         >
                           <tool.icon className={`w-4 h-4 ${category.color}`} />
                           <span className="text-sm">{tool.name}</span>
@@ -348,7 +350,8 @@ export default function Navigation() {
                       {category.id === 'image' && category.tools.length > 6 && (
                         <a
                           href="/tools#image"
-                          className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-secondary ff-transition text-primary text-sm font-medium"
+                          className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-secondary active:bg-secondary/80 ff-transition text-primary text-sm font-medium touch-manipulation min-h-[48px]"
+                          onClick={() => setIsOpen(false)}
                         >
                           View all {category.tools.length} Image Tools
                           <ArrowRight className="w-4 h-4 ml-auto" />
@@ -362,7 +365,8 @@ export default function Navigation() {
 
             <a
               href="/tools"
-              className="block px-3 py-2 rounded-md hover:bg-secondary ff-transition text-sm font-medium"
+              className="flex items-center px-4 py-3 rounded-md hover:bg-secondary active:bg-secondary/80 ff-transition text-sm font-medium touch-manipulation min-h-[48px]"
+              onClick={() => setIsOpen(false)}
             >
               View All Tools
             </a>
