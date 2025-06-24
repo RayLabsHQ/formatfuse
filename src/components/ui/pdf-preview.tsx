@@ -260,6 +260,7 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
             size="icon"
             onClick={handleZoomOut}
             disabled={scale <= 0.5}
+            className="touch-manipulation"
           >
             <ZoomOut className="h-4 w-4" />
           </Button>
@@ -271,6 +272,7 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
             size="icon"
             onClick={handleZoomIn}
             disabled={scale >= 2}
+            className="touch-manipulation"
           >
             <ZoomIn className="h-4 w-4" />
           </Button>
@@ -280,6 +282,7 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
             onClick={() => setScale(1)}
             disabled={scale === 1}
             title="Reset zoom"
+            className="touch-manipulation md:inline-flex hidden"
           >
             <RotateCcw className="h-4 w-4" />
           </Button>
@@ -303,7 +306,7 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
                 key={thumb.pageNum}
                 onClick={(e) => handlePageClick(thumb.pageNum, e)}
                 className={cn(
-                  "relative group cursor-pointer rounded-lg overflow-hidden border-2 ff-transition",
+                  "relative group cursor-pointer rounded-lg overflow-hidden border-2 ff-transition touch-manipulation",
                   selected.has(thumb.pageNum) 
                     ? "border-primary ring-2 ring-primary/20" 
                     : "border-border hover:border-primary/50",
@@ -322,10 +325,10 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
                 {/* Enlarge button */}
                 <button
                   onClick={() => handleEnlarge(thumb.pageNum)}
-                  className="enlarge-button absolute top-2 left-2 bg-black/60 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80"
+                  className="enlarge-button absolute top-2 left-2 bg-black/60 text-white rounded-full p-2 md:p-1.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity hover:bg-black/80 active:bg-black/90 touch-manipulation"
                   title="View full screen"
                 >
-                  <Maximize2 className="w-3 h-3" />
+                  <Maximize2 className="w-5 h-5 md:w-3 md:h-3" />
                 </button>
                 
                 {showPageNumbers && (
@@ -373,10 +376,10 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
                 {/* Enlarge button */}
                 <button
                   onClick={() => handleEnlarge(thumb.pageNum)}
-                  className="enlarge-button absolute top-1 left-1 bg-black/60 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80"
+                  className="enlarge-button absolute top-1 left-1 bg-black/60 text-white rounded-full p-1.5 md:p-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity hover:bg-black/80 active:bg-black/90 touch-manipulation"
                   title="View full screen"
                 >
-                  <Maximize2 className="w-2.5 h-2.5" />
+                  <Maximize2 className="w-4 h-4 md:w-2.5 md:h-2.5" />
                 </button>
                 
                 {showPageNumbers && (

@@ -28,7 +28,9 @@ export const PdfCarouselModal: React.FC<PdfCarouselModalProps> = ({
   // Carousel setup
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: false,
-    skipSnaps: false
+    skipSnaps: false,
+    dragFree: false,
+    containScroll: 'trimSnaps'
   });
   
   const [thumbEmblaRef, thumbEmblaApi] = useEmblaCarousel({
@@ -159,39 +161,39 @@ export const PdfCarouselModal: React.FC<PdfCarouselModalProps> = ({
       {/* Modal Content */}
       <div className="relative w-full h-full flex flex-col">
         {/* Header */}
-        <div className="relative z-10 flex items-center justify-between p-4 bg-background/10 backdrop-blur">
-          <div className="flex items-center gap-4">
-            <span className="text-white font-medium">
+        <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-2 p-3 sm:p-4 bg-background/10 backdrop-blur">
+          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 w-full sm:w-auto">
+            <span className="text-white font-medium text-sm sm:text-base">
               Page {currentPage} of {totalPages}
             </span>
             
             {/* Zoom Controls */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2">
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-white hover:bg-white/20"
+                className="text-white hover:bg-white/20 active:bg-white/30 touch-manipulation h-10 w-10 sm:h-9 sm:w-9"
                 onClick={() => setScale(prev => Math.max(prev - 0.25, 0.5))}
                 disabled={scale <= 0.5}
               >
-                <ZoomOut className="h-4 w-4" />
+                <ZoomOut className="h-5 w-5 sm:h-4 sm:w-4" />
               </Button>
-              <span className="text-white text-sm font-mono min-w-[60px] text-center">
+              <span className="text-white text-sm font-mono min-w-[50px] sm:min-w-[60px] text-center">
                 {Math.round(scale * 100)}%
               </span>
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-white hover:bg-white/20"
+                className="text-white hover:bg-white/20 active:bg-white/30 touch-manipulation h-10 w-10 sm:h-9 sm:w-9"
                 onClick={() => setScale(prev => Math.min(prev + 0.25, 3))}
                 disabled={scale >= 3}
               >
-                <ZoomIn className="h-4 w-4" />
+                <ZoomIn className="h-5 w-5 sm:h-4 sm:w-4" />
               </Button>
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-white hover:bg-white/20"
+                className="text-white hover:bg-white/20 active:bg-white/30 touch-manipulation hidden sm:inline-flex"
                 onClick={() => setScale(1)}
                 disabled={scale === 1}
                 title="Reset zoom"
@@ -204,7 +206,7 @@ export const PdfCarouselModal: React.FC<PdfCarouselModalProps> = ({
           <Button
             variant="ghost"
             size="icon"
-            className="text-white hover:bg-white/20"
+            className="text-white hover:bg-white/20 active:bg-white/30 touch-manipulation absolute right-3 top-3 sm:relative sm:right-auto sm:top-auto h-10 w-10 sm:h-9 sm:w-9"
             onClick={onClose}
           >
             <X className="h-5 w-5" />
@@ -217,7 +219,7 @@ export const PdfCarouselModal: React.FC<PdfCarouselModalProps> = ({
             {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
               <div
                 key={pageNum}
-                className="flex-[0_0_100%] flex items-center justify-center p-8"
+                className="flex-[0_0_100%] flex items-center justify-center p-4 sm:p-8"
               >
                 {renderedPages.has(pageNum) ? (
                   <img
@@ -228,7 +230,7 @@ export const PdfCarouselModal: React.FC<PdfCarouselModalProps> = ({
                   />
                 ) : (
                   <div className="flex items-center justify-center w-full h-full">
-                    <div className="animate-pulse bg-white/10 rounded-lg w-96 h-[600px]" />
+                    <div className="animate-pulse bg-white/10 rounded-lg w-[90%] max-w-md h-[400px] sm:h-[600px]" />
                   </div>
                 )}
               </div>
@@ -240,7 +242,7 @@ export const PdfCarouselModal: React.FC<PdfCarouselModalProps> = ({
         <Button
           variant="ghost"
           size="icon"
-          className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 disabled:opacity-50"
+          className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 active:bg-white/30 disabled:opacity-50 touch-manipulation h-12 w-12 sm:h-10 sm:w-10 bg-black/30 sm:bg-transparent"
           onClick={() => emblaApi?.scrollPrev()}
           disabled={currentPage === 1}
         >
@@ -250,25 +252,50 @@ export const PdfCarouselModal: React.FC<PdfCarouselModalProps> = ({
         <Button
           variant="ghost"
           size="icon"
-          className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 disabled:opacity-50"
+          className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 active:bg-white/30 disabled:opacity-50 touch-manipulation h-12 w-12 sm:h-10 sm:w-10 bg-black/30 sm:bg-transparent"
           onClick={() => emblaApi?.scrollNext()}
           disabled={currentPage === totalPages}
         >
           <ChevronRight className="h-8 w-8" />
         </Button>
         
+        {/* Mobile Page Indicator */}
+        <div className="sm:hidden bg-background/10 backdrop-blur p-3 flex items-center justify-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-white hover:bg-white/20 active:bg-white/30 disabled:opacity-50 touch-manipulation h-10 w-10"
+            onClick={() => emblaApi?.scrollPrev()}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+          <span className="text-white font-medium px-4">
+            {currentPage} / {totalPages}
+          </span>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-white hover:bg-white/20 active:bg-white/30 disabled:opacity-50 touch-manipulation h-10 w-10"
+            onClick={() => emblaApi?.scrollNext()}
+            disabled={currentPage === totalPages}
+          >
+            <ChevronRight className="h-5 w-5" />
+          </Button>
+        </div>
+
         {/* Thumbnail Carousel */}
-        <div className="relative bg-background/10 backdrop-blur p-4">
+        <div className="relative bg-background/10 backdrop-blur p-2 sm:p-4 hidden sm:block">
           <div className="overflow-hidden" ref={thumbEmblaRef}>
             <div className="flex gap-2">
               {Array.from({ length: Math.min(totalPages, 50) }, (_, i) => i + 1).map(pageNum => (
                 <button
                   key={pageNum}
                   className={cn(
-                    "flex-[0_0_80px] aspect-[3/4] rounded border-2 overflow-hidden transition-all",
+                    "flex-[0_0_60px] sm:flex-[0_0_80px] aspect-[3/4] rounded border-2 overflow-hidden transition-all touch-manipulation",
                     pageNum === currentPage 
                       ? "border-primary ring-2 ring-primary/50" 
-                      : "border-white/20 hover:border-white/40"
+                      : "border-white/20 hover:border-white/40 active:border-white/50"
                   )}
                   onClick={() => {
                     setCurrentPage(pageNum);
