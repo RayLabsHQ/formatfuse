@@ -8,7 +8,10 @@
       "Bash(pnpm build)",
       "Bash(grep:*)",
       "Bash(pnpm list:*)",
-      "Bash(true)"
+      "Bash(true)",
+      "Bash(for file in src/components/converters/{ImageResizer,ImageCompressor,SvgConverter,ImageConverterComlink}.tsx)",
+      "Bash(do echo \"=== $file ===\")",
+      "Bash(done)"
     ],
     "deny": []
   }

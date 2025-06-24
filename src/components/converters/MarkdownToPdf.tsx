@@ -1,8 +1,9 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Button } from '../ui/button';
 import { 
-  FileText, Download, Code, AlertCircle, Upload, Copy,
-  FileDown, Maximize2, Minimize2, Settings
+  FileText, Download, AlertCircle, Upload, Copy,
+  FileDown, Maximize2, Minimize2,
+  Shield
 } from 'lucide-react';
 import {
   Select,
@@ -383,6 +384,31 @@ export const MarkdownToPdf: React.FC = () => {
               </div>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* Features - Mobile optimized */}
+      <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <FileText className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">Live Preview</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            See your markdown rendered in real-time as you type
+          </p>
+        </div>
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <FileDown className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">Professional PDFs</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Generate clean, formatted PDFs with proper styling
+          </p>
+        </div>
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <Shield className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">Client-Side Only</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Your markdown stays private - all processing happens locally
+          </p>
         </div>
       </div>
     </div>

@@ -183,21 +183,6 @@ export const PdfToJpg: React.FC = () => {
               100% private - all processing happens in your browser.
             </p>
             
-            {/* Tool Features - Mobile optimized */}
-            <div className="mt-4 grid grid-cols-1 sm:flex sm:flex-wrap gap-3 sm:gap-x-6 sm:gap-y-2 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0" />
-                <span className="font-medium">No file size limits</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0" />
-                <span className="font-medium">Adjustable quality</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0" />
-                <span className="font-medium">Batch download</span>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -506,6 +491,31 @@ export const PdfToJpg: React.FC = () => {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Features - Mobile optimized */}
+      <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <Settings className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">Adjustable Quality</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Control image quality and resolution for perfect results
+          </p>
+        </div>
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <Package className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">Batch Download</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Download all pages at once in a convenient ZIP file
+          </p>
+        </div>
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <Image className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">Multiple Formats</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Export as JPG or PNG based on your needs
+          </p>
+        </div>
       </div>
     </div>
   );

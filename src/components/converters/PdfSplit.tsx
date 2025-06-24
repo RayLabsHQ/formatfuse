@@ -5,7 +5,7 @@ import { usePdfOperations } from '../../hooks/usePdfOperations';
 import { parsePageRanges, formatPageRanges } from '../../lib/pdf-operations';
 import { 
   Scissors, Download, FileText, AlertCircle, Eye, Package,
-  CheckCircle, Loader2, Info, Zap, FileOutput
+  CheckCircle, Loader2, Info, Zap, FileOutput, Split
 } from 'lucide-react';
 import JSZip from 'jszip';
 import FileSaver from 'file-saver';
@@ -559,6 +559,31 @@ export const PdfSplit: React.FC = () => {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Features - Mobile optimized */}
+      <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <FileText className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">Visual Selection</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Preview pages and select exactly which ones to extract
+          </p>
+        </div>
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <Split className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">Smart Presets</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Quick options for odd/even pages and custom ranges
+          </p>
+        </div>
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <Download className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">Batch Download</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Download all extracted pages as a ZIP or individually
+          </p>
+        </div>
       </div>
     </div>
   );

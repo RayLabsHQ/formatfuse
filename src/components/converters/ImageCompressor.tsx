@@ -412,6 +412,31 @@ export default function ImageCompressor() {
           </button>
         </div>
       )}
+
+      {/* Features - Mobile optimized */}
+      <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <Minimize2 className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">Smart Compression</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Intelligent algorithms reduce file size while preserving quality
+          </p>
+        </div>
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <FileDown className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">Batch Processing</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Compress multiple images at once with progress tracking
+          </p>
+        </div>
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <Settings2 className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">Quality Control</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Fine-tune compression with presets or custom quality settings
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

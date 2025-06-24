@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Upload, Download, Zap, FileImage, Settings2, AlertCircle } from 'lucide-react';
+import { Upload, Download, Zap, FileImage, Settings2, AlertCircle, Palette, Maximize2, Shield } from 'lucide-react';
 import { Button } from '../ui/button';
 // Card styling done with Tailwind classes
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
@@ -359,6 +359,31 @@ export function SvgConverter() {
           <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
         </div>
       )}
+
+      {/* Features - Mobile optimized */}
+      <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <Maximize2 className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">Custom Dimensions</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Resize SVGs to any pixel dimensions while maintaining quality
+          </p>
+        </div>
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <Palette className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">Background Control</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Add custom backgrounds or keep transparency in your output
+          </p>
+        </div>
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <Shield className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">Quality Settings</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Fine-tune quality for JPEG and WebP formats with precision control
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

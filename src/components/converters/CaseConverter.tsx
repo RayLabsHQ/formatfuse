@@ -597,26 +597,26 @@ export default function CaseConverter() {
         </div>
       )}
 
-      {/* Features */}
-      <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-4 rounded-lg border">
-          <Sparkles className="w-8 h-8 mb-2 text-primary" />
-          <h3 className="font-semibold mb-1">Smart Detection</h3>
-          <p className="text-sm text-muted-foreground">
+      {/* Features - Mobile optimized */}
+      <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">Smart Detection</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Automatically detects the current format of your text
           </p>
         </div>
-        <div className="p-4 rounded-lg border">
-          <Code className="w-8 h-8 mb-2 text-primary" />
-          <h3 className="font-semibold mb-1">Developer Friendly</h3>
-          <p className="text-sm text-muted-foreground">
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <Code className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">Developer Friendly</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Preserves acronyms and handles programming conventions
           </p>
         </div>
-        <div className="p-4 rounded-lg border">
-          <Keyboard className="w-8 h-8 mb-2 text-primary" />
-          <h3 className="font-semibold mb-1">Keyboard Shortcuts</h3>
-          <p className="text-sm text-muted-foreground">
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <Keyboard className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">Keyboard Shortcuts</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Use Cmd/Ctrl + 1-9 to quickly copy any format
           </p>
         </div>

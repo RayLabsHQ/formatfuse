@@ -212,22 +212,6 @@ export const PdfMerge: React.FC = () => {
               100% private - all processing happens in your browser.
             </p>
             
-            {/* Tool Features - Mobile optimized */}
-            <div className="mt-4 grid grid-cols-1 sm:flex sm:flex-wrap gap-3 sm:gap-x-6 sm:gap-y-2 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0" />
-                <span className="font-medium">Page preview</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0" />
-                <span className="font-medium hidden sm:inline">Drag to reorder</span>
-                <span className="font-medium sm:hidden">Reorder files</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0" />
-                <span className="font-medium">Batch processing</span>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -571,6 +555,31 @@ export const PdfMerge: React.FC = () => {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Features - Mobile optimized */}
+      <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <Layers className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">Unlimited Pages</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Merge as many PDFs as you need with no restrictions
+          </p>
+        </div>
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <GripVertical className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">Drag & Drop Ordering</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Easily reorder PDFs before merging them together
+          </p>
+        </div>
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <Eye className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">Preview Pages</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            See all pages from each PDF before merging
+          </p>
+        </div>
       </div>
     </div>
   );

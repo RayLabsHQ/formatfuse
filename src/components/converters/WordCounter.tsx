@@ -625,26 +625,26 @@ ${text}`;
         </div>
       )}
 
-      {/* Features */}
-      <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-4 rounded-lg border">
-          <FileText className="w-8 h-8 mb-2 text-primary" />
-          <h3 className="font-semibold mb-1">Comprehensive Analysis</h3>
-          <p className="text-sm text-muted-foreground">
+      {/* Features - Mobile optimized */}
+      <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <FileText className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">Comprehensive Analysis</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Get detailed statistics including unique words and keyword density
           </p>
         </div>
-        <div className="p-4 rounded-lg border">
-          <Clock className="w-8 h-8 mb-2 text-primary" />
-          <h3 className="font-semibold mb-1">Time Estimates</h3>
-          <p className="text-sm text-muted-foreground">
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <Clock className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">Time Estimates</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Calculate reading and speaking time with adjustable speeds
           </p>
         </div>
-        <div className="p-4 rounded-lg border">
-          <AlignLeft className="w-8 h-8 mb-2 text-primary" />
-          <h3 className="font-semibold mb-1">Export Reports</h3>
-          <p className="text-sm text-muted-foreground">
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <AlignLeft className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">Export Reports</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Download detailed analysis reports for your records
           </p>
         </div>

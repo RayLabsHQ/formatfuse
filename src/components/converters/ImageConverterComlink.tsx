@@ -3,7 +3,7 @@ import { useImageConverter } from '../../hooks/useImageConverter';
 import { IMAGE_FORMATS } from '../../lib/image-converter-comlink';
 import { Button } from '../ui/button';
 import { Progress } from '../ui/progress';
-import { Download, Upload } from 'lucide-react';
+import { Download, Upload, Zap, Shield, FileImage } from 'lucide-react';
 
 /**
  * Example component demonstrating Comlink-based image conversion
@@ -135,6 +135,31 @@ export default function ImageConverterComlink() {
           <li>Automatic cleanup with releaseProxy</li>
           <li>Only 1.1kB overhead</li>
         </ul>
+      </div>
+
+      {/* Features - Mobile optimized */}
+      <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <Zap className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">Lightning Fast</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            WebAssembly-powered conversion runs instantly in your browser
+          </p>
+        </div>
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <Shield className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">100% Private</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Your images never leave your device - all processing is local
+          </p>
+        </div>
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <FileImage className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">All Formats</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Convert between JPEG, PNG, WebP, AVIF, GIF, BMP, and more
+          </p>
+        </div>
       </div>
     </div>
   );

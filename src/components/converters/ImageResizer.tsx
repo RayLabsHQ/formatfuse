@@ -449,6 +449,31 @@ export default function ImageResizer() {
           </button>
         </div>
       )}
+
+      {/* Features - Mobile optimized */}
+      <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <Image className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">Batch Processing</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Resize multiple images at once with consistent settings
+          </p>
+        </div>
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <Settings2 className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">Smart Presets</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Quick resize for social media, web, and common dimensions
+          </p>
+        </div>
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <Maximize2 className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">Quality Control</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Advanced algorithms preserve image quality during resize
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

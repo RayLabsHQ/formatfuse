@@ -667,34 +667,29 @@ export default function HashGenerator() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader>
-            <Shield className="w-8 h-8 mb-2 text-primary" />
-            <CardTitle className="text-lg">Client-Side Security</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
+      {/* Features - Mobile optimized */}
+      <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <Shield className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">Client-Side Security</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Your data never leaves your browser. All hashing is done locally.
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <Binary className="w-8 h-8 mb-2 text-primary" />
-            <CardTitle className="text-lg">Multiple Algorithms</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
+          </p>
+        </div>
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <Binary className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">Multiple Algorithms</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Supports MD5 (info only), SHA-1, SHA-256, SHA-384, and SHA-512.
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <Key className="w-8 h-8 mb-2 text-primary" />
-            <CardTitle className="text-lg">HMAC Support</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
+          </p>
+        </div>
+        <div className="p-3 sm:p-4 rounded-lg border">
+          <Key className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base mb-1">HMAC Support</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Generate keyed hashes (HMAC) for enhanced message integrity and authentication.
-          </CardContent>
-        </Card>
+          </p>
+        </div>
       </div>
     </div>
   );
