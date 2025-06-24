@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { Copy, Download, AlertCircle, Check, Minimize2, Maximize2, FileJson } from 'lucide-react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import { Copy, Download, AlertCircle, Check, Minimize2, Maximize2, FileJson, Settings, Wrench } from 'lucide-react';
 import { CodeEditor } from '../ui/code-editor';
 import { Button } from '../ui/button';
 import { Label } from '../ui/label';
@@ -10,6 +10,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
+import {
+  MobileToolLayout,
+  MobileToolHeader,
+  MobileToolContent,
+  BottomSheet,
+  ActionButton,
+  ActionIconButton,
+  MobileTabs,
+  MobileTabsList,
+  MobileTabsTrigger,
+  MobileTabsContent,
+  SegmentedControl,
+  CollapsibleSection
+} from '../ui/mobile';
+import { cn } from '@/lib/utils';
 
 interface JsonError {
   line?: number;
@@ -18,11 +33,24 @@ interface JsonError {
 }
 
 export default function JsonFormatter() {
+  // Mobile detection
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   const [input, setInput] = useState('');
   const [indentSize, setIndentSize] = useState('2');
   const [error, setError] = useState<JsonError | null>(null);
   const [copied, setCopied] = useState(false);
   const [viewMode, setViewMode] = useState<'formatted' | 'minified'>('formatted');
+  const [activeTab, setActiveTab] = useState<'input' | 'output'>('input');
+  const [showSettingsSheet, setShowSettingsSheet] = useState(false);
 
   // Parse and validate JSON
   const { formatted, minified, isValid } = useMemo(() => {
@@ -57,6 +85,13 @@ export default function JsonFormatter() {
       return { formatted: '', minified: '', isValid: false };
     }
   }, [input, indentSize]);
+  
+  // Auto-switch to output tab on mobile when valid JSON is detected
+  useEffect(() => {
+    if (isMobile && isValid && activeTab === 'input') {
+      setActiveTab('output');
+    }
+  }, [isValid, isMobile, activeTab]);
 
   const displayValue = viewMode === 'formatted' ? formatted : minified;
 
@@ -137,6 +172,173 @@ export default function JsonFormatter() {
     return (bytes / 1024).toFixed(1) + ' KB';
   };
 
+  // Mobile layout
+  if (isMobile) {
+    return (
+      <MobileToolLayout>
+        <MobileToolHeader
+          title="JSON Formatter"
+          description="Format & validate JSON"
+          action={
+            <ActionIconButton
+              onClick={() => setShowSettingsSheet(true)}
+              icon={<Settings />}
+              label="Settings"
+              variant="ghost"
+            />
+          }
+        />
+
+        <MobileTabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'input' | 'output')}>
+          <div className="px-4 pt-2">
+            <MobileTabsList variant="default">
+              <MobileTabsTrigger value="input" badge={error ? "Error" : undefined}>
+                Input
+              </MobileTabsTrigger>
+              <MobileTabsTrigger value="output" badge={isValid ? "Valid" : undefined}>
+                Output
+              </MobileTabsTrigger>
+            </MobileTabsList>
+          </div>
+
+          <MobileTabsContent value="input">
+            <MobileToolContent noPadding>
+              <div className="p-4 pb-2">
+                <ActionButton
+                  onClick={handleFormat}
+                  icon={<Wrench />}
+                  label="Auto-fix & Format"
+                  variant="secondary"
+                  fullWidth
+                />
+              </div>
+              
+              <div className="px-4">
+                {error && (
+                  <div className="mb-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20 flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-destructive flex-shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">
+                        {error.line && error.column 
+                          ? `Line ${error.line}, Column ${error.column}` 
+                          : 'Invalid JSON'}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">{error.message}</p>
+                    </div>
+                  </div>
+                )}
+                
+                <CodeEditor
+                  value={input}
+                  onChange={setInput}
+                  placeholder="Paste your JSON here..."
+                  className="h-[400px]"
+                  error={!!error}
+                  language="json"
+                />
+              </div>
+            </MobileToolContent>
+          </MobileTabsContent>
+
+          <MobileTabsContent value="output">
+            <MobileToolContent noPadding>
+              <div className="p-4 pb-2">
+                <SegmentedControl
+                  options={[
+                    { value: 'formatted', label: 'Formatted', icon: <Maximize2 className="h-4 w-4" /> },
+                    { value: 'minified', label: 'Minified', icon: <Minimize2 className="h-4 w-4" /> }
+                  ]}
+                  value={viewMode}
+                  onChange={(v) => setViewMode(v as 'formatted' | 'minified')}
+                />
+              </div>
+              
+              <div className="px-4">
+                <CodeEditor
+                  value={displayValue}
+                  readOnly
+                  placeholder={error ? 'Invalid JSON' : 'Output will appear here...'}
+                  className="h-[400px] mb-4"
+                  language="json"
+                />
+                
+                {isValid && (
+                  <div className="flex gap-3 justify-center mb-4">
+                    <ActionButton
+                      onClick={handleCopy}
+                      icon={copied ? <Check /> : <Copy />}
+                      label={copied ? "Copied!" : "Copy"}
+                      variant="secondary"
+                    />
+                    <ActionButton
+                      onClick={handleDownload}
+                      icon={<Download />}
+                      label="Download"
+                      variant="secondary"
+                    />
+                  </div>
+                )}
+                
+                {stats && (
+                  <CollapsibleSection
+                    title="Statistics"
+                    defaultOpen={true}
+                    className="mb-4"
+                  >
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <span className="text-muted-foreground">Keys:</span>
+                        <span className="ml-2 font-medium">{stats.keys}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Formatted:</span>
+                        <span className="ml-2 font-medium">{formatFileSize(stats.formattedSize)}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Minified:</span>
+                        <span className="ml-2 font-medium">{formatFileSize(stats.size)}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Compression:</span>
+                        <span className="ml-2 font-medium text-green-600 dark:text-green-400">
+                          {stats.compression}% smaller
+                        </span>
+                      </div>
+                    </div>
+                  </CollapsibleSection>
+                )}
+              </div>
+            </MobileToolContent>
+          </MobileTabsContent>
+        </MobileTabs>
+
+        {/* Settings bottom sheet */}
+        <BottomSheet
+          open={showSettingsSheet}
+          onOpenChange={setShowSettingsSheet}
+          title="Formatting Options"
+        >
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="mobile-indent-size" className="mb-2 block">Indentation</Label>
+              <Select value={indentSize} onValueChange={setIndentSize}>
+                <SelectTrigger id="mobile-indent-size" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="2">2 spaces</SelectItem>
+                  <SelectItem value="4">4 spaces</SelectItem>
+                  <SelectItem value="8">Tab (8 spaces)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </BottomSheet>
+      </MobileToolLayout>
+    );
+  }
+
+  // Desktop layout
   return (
     <div className="w-full max-w-7xl mx-auto p-4">
       <div className="mb-6 sm:mb-8 text-center">

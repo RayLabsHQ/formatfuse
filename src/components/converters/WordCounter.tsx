@@ -1,9 +1,24 @@
-import React, { useState, useMemo, useCallback } from 'react';
-import { FileText, Upload, Clock, Hash, Type, AlignLeft, TrendingUp } from 'lucide-react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { FileText, Upload, Clock, Hash, Type, AlignLeft, TrendingUp, Settings, Download } from 'lucide-react';
 import { Textarea } from '../ui/textarea';
 import { Button } from '../ui/button';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
+import {
+  MobileToolLayout,
+  MobileToolHeader,
+  MobileToolContent,
+  BottomSheet,
+  ActionButton,
+  ActionIconButton,
+  MobileTabs,
+  MobileTabsList,
+  MobileTabsTrigger,
+  MobileTabsContent,
+  MobileFileUpload,
+  CollapsibleSection
+} from '../ui/mobile';
+import { cn } from '@/lib/utils';
 
 interface TextStats {
   words: number;
@@ -20,10 +35,23 @@ interface TextStats {
 }
 
 export default function WordCounter() {
+  // Mobile detection
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   const [text, setText] = useState('');
   const [showKeywords, setShowKeywords] = useState(true);
   const [readingSpeed, setReadingSpeed] = useState(200); // words per minute
   const [speakingSpeed, setSpeakingSpeed] = useState(150); // words per minute
+  const [activeTab, setActiveTab] = useState<'editor' | 'stats'>('editor');
+  const [showSettingsSheet, setShowSettingsSheet] = useState(false);
 
   const stats: TextStats = useMemo(() => {
     if (!text.trim()) {
@@ -168,6 +196,241 @@ ${text}`;
     URL.revokeObjectURL(url);
   }, [stats, text, readingSpeed, speakingSpeed]);
 
+  // Mobile layout
+  if (isMobile) {
+    return (
+      <MobileToolLayout>
+        <MobileToolHeader
+          title="Word Counter"
+          description="Analyze text statistics"
+          action={
+            <ActionIconButton
+              onClick={() => setShowSettingsSheet(true)}
+              icon={<Settings />}
+              label="Settings"
+              variant="ghost"
+            />
+          }
+        />
+
+        <MobileTabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'editor' | 'stats')}>
+          <div className="px-4 pt-2">
+            <MobileTabsList variant="default">
+              <MobileTabsTrigger value="editor">Editor</MobileTabsTrigger>
+              <MobileTabsTrigger value="stats" badge={stats.words > 0 ? stats.words.toString() : undefined}>
+                Statistics
+              </MobileTabsTrigger>
+            </MobileTabsList>
+          </div>
+
+          <MobileTabsContent value="editor">
+            <MobileToolContent>
+              <div className="space-y-4">
+                <div className="flex gap-2">
+                  <input
+                    type="file"
+                    accept=".txt"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                    id="mobile-file-upload"
+                    aria-label="Select text files"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    asChild
+                    className="flex-1"
+                  >
+                    <label htmlFor="mobile-file-upload" className="cursor-pointer">
+                      <Upload className="w-4 h-4 mr-2" />
+                      Upload Text
+                    </label>
+                  </Button>
+                  <Button
+                    onClick={handleExport}
+                    disabled={stats.words === 0}
+                    size="sm"
+                    variant="secondary"
+                    className="flex-1"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Export
+                  </Button>
+                </div>
+                
+                <Textarea
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  placeholder="Type or paste your text here..."
+                  className="min-h-[400px] resize-none"
+                  spellCheck={false}
+                />
+                
+                {/* Quick stats bar */}
+                <div className="grid grid-cols-3 gap-2 p-3 bg-muted/30 rounded-lg text-center">
+                  <div>
+                    <p className="text-2xl font-bold">{stats.words}</p>
+                    <p className="text-xs text-muted-foreground">Words</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{stats.characters}</p>
+                    <p className="text-xs text-muted-foreground">Characters</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{stats.sentences}</p>
+                    <p className="text-xs text-muted-foreground">Sentences</p>
+                  </div>
+                </div>
+              </div>
+            </MobileToolContent>
+          </MobileTabsContent>
+
+          <MobileTabsContent value="stats">
+            <MobileToolContent>
+              <div className="space-y-4">
+                {/* Basic Statistics */}
+                <CollapsibleSection title="Basic Statistics" defaultOpen={true}>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Words</span>
+                      <span className="font-medium">{stats.words.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Characters</span>
+                      <span className="font-medium">{stats.characters.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Characters (no spaces)</span>
+                      <span className="font-medium">{stats.charactersNoSpaces.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Sentences</span>
+                      <span className="font-medium">{stats.sentences}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Paragraphs</span>
+                      <span className="font-medium">{stats.paragraphs}</span>
+                    </div>
+                  </div>
+                </CollapsibleSection>
+
+                {/* Time Estimates */}
+                <CollapsibleSection title="Time Estimates" defaultOpen={true}>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Reading time</span>
+                      <span className="font-medium">
+                        {stats.readingTime === 0 ? '0' : stats.readingTime < 1 ? '< 1' : stats.readingTime} min
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Speaking time</span>
+                      <span className="font-medium">
+                        {stats.speakingTime === 0 ? '0' : stats.speakingTime < 1 ? '< 1' : stats.speakingTime} min
+                      </span>
+                    </div>
+                  </div>
+                </CollapsibleSection>
+
+                {/* Word Analysis */}
+                <CollapsibleSection title="Word Analysis" defaultOpen={true}>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Unique words</span>
+                      <span className="font-medium">{stats.uniqueWords}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Average length</span>
+                      <span className="font-medium">{stats.averageWordLength.toFixed(1)} chars</span>
+                    </div>
+                    {stats.longestWord && (
+                      <div className="flex justify-between items-start">
+                        <span className="text-muted-foreground">Longest word</span>
+                        <span className="font-medium text-right break-all">
+                          {stats.longestWord}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </CollapsibleSection>
+
+                {/* Top Keywords */}
+                {stats.keywordDensity.length > 0 && (
+                  <CollapsibleSection title="Top Keywords" defaultOpen={false}>
+                    <div className="space-y-2">
+                      {stats.keywordDensity.map((kw, index) => (
+                        <div key={kw.word} className="flex items-center justify-between p-2 rounded bg-secondary/50">
+                          <span className="text-sm">
+                            <span className="font-medium">{index + 1}.</span> {kw.word}
+                          </span>
+                          <span className="text-sm text-muted-foreground">
+                            {kw.count}× ({kw.density.toFixed(1)}%)
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </CollapsibleSection>
+                )}
+              </div>
+            </MobileToolContent>
+          </MobileTabsContent>
+        </MobileTabs>
+
+        {/* Settings bottom sheet */}
+        <BottomSheet
+          open={showSettingsSheet}
+          onOpenChange={setShowSettingsSheet}
+          title="Reading Settings"
+        >
+          <div className="space-y-6">
+            <div>
+              <Label htmlFor="mobile-reading-speed" className="mb-2 block">
+                Reading Speed: {readingSpeed} wpm
+              </Label>
+              <Input
+                id="mobile-reading-speed"
+                type="range"
+                value={readingSpeed}
+                onChange={(e) => setReadingSpeed(Number(e.target.value))}
+                min="100"
+                max="500"
+                step="10"
+                className="w-full"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                <span>100</span>
+                <span>Average: 200-250</span>
+                <span>500</span>
+              </div>
+            </div>
+            
+            <div>
+              <Label htmlFor="mobile-speaking-speed" className="mb-2 block">
+                Speaking Speed: {speakingSpeed} wpm
+              </Label>
+              <Input
+                id="mobile-speaking-speed"
+                type="range"
+                value={speakingSpeed}
+                onChange={(e) => setSpeakingSpeed(Number(e.target.value))}
+                min="100"
+                max="300"
+                step="10"
+                className="w-full"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                <span>100</span>
+                <span>Average: 130-160</span>
+                <span>300</span>
+              </div>
+            </div>
+          </div>
+        </BottomSheet>
+      </MobileToolLayout>
+    );
+  }
+
+  // Desktop layout
   return (
     <div className="w-full max-w-6xl mx-auto p-4">
       <div className="mb-8 text-center">

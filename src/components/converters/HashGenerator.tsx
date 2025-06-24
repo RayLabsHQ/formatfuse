@@ -1,20 +1,35 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import type { ChangeEvent } from 'react';
 import { 
   Hash, Copy, Check, Upload, FileText, Shield, 
-  AlertCircle, Loader2, Key, Binary, Info
+  AlertCircle, Loader2, Key, Binary, Info, Settings, ChevronDown
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Textarea } from '../ui/textarea';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { Separator } from '../ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"; // Updated import
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"; // Updated import
-import { Badge } from "@/components/ui/badge"; // Updated import
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // Added for error display
-import { Switch } from "@/components/ui/switch"; // Added for HMAC toggle
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Switch } from "@/components/ui/switch";
 import { cn } from '@/lib/utils';
+import {
+  MobileToolLayout,
+  MobileToolHeader,
+  MobileToolContent,
+  BottomSheet,
+  ActionButton,
+  ActionIconButton,
+  MobileTabs,
+  MobileTabsList,
+  MobileTabsTrigger,
+  MobileTabsContent,
+  MobileFileUpload,
+  CollapsibleSection,
+  MobileActionBar
+} from '../ui/mobile';
 
 interface HashType {
   id: string;
@@ -75,6 +90,17 @@ interface HashResult {
 }
 
 export default function HashGenerator() {
+  // Mobile detection
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   const [input, setInput] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState<string>('');
@@ -86,6 +112,9 @@ export default function HashGenerator() {
   const [copiedHash, setCopiedHash] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'text' | 'file'>('text');
   const [error, setError] = useState('');
+  const [mobileTab, setMobileTab] = useState<'input' | 'results'>('input');
+  const [showSettingsSheet, setShowSettingsSheet] = useState(false);
+  const [expandedResults, setExpandedResults] = useState<string[]>([]);
 
   const bufferToHex = (buffer: ArrayBuffer): string => {
     return Array.from(new Uint8Array(buffer))
@@ -204,7 +233,243 @@ export default function HashGenerator() {
   const isLegacyAlgorithm = (algorithmId: string): boolean => {
     return ['md5', 'sha1'].includes(algorithmId);
   };
+  
+  const toggleResultExpansion = (typeId: string) => {
+    setExpandedResults(prev => 
+      prev.includes(typeId) 
+        ? prev.filter(id => id !== typeId)
+        : [...prev, typeId]
+    );
+  };
 
+  // Mobile layout
+  if (isMobile) {
+    return (
+      <MobileToolLayout>
+        <MobileToolHeader
+          title="Hash Generator"
+          description="Generate cryptographic hashes"
+          action={
+            <ActionIconButton
+              onClick={() => setShowSettingsSheet(true)}
+              icon={<Settings />}
+              label="Settings"
+              variant="ghost"
+            />
+          }
+        />
+
+        <MobileTabs value={mobileTab} onValueChange={(v) => setMobileTab(v as 'input' | 'results')}>
+          <div className="px-4 pt-2">
+            <MobileTabsList variant="default">
+              <MobileTabsTrigger value="input">Input</MobileTabsTrigger>
+              <MobileTabsTrigger value="results" badge={results.length > 0 ? results.length : undefined}>
+                Results
+              </MobileTabsTrigger>
+            </MobileTabsList>
+          </div>
+
+          <MobileTabsContent value="input">
+            <MobileToolContent>
+              {/* Input type tabs */}
+              <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'text' | 'file')}>
+                <TabsList className="grid w-full grid-cols-2 mb-4">
+                  <TabsTrigger value="text">
+                    <FileText className="w-4 h-4 mr-2" /> Text
+                  </TabsTrigger>
+                  <TabsTrigger value="file">
+                    <Upload className="w-4 h-4 mr-2" /> File
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="text" className="space-y-2">
+                  <Label htmlFor="mobile-text-input">Text to Hash</Label>
+                  <Textarea
+                    id="mobile-text-input"
+                    value={input}
+                    onChange={(e) => {setInput(e.target.value); if(activeTab==='text') setFile(null); setFileName(''); setFileSize('');}}
+                    placeholder="Enter or paste text here..."
+                    className="min-h-[200px] font-mono text-sm"
+                    spellCheck={false}
+                  />
+                  <p className="text-xs text-muted-foreground">{input.length} characters</p>
+                </TabsContent>
+                
+                <TabsContent value="file" className="space-y-2">
+                  <Label>File to Hash</Label>
+                  <MobileFileUpload
+                    onFileSelect={(files) => {
+                      const selectedFile = files[0];
+                      if (selectedFile) {
+                        setFile(selectedFile);
+                        setFileName(selectedFile.name);
+                        setFileSize(formatFileSize(selectedFile.size));
+                        setError('');
+                        if (activeTab === 'file') setInput('');
+                      }
+                    }}
+                    selectedFile={file}
+                    onClear={() => {
+                      setFile(null);
+                      setFileName('');
+                      setFileSize('');
+                    }}
+                    compact={false}
+                  />
+                </TabsContent>
+              </Tabs>
+
+              {/* HMAC option */}
+              <div className="mt-6 p-4 border rounded-lg bg-muted/30">
+                <div className="flex items-center justify-between mb-3">
+                  <Label htmlFor="mobile-use-hmac" className="flex items-center gap-2 cursor-pointer">
+                    <Key className="w-4 h-4" />
+                    Use HMAC
+                  </Label>
+                  <Switch id="mobile-use-hmac" checked={useHmac} onCheckedChange={setUseHmac} />
+                </div>
+                {useHmac && (
+                  <div>
+                    <Input
+                      type="text"
+                      value={hmacKey}
+                      onChange={(e) => setHmacKey(e.target.value)}
+                      placeholder="Enter HMAC secret key"
+                      className="font-mono text-sm"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">Keep this key confidential</p>
+                  </div>
+                )}
+              </div>
+
+              {error && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+            </MobileToolContent>
+          </MobileTabsContent>
+
+          <MobileTabsContent value="results">
+            <MobileToolContent>
+              {results.length > 0 ? (
+                <div className="space-y-3">
+                  {results.map((result) => {
+                    const hashType = hashTypes.find(h => h.id === result.typeId);
+                    if (!hashType) return null;
+                    const isLegacy = isLegacyAlgorithm(hashType.id);
+                    const canCopy = !(result.hash.toLowerCase().includes('error') || result.hash.toLowerCase().includes('not supported'));
+                    const isExpanded = expandedResults.includes(hashType.id);
+
+                    return (
+                      <div key={hashType.id} className="border rounded-lg overflow-hidden">
+                        <button
+                          onClick={() => toggleResultExpansion(hashType.id)}
+                          className="w-full p-4 flex items-center justify-between hover:bg-muted/50 transition-colors"
+                        >
+                          <div className="flex items-center gap-2 text-left">
+                            <span className={cn("font-medium", hashType.color)}>
+                              {hashType.name}
+                            </span>
+                            {isLegacy && (
+                              <Badge variant="outline" className="text-xs border-amber-500/50 text-amber-600">
+                                Legacy
+                              </Badge>
+                            )}
+                          </div>
+                          <ChevronDown className={cn(
+                            "w-4 h-4 transition-transform",
+                            isExpanded && "rotate-180"
+                          )} />
+                        </button>
+                        
+                        {isExpanded && (
+                          <div className="px-4 pb-4 space-y-3 border-t">
+                            <div className="flex items-center justify-between">
+                              <p className="text-xs text-muted-foreground">
+                                {hashType.bits}-bit • {result.timeMs.toFixed(2)}ms
+                              </p>
+                              {canCopy && (
+                                <ActionIconButton
+                                  onClick={() => copyToClipboard(result.hash, hashType.name)}
+                                  icon={copiedHash === `${hashType.name}-${result.hash}` ? <Check /> : <Copy />}
+                                  label="Copy"
+                                  size="sm"
+                                  variant="ghost"
+                                />
+                              )}
+                            </div>
+                            <p className={cn(
+                              "font-mono text-xs break-all select-all p-3 rounded-md border",
+                              canCopy ? "bg-muted/50" : "bg-destructive/10 text-destructive-foreground/80"
+                            )}>
+                              {result.hash}
+                            </p>
+                            <p className="text-xs text-muted-foreground">{hashType.description}</p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <Hash className="w-16 h-16 text-muted-foreground/20 mx-auto mb-4" />
+                  <p className="text-muted-foreground">No hashes generated yet</p>
+                  <p className="text-sm text-muted-foreground mt-2">Go to Input tab to generate hashes</p>
+                </div>
+              )}
+            </MobileToolContent>
+          </MobileTabsContent>
+        </MobileTabs>
+
+        {/* Generate button - sticky at bottom */}
+        <MobileActionBar>
+          <ActionButton
+            onClick={() => {
+              processInput();
+              if (results.length === 0) {
+                setTimeout(() => setMobileTab('results'), 500);
+              }
+            }}
+            disabled={isProcessing || (activeTab === 'text' && !input && !file) || (activeTab === 'file' && !file) || (useHmac && !hmacKey)}
+            icon={isProcessing ? <Loader2 className="animate-spin" /> : <Hash />}
+            label={isProcessing ? "Processing..." : "Generate Hashes"}
+            variant="primary"
+            fullWidth
+          />
+        </MobileActionBar>
+
+        {/* Settings bottom sheet */}
+        <BottomSheet
+          open={showSettingsSheet}
+          onOpenChange={setShowSettingsSheet}
+          title="About Hash Functions"
+        >
+          <div className="space-y-4 text-sm">
+            <div>
+              <h3 className="font-medium mb-2">Security Recommendations</h3>
+              <ul className="space-y-1 text-muted-foreground">
+                <li>• Use SHA-256 or higher for new applications</li>
+                <li>• MD5 and SHA-1 are legacy algorithms with vulnerabilities</li>
+                <li>• HMAC adds authentication with a secret key</li>
+              </ul>
+            </div>
+            
+            <div>
+              <h3 className="font-medium mb-2">Privacy</h3>
+              <p className="text-muted-foreground">
+                All hashing is performed locally in your browser. No data is sent to any server.
+              </p>
+            </div>
+          </div>
+        </BottomSheet>
+      </MobileToolLayout>
+    );
+  }
+
+  // Desktop layout
   return (
     <div className="w-full max-w-3xl mx-auto p-4 sm:p-6 space-y-8">
       <div className="text-center">

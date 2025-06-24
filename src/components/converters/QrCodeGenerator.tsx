@@ -3,7 +3,7 @@ import QRCode from 'qrcode';
 import {
   QrCode, Download, Copy, Check, Palette, Settings,
   Wifi, User, Globe, Phone, Mail, Calendar, MapPin,
-  Smartphone, Package, Share2, Sparkles
+  Smartphone, Package, Share2, Sparkles, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -11,6 +11,21 @@ import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import { Slider } from '../ui/slider';
 import { cn } from '@/lib/utils';
+import {
+  MobileToolLayout,
+  MobileToolHeader,
+  MobileToolContent,
+  BottomSheet,
+  FloatingActionButton,
+  CollapsibleSection,
+  MobileActionBar,
+  ActionButton,
+  ActionIconButton,
+  MobileTabs,
+  MobileTabsList,
+  MobileTabsTrigger,
+  MobileTabsContent
+} from '../ui/mobile';
 
 interface QrTemplate {
   id: string;
@@ -163,7 +178,19 @@ interface QrStyle {
 }
 
 export default function QrCodeGenerator() {
+  // Mobile detection hook
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const carouselRef = useRef<HTMLDivElement>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<QrTemplate>(qrTemplates[0]);
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
@@ -177,6 +204,8 @@ export default function QrCodeGenerator() {
     errorCorrectionLevel: 'M'
   });
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showAdvancedSheet, setShowAdvancedSheet] = useState(false);
+  const [activeTab, setActiveTab] = useState<'form' | 'result'>('form');
 
   // Generate QR code
   const generateQrCode = useCallback(async () => {
@@ -212,12 +241,17 @@ export default function QrCodeGenerator() {
         errorCorrectionLevel: style.errorCorrectionLevel
       });
       setQrDataUrl(dataUrl);
+      
+      // Auto-switch to result tab on mobile when QR is generated
+      if (isMobile && dataUrl) {
+        setActiveTab('result');
+      }
     } catch (error) {
       console.error('Failed to generate QR code:', error);
     } finally {
       setIsGenerating(false);
     }
-  }, [selectedTemplate, formData, style]);
+  }, [selectedTemplate, formData, style, isMobile]);
 
   // Generate QR code when data changes
   useEffect(() => {
@@ -295,7 +329,300 @@ export default function QrCodeGenerator() {
   useEffect(() => {
     setFormData({});
   }, [selectedTemplate]);
+  
+  // Scroll carousel
+  const scrollCarousel = (direction: 'left' | 'right') => {
+    if (!carouselRef.current) return;
+    const scrollAmount = 200;
+    carouselRef.current.scrollBy({
+      left: direction === 'left' ? -scrollAmount : scrollAmount,
+      behavior: 'smooth'
+    });
+  };
 
+  // Mobile layout
+  if (isMobile) {
+    return (
+      <MobileToolLayout>
+        <MobileToolHeader
+          title="QR Code Generator"
+          description="Create codes for URLs, WiFi & more"
+          action={
+            <ActionIconButton
+              onClick={() => setShowAdvancedSheet(true)}
+              icon={<Settings />}
+              label="Settings"
+              variant="ghost"
+            />
+          }
+        />
+
+        {/* Mobile tabs for form/result */}
+        <MobileTabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'form' | 'result')}>
+          <div className="px-4 pt-2">
+            <MobileTabsList variant="default">
+              <MobileTabsTrigger value="form">Create</MobileTabsTrigger>
+              <MobileTabsTrigger value="result" badge={qrDataUrl ? "Ready" : undefined}>
+                QR Code
+              </MobileTabsTrigger>
+            </MobileTabsList>
+          </div>
+
+          <MobileTabsContent value="form">
+            <MobileToolContent>
+              {/* Template carousel */}
+              <div className="mb-6">
+                <Label className="mb-3 block">QR Code Type</Label>
+                <div className="relative -mx-4">
+                  <div 
+                    ref={carouselRef}
+                    className="flex gap-3 overflow-x-auto scrollbar-hide px-4 pb-2"
+                  >
+                    {qrTemplates.map((template) => (
+                      <button
+                        key={template.id}
+                        onClick={() => setSelectedTemplate(template)}
+                        className={cn(
+                          "flex-shrink-0 w-32 p-3 rounded-lg border transition-all",
+                          selectedTemplate.id === template.id
+                            ? "border-primary bg-primary/5"
+                            : "border-border"
+                        )}
+                      >
+                        <template.icon className="w-6 h-6 text-primary mx-auto mb-2" />
+                        <div className="text-xs font-medium">{template.name}</div>
+                        <div className="text-[10px] text-muted-foreground mt-0.5">
+                          {template.description}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                  
+                  {/* Carousel nav buttons */}
+                  <button
+                    onClick={() => scrollCarousel('left')}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-background/80 backdrop-blur border flex items-center justify-center"
+                    aria-label="Previous"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => scrollCarousel('right')}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-background/80 backdrop-blur border flex items-center justify-center"
+                    aria-label="Next"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Form fields */}
+              <div className="space-y-4">
+                {selectedTemplate.fields.map((field) => (
+                  <div key={field.name}>
+                    <Label htmlFor={field.name} className="mb-2 block">
+                      {field.label}
+                      {field.required && <span className="text-destructive ml-1">*</span>}
+                    </Label>
+                    {field.type === 'textarea' ? (
+                      <Textarea
+                        id={field.name}
+                        value={formData[field.name] || ''}
+                        onChange={(e) => handleFieldChange(field.name, e.target.value)}
+                        placeholder={field.placeholder}
+                        className="min-h-[100px]"
+                        rows={4}
+                      />
+                    ) : (
+                      <Input
+                        id={field.name}
+                        type={field.type}
+                        value={formData[field.name] || ''}
+                        onChange={(e) => handleFieldChange(field.name, e.target.value)}
+                        placeholder={field.placeholder}
+                        className="h-12"
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Tips (collapsible on mobile) */}
+              <CollapsibleSection
+                title="Pro Tips"
+                className="mt-6"
+                defaultOpen={false}
+              >
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li>• Test your QR code before use</li>
+                  <li>• Use high error correction for prints</li>
+                  <li>• Keep margin around the code</li>
+                  <li>• Avoid light colors</li>
+                  <li>• SVG is best for large prints</li>
+                </ul>
+              </CollapsibleSection>
+            </MobileToolContent>
+          </MobileTabsContent>
+
+          <MobileTabsContent value="result">
+            <MobileToolContent className="flex flex-col items-center justify-center min-h-[400px]">
+              {qrDataUrl ? (
+                <>
+                  {/* QR Code display */}
+                  <div className="p-6 rounded-lg border bg-white dark:bg-secondary mb-6">
+                    <canvas
+                      ref={canvasRef}
+                      className={cn(
+                        "transition-opacity",
+                        isGenerating ? "opacity-50" : "opacity-100"
+                      )}
+                      style={{ maxWidth: '100%', height: 'auto' }}
+                    />
+                  </div>
+
+                  {/* Action buttons */}
+                  <div className="flex gap-3">
+                    <ActionButton
+                      onClick={copyQrCode}
+                      icon={copied ? <Check /> : <Copy />}
+                      label={copied ? "Copied!" : "Copy"}
+                      variant="secondary"
+                    />
+                    <ActionButton
+                      onClick={() => downloadQrCode('png')}
+                      icon={<Download />}
+                      label="PNG"
+                      variant="secondary"
+                    />
+                    <ActionButton
+                      onClick={() => downloadQrCode('svg')}
+                      icon={<Download />}
+                      label="SVG"
+                      variant="secondary"
+                    />
+                  </div>
+                </>
+              ) : (
+                <div className="text-center">
+                  <QrCode className="w-16 h-16 text-muted-foreground/20 mx-auto mb-4" />
+                  <p className="text-muted-foreground">
+                    Fill in the form to generate QR code
+                  </p>
+                </div>
+              )}
+            </MobileToolContent>
+          </MobileTabsContent>
+        </MobileTabs>
+
+        {/* Advanced settings bottom sheet */}
+        <BottomSheet
+          open={showAdvancedSheet}
+          onOpenChange={setShowAdvancedSheet}
+          title="Advanced Settings"
+        >
+          <div className="space-y-6">
+            {/* Size */}
+            <div>
+              <Label className="mb-3 block">
+                Size: {style.size}px
+              </Label>
+              <Slider
+                value={[style.size]}
+                onValueChange={([value]) => setStyle(prev => ({ ...prev, size: value }))}
+                min={100}
+                max={500}
+                step={10}
+              />
+            </div>
+
+            {/* Margin */}
+            <div>
+              <Label className="mb-3 block">
+                Margin: {style.margin}
+              </Label>
+              <Slider
+                value={[style.margin]}
+                onValueChange={([value]) => setStyle(prev => ({ ...prev, margin: value }))}
+                min={0}
+                max={10}
+                step={1}
+              />
+            </div>
+
+            {/* Colors */}
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="dark-color-mobile" className="mb-2 block">
+                  Foreground Color
+                </Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="dark-color-mobile"
+                    type="color"
+                    value={style.darkColor}
+                    onChange={(e) => setStyle(prev => ({ ...prev, darkColor: e.target.value }))}
+                    className="w-16 h-12 p-1 cursor-pointer"
+                  />
+                  <Input
+                    type="text"
+                    value={style.darkColor}
+                    onChange={(e) => setStyle(prev => ({ ...prev, darkColor: e.target.value }))}
+                    className="flex-1 font-mono h-12"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="light-color-mobile" className="mb-2 block">
+                  Background Color
+                </Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="light-color-mobile"
+                    type="color"
+                    value={style.lightColor}
+                    onChange={(e) => setStyle(prev => ({ ...prev, lightColor: e.target.value }))}
+                    className="w-16 h-12 p-1 cursor-pointer"
+                  />
+                  <Input
+                    type="text"
+                    value={style.lightColor}
+                    onChange={(e) => setStyle(prev => ({ ...prev, lightColor: e.target.value }))}
+                    className="flex-1 font-mono h-12"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Error Correction */}
+            <div>
+              <Label className="mb-3 block">Error Correction Level</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {(['L', 'M', 'Q', 'H'] as const).map((level) => (
+                  <button
+                    key={level}
+                    onClick={() => setStyle(prev => ({ ...prev, errorCorrectionLevel: level }))}
+                    className={cn(
+                      "py-3 px-4 rounded-lg text-sm font-medium transition-colors",
+                      style.errorCorrectionLevel === level
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-secondary"
+                    )}
+                  >
+                    {level} ({level === 'L' ? '7%' : level === 'M' ? '15%' : level === 'Q' ? '25%' : '30%'})
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Higher levels allow more damage but reduce capacity
+              </p>
+            </div>
+          </div>
+        </BottomSheet>
+      </MobileToolLayout>
+    );
+  }
+
+  // Desktop layout
   return (
     <div className="w-full max-w-6xl mx-auto p-4">
       <div className="mb-6 sm:mb-8 text-center">

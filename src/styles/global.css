@@ -139,6 +139,40 @@
   }
 }
 
+/* Safe area utilities for iOS devices */
+@layer utilities {
+  .pb-safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .pt-safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .pl-safe-left {
+    padding-left: env(safe-area-inset-left);
+  }
+  
+  .pr-safe-right {
+    padding-right: env(safe-area-inset-right);
+  }
+  
+  /* Minimum viewport height accounting for mobile browsers */
+  .min-h-\[100dvh\] {
+    min-height: 100dvh;
+  }
+  
+  /* Hide scrollbar but keep scrolling */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 /* Utility classes for organic design */
 .ff-grid {
   background-image: 
