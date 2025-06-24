@@ -227,7 +227,7 @@ export const JpgToPdf: React.FC = () => {
   }, [images]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background">
       {/* Tool Header - Mobile optimized */}
       <div className="border-b bg-card/[0.5]">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
@@ -428,30 +428,31 @@ export const JpgToPdf: React.FC = () => {
             </div>
           </div>
         )}
-      </div>
-
-      {/* Features - Mobile optimized */}
-      <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="p-3 sm:p-4 rounded-lg border">
-          <Image className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
-          <h3 className="font-semibold text-sm sm:text-base mb-1">Image Preview</h3>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            See all images before converting them to PDF
-          </p>
-        </div>
-        <div className="p-3 sm:p-4 rounded-lg border">
-          <GripVertical className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
-          <h3 className="font-semibold text-sm sm:text-base mb-1">Drag to Reorder</h3>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Arrange images in the perfect order for your PDF
-          </p>
-        </div>
-        <div className="p-3 sm:p-4 rounded-lg border">
-          <FileText className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
-          <h3 className="font-semibold text-sm sm:text-base mb-1">High Quality PDF</h3>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Creates professional PDFs with optimal compression
-          </p>
+        
+        
+        {/* Features - Mobile optimized */}
+        <div className="mt-12 sm:mt-16 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+          <div className="p-3 sm:p-4 rounded-lg border">
+            <Image className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+            <h3 className="font-semibold text-sm sm:text-base mb-1">Image Preview</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              See all images before converting them to PDF
+            </p>
+          </div>
+          <div className="p-3 sm:p-4 rounded-lg border">
+            <GripVertical className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+            <h3 className="font-semibold text-sm sm:text-base mb-1">Drag to Reorder</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Arrange images in the perfect order for your PDF
+            </p>
+          </div>
+          <div className="p-3 sm:p-4 rounded-lg border">
+            <FileText className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+            <h3 className="font-semibold text-sm sm:text-base mb-1">High Quality PDF</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Creates professional PDFs with optimal compression
+            </p>
+          </div>
         </div>
       </div>
     </div>

@@ -196,7 +196,7 @@ export const PdfMerge: React.FC = () => {
   const totalPages = files.reduce((sum, f) => sum + (f.pageCount || 0), 0);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background">
       {/* Tool Header - Mobile optimized */}
       <div className="border-b bg-card/[0.5]">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
@@ -555,30 +555,31 @@ export const PdfMerge: React.FC = () => {
             </div>
           </div>
         )}
-      </div>
-
-      {/* Features - Mobile optimized */}
-      <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="p-3 sm:p-4 rounded-lg border">
-          <Layers className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
-          <h3 className="font-semibold text-sm sm:text-base mb-1">Unlimited Pages</h3>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Merge as many PDFs as you need with no restrictions
-          </p>
-        </div>
-        <div className="p-3 sm:p-4 rounded-lg border">
-          <GripVertical className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
-          <h3 className="font-semibold text-sm sm:text-base mb-1">Drag & Drop Ordering</h3>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Easily reorder PDFs before merging them together
-          </p>
-        </div>
-        <div className="p-3 sm:p-4 rounded-lg border">
-          <Eye className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
-          <h3 className="font-semibold text-sm sm:text-base mb-1">Preview Pages</h3>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            See all pages from each PDF before merging
-          </p>
+        
+        
+        {/* Features - Mobile optimized */}
+        <div className="mt-12 sm:mt-16 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+          <div className="p-3 sm:p-4 rounded-lg border">
+            <Layers className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+            <h3 className="font-semibold text-sm sm:text-base mb-1">Unlimited Pages</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Merge as many PDFs as you need with no restrictions
+            </p>
+          </div>
+          <div className="p-3 sm:p-4 rounded-lg border">
+            <GripVertical className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+            <h3 className="font-semibold text-sm sm:text-base mb-1">Drag & Drop Ordering</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Easily reorder PDFs before merging them together
+            </p>
+          </div>
+          <div className="p-3 sm:p-4 rounded-lg border">
+            <Eye className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+            <h3 className="font-semibold text-sm sm:text-base mb-1">Preview Pages</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              See all pages from each PDF before merging
+            </p>
+          </div>
         </div>
       </div>
     </div>

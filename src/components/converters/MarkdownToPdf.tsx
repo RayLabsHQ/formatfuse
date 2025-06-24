@@ -183,7 +183,7 @@ export const MarkdownToPdf: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="bg-background flex flex-col">
       {/* Tool Header - Mobile optimized */}
       <div className="border-b">
         <div className="px-4 sm:px-6 py-3 sm:py-4">
@@ -388,7 +388,7 @@ export const MarkdownToPdf: React.FC = () => {
       </div>
 
       {/* Features - Mobile optimized */}
-      <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 px-4 sm:px-6 lg:px-8">
         <div className="p-3 sm:p-4 rounded-lg border">
           <FileText className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
           <h3 className="font-semibold text-sm sm:text-base mb-1">Live Preview</h3>

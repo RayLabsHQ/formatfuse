@@ -156,7 +156,7 @@ export const PdfRotate: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background">
       {/* Tool Header - Mobile optimized */}
       <div className="border-b bg-card/[0.5]">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
@@ -473,30 +473,31 @@ export const PdfRotate: React.FC = () => {
             </div>
           </div>
         )}
-      </div>
-
-      {/* Features - Mobile optimized */}
-      <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="p-3 sm:p-4 rounded-lg border">
-          <Eye className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
-          <h3 className="font-semibold text-sm sm:text-base mb-1">Visual Page Selection</h3>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Click on specific pages to rotate only what you need
-          </p>
-        </div>
-        <div className="p-3 sm:p-4 rounded-lg border">
-          <RotateCw className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
-          <h3 className="font-semibold text-sm sm:text-base mb-1">Multiple Angles</h3>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Rotate pages 90°, 180°, or 270° with instant preview
-          </p>
-        </div>
-        <div className="p-3 sm:p-4 rounded-lg border">
-          <FileText className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
-          <h3 className="font-semibold text-sm sm:text-base mb-1">Preserve Quality</h3>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            All formatting and quality retained after rotation
-          </p>
+        
+        
+        {/* Features - Mobile optimized */}
+        <div className="mt-12 sm:mt-16 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+          <div className="p-3 sm:p-4 rounded-lg border">
+            <Eye className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+            <h3 className="font-semibold text-sm sm:text-base mb-1">Visual Page Selection</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Click on specific pages to rotate only what you need
+            </p>
+          </div>
+          <div className="p-3 sm:p-4 rounded-lg border">
+            <RotateCw className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+            <h3 className="font-semibold text-sm sm:text-base mb-1">Multiple Angles</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Rotate pages 90°, 180°, or 270° with instant preview
+            </p>
+          </div>
+          <div className="p-3 sm:p-4 rounded-lg border">
+            <FileText className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
+            <h3 className="font-semibold text-sm sm:text-base mb-1">Preserve Quality</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              All formatting and quality retained after rotation
+            </p>
+          </div>
         </div>
       </div>
     </div>
