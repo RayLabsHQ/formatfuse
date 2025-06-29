@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { 
-  FileText, Copy, Check, GitBranch, Eye, EyeOff,
+  FileText, Copy, Check, GitBranch, Eye,
   Columns, Rows, Download, Upload, Palette,
   Settings, Info, ChevronDown, ChevronUp, X, Plus,
   Minus, RefreshCw, FileJson, Code, Type

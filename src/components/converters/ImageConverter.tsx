@@ -15,6 +15,7 @@ import {
 // Progress component removed - not used
 import { Slider } from '../ui/slider';
 import { Button } from '../ui/button';
+import { Input } from '../ui/input';
 import VirtualizedFileList from './VirtualizedFileList';
 
 interface FileInfo {
@@ -386,7 +387,7 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
             {showQualitySlider && (
               <div className="flex items-center justify-center gap-3 sm:ml-auto">
                 <label className="text-sm font-medium">Quality:</label>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   <Slider
                     value={[quality]}
                     onValueChange={(value) => setQuality(value[0])}
@@ -395,9 +396,18 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
                     step={1}
                     className="w-[100px] sm:w-[120px]"
                   />
-                  <span className="text-sm font-mono bg-secondary px-2 py-0.5 rounded min-w-[48px] text-center">
-                    {quality}%
-                  </span>
+                  <Input
+                    type="number"
+                    value={quality}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value) || 10;
+                      setQuality(Math.min(100, Math.max(10, val)));
+                    }}
+                    className="w-16 text-sm text-center"
+                    min={10}
+                    max={100}
+                  />
+                  <span className="text-sm text-muted-foreground">%</span>
                 </div>
               </div>
             )}
@@ -411,7 +421,8 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
-          className={`relative border-2 border-dashed rounded-lg p-8 sm:p-10 lg:p-12 text-center ff-transition ${
+          onClick={() => fileInputRef.current?.click()}
+          className={`relative border-2 border-dashed rounded-lg p-8 sm:p-10 lg:p-12 text-center ff-transition cursor-pointer ${
             isDragging 
               ? 'border-primary bg-primary/[0.05] drop-zone-active' 
               : 'border-border drop-zone hover:border-primary/[0.5]'
@@ -435,15 +446,7 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
             <div>
               <h3 className="text-base sm:text-lg font-semibold">Drop {selectedSourceFormat?.displayName || 'image'} files here</h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                or{' '}
-                <Button
-                  onClick={() => fileInputRef.current?.click()}
-                  variant="link"
-                  className="text-primary p-0 h-auto font-medium"
-                >
-                  browse files
-                </Button>
-                {' '}from your device
+                or <span className="text-primary font-medium">browse files</span> from your device
               </p>
             </div>
             

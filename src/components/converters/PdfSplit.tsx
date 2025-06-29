@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { Button } from '../ui/button';
+import { DownloadButton, DownloadAllButton } from '../ui/download-button';
 import { Input } from '../ui/input';
 import { usePdfOperations } from '../../hooks/usePdfOperations';
 import { parsePageRanges, formatPageRanges } from '../../lib/pdf-operations';
@@ -72,6 +73,7 @@ export const PdfSplit: React.FC = () => {
   const [showPreview, setShowPreview] = useState(true);
   const [previewKey, setPreviewKey] = useState(0);
   const [processingSteps, setProcessingSteps] = useState<any[]>([]);
+  const [isLoadingFile, setIsLoadingFile] = useState(false);
   
   const { split, getPageCount, getMetadata, isProcessing, progress, error } = usePdfOperations();
 
@@ -82,6 +84,7 @@ export const PdfSplit: React.FC = () => {
     setFile(selectedFile);
     setResults([]);
     setSelectedPages([]);
+    setIsLoadingFile(true);
     
     try {
       const arrayBuffer = await selectedFile.arrayBuffer();
@@ -100,6 +103,8 @@ export const PdfSplit: React.FC = () => {
       setShowPreview(true);
     } catch (err) {
       console.error('Error reading PDF:', err);
+    } finally {
+      setIsLoadingFile(false);
     }
   }, [getPageCount, getMetadata]);
 
@@ -268,7 +273,16 @@ export const PdfSplit: React.FC = () => {
           />
         )}
 
-        {file && pageCount > 0 && (
+        {file && isLoadingFile && (
+          <div className="bg-card border rounded-lg p-6">
+            <div className="flex items-center justify-center space-x-3">
+              <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              <span className="text-sm text-muted-foreground">Reading PDF file...</span>
+            </div>
+          </div>
+        )}
+
+        {file && pageCount > 0 && !isLoadingFile && (
           <div className="space-y-6">
             {/* File Info Card - Mobile optimized */}
             <div className="bg-card border rounded-lg p-3 sm:p-4">
@@ -517,15 +531,12 @@ export const PdfSplit: React.FC = () => {
             <div className="bg-card border rounded-lg p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                 <h3 className="font-medium text-base sm:text-lg">Split Results</h3>
-                <Button
+                <DownloadAllButton
                   onClick={downloadAll}
-                  variant="default"
-                  size="sm"
-                  className="w-full sm:w-auto text-xs sm:text-sm"
+                  className="w-full sm:w-auto"
                 >
-                  <Package className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
                   Download All as ZIP
-                </Button>
+                </DownloadAllButton>
               </div>
               
               <div className="grid gap-2">

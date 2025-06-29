@@ -1,11 +1,14 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import ImageResizer from '../../components/converters/ImageResizer';
+import { ErrorBoundary } from '../../components/ErrorBoundary';
 
 const title = 'Image Resizer - Bulk Resize Images Online';
 const description = 'Resize images to exact dimensions with advanced options. Batch processing, preset dimensions, and multiple output formats supported.';
 ---
 
 <Layout title={title} description={description} toolType="image">
-  <ImageResizer client:load />
+  <ErrorBoundary client:load>
+    <ImageResizer />
+  </ErrorBoundary>
 </Layout>

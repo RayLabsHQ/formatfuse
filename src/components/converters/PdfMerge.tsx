@@ -4,7 +4,7 @@ import { usePdfOperations } from '../../hooks/usePdfOperations';
 import { 
   Layers, Download, FileText, AlertCircle, Upload, FileUp,
   FileCheck, CheckCircle, Loader2, X, GripVertical, Eye,
-  EyeOff, Plus, FileStack, ChevronUp, ChevronDown, Info
+  Plus, FileStack, ChevronUp, ChevronDown, Info
 } from 'lucide-react';
 import FileSaver from 'file-saver';
 import { DropZone } from '../ui/drop-zone';
@@ -26,7 +26,7 @@ export const PdfMerge: React.FC = () => {
   const [mergedResult, setMergedResult] = useState<Uint8Array | null>(null);
   const [draggedFile, setDraggedFile] = useState<string | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
-  const [showGlobalPreview, setShowGlobalPreview] = useState(false);
+  const [showGlobalPreview, setShowGlobalPreview] = useState(true);
   const [globalPreviewKey, setGlobalPreviewKey] = useState(0);
   const [processingSteps, setProcessingSteps] = useState<any[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -52,7 +52,7 @@ export const PdfMerge: React.FC = () => {
             id: `${Date.now()}-${i}`,
             pageCount,
             data: fileData,
-            showPreview: false
+            showPreview: true
           });
         } catch (err) {
           console.error('Error reading PDF:', err);
@@ -60,7 +60,7 @@ export const PdfMerge: React.FC = () => {
             file,
             id: `${Date.now()}-${i}`,
             pageCount: undefined,
-            showPreview: false
+            showPreview: true
           });
         }
       }
@@ -240,45 +240,15 @@ export const PdfMerge: React.FC = () => {
                     {files.length} files • {totalPages} total pages
                   </p>
                 </div>
-                <div className="flex items-center gap-1.5 sm:gap-2 self-end sm:self-auto">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setShowGlobalPreview(!showGlobalPreview);
-                      setGlobalPreviewKey(prev => prev + 1);
-                      // Update preview keys for all files
-                      setFiles(prev => prev.map(f => ({ 
-                        ...f, 
-                        previewKey: (f.previewKey || 0) + 1
-                      })));
-                    }}
-                    className="text-xs sm:text-sm"
-                  >
-                    {showGlobalPreview ? (
-                      <>
-                        <EyeOff className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
-                        <span className="hidden sm:inline">Hide All Previews</span>
-                        <span className="sm:hidden">Hide All</span>
-                      </>
-                    ) : (
-                      <>
-                        <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
-                        <span className="hidden sm:inline">Show All Previews</span>
-                        <span className="sm:hidden">Show All</span>
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="text-xs sm:text-sm"
-                  >
-                    <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
-                    Add more
-                  </Button>
-                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="text-xs sm:text-sm"
+                >
+                  <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                  Add more
+                </Button>
               </div>
               
               <input
@@ -296,8 +266,8 @@ export const PdfMerge: React.FC = () => {
                 <div className="flex items-start gap-2">
                   <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
                   <div className="text-xs sm:text-sm text-blue-700 dark:text-blue-300">
-                    <span className="hidden sm:inline">Drag files to reorder them. Click the eye icon to preview pages from each PDF.</span>
-                    <span className="sm:hidden">Use arrow buttons to reorder files. Tap the eye icon to preview pages.</span>
+                    <span className="hidden sm:inline">Drag files to reorder them. Page previews are shown automatically below each file.</span>
+                    <span className="sm:hidden">Use arrow buttons to reorder files. Page previews are shown below each file.</span>
                     <span className="hidden sm:inline"> The final merged PDF will preserve all formatting and quality.</span>
                   </div>
                 </div>
@@ -340,22 +310,6 @@ export const PdfMerge: React.FC = () => {
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleFilePreview(fileInfo.id);
-                          }}
-                        >
-                          {fileInfo.showPreview || showGlobalPreview ? (
-                            <EyeOff className="h-4 w-4" />
-                          ) : (
-                            <Eye className="h-4 w-4" />
-                          )}
-                        </Button>
-                        
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
                           onClick={() => moveFile(index, 'up')}
                           disabled={index === 0}
                         >
@@ -384,22 +338,6 @@ export const PdfMerge: React.FC = () => {
                       
                       {/* Mobile buttons - More prominent */}
                       <div className="flex sm:hidden items-center gap-0.5">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleFilePreview(fileInfo.id);
-                          }}
-                        >
-                          {fileInfo.showPreview || showGlobalPreview ? (
-                            <EyeOff className="h-3.5 w-3.5" />
-                          ) : (
-                            <Eye className="h-3.5 w-3.5" />
-                          )}
-                        </Button>
-                        
                         {index > 0 && (
                           <Button
                             variant="secondary"

@@ -73,14 +73,18 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
         // Dynamically import PDF.js only on client side
         const pdfjsLib = await import('pdfjs-dist');
         
-        // Set up PDF.js worker
-        pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-          'pdfjs-dist/build/pdf.worker.mjs',
-          import.meta.url
-        ).toString();
+        // Set up PDF.js worker - use CDN for reliability
+        pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
         
+        // Create loading task with timeout
         const loadingTask = pdfjsLib.getDocument({ data: pdfData });
-        pdfDoc = await loadingTask.promise;
+        
+        // Add timeout to prevent hanging
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('PDF loading timeout')), 30000)
+        );
+        
+        pdfDoc = await Promise.race([loadingTask.promise, timeoutPromise]);
         
         if (cancelled || !mountedRef.current) {
           console.log('Component unmounted, cleaning up...');

@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { Button } from '../ui/button';
+import { DownloadButton, DownloadAllButton } from '../ui/download-button';
 import { Progress } from '../ui/progress';
 import { Input } from '../ui/input';
 import { usePdfOperations } from '../../hooks/usePdfOperations';
@@ -194,7 +195,8 @@ export const PdfToJpg: React.FC = () => {
             onDrop={handleDrop}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
-            className={`relative border-2 border-dashed rounded-lg p-12 text-center ff-transition ${
+            onClick={() => fileInputRef.current?.click()}
+            className={`relative border-2 border-dashed rounded-lg p-12 text-center ff-transition cursor-pointer ${
               isDragging 
                 ? 'border-primary bg-primary/[0.05] drop-zone-active' 
                 : 'border-border drop-zone hover:border-primary/[0.5]'
@@ -217,14 +219,7 @@ export const PdfToJpg: React.FC = () => {
               <div>
                 <h3 className="text-base sm:text-lg font-semibold">Drop PDF file here</h3>
                 <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
-                  or{' '}
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="text-primary hover:underline font-medium"
-                  >
-                    browse files
-                  </button>
-                  {' '}from your computer
+                  or <span className="text-primary font-medium">browse files</span> from your computer
                 </p>
               </div>
               
@@ -362,9 +357,18 @@ export const PdfToJpg: React.FC = () => {
                         step={5}
                         className="flex-1"
                       />
-                      <span className="text-xs sm:text-sm font-mono bg-secondary px-1.5 sm:px-2 py-0.5 rounded min-w-[40px] sm:min-w-[48px] text-center">
-                        {quality}%
-                      </span>
+                      <Input
+                        type="number"
+                        value={quality}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value) || 10;
+                          setQuality(Math.min(100, Math.max(10, val)));
+                        }}
+                        className="w-16 sm:w-20 text-xs sm:text-sm text-center"
+                        min={10}
+                        max={100}
+                      />
+                      <span className="text-xs sm:text-sm text-muted-foreground">%</span>
                     </div>
                   </div>
                 )}
@@ -382,9 +386,19 @@ export const PdfToJpg: React.FC = () => {
                     step={0.1}
                     className="flex-1"
                   />
-                  <span className="text-xs sm:text-sm font-mono bg-secondary px-1.5 sm:px-2 py-0.5 rounded min-w-[40px] sm:min-w-[48px] text-center">
-                    {scale.toFixed(1)}x
-                  </span>
+                  <Input
+                    type="number"
+                    value={scale}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value) || 0.5;
+                      setScale(Math.min(3, Math.max(0.5, val)));
+                    }}
+                    className="w-16 sm:w-20 text-xs sm:text-sm text-center"
+                    min={0.5}
+                    max={3}
+                    step={0.1}
+                  />
+                  <span className="text-xs sm:text-sm text-muted-foreground">x</span>
                 </div>
                 <p className="text-[10px] sm:text-xs text-muted-foreground">
                   Higher scale = better quality but larger file size
@@ -451,14 +465,11 @@ export const PdfToJpg: React.FC = () => {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                 <h3 className="font-medium text-base sm:text-lg">Converted Images</h3>
                 {results.length > 1 && (
-                  <Button
+                  <DownloadAllButton
                     onClick={downloadAll}
-                    variant="default"
-                    className="w-full sm:w-auto text-xs sm:text-sm"
-                  >
-                    <Package className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
-                    Download All ({results.length} images)
-                  </Button>
+                    count={results.length}
+                    className="w-full sm:w-auto"
+                  />
                 )}
               </div>
               
@@ -477,14 +488,14 @@ export const PdfToJpg: React.FC = () => {
                         </p>
                       </div>
                     </div>
-                    <Button
+                    <DownloadButton
                       onClick={() => downloadSingle(result)}
-                      size="sm"
-                      className="absolute bottom-1.5 sm:bottom-2 left-1/2 -translate-x-1/2 sm:opacity-0 sm:group-hover:opacity-100 ff-transition text-xs px-2 py-1"
+                      size="default"
+                      className="absolute bottom-1.5 sm:bottom-2 left-1/2 -translate-x-1/2 sm:opacity-0 sm:group-hover:opacity-100 ff-transition text-xs sm:text-sm h-8 px-3"
+                      icon={true}
                     >
-                      <Download className="h-3 w-3 mr-0.5 sm:mr-1" />
                       Download
-                    </Button>
+                    </DownloadButton>
                   </div>
                 ))}
               </div>

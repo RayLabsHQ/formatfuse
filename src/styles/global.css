@@ -69,36 +69,36 @@
 }
 
 .dark {
-  /* Dark theme - Soft twilight palette */
-  --background: oklch(0.15 0.02 285);     /* Deep purple night */
-  --foreground: oklch(0.95 0.01 73);      /* Soft cream */
-  --card: oklch(0.18 0.02 285);
-  --card-foreground: oklch(0.95 0.01 73);
-  --popover: oklch(0.18 0.02 285);
-  --popover-foreground: oklch(0.95 0.01 73);
-  --primary: oklch(0.72 0.12 285);        /* Soft lavender */
+  /* Dark theme - Improved contrast for better readability */
+  --background: oklch(0.22 0.015 285);     /* Lighter purple-gray background */
+  --foreground: oklch(0.96 0.01 73);       /* Slightly brighter cream text */
+  --card: oklch(0.26 0.015 285);           /* Lighter card background */
+  --card-foreground: oklch(0.96 0.01 73);
+  --popover: oklch(0.26 0.015 285);
+  --popover-foreground: oklch(0.96 0.01 73);
+  --primary: oklch(0.75 0.15 285);         /* Brighter lavender for better visibility */
   --primary-foreground: oklch(0.15 0.02 285);
-  --secondary: oklch(0.22 0.02 285);
-  --secondary-foreground: oklch(0.95 0.01 73);
-  --muted: oklch(0.28 0.02 285);
-  --muted-foreground: oklch(0.7 0.01 73);
-  --accent: oklch(0.78 0.1 152);          /* Soft mint */
+  --secondary: oklch(0.30 0.02 285);       /* Lighter secondary background */
+  --secondary-foreground: oklch(0.96 0.01 73);
+  --muted: oklch(0.35 0.02 285);           /* Lighter muted background */
+  --muted-foreground: oklch(0.75 0.01 73); /* Brighter muted text */
+  --accent: oklch(0.80 0.12 152);          /* Brighter mint accent */
   --accent-foreground: oklch(0.15 0.02 285);
-  --destructive: oklch(0.65 0.15 15);
-  --border: oklch(0.25 0.02 285);
-  --input: oklch(0.22 0.02 285);
-  --ring: oklch(0.72 0.12 285);
+  --destructive: oklch(0.68 0.18 15);      /* Slightly brighter red */
+  --border: oklch(0.32 0.02 285);          /* Lighter borders */
+  --input: oklch(0.28 0.02 285);           /* Lighter input background */
+  --ring: oklch(0.75 0.15 285);
   
   /* Tool colors for dark */
-  --tool-pdf: oklch(0.75 0.08 15);
-  --tool-jpg: oklch(0.8 0.08 73);
-  --tool-png: oklch(0.75 0.08 285);
-  --tool-doc: oklch(0.75 0.08 210);
+  --tool-pdf: oklch(0.78 0.10 15);        /* Brighter coral */
+  --tool-jpg: oklch(0.82 0.10 73);        /* Brighter peach */
+  --tool-png: oklch(0.78 0.10 285);       /* Brighter purple */
+  --tool-doc: oklch(0.78 0.10 210);       /* Brighter blue */
   
   /* Gradient colors dark */
-  --gradient-1: oklch(0.35 0.08 285);
-  --gradient-2: oklch(0.35 0.06 152);
-  --gradient-3: oklch(0.35 0.06 73);
+  --gradient-1: oklch(0.40 0.10 285);     /* Brighter purple gradient */
+  --gradient-2: oklch(0.40 0.08 152);     /* Brighter mint gradient */
+  --gradient-3: oklch(0.40 0.08 73);      /* Brighter peach gradient */
 }
 
 @layer base {
@@ -116,7 +116,36 @@
   
   /* Minimal transitions for performance */
   .ff-transition {
-    transition: transform 150ms ease-out, opacity 150ms ease-out, background-color 150ms ease-out;
+    transition: transform 150ms ease-out, opacity 150ms ease-out, background-color 150ms ease-out, border-color 150ms ease-out, box-shadow 150ms ease-out;
+  }
+  
+  /* Enhanced hover states for interactive elements */
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .hover-scale:hover {
+    transform: scale(1.02);
+  }
+  
+  /* Ensure all clickable elements have pointer cursor */
+  button:not(:disabled),
+  a,
+  [role="button"]:not([aria-disabled="true"]),
+  [onclick],
+  label[for],
+  input[type="checkbox"],
+  input[type="radio"],
+  .cursor-pointer {
+    cursor: pointer;
+  }
+  
+  /* Disabled state styling */
+  button:disabled,
+  [aria-disabled="true"],
+  .opacity-50 {
+    cursor: not-allowed;
   }
   
   /* Touch-specific utilities */

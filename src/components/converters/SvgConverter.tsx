@@ -225,15 +225,29 @@ export function SvgConverter() {
             
             {(outputFormat === 'jpeg' || outputFormat === 'webp') && (
               <div>
-                <label className="text-sm font-medium">Quality: {quality}%</label>
-                <Slider
-                  value={[quality]}
-                  onValueChange={([value]) => setQuality(value)}
-                  min={1}
-                  max={100}
-                  step={1}
-                  className="mt-2"
-                />
+                <label className="text-sm font-medium">Quality</label>
+                <div className="flex items-center gap-2 mt-2">
+                  <Slider
+                    value={[quality]}
+                    onValueChange={([value]) => setQuality(value)}
+                    min={1}
+                    max={100}
+                    step={1}
+                    className="flex-1"
+                  />
+                  <Input
+                    type="number"
+                    value={quality}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value) || 1;
+                      setQuality(Math.min(100, Math.max(1, val)));
+                    }}
+                    className="w-16 text-sm text-center"
+                    min={1}
+                    max={100}
+                  />
+                  <span className="text-sm text-muted-foreground">%</span>
+                </div>
               </div>
             )}
 

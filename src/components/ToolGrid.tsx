@@ -125,10 +125,11 @@ export default function ToolGrid() {
         <div className="text-center mt-12">
           <a
             href="/tools"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-medium transition-transform hover:scale-105"
+            className="relative inline-flex items-center gap-3 px-8 py-4 rounded-xl bg-primary text-primary-foreground font-semibold text-lg shadow-lg shadow-primary/25 transition-all hover:scale-105 hover:shadow-xl hover:shadow-primary/30 animate-pulse-subtle"
           >
-            View All {allTools.length} Tools
-            <ArrowRight className="w-4 h-4" />
+            <span className="absolute inset-0 rounded-xl bg-primary animate-ping opacity-20"></span>
+            <span className="relative">View All {allTools.length} Tools</span>
+            <ArrowRight className="relative w-5 h-5" />
           </a>
         </div>
         

@@ -134,6 +134,68 @@ export function CodeEditor({
               ref={textareaRef}
               value={value}
               onChange={(e) => onChange?.(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Tab') {
+                  e.preventDefault();
+                  const start = e.currentTarget.selectionStart;
+                  const end = e.currentTarget.selectionEnd;
+                  
+                  if (e.shiftKey) {
+                    // Handle Shift+Tab for outdent
+                    const beforeStart = value.lastIndexOf('\n', start - 1) + 1;
+                    const lineStart = value.substring(beforeStart, start);
+                    
+                    if (lineStart.startsWith('  ')) {
+                      // Remove 2 spaces from the beginning of the line
+                      const newValue = value.substring(0, beforeStart) + lineStart.substring(2) + value.substring(start);
+                      onChange?.(newValue);
+                      setTimeout(() => {
+                        if (textareaRef.current) {
+                          textareaRef.current.selectionStart = textareaRef.current.selectionEnd = Math.max(beforeStart, start - 2);
+                        }
+                      }, 0);
+                    }
+                  } else {
+                    // Handle Tab for indent
+                    if (start === end) {
+                      // No selection, insert 2 spaces
+                      const newValue = value.substring(0, start) + '  ' + value.substring(end);
+                      onChange?.(newValue);
+                      setTimeout(() => {
+                        if (textareaRef.current) {
+                          textareaRef.current.selectionStart = textareaRef.current.selectionEnd = start + 2;
+                        }
+                      }, 0);
+                    } else {
+                      // Selection exists, indent all selected lines
+                      const lines = value.split('\n');
+                      let charCount = 0;
+                      let startLine = -1;
+                      let endLine = -1;
+                      
+                      for (let i = 0; i < lines.length; i++) {
+                        const lineLength = lines[i].length;
+                        if (startLine === -1 && charCount + lineLength >= start) {
+                          startLine = i;
+                        }
+                        if (endLine === -1 && charCount + lineLength >= end) {
+                          endLine = i;
+                          break;
+                        }
+                        charCount += lineLength + 1; // +1 for newline
+                      }
+                      
+                      if (startLine !== -1 && endLine !== -1) {
+                        for (let i = startLine; i <= endLine; i++) {
+                          lines[i] = '  ' + lines[i];
+                        }
+                        const newValue = lines.join('\n');
+                        onChange?.(newValue);
+                      }
+                    }
+                  }
+                }
+              }}
               onScroll={handleScroll}
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}

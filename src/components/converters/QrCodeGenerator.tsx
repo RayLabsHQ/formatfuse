@@ -175,6 +175,8 @@ interface QrStyle {
   darkColor: string;
   lightColor: string;
   errorCorrectionLevel: 'L' | 'M' | 'Q' | 'H';
+  logo?: string;
+  logoSize?: number;
 }
 
 export default function QrCodeGenerator() {
@@ -230,6 +232,27 @@ export default function QrCodeGenerator() {
         errorCorrectionLevel: style.errorCorrectionLevel
       });
 
+      // Add logo if provided
+      if (style.logo && canvasRef.current) {
+        const ctx = canvasRef.current.getContext('2d');
+        if (ctx) {
+          const logoImg = new Image();
+          logoImg.onload = () => {
+            const logoSize = style.logoSize || 60;
+            const x = (style.size - logoSize) / 2;
+            const y = (style.size - logoSize) / 2;
+            
+            // Draw white background for logo
+            ctx.fillStyle = style.lightColor;
+            ctx.fillRect(x - 5, y - 5, logoSize + 10, logoSize + 10);
+            
+            // Draw logo
+            ctx.drawImage(logoImg, x, y, logoSize, logoSize);
+          };
+          logoImg.src = style.logo;
+        }
+      }
+
       // Also generate data URL for download
       const dataUrl = await QRCode.toDataURL(qrData, {
         width: style.size,
@@ -240,7 +263,38 @@ export default function QrCodeGenerator() {
         },
         errorCorrectionLevel: style.errorCorrectionLevel
       });
-      setQrDataUrl(dataUrl);
+      
+      // Add logo to data URL version
+      if (style.logo) {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = style.size;
+          canvas.height = style.size;
+          const ctx = canvas.getContext('2d');
+          
+          if (ctx) {
+            const qrImg = new Image();
+            qrImg.onload = () => {
+              ctx.drawImage(qrImg, 0, 0);
+              
+              const logoSize = style.logoSize || 60;
+              const x = (style.size - logoSize) / 2;
+              const y = (style.size - logoSize) / 2;
+              
+              ctx.fillStyle = style.lightColor;
+              ctx.fillRect(x - 5, y - 5, logoSize + 10, logoSize + 10);
+              ctx.drawImage(img, x, y, logoSize, logoSize);
+              
+              setQrDataUrl(canvas.toDataURL());
+            };
+            qrImg.src = dataUrl;
+          }
+        };
+        img.src = style.logo;
+      } else {
+        setQrDataUrl(dataUrl);
+      }
       
       // Auto-switch to result tab on mobile when QR is generated
       if (isMobile && dataUrl) {
@@ -805,6 +859,57 @@ export default function QrCodeGenerator() {
                   <p className="text-xs text-muted-foreground mt-1">
                     Higher levels allow more damage but reduce data capacity
                   </p>
+                </div>
+
+                {/* Logo/Branding */}
+                <div>
+                  <Label className="mb-2 block">Logo (Optional)</Label>
+                  <div className="space-y-3">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = (e) => {
+                            setStyle(prev => ({ ...prev, logo: e.target?.result as string }));
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                      className="cursor-pointer"
+                    />
+                    {style.logo && (
+                      <>
+                        <div className="flex items-center gap-4">
+                          <img src={style.logo} alt="Logo preview" className="w-12 h-12 rounded object-contain" />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setStyle(prev => ({ ...prev, logo: undefined, logoSize: undefined }))}
+                          >
+                            Remove Logo
+                          </Button>
+                        </div>
+                        <div>
+                          <Label className="mb-2 block">
+                            Logo Size: {style.logoSize || 60}px
+                          </Label>
+                          <Slider
+                            value={[style.logoSize || 60]}
+                            onValueChange={([value]) => setStyle(prev => ({ ...prev, logoSize: value }))}
+                            min={20}
+                            max={100}
+                            step={5}
+                          />
+                        </div>
+                      </>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      Add your logo to the center of the QR code. Use high error correction (H) for best results.
+                    </p>
+                  </div>
                 </div>
               </div>
             )}

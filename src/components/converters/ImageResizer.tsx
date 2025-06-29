@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { Upload, Download, Image, Settings2, AlertCircle, X, Maximize2 } from 'lucide-react';
 import { useImageResize } from '../../hooks/useImageResize';
 import type { ResizeOptions, ResizeMethod, FitMethod } from '../../lib/image-resize';
-import { VirtualizedFileList } from './VirtualizedFileList';
+import { SimplifiedFileList } from './SimplifiedFileList';
 
 interface FileInfo {
   file: File;
@@ -411,7 +411,7 @@ export default function ImageResizer() {
             </div>
           </div>
 
-          <VirtualizedFileList
+          <SimplifiedFileList
             files={files}
             onDownload={handleDownload}
             onRemove={handleRemoveFile}

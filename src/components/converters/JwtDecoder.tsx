@@ -2,7 +2,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { 
   Shield, Copy, Check, AlertTriangle, Clock, 
   Key, User, Calendar, CheckCircle, XCircle,
-  Eye, EyeOff, FileJson, Code, Info, Lock,
+  Eye, FileJson, Code, Info, Lock,
   Globe, Server, Package, Hash, Fingerprint
 } from 'lucide-react';
 import { Button } from '../ui/button';
