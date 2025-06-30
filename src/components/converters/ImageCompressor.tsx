@@ -875,24 +875,103 @@ export default function ImageCompressor() {
           </div>
 
           {/* Format Comparison */}
-          <div className="space-y-4">
+          <div className="space-y-6">
             <h2 className="text-2xl font-semibold">Format Comparison</h2>
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center justify-between p-3 rounded-lg bg-card/50">
-                <span className="font-medium">JPEG</span>
-                <span className="text-muted-foreground">Best for photos, no transparency</span>
+            <div className="space-y-3">
+              <div className="relative group bg-card/50 backdrop-blur-sm rounded-xl p-4 border border-border/50 hover:border-primary/30 transition-all duration-300">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-amber-500/20 to-amber-600/20 flex items-center justify-center">
+                      <span className="text-sm font-bold text-amber-600 dark:text-amber-400">JPG</span>
+                    </div>
+                    <div>
+                      <p className="font-semibold">JPEG</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Best for photos, no transparency</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-muted-foreground">Compression</p>
+                    <div className="flex items-center gap-1 mt-1">
+                      <div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div>
+                      <div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div>
+                      <div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div>
+                      <div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div>
+                      <div className="w-1.5 h-1.5 rounded-full bg-border"></div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center justify-between p-3 rounded-lg bg-card/50">
-                <span className="font-medium">WebP</span>
-                <span className="text-muted-foreground">Modern format, excellent compression</span>
+              
+              <div className="relative group bg-card/50 backdrop-blur-sm rounded-xl p-4 border border-border/50 hover:border-primary/30 transition-all duration-300">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500/20 to-blue-600/20 flex items-center justify-center">
+                      <span className="text-sm font-bold text-blue-600 dark:text-blue-400">WebP</span>
+                    </div>
+                    <div>
+                      <p className="font-semibold">WebP</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Modern format, excellent compression</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-muted-foreground">Compression</p>
+                    <div className="flex items-center gap-1 mt-1">
+                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center justify-between p-3 rounded-lg bg-card/50">
-                <span className="font-medium">PNG</span>
-                <span className="text-muted-foreground">Lossless, supports transparency</span>
+              
+              <div className="relative group bg-card/50 backdrop-blur-sm rounded-xl p-4 border border-border/50 hover:border-primary/30 transition-all duration-300">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-green-500/20 to-green-600/20 flex items-center justify-center">
+                      <span className="text-sm font-bold text-green-600 dark:text-green-400">PNG</span>
+                    </div>
+                    <div>
+                      <p className="font-semibold">PNG</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Lossless, supports transparency</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-muted-foreground">Compression</p>
+                    <div className="flex items-center gap-1 mt-1">
+                      <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+                      <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+                      <div className="w-1.5 h-1.5 rounded-full bg-border"></div>
+                      <div className="w-1.5 h-1.5 rounded-full bg-border"></div>
+                      <div className="w-1.5 h-1.5 rounded-full bg-border"></div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center justify-between p-3 rounded-lg bg-card/50">
-                <span className="font-medium">AVIF</span>
-                <span className="text-muted-foreground">Cutting-edge compression, limited support</span>
+              
+              <div className="relative group bg-card/50 backdrop-blur-sm rounded-xl p-4 border border-border/50 hover:border-primary/30 transition-all duration-300">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500/20 to-purple-600/20 flex items-center justify-center">
+                      <span className="text-sm font-bold text-purple-600 dark:text-purple-400">AVIF</span>
+                    </div>
+                    <div>
+                      <p className="font-semibold">AVIF</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Cutting-edge compression, limited support</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-muted-foreground">Compression</p>
+                    <div className="flex items-center gap-1 mt-1">
+                      <div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>
+                      <div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>
+                      <div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>
+                      <div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>
+                      <div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -902,21 +981,29 @@ export default function ImageCompressor() {
         <div className="space-y-6 mt-12">
           <h2 className="text-2xl font-semibold">Related Tools</h2>
           <div className="grid gap-4 sm:grid-cols-3">
-            {relatedTools.map((tool) => (
-              <a
-                key={tool.id}
-                href={`/tools/${tool.id}`}
-                className="group bg-card/50 backdrop-blur-sm rounded-xl p-6 border border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-lg"
-              >
-                <tool.icon className="w-8 h-8 text-primary mb-3 group-hover:scale-110 transition-transform" />
-                <h3 className="font-semibold mb-2 group-hover:text-primary transition-colors">{tool.name}</h3>
-                <p className="text-sm text-muted-foreground">{tool.description}</p>
-                <div className="mt-4 flex items-center text-sm text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                  Try now
-                  <ChevronRight className="w-4 h-4 ml-1" />
-                </div>
-              </a>
-            ))}
+            {relatedTools.map((tool) => {
+              const Icon = tool.icon;
+              return (
+                <a
+                  key={tool.id}
+                  href={`/tools/${tool.id}`}
+                  className="group relative bg-card/50 backdrop-blur-sm rounded-xl p-6 border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 overflow-hidden"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="relative">
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                      <Icon className="w-6 h-6 text-primary" />
+                    </div>
+                    <h3 className="font-semibold mb-2 group-hover:text-primary transition-colors">{tool.name}</h3>
+                    <p className="text-sm text-muted-foreground mb-4">{tool.description}</p>
+                    <div className="flex items-center text-sm font-medium text-primary">
+                      <span className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">Try now</span>
+                      <ChevronRight className="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform duration-300" />
+                    </div>
+                  </div>
+                </a>
+              );
+            })}
           </div>
         </div>
 
@@ -926,14 +1013,30 @@ export default function ImageCompressor() {
             <HelpCircle className="w-6 h-6 text-primary" />
             Frequently Asked Questions
           </h2>
-          <div className="space-y-4">
+          
+          {/* Desktop Grid Layout */}
+          <div className="hidden md:grid md:grid-cols-2 gap-4">
+            {faqs.map((faq, index) => (
+              <div key={index} className="bg-card/50 backdrop-blur-sm rounded-xl p-6 border border-border/50 hover:border-primary/30 transition-all duration-300">
+                <h3 className="font-semibold text-foreground mb-3">
+                  {faq.question}
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {faq.answer}
+                </p>
+              </div>
+            ))}
+          </div>
+          
+          {/* Mobile Accordion Layout */}
+          <div className="md:hidden space-y-3">
             {faqs.map((faq, index) => (
               <details key={index} className="group">
-                <summary className="flex items-center justify-between cursor-pointer list-none p-4 rounded-lg bg-card/50 hover:bg-card/80 transition-colors">
-                  <span className="font-medium pr-4">{faq.question}</span>
-                  <ChevronRight className="w-5 h-5 text-muted-foreground transition-transform group-open:rotate-90" />
+                <summary className="flex items-center justify-between cursor-pointer list-none p-5 rounded-xl bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 transition-all duration-300">
+                  <span className="font-medium pr-4 text-foreground">{faq.question}</span>
+                  <ChevronRight className="w-5 h-5 text-muted-foreground transition-transform duration-300 group-open:rotate-90" />
                 </summary>
-                <div className="px-4 pb-4 pt-2 text-muted-foreground">
+                <div className="px-5 pb-5 pt-3 text-sm text-muted-foreground leading-relaxed">
                   {faq.answer}
                 </div>
               </details>
