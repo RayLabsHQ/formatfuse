@@ -8,15 +8,18 @@ import {
 export interface Tool {
   id: string;
   name: string;
+  title?: string; // Alternative title for display
   description: string;
   icon: React.ElementType;
   searches?: string;
   isNew?: boolean;
   isPopular?: boolean;
+  popular?: boolean; // Alternative popular flag
   isBeta?: boolean;
   isImplemented?: boolean; // Flag to hide unimplemented tools
   category: string;
   route?: string; // Custom route if different from id
+  href?: string; // Alternative href field
 }
 
 // Universal converters (these should appear first)

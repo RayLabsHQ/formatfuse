@@ -155,13 +155,6 @@ export default function Navigation() {
                 )}
               </div>
             ))}
-            
-            <a
-              href="/tools"
-              className="px-4 py-2 text-sm font-medium hover:text-foreground text-muted-foreground ff-transition"
-            >
-              All Tools
-            </a>
           </div>
 
           {/* Search and Actions */}
@@ -362,14 +355,6 @@ export default function Navigation() {
                 </div>
               ))
             )}
-
-            <a
-              href="/tools"
-              className="flex items-center px-4 py-3 rounded-md hover:bg-secondary active:bg-secondary/80 ff-transition text-sm font-medium touch-manipulation min-h-[48px]"
-              onClick={() => setIsOpen(false)}
-            >
-              View All Tools
-            </a>
           </div>
         </div>
       )}

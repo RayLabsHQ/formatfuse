@@ -1,0 +1,35 @@
+---
+// Grid background component inspired by modern design patterns
+---
+
+<div class="grid-background" aria-hidden="true">
+  <svg class="grid-svg" width="100%" height="100%">
+    <defs>
+      <pattern id="grid-pattern" width="40" height="40" patternUnits="userSpaceOnUse">
+        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" stroke-width="1" opacity="0.05"/>
+      </pattern>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#grid-pattern)" />
+  </svg>
+</div>
+
+<style>
+  .grid-background {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  
+  .grid-svg {
+    position: absolute;
+    inset: 0;
+    color: var(--primary);
+  }
+  
+  @media (prefers-reduced-motion: reduce) {
+    .grid-background {
+      display: none;
+    }
+  }
+</style>

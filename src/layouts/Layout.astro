@@ -28,15 +28,9 @@ const {
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
 // Generate OG image path
-const generatedOgImageUrl = getImagePath({ 
-  url: Astro.url, 
-  site: Astro.site,
-  // Pass custom props for our renderer
-  title,
-  description,
-  toolType,
-  sourceFormat,
-  targetFormat
+const generatedOgImageUrl = getImagePath({
+  url: Astro.url,
+  site: Astro.site
 });
 
 const finalOgImage = ogImage || generatedOgImageUrl;
