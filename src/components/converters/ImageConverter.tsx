@@ -4,7 +4,7 @@ import {
   FileImage, AlertCircle, CheckCircle2, Loader2, Shield, Zap,
   Sparkles, Info, FileText, Image, ChevronRight, HelpCircle
 } from 'lucide-react';
-import { getImageConverter, type ImageFormat } from '../../lib/image-converter';
+import { getImageConverterComlink as getImageConverter, IMAGE_FORMATS, type ImageFormat } from '../../lib/image-converter-comlink';
 import { getHeicImageConverter } from '../../lib/heic-image-converter';
 import { Slider } from '../ui/slider';
 import { Button } from '../ui/button';
@@ -29,17 +29,17 @@ interface ImageConverterProps {
   targetFormat?: string;
 }
 
-// Format configuration
+// Format configuration with display names and colors
 const FORMATS: Record<string, ImageFormat & { displayName: string; color: string }> = {
-  PNG: { mime: 'image/png', extension: 'png', name: 'PNG', displayName: 'PNG', color: 'var(--tool-png)' },
-  JPEG: { mime: 'image/jpeg', extension: 'jpg', name: 'JPEG', displayName: 'JPG', color: 'var(--tool-jpg)' },
-  WEBP: { mime: 'image/webp', extension: 'webp', name: 'WebP', displayName: 'WebP', color: 'oklch(0.72 0.16 210)' },
-  GIF: { mime: 'image/gif', extension: 'gif', name: 'GIF', displayName: 'GIF', color: 'oklch(0.72 0.18 152)' },
-  BMP: { mime: 'image/bmp', extension: 'bmp', name: 'BMP', displayName: 'BMP', color: 'oklch(0.65 0.2 15)' },
-  ICO: { mime: 'image/x-icon', extension: 'ico', name: 'ICO', displayName: 'ICO', color: 'oklch(0.75 0.16 73)' },
-  TIFF: { mime: 'image/tiff', extension: 'tiff', name: 'TIFF', displayName: 'TIFF', color: 'oklch(0.7 0.18 285)' },
-  AVIF: { mime: 'image/avif', extension: 'avif', name: 'AVIF', displayName: 'AVIF', color: 'oklch(0.72 0.16 210)' },
-  HEIC: { mime: 'image/heic', extension: 'heic', name: 'HEIC', displayName: 'HEIC', color: 'oklch(0.72 0.18 15)' },
+  PNG: { ...IMAGE_FORMATS.PNG, displayName: 'PNG', color: 'var(--tool-png)' },
+  JPEG: { ...IMAGE_FORMATS.JPEG, displayName: 'JPG', color: 'var(--tool-jpg)' },
+  WEBP: { ...IMAGE_FORMATS.WEBP, displayName: 'WebP', color: 'oklch(0.72 0.16 210)' },
+  GIF: { ...IMAGE_FORMATS.GIF, displayName: 'GIF', color: 'oklch(0.72 0.18 152)' },
+  BMP: { ...IMAGE_FORMATS.BMP, displayName: 'BMP', color: 'oklch(0.65 0.2 15)' },
+  ICO: { ...IMAGE_FORMATS.ICO, displayName: 'ICO', color: 'oklch(0.75 0.16 73)' },
+  TIFF: { ...IMAGE_FORMATS.TIFF, displayName: 'TIFF', color: 'oklch(0.7 0.18 285)' },
+  AVIF: { ...IMAGE_FORMATS.AVIF, displayName: 'AVIF', color: 'oklch(0.72 0.16 210)' },
+  HEIC: { ...IMAGE_FORMATS.HEIC, displayName: 'HEIC', color: 'oklch(0.72 0.18 15)' },
 };
 
 const features = [

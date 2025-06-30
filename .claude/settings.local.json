@@ -13,7 +13,8 @@
       "Bash(do echo \"=== $file ===\")",
       "Bash(done)",
       "Bash(find:*)",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+      "Bash(pnpm run check:*)"
     ],
     "deny": []
   }

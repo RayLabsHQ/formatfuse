@@ -6,7 +6,7 @@ import {
 import { Button } from '../ui/button';
 import { Progress } from '../ui/progress';
 import { ImageCarouselModal } from './ImageCarouselModal';
-import type { ImageFormat } from '../../lib/image-converter';
+import type { ImageFormat } from '../../lib/image-converter-comlink';
 
 interface FileInfo {
   file: File;
