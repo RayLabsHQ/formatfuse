@@ -1,15 +1,15 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { 
   Upload, Download, X, ArrowRight, ArrowUpDown,
   FileImage, AlertCircle, CheckCircle2, Loader2, Shield, Zap,
-  Sparkles, Info, Minimize2, Image, ChevronRight, HelpCircle
+  Sparkles, Info, Minimize2, Image, ChevronRight, HelpCircle,
+  Sliders, Crown, Star, Scale, Package
 } from 'lucide-react';
 import { useImageCompress } from '../../hooks/useImageCompress';
 import type { CompressOptions, CompressFormat } from '../../lib/image-compress';
 import { Slider } from '../ui/slider';
 import { Button } from '../ui/button';
 import { CollapsibleSection } from '../ui/mobile/CollapsibleSection';
-import { FormatSelect } from '../ui/format-select';
 import { cn } from '../../lib/utils';
 import { ImageCarouselModal } from './ImageCarouselModal';
 import JSZip from 'jszip';
@@ -75,17 +75,12 @@ export default function ImageCompressor() {
   const [selectedFormat, setSelectedFormat] = useState(FORMATS.JPEG);
   const [maintainFormat, setMaintainFormat] = useState(true);
   const [quality, setQuality] = useState(85);
-  const [qualityInput, setQualityInput] = useState('85');
   const [activeFeature, setActiveFeature] = useState<number | null>(null);
   const [maxWidth, setMaxWidth] = useState<number | undefined>(undefined);
   const [maxHeight, setMaxHeight] = useState<number | undefined>(undefined);
   const parentRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Sync quality input when quality changes from buttons
-  useEffect(() => {
-    setQualityInput(quality.toString());
-  }, [quality]);
 
   const handleFiles = useCallback((selectedFiles: File[]) => {
     const imageFiles = selectedFiles.filter(file => file.type.startsWith('image/'));
@@ -112,15 +107,6 @@ export default function ImageCompressor() {
     handleFiles(droppedFiles);
   }, [handleFiles]);
 
-  const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(false);
-  }, []);
 
   const compressFile = useCallback(async (fileIndex: number) => {
     const fileInfo = files[fileIndex];
@@ -252,9 +238,7 @@ export default function ImageCompressor() {
   });
 
   const completedCount = files.filter(f => f.status === 'completed').length;
-  const hasFiles = files.length > 0;
   const canCompress = files.some(f => f.status === 'pending' || f.status === 'error');
-  const canDownload = completedCount > 0;
   const hasCompletedFiles = completedCount > 0;
 
   const formatOptions = Object.values(FORMATS);
@@ -272,7 +256,7 @@ export default function ImageCompressor() {
         <div className="text-center mb-8 sm:mb-12">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 tracking-tight text-gradient animate-fade-in-up">
             <span className="text-foreground">Image </span>
-            <span style={{ color: 'var(--tool-primary)' }}>Compressor</span>
+            <span className="text-primary">Compressor</span>
           </h1>
           
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
@@ -345,229 +329,181 @@ export default function ImageCompressor() {
             className="hidden"
           />
           
-          {/* Settings Card (Same style as ImageConverter) */}
-          <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-4 sm:p-6 animate-fade-in-up relative z-20" style={{ animationDelay: '0.3s' }}>
-            <div className="space-y-6">
-              {/* Format Selection */}
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-medium">Output Format</h3>
-                  <label className="flex items-center gap-2 cursor-pointer text-sm">
+          {/* Settings Card - Redesigned */}
+          <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 overflow-hidden animate-fade-in-up relative z-20" style={{ animationDelay: '0.3s' }}>
+            {/* Card Header */}
+            <div className="border-b border-border/50 px-6 py-4 bg-gradient-to-r from-primary/5 to-transparent">
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <Sliders className="w-5 h-5 text-primary" />
+                Compression Settings
+              </h2>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              {/* Format Selection - Improved */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <FileImage className="w-4 h-4 text-muted-foreground" />
+                    Output Format
+                  </label>
+                  <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
                       checked={maintainFormat}
                       onChange={(e) => setMaintainFormat(e.target.checked)}
-                      className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
+                      className="sr-only peer"
                     />
-                    <span className="text-muted-foreground">Keep original format</span>
+                    <div className="w-11 h-6 bg-muted rounded-full peer peer-checked:bg-primary transition-colors duration-200"></div>
+                    <div className="absolute left-[2px] top-[2px] bg-background w-5 h-5 rounded-full transition-transform duration-200 peer-checked:translate-x-5"></div>
+                    <span className="ml-3 text-sm text-muted-foreground">Keep original</span>
                   </label>
                 </div>
                 
                 {!maintainFormat && (
-                  <div className="max-w-xs">
-                    <FormatSelect
-                      label="Format"
-                      formats={formatOptions}
-                      value={selectedFormat}
-                      onChange={(format) => setSelectedFormat(format as typeof selectedFormat)}
-                    />
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {formatOptions.map((format) => (
+                      <button
+                        key={format.extension}
+                        onClick={() => setSelectedFormat(format as typeof selectedFormat)}
+                        className={cn(
+                          "relative px-4 py-3 rounded-xl border-2 transition-all duration-200",
+                          selectedFormat.extension === format.extension
+                            ? "border-primary bg-primary/10"
+                            : "border-border/50 hover:border-primary/50 bg-card/50"
+                        )}
+                      >
+                        <div className="text-sm font-medium">{format.displayName}</div>
+                        <div className="text-xs text-muted-foreground mt-0.5">{format.name}</div>
+                      </button>
+                    ))}
                   </div>
                 )}
               </div>
 
-              {/* Quality Settings */}
-              <div>
-                <div className="max-w-2xl mx-auto">
-                  {/* Desktop Layout */}
-                  <div className="hidden sm:flex items-center justify-between mb-4">
-                    <label className="text-sm font-medium">Quality</label>
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-1 p-1 bg-background/50 rounded-lg">
-                        <button
-                          onClick={() => setQuality(95)}
-                          className={cn(
-                            "px-3 py-1 text-xs font-medium rounded-md transition-all duration-200",
-                            quality === 95 ? "bg-primary text-primary-foreground" : "hover:bg-primary/10"
-                          )}
-                        >
-                          Maximum
-                        </button>
-                        <button
-                          onClick={() => setQuality(85)}
-                          className={cn(
-                            "px-3 py-1 text-xs font-medium rounded-md transition-all duration-200",
-                            quality === 85 ? "bg-primary text-primary-foreground" : "hover:bg-primary/10"
-                          )}
-                        >
-                          High
-                        </button>
-                        <button
-                          onClick={() => setQuality(70)}
-                          className={cn(
-                            "px-3 py-1 text-xs font-medium rounded-md transition-all duration-200",
-                            quality === 70 ? "bg-primary text-primary-foreground" : "hover:bg-primary/10"
-                          )}
-                        >
-                          Balanced
-                        </button>
-                        <button
-                          onClick={() => setQuality(50)}
-                          className={cn(
-                            "px-3 py-1 text-xs font-medium rounded-md transition-all duration-200",
-                            quality === 50 ? "bg-primary text-primary-foreground" : "hover:bg-primary/10"
-                          )}
-                        >
-                          Small
-                        </button>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          value={qualityInput}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            if (val === '' || /^\d{0,3}$/.test(val)) {
-                              setQualityInput(val);
-                            }
-                          }}
-                          onBlur={() => {
-                            const num = parseInt(qualityInput);
-                            if (!qualityInput || isNaN(num)) {
-                              setQuality(85);
-                              setQualityInput('85');
-                            } else {
-                              const clamped = Math.min(100, Math.max(10, num));
-                              setQuality(clamped);
-                              setQualityInput(clamped.toString());
-                            }
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.currentTarget.blur();
-                            }
-                          }}
-                          className="w-14 px-2 py-1 text-sm text-center bg-background/50 border border-border/50 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-                        />
-                        <span className="text-sm text-muted-foreground">%</span>
-                      </div>
-                    </div>
+              {/* Quality Settings - Enhanced */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-muted-foreground" />
+                    Quality
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <div className="text-2xl font-bold text-primary">{quality}%</div>
                   </div>
-                  
-                  {/* Mobile Layout */}
-                  <div className="sm:hidden space-y-3">
-                    <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium">Quality</label>
-                      <div className="flex items-center gap-1">
-                        <input
-                          type="text"
-                          value={qualityInput}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            if (val === '' || /^\d{0,3}$/.test(val)) {
-                              setQualityInput(val);
-                            }
-                          }}
-                          onBlur={() => {
-                            const num = parseInt(qualityInput);
-                            if (!qualityInput || isNaN(num)) {
-                              setQuality(85);
-                              setQualityInput('85');
-                            } else {
-                              const clamped = Math.min(100, Math.max(10, num));
-                              setQuality(clamped);
-                              setQualityInput(clamped.toString());
-                            }
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.currentTarget.blur();
-                            }
-                          }}
-                          className="w-12 px-1 py-1 text-sm text-center bg-background/50 border border-border/50 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-                        />
-                        <span className="text-sm text-muted-foreground">%</span>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-4 gap-1 p-1 bg-background/50 rounded-lg">
+                </div>
+                
+                {/* Quality Presets */}
+                <div className="grid grid-cols-4 gap-2">
+                  {[
+                    { label: 'Maximum', value: 95, size: '~90%', Icon: Crown },
+                    { label: 'High', value: 85, size: '~70%', Icon: Star },
+                    { label: 'Balanced', value: 70, size: '~50%', Icon: Scale },
+                    { label: 'Small', value: 50, size: '~30%', Icon: Package }
+                  ].map((preset) => {
+                    const Icon = preset.Icon;
+                    return (
                       <button
-                        onClick={() => setQuality(95)}
+                        key={preset.value}
+                        onClick={() => setQuality(preset.value)}
                         className={cn(
-                          "px-2 py-2 text-[11px] font-medium rounded-md transition-all duration-200",
-                          quality === 95 ? "bg-primary text-primary-foreground" : "hover:bg-primary/10"
+                          "relative p-3 rounded-xl border-2 transition-all duration-200 group",
+                          quality === preset.value
+                            ? "border-primary bg-primary/10 shadow-lg shadow-primary/20"
+                            : "border-border/50 hover:border-primary/50 bg-card/50"
                         )}
                       >
-                        Max
+                        <Icon className={cn(
+                          "w-5 h-5 mx-auto mb-1 transition-colors",
+                          quality === preset.value ? "text-primary" : "text-muted-foreground group-hover:text-primary"
+                        )} />
+                        <div className="text-xs font-medium">{preset.label}</div>
+                        <div className="text-[10px] text-muted-foreground mt-0.5">{preset.size}</div>
                       </button>
-                      <button
-                        onClick={() => setQuality(85)}
-                        className={cn(
-                          "px-2 py-2 text-[11px] font-medium rounded-md transition-all duration-200",
-                          quality === 85 ? "bg-primary text-primary-foreground" : "hover:bg-primary/10"
-                        )}
-                      >
-                        High
-                      </button>
-                      <button
-                        onClick={() => setQuality(70)}
-                        className={cn(
-                          "px-2 py-2 text-[11px] font-medium rounded-md transition-all duration-200",
-                          quality === 70 ? "bg-primary text-primary-foreground" : "hover:bg-primary/10"
-                        )}
-                      >
-                        Balanced
-                      </button>
-                      <button
-                        onClick={() => setQuality(50)}
-                        className={cn(
-                          "px-2 py-2 text-[11px] font-medium rounded-md transition-all duration-200",
-                          quality === 50 ? "bg-primary text-primary-foreground" : "hover:bg-primary/10"
-                        )}
-                      >
-                        Small
-                      </button>
-                    </div>
-                  </div>
-                  
-                  {/* Slider */}
+                    );
+                  })}
+                </div>
+                
+                {/* Enhanced Slider */}
+                <div className="relative">
                   <Slider
                     value={[quality]}
                     onValueChange={(value) => setQuality(value[0])}
                     min={10}
                     max={100}
                     step={5}
-                    className="w-full mt-4"
+                    className="w-full"
                   />
-                  <div className="flex justify-between mt-2">
-                    <span className="text-xs text-muted-foreground">Smaller file</span>
-                    <span className="text-xs text-muted-foreground">Better quality</span>
+                  <div className="flex justify-between mt-3">
+                    <div className="text-xs space-y-1">
+                      <div className="font-medium text-muted-foreground">Smaller file</div>
+                      <div className="text-[10px] text-muted-foreground/70">Lower quality</div>
+                    </div>
+                    <div className="text-xs space-y-1 text-right">
+                      <div className="font-medium text-muted-foreground">Better quality</div>
+                      <div className="text-[10px] text-muted-foreground/70">Larger file</div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Visual Compression Impact */}
+                <div className="bg-gradient-to-r from-orange-500/10 via-yellow-500/10 to-green-500/10 rounded-xl p-4">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Estimated size reduction</span>
+                    <span className="font-bold text-primary">{Math.round(100 - quality)}%</span>
+                  </div>
+                  <div className="mt-2 h-2 bg-black/10 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-orange-500 to-green-500 transition-all duration-500"
+                      style={{ width: `${100 - quality}%` }}
+                    />
                   </div>
                 </div>
               </div>
 
-              {/* Size Limits */}
-              <CollapsibleSection title="Size Limits" defaultOpen={false}>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Max Width (pixels)</label>
-                    <input
-                      type="number"
-                      value={maxWidth || ''}
-                      onChange={(e) => setMaxWidth(e.target.value ? parseInt(e.target.value) : undefined)}
-                      placeholder="Original"
-                      className="w-full px-3 py-2 bg-background/50 border border-border/50 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-                    />
+              {/* Size Limits - Redesigned */}
+              <CollapsibleSection 
+                title="Size Limits"
+                defaultOpen={false}
+              >
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium flex items-center gap-2">
+                      <ArrowRight className="w-3 h-3 text-muted-foreground" />
+                      Max Width
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={maxWidth || ''}
+                        onChange={(e) => setMaxWidth(e.target.value ? parseInt(e.target.value) : undefined)}
+                        placeholder="Original"
+                        className="w-full pl-3 pr-12 py-2 bg-background/50 border border-border/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">px</span>
+                    </div>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Max Height (pixels)</label>
-                    <input
-                      type="number"
-                      value={maxHeight || ''}
-                      onChange={(e) => setMaxHeight(e.target.value ? parseInt(e.target.value) : undefined)}
-                      placeholder="Original"
-                      className="w-full px-3 py-2 bg-background/50 border border-border/50 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-                    />
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium flex items-center gap-2">
+                      <ArrowUpDown className="w-3 h-3 text-muted-foreground rotate-90" />
+                      Max Height
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={maxHeight || ''}
+                        onChange={(e) => setMaxHeight(e.target.value ? parseInt(e.target.value) : undefined)}
+                        placeholder="Original"
+                        className="w-full pl-3 pr-12 py-2 bg-background/50 border border-border/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">px</span>
+                    </div>
                   </div>
                 </div>
+                <p className="text-xs text-muted-foreground mt-3 flex items-center gap-1">
+                  <Info className="w-3 h-3" />
+                  Images will be resized proportionally if limits are exceeded
+                </p>
               </CollapsibleSection>
             </div>
           </div>
@@ -841,136 +777,149 @@ export default function ImageCompressor() {
           formatFileSize={formatFileSize}
         />
 
-        {/* Info Sections */}
-        <div className="grid gap-8 md:grid-cols-2 mt-12">
-          {/* How it works */}
-          <div className="space-y-4">
-            <h2 className="text-2xl font-semibold flex items-center gap-2">
-              <Info className="w-6 h-6 text-primary" />
-              How It Works
-            </h2>
-            <div className="space-y-3">
-              <div className="flex gap-3">
-                <span className="flex-shrink-0 w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-medium">1</span>
-                <div>
-                  <p className="font-medium">Select your images</p>
-                  <p className="text-sm text-muted-foreground">Upload JPG, PNG, WebP, or AVIF images</p>
+        {/* How it works */}
+        <div className="space-y-6 mt-12">
+          <h2 className="text-2xl font-semibold flex items-center gap-2">
+            <Info className="w-6 h-6 text-primary" />
+            How It Works
+          </h2>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="bg-card/50 backdrop-blur-sm rounded-xl p-6 border border-border/50">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">1</span>
+                <h3 className="font-semibold">Select your images</h3>
+              </div>
+              <p className="text-sm text-muted-foreground">Upload JPG, PNG, WebP, or AVIF images</p>
+            </div>
+            <div className="bg-card/50 backdrop-blur-sm rounded-xl p-6 border border-border/50">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">2</span>
+                <h3 className="font-semibold">Choose compression settings</h3>
+              </div>
+              <p className="text-sm text-muted-foreground">Adjust quality and format to your needs</p>
+            </div>
+            <div className="bg-card/50 backdrop-blur-sm rounded-xl p-6 border border-border/50">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">3</span>
+                <h3 className="font-semibold">Download optimized images</h3>
+              </div>
+              <p className="text-sm text-muted-foreground">Get smaller files with preserved quality</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Format Comparison */}
+        <div className="space-y-6 mt-12">
+          <h2 className="text-2xl font-semibold">Format Comparison</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-4xl mx-auto">
+            <div className="bg-card/50 backdrop-blur-sm rounded-xl p-6 border border-border/50 hover:border-primary/30 transition-all duration-300">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-600/20 flex items-center justify-center">
+                  <span className="text-base font-bold text-amber-600 dark:text-amber-400">JPG</span>
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold">JPEG</h3>
+                  <p className="text-xs text-muted-foreground">Best for photos, no transparency</p>
                 </div>
               </div>
-              <div className="flex gap-3">
-                <span className="flex-shrink-0 w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-medium">2</span>
-                <div>
-                  <p className="font-medium">Choose compression settings</p>
-                  <p className="text-sm text-muted-foreground">Adjust quality and format to your needs</p>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Compression</span>
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                    <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                    <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                    <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                    <div className="w-2 h-2 rounded-full bg-border"></div>
+                  </div>
                 </div>
-              </div>
-              <div className="flex gap-3">
-                <span className="flex-shrink-0 w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-medium">3</span>
-                <div>
-                  <p className="font-medium">Download optimized images</p>
-                  <p className="text-sm text-muted-foreground">Get smaller files with preserved quality</p>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Quality</span>
+                  <span className="text-xs">Good</span>
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* Format Comparison */}
-          <div className="space-y-6">
-            <h2 className="text-2xl font-semibold">Format Comparison</h2>
-            <div className="space-y-3">
-              <div className="relative group bg-card/50 backdrop-blur-sm rounded-xl p-4 border border-border/50 hover:border-primary/30 transition-all duration-300">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-amber-500/20 to-amber-600/20 flex items-center justify-center">
-                      <span className="text-sm font-bold text-amber-600 dark:text-amber-400">JPG</span>
-                    </div>
-                    <div>
-                      <p className="font-semibold">JPEG</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">Best for photos, no transparency</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-muted-foreground">Compression</p>
-                    <div className="flex items-center gap-1 mt-1">
-                      <div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div>
-                      <div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div>
-                      <div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div>
-                      <div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div>
-                      <div className="w-1.5 h-1.5 rounded-full bg-border"></div>
-                    </div>
-                  </div>
+            
+            <div className="bg-card/50 backdrop-blur-sm rounded-xl p-6 border border-border/50 hover:border-primary/30 transition-all duration-300">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-600/20 flex items-center justify-center">
+                  <span className="text-base font-bold text-blue-600 dark:text-blue-400">WebP</span>
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold">WebP</h3>
+                  <p className="text-xs text-muted-foreground">Modern format, excellent compression</p>
                 </div>
               </div>
-              
-              <div className="relative group bg-card/50 backdrop-blur-sm rounded-xl p-4 border border-border/50 hover:border-primary/30 transition-all duration-300">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500/20 to-blue-600/20 flex items-center justify-center">
-                      <span className="text-sm font-bold text-blue-600 dark:text-blue-400">WebP</span>
-                    </div>
-                    <div>
-                      <p className="font-semibold">WebP</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">Modern format, excellent compression</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-muted-foreground">Compression</p>
-                    <div className="flex items-center gap-1 mt-1">
-                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
-                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
-                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
-                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
-                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
-                    </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Compression</span>
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
                   </div>
                 </div>
-              </div>
-              
-              <div className="relative group bg-card/50 backdrop-blur-sm rounded-xl p-4 border border-border/50 hover:border-primary/30 transition-all duration-300">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-green-500/20 to-green-600/20 flex items-center justify-center">
-                      <span className="text-sm font-bold text-green-600 dark:text-green-400">PNG</span>
-                    </div>
-                    <div>
-                      <p className="font-semibold">PNG</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">Lossless, supports transparency</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-muted-foreground">Compression</p>
-                    <div className="flex items-center gap-1 mt-1">
-                      <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
-                      <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
-                      <div className="w-1.5 h-1.5 rounded-full bg-border"></div>
-                      <div className="w-1.5 h-1.5 rounded-full bg-border"></div>
-                      <div className="w-1.5 h-1.5 rounded-full bg-border"></div>
-                    </div>
-                  </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Quality</span>
+                  <span className="text-xs">Excellent</span>
                 </div>
               </div>
-              
-              <div className="relative group bg-card/50 backdrop-blur-sm rounded-xl p-4 border border-border/50 hover:border-primary/30 transition-all duration-300">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500/20 to-purple-600/20 flex items-center justify-center">
-                      <span className="text-sm font-bold text-purple-600 dark:text-purple-400">AVIF</span>
-                    </div>
-                    <div>
-                      <p className="font-semibold">AVIF</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">Cutting-edge compression, limited support</p>
-                    </div>
+            </div>
+            
+            <div className="bg-card/50 backdrop-blur-sm rounded-xl p-6 border border-border/50 hover:border-primary/30 transition-all duration-300">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-green-500/20 to-green-600/20 flex items-center justify-center">
+                  <span className="text-base font-bold text-green-600 dark:text-green-400">PNG</span>
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold">PNG</h3>
+                  <p className="text-xs text-muted-foreground">Lossless, supports transparency</p>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Compression</span>
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                    <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                    <div className="w-2 h-2 rounded-full bg-border"></div>
+                    <div className="w-2 h-2 rounded-full bg-border"></div>
+                    <div className="w-2 h-2 rounded-full bg-border"></div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-muted-foreground">Compression</p>
-                    <div className="flex items-center gap-1 mt-1">
-                      <div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>
-                      <div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>
-                      <div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>
-                      <div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>
-                      <div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>
-                    </div>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Quality</span>
+                  <span className="text-xs">Lossless</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-card/50 backdrop-blur-sm rounded-xl p-6 border border-border/50 hover:border-primary/30 transition-all duration-300">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500/20 to-purple-600/20 flex items-center justify-center">
+                  <span className="text-base font-bold text-purple-600 dark:text-purple-400">AVIF</span>
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold">AVIF</h3>
+                  <p className="text-xs text-muted-foreground">Cutting-edge compression, limited support</p>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Compression</span>
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                    <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                    <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                    <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                    <div className="w-2 h-2 rounded-full bg-purple-500"></div>
                   </div>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Quality</span>
+                  <span className="text-xs">Best</span>
                 </div>
               </div>
             </div>
@@ -996,8 +945,8 @@ export default function ImageCompressor() {
                     </div>
                     <h3 className="font-semibold mb-2 group-hover:text-primary transition-colors">{tool.name}</h3>
                     <p className="text-sm text-muted-foreground mb-4">{tool.description}</p>
-                    <div className="flex items-center text-sm font-medium text-primary">
-                      <span className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">Try now</span>
+                    <div className="flex items-center text-sm font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <span className="transform -translate-x-2 group-hover:translate-x-0 transition-transform duration-300">Try now</span>
                       <ChevronRight className="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform duration-300" />
                     </div>
                   </div>
