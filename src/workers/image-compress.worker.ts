@@ -2,11 +2,13 @@ import * as Comlink from 'comlink';
 import { encode as encodeJpeg } from '@jsquash/jpeg';
 import { encode as encodeWebp } from '@jsquash/webp';
 import { encode as encodePng } from '@jsquash/png';
+import { encode as encodeAvif } from '@jsquash/avif';
 import { decode as decodeJpeg } from '@jsquash/jpeg';
 import { decode as decodePng } from '@jsquash/png';
 import { decode as decodeWebp } from '@jsquash/webp';
+import { decode as decodeAvif } from '@jsquash/avif';
 
-export type CompressFormat = 'jpeg' | 'jpg' | 'webp' | 'png';
+export type CompressFormat = 'jpeg' | 'jpg' | 'webp' | 'png' | 'avif';
 
 export interface CompressOptions {
   quality?: number; // 0-100 for JPEG/WebP
@@ -35,6 +37,8 @@ class ImageCompressWorker {
       return await decodePng(new Uint8Array(arrayBuffer));
     } else if (type.includes('webp')) {
       return await decodeWebp(new Uint8Array(arrayBuffer));
+    } else if (type.includes('avif')) {
+      return await decodeAvif(new Uint8Array(arrayBuffer));
     }
     
     // For other formats, try using OffscreenCanvas
@@ -127,6 +131,10 @@ class ImageCompressWorker {
           outputFormat = 'jpeg';
         } else if (type.includes('webp')) {
           outputFormat = 'webp';
+        } else if (type.includes('avif')) {
+          outputFormat = 'avif';
+        } else if (type.includes('png')) {
+          outputFormat = 'png';
         } else {
           outputFormat = 'jpeg'; // Default to JPEG for unknown formats
         }
@@ -142,6 +150,8 @@ class ImageCompressWorker {
         encoded = await encodeJpeg(resizedData, { quality });
       } else if (outputFormat === 'webp') {
         encoded = await encodeWebp(resizedData, { quality });
+      } else if (outputFormat === 'avif') {
+        encoded = await encodeAvif(resizedData, { quality });
       } else if (outputFormat === 'png') {
         // PNG is lossless, so we just encode it
         encoded = await encodePng(resizedData);

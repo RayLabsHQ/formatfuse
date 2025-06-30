@@ -14,7 +14,8 @@
       "Bash(done)",
       "Bash(find:*)",
       "Bash(rg:*)",
-      "Bash(pnpm run check:*)"
+      "Bash(pnpm run check:*)",
+      "Bash(pnpm add:*)"
     ],
     "deny": []
   }
