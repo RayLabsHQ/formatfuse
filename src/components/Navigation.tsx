@@ -14,9 +14,14 @@ export default function Navigation() {
   const [mobileCategory, setMobileCategory] = React.useState<string | null>(null);
   const [showSearchResults, setShowSearchResults] = React.useState(false);
   const [dropdownTimeout, setDropdownTimeout] = React.useState<NodeJS.Timeout | null>(null);
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
+  const [isMac, setIsMac] = React.useState(true);
+  const [selectedIndex, setSelectedIndex] = React.useState(-1);
 
   React.useEffect(() => {
     setIsDark(document.documentElement.classList.contains('dark'));
+    // Detect operating system
+    setIsMac(navigator.platform.toUpperCase().indexOf('MAC') >= 0);
   }, []);
 
   // Cleanup timeout on unmount
@@ -57,6 +62,61 @@ export default function Navigation() {
     
     return results.slice(0, 8); // Limit to 8 results
   }, [searchQuery]);
+
+  // Reset selected index when search results change
+  React.useEffect(() => {
+    setSelectedIndex(-1);
+  }, [searchResults]);
+
+  // Keyboard shortcuts
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Cmd+K or Ctrl+K to open search
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+        setShowSearchResults(true);
+      }
+      // Escape to close search
+      if (e.key === 'Escape' && showSearchResults) {
+        e.preventDefault();
+        searchInputRef.current?.blur();
+        setShowSearchResults(false);
+        setSearchQuery('');
+        setSelectedIndex(-1);
+      }
+      // Arrow navigation
+      if (showSearchResults && searchResults.length > 0) {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          setSelectedIndex((prev) => 
+            prev < searchResults.length - 1 ? prev + 1 : 0
+          );
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          setSelectedIndex((prev) => 
+            prev > 0 ? prev - 1 : searchResults.length - 1
+          );
+        } else if (e.key === 'Enter' && selectedIndex >= 0) {
+          e.preventDefault();
+          const { tool } = searchResults[selectedIndex];
+          const url = tool.id === 'image-resizer' ? '/tools/image-resizer' : 
+                     tool.id === 'image-compressor' ? '/tools/image-compressor' :
+                     tool.id === 'json-formatter' ? '/tools/json-formatter' :
+                     tool.id === 'word-counter' ? '/tools/word-counter' :
+                     tool.id === 'base64-encoder' ? '/tools/base64-encoder' :
+                     tool.id === 'case-converter' ? '/tools/case-converter' :
+                     tool.id === 'hash-generator' ? '/tools/hash-generator' :
+                     tool.id === 'qr-generator' ? '/tools/qr-generator' :
+                     `/convert/${tool.id}`;
+          window.location.href = url;
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [showSearchResults, searchResults, selectedIndex]);
 
   return (
     <nav className="sticky top-0 z-50 bg-background border-b">
@@ -164,22 +224,32 @@ export default function Navigation() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
+                  ref={searchInputRef}
                   type="text"
                   placeholder="Quick search..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => setShowSearchResults(true)}
                   onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
-                  className="pl-10 pr-4 py-2 w-56 bg-secondary border border-input rounded-md text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring"
+                  className="pl-10 pr-16 py-2 w-64 bg-secondary border border-input rounded-md text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring"
                 />
+                <kbd className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-60">
+                  <span className="text-xs">{isMac ? '⌘' : 'Ctrl'}</span>K
+                </kbd>
                 
                 {/* Search Results Dropdown */}
-                {showSearchResults && searchResults.length > 0 && (
+                {showSearchResults && (
                   <div className="absolute top-full mt-2 w-80 bg-card rounded-lg shadow-lg border p-2 z-[100]">
-                    <div className="text-xs text-muted-foreground px-2 py-1 mb-1">
-                      {searchResults.length} results
-                    </div>
-                    {searchResults.map(({ tool, category }, index) => (
+                    {searchQuery ? (
+                      <>
+                        <div className="flex items-center justify-between text-xs text-muted-foreground px-2 py-1 mb-1">
+                          <span>{searchResults.length} results</span>
+                          <span className="flex items-center gap-1">
+                            <kbd className="px-1 py-0.5 rounded bg-muted text-[10px]">↑↓</kbd>
+                            <span>to navigate</span>
+                          </span>
+                        </div>
+                        {searchResults.map(({ tool, category }, index) => (
                       <a
                         key={`${tool.id}-${index}`}
                         href={
@@ -193,7 +263,10 @@ export default function Navigation() {
                           tool.id === 'qr-generator' ? '/tools/qr-generator' :
                           `/convert/${tool.id}`
                         }
-                        className="flex items-center gap-3 p-2 rounded-md hover:bg-secondary ff-transition"
+                        className={`flex items-center gap-3 p-2 rounded-md ff-transition ${
+                          selectedIndex === index ? 'bg-secondary' : 'hover:bg-secondary'
+                        }`}
+                        onMouseEnter={() => setSelectedIndex(index)}
                       >
                         <div className={`p-1.5 rounded ${category.bgColor} ${category.color}`}>
                           <tool.icon className="w-4 h-4" />
@@ -211,6 +284,51 @@ export default function Navigation() {
                         )}
                       </a>
                     ))}
+                      </>
+                    ) : (
+                      /* Popular tools when no search */
+                      <>
+                        <div className="text-xs text-muted-foreground px-2 py-1 mb-1">
+                          Popular tools
+                        </div>
+                        {allTools
+                          .filter(tool => tool.isPopular)
+                          .slice(0, 6)
+                          .map((tool, index) => {
+                            const category = categories.find(cat => cat.id === tool.category);
+                            if (!category) return null;
+                            return (
+                              <a
+                                key={tool.id}
+                                href={
+                                  tool.id === 'image-resizer' ? '/tools/image-resizer' : 
+                                  tool.id === 'image-compressor' ? '/tools/image-compressor' :
+                                  tool.id === 'json-formatter' ? '/tools/json-formatter' :
+                                  tool.id === 'word-counter' ? '/tools/word-counter' :
+                                  tool.id === 'base64-encoder' ? '/tools/base64-encoder' :
+                                  tool.id === 'case-converter' ? '/tools/case-converter' :
+                                  tool.id === 'hash-generator' ? '/tools/hash-generator' :
+                                  tool.id === 'qr-generator' ? '/tools/qr-generator' :
+                                  `/convert/${tool.id}`
+                                }
+                                className={`flex items-center gap-3 p-2 rounded-md ff-transition ${
+                                  selectedIndex === index ? 'bg-secondary' : 'hover:bg-secondary'
+                                }`}
+                                onMouseEnter={() => setSelectedIndex(index)}
+                              >
+                                <div className={`p-1.5 rounded ${category.bgColor} ${category.color}`}>
+                                  <tool.icon className="w-4 h-4" />
+                                </div>
+                                <div className="flex-1">
+                                  <div className="text-sm font-medium">{tool.name}</div>
+                                  <div className="text-xs text-muted-foreground">{category.name}</div>
+                                </div>
+                                <TrendingUp className="w-3 h-3 text-primary" />
+                              </a>
+                            );
+                          })}
+                      </>
+                    )}
                   </div>
                 )}
               </div>
