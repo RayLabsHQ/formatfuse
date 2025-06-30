@@ -52,10 +52,15 @@ export default defineConfig({
 	vite: {
 		plugins: [tailwindcss()],
 		optimizeDeps: {
-			exclude: ['@refilelabs/image']
+			exclude: ['@refilelabs/image', '@jsquash/avif', '@jsquash/jpeg', '@jsquash/png', '@jsquash/webp']
 		},
 		worker: {
 			format: 'es'
+		},
+		server: {
+			headers: {
+				'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline';"
+			}
 		},
 		build: {
 			rollupOptions: {
@@ -68,6 +73,7 @@ export default defineConfig({
 					}
 				}
 			}
-		}
+		},
+		assetsInclude: ['**/*.wasm']
 	}
 });

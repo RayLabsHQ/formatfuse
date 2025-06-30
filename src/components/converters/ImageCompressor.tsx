@@ -13,7 +13,6 @@ import { CollapsibleSection } from '../ui/mobile/CollapsibleSection';
 import { cn } from '../../lib/utils';
 import { ImageCarouselModal } from './ImageCarouselModal';
 import JSZip from 'jszip';
-import { useVirtualizer } from '@tanstack/react-virtual';
 
 interface FileInfo {
   file: File;
@@ -78,7 +77,6 @@ export default function ImageCompressor() {
   const [activeFeature, setActiveFeature] = useState<number | null>(null);
   const [maxWidth, setMaxWidth] = useState<number | undefined>(undefined);
   const [maxHeight, setMaxHeight] = useState<number | undefined>(undefined);
-  const parentRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
 
@@ -229,13 +227,6 @@ export default function ImageCompressor() {
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   }, []);
 
-  // Virtualization for file list
-  const rowVirtualizer = useVirtualizer({
-    count: files.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 80,
-    overscan: 5,
-  });
 
   const completedCount = files.filter(f => f.status === 'completed').length;
   const canCompress = files.some(f => f.status === 'pending' || f.status === 'error');
@@ -540,18 +531,20 @@ export default function ImageCompressor() {
           {files.length > 0 && (
             <div className="space-y-6">
               <div 
-                className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-6 animate-fade-in-up" 
+                className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 overflow-hidden animate-fade-in-up" 
                 style={{ animationDelay: '0.5s' }}
                 onDrop={handleDrop}
                 onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                 onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
               >
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-                  <h3 className="font-semibold flex items-center gap-2">
-                    <FileImage className="w-5 h-5 text-primary" />
-                    Files ({files.length})
-                  </h3>
-                  <div className="flex flex-wrap items-center gap-2">
+                {/* Card Header */}
+                <div className="border-b border-border/50 px-6 py-4 bg-gradient-to-r from-primary/5 to-transparent">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <FileImage className="w-5 h-5 text-primary" />
+                      Files ({files.length})
+                    </h3>
+                    <div className="flex flex-wrap items-center gap-2">
                     <Button
                       onClick={() => fileInputRef.current?.click()}
                       size="sm"
@@ -604,149 +597,149 @@ export default function ImageCompressor() {
                     >
                       Clear
                     </Button>
+                    </div>
                   </div>
                 </div>
 
-                {/* Total Savings Summary */}
-                {totalCompressedSize > 0 && (
-                  <div className="bg-primary/5 rounded-xl p-4 mb-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-muted-foreground">Total savings</p>
-                        <p className="text-2xl font-bold text-primary">
-                          {(totalSavings / (1024 * 1024)).toFixed(2)} MB
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm text-muted-foreground">Average reduction</p>
-                        <p className="text-2xl font-bold text-primary">
-                          {averageRatio.toFixed(0)}%
-                        </p>
+                {/* Files Content */}
+                <div className="p-6">
+                  {/* Total Savings Summary */}
+                  {totalCompressedSize > 0 && (
+                    <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-xl p-4 mb-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-muted-foreground">Total savings</p>
+                          <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                            {(totalSavings / (1024 * 1024)).toFixed(2)} MB
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm text-muted-foreground">Average reduction</p>
+                          <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                            {averageRatio.toFixed(0)}%
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* File List with Virtualization */}
-                <div 
-                  ref={parentRef}
-                  className="max-h-[400px] overflow-auto rounded-lg border border-border/50 scrollbar-thin"
-                >
-                  <div
-                    style={{
-                      height: `${rowVirtualizer.getTotalSize()}px`,
-                      width: '100%',
-                      position: 'relative',
-                    }}
-                  >
-                    {rowVirtualizer.getVirtualItems().map((virtualItem) => {
-                      const fileInfo = files[virtualItem.index];
-                      const isLast = virtualItem.index === files.length - 1;
-                      
-                      return (
-                        <div
-                          key={virtualItem.key}
-                          style={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            width: '100%',
-                            height: `${virtualItem.size}px`,
-                            transform: `translateY(${virtualItem.start}px)`,
-                          }}
-                        >
-                          <div className={cn(
-                            "flex items-center gap-4 p-4",
-                            !isLast && "border-b border-border/50"
-                          )}>
-                            {/* Preview */}
-                            {fileInfo.previewUrl && (
-                              <button
-                                onClick={() => openCarousel(virtualItem.index)}
-                                className="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-muted hover:opacity-80 transition-opacity"
-                              >
-                                <img
-                                  src={fileInfo.previewUrl}
-                                  alt={fileInfo.file.name}
-                                  className="w-full h-full object-cover"
-                                />
-                              </button>
-                            )}
+                  {/* File List */}
+                  <div className="space-y-2">
+                    {files.map((fileInfo, index) => (
+                      <div
+                        key={index}
+                        className="bg-background/50 rounded-xl p-4 border border-border/50 hover:border-primary/30 transition-all duration-200"
+                      >
+                        <div className="flex items-center gap-4">
+                          {/* Preview */}
+                          {fileInfo.previewUrl && (
+                            <button
+                              onClick={() => openCarousel(index)}
+                              className="flex-shrink-0 w-14 h-14 rounded-lg overflow-hidden bg-muted hover:ring-2 hover:ring-primary transition-all duration-200"
+                            >
+                              <img
+                                src={fileInfo.previewUrl}
+                                alt={fileInfo.file.name}
+                                className="w-full h-full object-cover"
+                              />
+                            </button>
+                          )}
 
-                            {/* File Info */}
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-sm truncate">{fileInfo.file.name}</p>
-                              <div className="flex items-center gap-2 mt-1">
-                                <span className="text-xs text-muted-foreground">
-                                  {(fileInfo.originalSize! / 1024).toFixed(0)} KB
-                                </span>
-                                {fileInfo.compressedSize && (
-                                  <>
-                                    <ArrowRight className="w-3 h-3 text-muted-foreground" />
-                                    <span className="text-xs font-medium text-primary">
-                                      {(fileInfo.compressedSize / 1024).toFixed(0)} KB
-                                    </span>
-                                    <span className="text-xs text-green-600 dark:text-green-400">
-                                      -{fileInfo.compressionRatio?.toFixed(0)}%
-                                    </span>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Status and Actions */}
-                            <div className="flex items-center gap-2">
-                              {fileInfo.status === 'processing' && (
-                                <div className="flex items-center gap-2">
-                                  <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
-                                    <div 
-                                      className="h-full bg-primary transition-all duration-300"
-                                      style={{ width: `${fileInfo.progress}%` }}
-                                    />
-                                  </div>
-                                  <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                                </div>
-                              )}
-                              {fileInfo.status === 'completed' && (
+                          {/* File Info */}
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm truncate mb-1">{fileInfo.file.name}</p>
+                            <div className="flex items-center gap-3">
+                              <span className="text-sm text-muted-foreground">
+                                {formatFileSize(fileInfo.originalSize!)}
+                              </span>
+                              {fileInfo.compressedSize && (
                                 <>
-                                  <CheckCircle2 className="w-4 h-4 text-green-600" />
-                                  <Button
-                                    onClick={() => downloadFile(fileInfo)}
-                                    size="icon"
-                                    variant="ghost"
-                                  >
-                                    <Download className="w-4 h-4" />
-                                  </Button>
+                                  <ArrowRight className="w-3 h-3 text-muted-foreground" />
+                                  <span className="text-sm font-medium text-primary">
+                                    {formatFileSize(fileInfo.compressedSize)}
+                                  </span>
+                                  <span className="text-sm px-2 py-0.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 font-medium">
+                                    -{fileInfo.compressionRatio?.toFixed(0)}%
+                                  </span>
                                 </>
                               )}
-                              {fileInfo.status === 'error' && (
-                                <div className="flex items-center gap-2">
-                                  <AlertCircle className="w-4 h-4 text-destructive" />
-                                  <span className="text-xs text-destructive">{fileInfo.error}</span>
-                                </div>
-                              )}
-                              {fileInfo.status === 'pending' && !isCompressing && (
-                                <Button
-                                  onClick={() => compressFile(virtualItem.index)}
-                                  size="icon"
-                                  variant="ghost"
-                                >
-                                  <Minimize2 className="w-4 h-4" />
-                                </Button>
-                              )}
-                              <Button
-                                onClick={() => removeFile(virtualItem.index)}
-                                size="icon"
-                                variant="ghost"
-                                className="text-muted-foreground hover:text-destructive"
-                              >
-                                <X className="w-4 h-4" />
-                              </Button>
                             </div>
                           </div>
+
+                          {/* Status and Actions */}
+                          <div className="flex items-center gap-2">
+                            {fileInfo.status === 'processing' && (
+                              <div className="flex items-center gap-3">
+                                <div className="relative w-10 h-10">
+                                  <svg className="w-10 h-10 rotate-[-90deg]">
+                                    <circle
+                                      cx="20"
+                                      cy="20"
+                                      r="16"
+                                      stroke="currentColor"
+                                      strokeWidth="3"
+                                      fill="none"
+                                      className="text-muted-foreground/20"
+                                    />
+                                    <circle
+                                      cx="20"
+                                      cy="20"
+                                      r="16"
+                                      stroke="currentColor"
+                                      strokeWidth="3"
+                                      fill="none"
+                                      strokeDasharray={`${2 * Math.PI * 16}`}
+                                      strokeDashoffset={`${2 * Math.PI * 16 * (1 - fileInfo.progress / 100)}`}
+                                      className="text-primary transition-all duration-300"
+                                    />
+                                  </svg>
+                                  <span className="absolute inset-0 flex items-center justify-center text-xs font-medium">
+                                    {fileInfo.progress}%
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+                            {fileInfo.status === 'completed' && (
+                              <>
+                                <CheckCircle2 className="w-5 h-5 text-green-600" />
+                                <Button
+                                  onClick={() => downloadFile(fileInfo)}
+                                  size="icon"
+                                  variant="ghost"
+                                  className="hover:bg-primary/10"
+                                >
+                                  <Download className="w-4 h-4" />
+                                </Button>
+                              </>
+                            )}
+                            {fileInfo.status === 'error' && (
+                              <div className="flex items-center gap-2">
+                                <AlertCircle className="w-5 h-5 text-destructive" />
+                                <span className="text-xs text-destructive max-w-[150px] truncate">{fileInfo.error}</span>
+                              </div>
+                            )}
+                            {fileInfo.status === 'pending' && !isCompressing && (
+                              <Button
+                                onClick={() => compressFile(index)}
+                                size="icon"
+                                variant="ghost"
+                                className="hover:bg-primary/10"
+                              >
+                                <Minimize2 className="w-4 h-4" />
+                              </Button>
+                            )}
+                            <Button
+                              onClick={() => removeFile(index)}
+                              size="icon"
+                              variant="ghost"
+                              className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </div>
-                      );
-                    })}
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
