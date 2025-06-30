@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { 
-  Upload, Download, X, ChevronDown, ArrowRight,
+  Upload, Download, X, ChevronDown, ArrowRight, ArrowUpDown,
   FileImage, AlertCircle, CheckCircle2, Loader2, Shield, Zap,
   Sparkles, Info, FileText, Image, ChevronRight, HelpCircle
 } from 'lucide-react';
@@ -9,6 +9,7 @@ import { getHeicImageConverter } from '../../lib/heic-image-converter';
 import { Slider } from '../ui/slider';
 import { Button } from '../ui/button';
 import { CollapsibleSection } from '../ui/mobile/CollapsibleSection';
+import { FormatSelect } from '../ui/format-select';
 import { cn } from '../../lib/utils';
 import { ImageCarouselModal } from './ImageCarouselModal';
 import JSZip from 'jszip';
@@ -79,6 +80,8 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
   const [showCarousel, setShowCarousel] = useState(false);
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [isLossless, setIsLossless] = useState(true);
+  const [activeFeature, setActiveFeature] = useState<number | null>(null);
+  const [qualityInput, setQualityInput] = useState('100');
   const parentRef = useRef<HTMLDivElement>(null);
   
   // Handle format lookup
@@ -97,6 +100,11 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
   );
   const [quality, setQuality] = useState(100); // Default to lossless
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Sync quality input when quality changes from buttons
+  useEffect(() => {
+    setQualityInput(quality.toString());
+  }, [quality]);
 
   // Update formats when props change
   useEffect(() => {
@@ -388,7 +396,7 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
               <span className="text-muted-foreground">WebAssembly Powered Conversion</span>
             </div>
             
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold animate-fade-in-up">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold animate-fade-in-up">
               <span className="text-foreground">Convert </span>
               <span style={{ color: selectedSourceFormat?.color }}>{selectedSourceFormat?.displayName}</span>
               <span className="text-foreground"> to </span>
@@ -400,22 +408,56 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
             </p>
           </div>
 
-          {/* Features */}
-          <div className="flex flex-wrap justify-center gap-6 mb-12 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-            {features.map((feature, index) => {
-              const Icon = feature.icon;
-              return (
-                <div key={index} className="flex items-center gap-3 group">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <Icon className="w-5 h-5 text-primary" />
+          {/* Features - Responsive */}
+          <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+            {/* Desktop view */}
+            <div className="hidden sm:flex flex-wrap justify-center gap-6 mb-12">
+              {features.map((feature, index) => {
+                const Icon = feature.icon;
+                return (
+                  <div key={index} className="flex items-center gap-3 group">
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                      <Icon className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm">{feature.text}</p>
+                      <p className="text-xs text-muted-foreground">{feature.description}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium text-sm">{feature.text}</p>
-                    <p className="text-xs text-muted-foreground">{feature.description}</p>
-                  </div>
+                );
+              })}
+            </div>
+            
+            {/* Mobile view - Compact icons */}
+            <div className="sm:hidden space-y-3 mb-8">
+              <div className="flex justify-center gap-4">
+                {features.map((feature, index) => {
+                  const Icon = feature.icon;
+                  return (
+                    <button
+                      key={index}
+                      onClick={() => setActiveFeature(activeFeature === index ? null : index)}
+                      className={cn(
+                        "w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-300",
+                        activeFeature === index 
+                          ? "bg-primary text-primary-foreground scale-105" 
+                          : "bg-primary/10 hover:bg-primary/20"
+                      )}
+                    >
+                      <Icon className="w-6 h-6" />
+                    </button>
+                  );
+                })}
+              </div>
+              
+              {/* Mobile feature details */}
+              {activeFeature !== null && (
+                <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border/50 p-4 mx-4 animate-in slide-in-from-top-2 duration-300">
+                  <p className="font-medium text-sm mb-1">{features[activeFeature].text}</p>
+                  <p className="text-xs text-muted-foreground">{features[activeFeature].description}</p>
                 </div>
-              );
-            })}
+              )}
+            </div>
           </div>
 
           {/* Main Converter Interface */}
@@ -433,75 +475,90 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
             {/* Format Selection */}
             <div className="space-y-6">
               {/* Format Selection Card */}
-              <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-6 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-                {/* Format Selectors */}
-                <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-4 max-w-2xl mx-auto">
-                  <div>
-                    <label className="text-sm text-muted-foreground mb-2 block">From</label>
-                    <div className="relative">
-                      <select
-                        value={selectedSourceFormat?.name}
-                        onChange={(e) => {
-                          const format = FORMATS[e.target.value];
-                          if (format) setSelectedSourceFormat(format);
+              <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-4 sm:p-6 animate-fade-in-up relative z-20" style={{ animationDelay: '0.3s' }}>
+                {/* Format Selectors - Mobile Optimized */}
+                <div className="max-w-2xl mx-auto">
+                  {/* Desktop Layout */}
+                  <div className="hidden sm:grid grid-cols-[1fr_auto_1fr] items-end gap-4">
+                    <FormatSelect
+                      label="From"
+                      formats={Object.values(FORMATS)}
+                      value={selectedSourceFormat}
+                      onChange={setSelectedSourceFormat}
+                    />
+                    
+                    <div className="mb-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const temp = selectedSourceFormat;
+                          setSelectedSourceFormat(selectedTargetFormat);
+                          setSelectedTargetFormat(temp);
                         }}
-                        className="w-full appearance-none bg-background/50 px-4 py-3 pr-10 rounded-xl border border-border/50 text-sm font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300"
+                        className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center hover:bg-primary/20 hover:scale-110 active:scale-95 transition-all duration-300 group"
+                        aria-label="Swap formats"
                       >
-                        {Object.values(FORMATS).map(format => (
-                          <option key={format.name} value={format.name}>
-                            {format.displayName}
-                          </option>
-                        ))}
-                      </select>
-                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none text-muted-foreground" />
+                        <ArrowRight className="w-5 h-5 text-primary group-hover:rotate-180 transition-transform duration-300" />
+                      </button>
                     </div>
+                    
+                    <FormatSelect
+                      label="To"
+                      formats={Object.values(FORMATS)}
+                      value={selectedTargetFormat}
+                      onChange={setSelectedTargetFormat}
+                    />
                   </div>
                   
-                  <div className="mb-1">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const temp = selectedSourceFormat;
-                        setSelectedSourceFormat(selectedTargetFormat);
-                        setSelectedTargetFormat(temp);
-                      }}
-                      className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center hover:bg-primary/20 hover:scale-110 transition-all duration-300 group"
-                      aria-label="Swap formats"
-                    >
-                      <ArrowRight className="w-5 h-5 text-primary group-hover:rotate-180 transition-transform duration-300" />
-                    </button>
-                  </div>
-                  
-                  <div>
-                    <label className="text-sm text-muted-foreground mb-2 block">To</label>
-                    <div className="relative">
-                      <select
-                        value={selectedTargetFormat?.name}
-                        onChange={(e) => {
-                          const format = FORMATS[e.target.value];
-                          if (format) setSelectedTargetFormat(format);
+                  {/* Mobile Layout - Compact */}
+                  <div className="sm:hidden space-y-3">
+                    <div className="flex items-center gap-3">
+                      <label className="text-sm text-muted-foreground flex-shrink-0 w-12">From</label>
+                      <div className="flex-1">
+                        <FormatSelect
+                          formats={Object.values(FORMATS)}
+                          value={selectedSourceFormat}
+                          onChange={setSelectedSourceFormat}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-center">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const temp = selectedSourceFormat;
+                          setSelectedSourceFormat(selectedTargetFormat);
+                          setSelectedTargetFormat(temp);
                         }}
-                        className="w-full appearance-none bg-background/50 px-4 py-3 pr-10 rounded-xl border border-border/50 text-sm font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300"
+                        className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center hover:bg-primary/20 active:scale-95 active:bg-primary/30 transition-all duration-300 touch-manipulation"
+                        aria-label="Swap formats"
                       >
-                        {Object.values(FORMATS).map(format => (
-                          <option key={format.name} value={format.name}>
-                            {format.displayName}
-                          </option>
-                        ))}
-                      </select>
-                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none text-muted-foreground" />
+                        <ArrowUpDown className="w-6 h-6 text-primary" />
+                      </button>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      <label className="text-sm text-muted-foreground flex-shrink-0 w-12">To</label>
+                      <div className="flex-1">
+                        <FormatSelect
+                          formats={Object.values(FORMATS)}
+                          value={selectedTargetFormat}
+                          onChange={setSelectedTargetFormat}
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Quality Selector - Only show for formats that support quality */}
+                {/* Quality Selector - Mobile Optimized */}
                 {showQualitySlider && (
                   <div className="mt-6 pt-6 border-t border-border/50">
                     <div className="max-w-2xl mx-auto">
-                      <div className="flex items-center justify-between mb-4">
-                        <label className="text-sm font-medium">Compression</label>
+                      {/* Desktop Layout */}
+                      <div className="hidden sm:flex items-center justify-between mb-4">
+                        <label className="text-sm font-medium">Quality</label>
                         <div className="flex items-center gap-3">
-                          {/* Quality Presets */}
                           <div className="flex items-center gap-1 p-1 bg-background/50 rounded-lg">
                             <button
                               onClick={() => { setIsLossless(true); setQuality(100); }}
@@ -540,9 +597,121 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
                               Small
                             </button>
                           </div>
-                          {!isLossless && <span className="text-sm font-medium text-primary">{quality}%</span>}
+                          {!isLossless && (
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="text"
+                                value={qualityInput}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  // Allow only numbers
+                                  if (val === '' || /^\d{0,3}$/.test(val)) {
+                                    setQualityInput(val);
+                                  }
+                                }}
+                                onBlur={() => {
+                                  const num = parseInt(qualityInput);
+                                  if (!qualityInput || isNaN(num)) {
+                                    setQuality(85);
+                                    setQualityInput('85');
+                                  } else {
+                                    const clamped = Math.min(100, Math.max(10, num));
+                                    setQuality(clamped);
+                                    setQualityInput(clamped.toString());
+                                  }
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.currentTarget.blur();
+                                  }
+                                }}
+                                className="w-14 px-2 py-1 text-sm text-center bg-background/50 border border-border/50 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                              />
+                              <span className="text-sm text-muted-foreground">%</span>
+                            </div>
+                          )}
                         </div>
                       </div>
+                      
+                      {/* Mobile Layout - Vertical Stack */}
+                      <div className="sm:hidden space-y-3">
+                        <div className="flex items-center justify-between">
+                          <label className="text-sm font-medium">Quality</label>
+                          {!isLossless && (
+                            <div className="flex items-center gap-1">
+                              <input
+                                type="text"
+                                value={qualityInput}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  // Allow only numbers
+                                  if (val === '' || /^\d{0,3}$/.test(val)) {
+                                    setQualityInput(val);
+                                  }
+                                }}
+                                onBlur={() => {
+                                  const num = parseInt(qualityInput);
+                                  if (!qualityInput || isNaN(num)) {
+                                    setQuality(85);
+                                    setQualityInput('85');
+                                  } else {
+                                    const clamped = Math.min(100, Math.max(10, num));
+                                    setQuality(clamped);
+                                    setQualityInput(clamped.toString());
+                                  }
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.currentTarget.blur();
+                                  }
+                                }}
+                                className="w-12 px-1 py-1 text-sm text-center bg-background/50 border border-border/50 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                              />
+                              <span className="text-sm text-muted-foreground">%</span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="grid grid-cols-4 gap-1 p-1 bg-background/50 rounded-lg">
+                          <button
+                            onClick={() => { setIsLossless(true); setQuality(100); }}
+                            className={cn(
+                              "px-2 py-2 text-[11px] font-medium rounded-md transition-all duration-200",
+                              isLossless ? "bg-primary text-primary-foreground" : "hover:bg-primary/10"
+                            )}
+                          >
+                            Lossless
+                          </button>
+                          <button
+                            onClick={() => { setIsLossless(false); setQuality(95); }}
+                            className={cn(
+                              "px-2 py-2 text-[11px] font-medium rounded-md transition-all duration-200",
+                              !isLossless && quality === 95 ? "bg-primary text-primary-foreground" : "hover:bg-primary/10"
+                            )}
+                          >
+                            High
+                          </button>
+                          <button
+                            onClick={() => { setIsLossless(false); setQuality(85); }}
+                            className={cn(
+                              "px-2 py-2 text-[11px] font-medium rounded-md transition-all duration-200",
+                              !isLossless && quality === 85 ? "bg-primary text-primary-foreground" : "hover:bg-primary/10"
+                            )}
+                          >
+                            Balanced
+                          </button>
+                          <button
+                            onClick={() => { setIsLossless(false); setQuality(70); }}
+                            className={cn(
+                              "px-2 py-2 text-[11px] font-medium rounded-md transition-all duration-200",
+                              !isLossless && quality === 70 ? "bg-primary text-primary-foreground" : "hover:bg-primary/10"
+                            )}
+                          >
+                            Small
+                          </button>
+                        </div>
+                      </div>
+                      
+                      {/* Slider - Both Desktop and Mobile */}
                       {!isLossless && (
                         <>
                           <Slider
@@ -551,7 +720,7 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
                             min={10}
                             max={100}
                             step={5}
-                            className="w-full"
+                            className="w-full mt-4"
                           />
                           <div className="flex justify-between mt-2">
                             <span className="text-xs text-muted-foreground">Smaller file</span>
@@ -583,12 +752,12 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
                         : 'border-border bg-card/50 hover:border-primary hover:bg-card hover:shadow-lg hover:shadow-primary/10'
                     }`}
                   >
-                    <div className="p-12 text-center pointer-events-none">
-                      <Upload className={`w-16 h-16 mx-auto mb-4 transition-all duration-300 ${
+                    <div className="p-8 sm:p-12 text-center pointer-events-none">
+                      <Upload className={`w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 transition-all duration-300 ${
                         isDragging ? 'text-primary scale-110 rotate-12' : 'text-muted-foreground'
                       }`} />
-                      <p className="text-lg font-medium mb-2">Drop images here or click to browse</p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-base sm:text-lg font-medium mb-2">Drop images here or click to browse</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground px-4">
                         Support for PNG, JPG, WebP, GIF, BMP, ICO, TIFF, AVIF, HEIC
                       </p>
                       <p className="text-xs text-muted-foreground mt-2">Max recommended size: 100MB</p>
@@ -608,40 +777,45 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
                   onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                   onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
                 >
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
                   <h3 className="font-semibold flex items-center gap-2">
                     <FileImage className="w-5 h-5 text-primary" />
                     Files ({files.length})
                   </h3>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Button
                       onClick={() => fileInputRef.current?.click()}
                       size="sm"
                       variant="outline"
-                      className="gap-2"
+                      className="gap-2 flex-1 sm:flex-none"
                     >
                       <Upload className="w-4 h-4" />
-                      Add more
+                      <span className="hidden sm:inline">Add more</span>
+                      <span className="sm:hidden">Add</span>
                     </Button>
                     {hasCompletedFiles && (
                       <Button
                         onClick={downloadAll}
                         size="sm"
                         variant="default"
-                        className="gap-2"
+                        className="gap-2 flex-1 sm:flex-none"
                       >
                         <Download className="w-4 h-4" />
-                        {files.filter(f => f.status === 'completed').length > 1 ? 'Download All' : 'Download'}
+                        <span className="hidden sm:inline">
+                          {files.filter(f => f.status === 'completed').length > 1 ? 'Download All' : 'Download'}
+                        </span>
+                        <span className="sm:hidden">Download</span>
                       </Button>
                     )}
                     <Button
                       onClick={removeAllFiles}
                       size="sm"
                       variant="outline"
-                      className="gap-2 hover:border-destructive hover:bg-destructive/10 hover:text-destructive"
+                      className="gap-2 hover:border-destructive hover:bg-destructive/10 hover:text-destructive flex-1 sm:flex-none"
                     >
                       <X className="w-4 h-4" />
-                      Remove all
+                      <span className="hidden sm:inline">Remove all</span>
+                      <span className="sm:hidden">Clear</span>
                     </Button>
                   </div>
                 </div>
