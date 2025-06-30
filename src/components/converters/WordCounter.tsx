@@ -213,7 +213,7 @@ ${text}`;
           }
         />
 
-        <MobileTabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'editor' | 'stats')}>
+        <MobileTabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'editor' | 'stats')} defaultValue="editor">
           <div className="px-4 pt-2">
             <MobileTabsList variant="default">
               <MobileTabsTrigger value="editor">Editor</MobileTabsTrigger>

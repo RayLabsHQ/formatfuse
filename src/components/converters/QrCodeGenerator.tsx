@@ -412,7 +412,7 @@ export default function QrCodeGenerator() {
         />
 
         {/* Mobile tabs for form/result */}
-        <MobileTabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'form' | 'result')}>
+        <MobileTabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'form' | 'result')} defaultValue="form">
           <div className="px-4 pt-2">
             <MobileTabsList variant="default">
               <MobileTabsTrigger value="form">Create</MobileTabsTrigger>

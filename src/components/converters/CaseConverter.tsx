@@ -312,7 +312,7 @@ export default function CaseConverter() {
           }
         />
 
-        <MobileTabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'input' | 'results')}>
+        <MobileTabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'input' | 'results')} defaultValue="input">
           <div className="px-4 pt-2">
             <MobileTabsList variant="default">
               <MobileTabsTrigger value="input">Input</MobileTabsTrigger>

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { 
-  Upload, Download, X, ChevronDown, ArrowRight, ArrowUpDown,
+  Upload, Download, X, ArrowRight, ArrowUpDown,
   FileImage, AlertCircle, CheckCircle2, Loader2, Shield, Zap,
   Sparkles, Info, FileText, Image, ChevronRight, HelpCircle
 } from 'lucide-react';
@@ -484,7 +484,7 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
                       label="From"
                       formats={Object.values(FORMATS)}
                       value={selectedSourceFormat}
-                      onChange={setSelectedSourceFormat}
+                      onChange={(format) => setSelectedSourceFormat(format as typeof selectedSourceFormat)}
                     />
                     
                     <div className="mb-1">
@@ -506,7 +506,7 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
                       label="To"
                       formats={Object.values(FORMATS)}
                       value={selectedTargetFormat}
-                      onChange={setSelectedTargetFormat}
+                      onChange={(format) => setSelectedTargetFormat(format as typeof selectedTargetFormat)}
                     />
                   </div>
                   
@@ -518,7 +518,7 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
                         <FormatSelect
                           formats={Object.values(FORMATS)}
                           value={selectedSourceFormat}
-                          onChange={setSelectedSourceFormat}
+                          onChange={(format) => setSelectedSourceFormat(format as typeof selectedSourceFormat)}
                         />
                       </div>
                     </div>
@@ -544,7 +544,7 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
                         <FormatSelect
                           formats={Object.values(FORMATS)}
                           value={selectedTargetFormat}
-                          onChange={setSelectedTargetFormat}
+                          onChange={(format) => setSelectedTargetFormat(format as typeof selectedTargetFormat)}
                         />
                       </div>
                     </div>

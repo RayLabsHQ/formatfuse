@@ -189,7 +189,7 @@ export default function JsonFormatter() {
           }
         />
 
-        <MobileTabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'input' | 'output')}>
+        <MobileTabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'input' | 'output')} defaultValue="input">
           <div className="px-4 pt-2">
             <MobileTabsList variant="default">
               <MobileTabsTrigger value="input" badge={error ? "Error" : undefined}>

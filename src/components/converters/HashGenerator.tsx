@@ -259,7 +259,7 @@ export default function HashGenerator() {
           }
         />
 
-        <MobileTabs value={mobileTab} onValueChange={(v) => setMobileTab(v as 'input' | 'results')}>
+        <MobileTabs value={mobileTab} onValueChange={(v) => setMobileTab(v as 'input' | 'results')} defaultValue="input">
           <div className="px-4 pt-2">
             <MobileTabsList variant="default">
               <MobileTabsTrigger value="input">Input</MobileTabsTrigger>

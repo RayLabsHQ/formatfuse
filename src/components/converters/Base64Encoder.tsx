@@ -268,7 +268,7 @@ export default function Base64Encoder() {
           />
         </div>
 
-        <MobileTabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'input' | 'output')}>
+        <MobileTabs defaultValue="input" value={activeTab} onValueChange={(v) => setActiveTab(v as 'input' | 'output')}>
           <div className="px-4">
             <MobileTabsList variant="default">
               <MobileTabsTrigger value="input">
