@@ -418,17 +418,6 @@ const archiveToolsAll: Tool[] = [
 // Other image tools (non-conversion) (unfiltered - includes unimplemented for reference)
 const otherImageToolsAll: Tool[] = [
   { 
-    id: 'image-resize', 
-    name: 'Resize Image', 
-    description: 'Change image dimensions and resolution',
-    icon: Image, 
-    searches: '400k', 
-    isNew: true,
-    isImplemented: true,
-    category: 'image',
-    route: '/tools/image-resize'
-  },
-  { 
     id: 'background-remove', 
     name: 'Remove Background', 
     description: 'Remove background from images automatically',
