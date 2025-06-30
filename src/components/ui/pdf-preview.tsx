@@ -73,8 +73,11 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
         // Dynamically import PDF.js only on client side
         const pdfjsLib = await import('pdfjs-dist');
         
-        // Set up PDF.js worker - use CDN for reliability
-        pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+        // Set up PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+          'pdfjs-dist/build/pdf.worker.mjs',
+          import.meta.url
+        ).toString();
         
         // Create loading task with timeout
         const loadingTask = pdfjsLib.getDocument({ data: pdfData });
