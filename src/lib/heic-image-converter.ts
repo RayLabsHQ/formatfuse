@@ -1,6 +1,6 @@
 import type { HeicConversionMessage, HeicConversionResult } from '../workers/heic-converter';
-import type { ImageFormat } from './image-converter';
-import { getImageConverter } from './image-converter';
+import type { ImageFormat } from './image-converter-comlink';
+import { getImageConverterComlink } from './image-converter-comlink';
 
 export class HeicImageConverter {
   private heicWorker: Worker | null = null;
@@ -65,7 +65,8 @@ export class HeicImageConverter {
   async convert(
     file: File | Blob | ArrayBuffer,
     targetFormat: ImageFormat,
-    onProgress?: (progress: number) => void
+    onProgress?: (progress: number) => void,
+    quality?: number
   ): Promise<Blob> {
     if (!this.heicWorker) {
       throw new Error('HEIC Worker not initialized');
@@ -115,7 +116,7 @@ export class HeicImageConverter {
     }
 
     // Use the regular image converter to convert PNG to target format
-    const imageConverter = getImageConverter();
+    const imageConverter = getImageConverterComlink();
     const finalBlob = await imageConverter.convert(
       pngBlob, 
       targetFormat,
@@ -123,7 +124,8 @@ export class HeicImageConverter {
         // Map progress from 70% to 100%
         const mappedProgress = 70 + (progress * 0.3);
         onProgress?.(mappedProgress);
-      }
+      },
+      quality
     );
 
     return finalBlob;

@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { getImageConverter, IMAGE_FORMATS, type ImageFormat } from '../../lib/image-converter';
+import { getImageConverterComlink, IMAGE_FORMATS, type ImageFormat } from '../../lib/image-converter-comlink';
 import { FileUploader } from '../core/FileUploader';
 import { ProgressBar } from '../core/ProgressBar';
 import { ResultDisplay } from '../core/ResultDisplay';
@@ -33,7 +33,7 @@ export function ImageConverter({ sourceFormat, targetFormat }: ImageConverterPro
     setError(null);
     setResults([]);
 
-    const converter = getImageConverter();
+    const converter = getImageConverterComlink();
     const convertedFiles: Array<{ name: string; url: string }> = [];
 
     try {

@@ -1,6 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import ImageConverter from '../../components/converters/ImageConverter.tsx';
+import ImageConverterComlink from '../../components/converters/ImageConverterComlink.tsx';
 import '../../styles/global.css';
 
 // Pre-render all dynamic routes at build time for SEO
@@ -89,6 +89,6 @@ const structuredData = {
   <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
   
   <main>
-    <ImageConverter sourceFormat={fromKey} targetFormat={toKey} client:load />
+    <ImageConverterComlink sourceFormat={fromKey} targetFormat={toKey} client:load />
   </main>
 </Layout>

@@ -41,7 +41,8 @@ export class ImageConverterComlink {
   async convert(
     file: File | Blob | ArrayBuffer,
     targetFormat: ImageFormat,
-    onProgress?: (progress: number) => void
+    onProgress?: (progress: number) => void,
+    quality?: number
   ): Promise<Blob> {
     if (!this.workerApi) {
       await this.initWorker();
@@ -61,7 +62,8 @@ export class ImageConverterComlink {
       fileArray,
       srcType,
       targetFormat.mime,
-      progressProxy
+      progressProxy,
+      quality
     );
 
     return new Blob([converted], { type: targetFormat.mime });

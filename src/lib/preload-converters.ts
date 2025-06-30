@@ -1,7 +1,7 @@
 // Preloading utilities for WASM converters
 // These functions trigger WASM initialization in the background
 
-import { getImageConverter } from './image-converter';
+import { getImageConverterComlink } from './image-converter-comlink';
 import { getHeicImageConverter } from './heic-image-converter';
 import { SvgConverter } from './svg-converter';
 
@@ -18,7 +18,7 @@ export async function preloadImageConverter(): Promise<void> {
   if (imageConverterPreloaded) return;
   
   try {
-    const converter = getImageConverter();
+    const converter = getImageConverterComlink();
     // Trigger WASM initialization by calling getMetadata with a tiny test image
     const testPixel = new Uint8Array([
       0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG signature

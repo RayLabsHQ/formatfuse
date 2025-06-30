@@ -158,7 +158,7 @@ export default function Hero() {
               </h1>
               
               <p className="text-lg md:text-xl text-muted-foreground leading-relaxed animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-                Fast, secure, and completely private. No uploads, no servers, no tracking.
+                Fast, secure, and completely private. No uploads, no servers, no payments.
                 Everything happens right in your browser.
               </p>
             </div>

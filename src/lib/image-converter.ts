@@ -83,7 +83,8 @@ export class ImageConverter {
   async convert(
     file: File | Blob | ArrayBuffer,
     targetFormat: ImageFormat,
-    onProgress?: (progress: number) => void
+    onProgress?: (progress: number) => void,
+    quality?: number
   ): Promise<Blob> {
     if (!this.worker) {
       throw new Error('Worker not initialized');
@@ -111,7 +112,8 @@ export class ImageConverter {
         id,
         file: fileArray,
         srcType,
-        targetType: targetFormat.mime
+        targetType: targetFormat.mime,
+        settings: undefined // TODO: Figure out correct format for quality settings
       };
 
       this.worker!.postMessage(message);

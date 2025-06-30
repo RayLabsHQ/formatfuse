@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { getImageConverter, IMAGE_FORMATS, type ImageFormat } from '../../lib/image-converter';
+import { getImageConverterComlink, IMAGE_FORMATS, type ImageFormat } from '../../lib/image-converter-comlink';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ImageConverterDynamicProps {
@@ -157,7 +157,7 @@ export function ImageConverterDynamic({
     setError(null);
     setResults([]);
 
-    const converter = getImageConverter();
+    const converter = getImageConverterComlink();
     const convertedFiles: Array<{ name: string; url: string; size: number }> = [];
 
     try {
@@ -171,7 +171,8 @@ export function ImageConverterDynamic({
           selectedTargetFormat,
           (fileProgress) => {
             setProgress(baseProgress + (fileProgress * progressPerFile) / 100);
-          }
+          },
+          showQualitySlider ? quality : undefined
         );
 
         const url = URL.createObjectURL(convertedBlob);

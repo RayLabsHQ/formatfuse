@@ -16,11 +16,22 @@ class ImageConverterWorker {
     srcType: string,
     targetType: string,
     onProgress?: (progress: number) => void,
-    settings?: any
+    quality?: number
   ): Promise<Uint8Array> {
     await this.ensureWasmInitialized();
     
     const progressCallback = onProgress || (() => {});
+    
+    // Prepare settings based on quality parameter
+    let settings = undefined;
+    if (quality !== undefined && quality !== 100) {
+      // Only apply quality settings for formats that support it
+      const supportsQuality = ['image/jpeg', 'image/webp', 'image/avif'].includes(targetType);
+      if (supportsQuality) {
+        settings = { quality };
+      }
+    }
+    
     const converted = convertImage(file, srcType, targetType, progressCallback, settings);
     
     // Transfer the result without copying

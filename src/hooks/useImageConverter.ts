@@ -4,7 +4,7 @@ import * as Comlink from 'comlink';
 import type { ImageFormat } from '../lib/image-converter-comlink';
 
 interface UseImageConverterReturn {
-  convert: (file: File | Blob, targetFormat: ImageFormat) => Promise<Blob | null>;
+  convert: (file: File | Blob, targetFormat: ImageFormat, quality?: number) => Promise<Blob | null>;
   progress: number;
   loading: boolean;
   error: string | null;
@@ -49,7 +49,8 @@ export function useImageConverter(): UseImageConverterReturn {
 
   const convert = useCallback(async (
     file: File | Blob,
-    targetFormat: ImageFormat
+    targetFormat: ImageFormat,
+    quality?: number
   ): Promise<Blob | null> => {
     if (!workerApiRef.current) {
       setError('Converter not initialized');
@@ -74,7 +75,8 @@ export function useImageConverter(): UseImageConverterReturn {
         fileArray,
         srcType,
         targetFormat.mime,
-        progressCallback
+        progressCallback,
+        quality
       );
 
       return new Blob([converted], { type: targetFormat.mime });
