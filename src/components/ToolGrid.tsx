@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { FileText, Image, Code, Archive, Wrench } from "lucide-react";
+import { FileText, Image, Code, Archive, Wrench, TrendingUp } from "lucide-react";
 import { allTools as tools } from "../data/tools";
 
 const categories = [
+  { id: "popular", name: "Most Used", icon: TrendingUp, color: "var(--primary)" },
   { id: "pdf", name: "PDF Tools", icon: FileText, color: "var(--tool-pdf)" },
   { id: "image", name: "Image Tools", icon: Image, color: "var(--tool-jpg)" },
   { id: "document", name: "Documents", icon: Code, color: "var(--tool-doc)" },
@@ -11,7 +12,7 @@ const categories = [
 ];
 
 export default function ToolGridNew() {
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>("popular");
   const [hoveredPopularTool, setHoveredPopularTool] = useState<string | null>(
     null,
   );
@@ -70,7 +71,9 @@ export default function ToolGridNew() {
     };
   }, [isVisible]);
 
-  const filteredTools = selectedCategory
+  const filteredTools = selectedCategory === "popular"
+    ? tools.filter((tool) => tool.popular || tool.isPopular)
+    : selectedCategory
     ? tools.filter((tool) => tool.category === selectedCategory)
     : tools;
 
@@ -122,16 +125,6 @@ export default function ToolGridNew() {
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
           }`}
         >
-          <button
-            onClick={() => setSelectedCategory(null)}
-            className={`px-6 py-3 rounded-xl transition-all duration-300 ${
-              selectedCategory === null
-                ? "bg-primary text-primary-foreground"
-                : "bg-card/50 backdrop-blur-sm border border-border/50 hover:bg-card/80"
-            }`}
-          >
-            All Tools
-          </button>
           {categories.map((category) => {
             const Icon = category.icon;
             return (
@@ -155,10 +148,20 @@ export default function ToolGridNew() {
               </button>
             );
           })}
+          <button
+            onClick={() => setSelectedCategory(null)}
+            className={`px-6 py-3 rounded-xl transition-all duration-300 ${
+              selectedCategory === null
+                ? "bg-primary text-primary-foreground"
+                : "bg-card/50 backdrop-blur-sm border border-border/50 hover:bg-card/80"
+            }`}
+          >
+            All Tools
+          </button>
         </div>
 
         {/* Popular tools highlight */}
-        {!selectedCategory && (
+        {selectedCategory === "popular" && (
           <div
             className={`mb-16 transition-all duration-700 delay-200 ${
               isVisible
@@ -239,11 +242,12 @@ export default function ToolGridNew() {
         )}
 
         {/* All tools grid */}
-        <div
-          className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 transition-all duration-700 delay-300 ${
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-          }`}
-        >
+        {selectedCategory !== "popular" && (
+          <div
+            className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 transition-all duration-700 delay-300 ${
+              isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+            }`}
+          >
           {filteredTools.map((tool, index) => {
             const Icon = tool.icon;
             const category = categories.find((c) => c.id === tool.category);
@@ -302,7 +306,8 @@ export default function ToolGridNew() {
               </a>
             );
           })}
-        </div>
+          </div>
+        )}
       </div>
     </section>
   );
