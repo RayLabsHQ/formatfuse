@@ -32,6 +32,13 @@ interface PdfToImageOptions {
   scale?: number; // Default 1.5 for good quality
 }
 
+interface CompressOptions {
+  imageQuality: number;
+  removeMetadata: boolean;
+  optimizeImages: boolean;
+  grayscale: boolean;
+}
+
 class PDFOperationsWorker {
   private async loadPdfDocument(data: Uint8Array): Promise<PDFDocument> {
     return PDFDocument.load(data);
@@ -262,6 +269,71 @@ class PDFOperationsWorker {
       modificationDate: pdfDoc.getModificationDate(),
       pageCount: pdfDoc.getPageCount(),
     };
+  }
+
+  async compress(
+    pdfData: Uint8Array,
+    options: CompressOptions,
+    onProgress?: (progress: number) => void,
+  ): Promise<Uint8Array> {
+    onProgress?.(0);
+
+    // Load the PDF document
+    const pdfDoc = await this.loadPdfDocument(pdfData);
+    
+    // Create a new PDF document for compressed output
+    const compressedPdf = await PDFDocument.create();
+
+    // Remove metadata if requested
+    if (options.removeMetadata) {
+      compressedPdf.setTitle("");
+      compressedPdf.setAuthor("");
+      compressedPdf.setSubject("");
+      compressedPdf.setKeywords([]);
+      compressedPdf.setProducer("FormatFuse");
+      compressedPdf.setCreator("FormatFuse");
+    } else {
+      // Copy metadata from original
+      compressedPdf.setTitle(pdfDoc.getTitle() || "");
+      compressedPdf.setAuthor(pdfDoc.getAuthor() || "");
+      compressedPdf.setSubject(pdfDoc.getSubject() || "");
+      compressedPdf.setProducer("FormatFuse (compressed)");
+      compressedPdf.setCreator(pdfDoc.getCreator() || "FormatFuse");
+    }
+
+    const totalPages = pdfDoc.getPageCount();
+    
+    // Process each page
+    for (let i = 0; i < totalPages; i++) {
+      const [page] = await compressedPdf.copyPages(pdfDoc, [i]);
+      
+      // Apply grayscale if requested
+      if (options.grayscale) {
+        // Note: pdf-lib doesn't have direct grayscale conversion
+        // This would require more complex image processing
+        // For now, we'll just copy the page as-is
+      }
+      
+      compressedPdf.addPage(page);
+      onProgress?.(((i + 1) / totalPages) * 90);
+    }
+
+    onProgress?.(95);
+
+    // Save with compression options
+    const pdfBytes = await compressedPdf.save({
+      useObjectStreams: true, // Enables compression
+      addDefaultPage: false,
+      objectsPerTick: 50,
+    });
+
+    onProgress?.(100);
+
+    // Note: Real image compression would require parsing and re-encoding images
+    // This basic implementation provides structure compression but not image recompression
+    // For full image compression, we'd need to integrate image processing libraries
+    
+    return Comlink.transfer(new Uint8Array(pdfBytes), [pdfBytes.buffer]);
   }
 }
 

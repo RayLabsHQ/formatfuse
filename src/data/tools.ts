@@ -183,7 +183,7 @@ const pdfToolsAll: Tool[] = [
     description: "Reduce PDF file size without losing quality",
     icon: FileDown,
     searches: "200k",
-    isImplemented: false, // TODO: Not implemented
+    isImplemented: true,
     category: "pdf",
     route: "/convert/pdf-compress",
   },

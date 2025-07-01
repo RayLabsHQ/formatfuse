@@ -36,6 +36,13 @@ export interface PdfMetadata {
   pageCount: number;
 }
 
+export interface CompressOptions {
+  imageQuality: number;
+  removeMetadata: boolean;
+  optimizeImages: boolean;
+  grayscale: boolean;
+}
+
 interface PDFOperationsWorkerAPI {
   split(
     pdfData: Uint8Array,
@@ -63,6 +70,11 @@ interface PDFOperationsWorkerAPI {
   ): Promise<{ page: number; data: Uint8Array; mimeType: string }[]>;
   getPageCount(pdfData: Uint8Array): Promise<number>;
   getMetadata(pdfData: Uint8Array): Promise<PdfMetadata>;
+  compress(
+    pdfData: Uint8Array,
+    options: CompressOptions,
+    onProgress?: (progress: number) => void,
+  ): Promise<Uint8Array>;
 }
 
 export class PDFOperations {
@@ -153,6 +165,19 @@ export class PDFOperations {
     // Create a copy to avoid transferring the original
     const dataCopy = new Uint8Array(pdfData);
     return this.api.getMetadata(dataCopy);
+  }
+
+  async compress(
+    pdfData: Uint8Array,
+    options: CompressOptions,
+    onProgress?: (progress: number) => void,
+  ): Promise<Uint8Array> {
+    const dataCopy = new Uint8Array(pdfData);
+    return this.api.compress(
+      dataCopy,
+      options,
+      onProgress ? Comlink.proxy(onProgress) : undefined,
+    );
   }
 
   dispose(): void {

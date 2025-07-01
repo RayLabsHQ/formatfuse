@@ -7,6 +7,7 @@ import type {
   ExtractOptions,
   PdfToImageOptions,
   PdfMetadata,
+  CompressOptions,
 } from "../lib/pdf-operations";
 
 interface UsePdfOperationsResult {
@@ -23,6 +24,11 @@ interface UsePdfOperationsResult {
   ) => Promise<{ page: number; data: Uint8Array; mimeType: string }[]>;
   getPageCount: (pdfData: Uint8Array) => Promise<number>;
   getMetadata: (pdfData: Uint8Array) => Promise<PdfMetadata>;
+  compress: (
+    pdfData: Uint8Array,
+    options: CompressOptions,
+    onProgress?: (progress: number) => void,
+  ) => Promise<Uint8Array>;
   isProcessing: boolean;
   progress: number;
   error: Error | null;
@@ -230,6 +236,38 @@ export function usePdfOperations(): UsePdfOperationsResult {
     [],
   );
 
+  const compress = useCallback(
+    async (
+      pdfData: Uint8Array,
+      options: CompressOptions,
+      onProgress?: (progress: number) => void,
+    ): Promise<Uint8Array> => {
+      if (!pdfOpsRef.current) throw new Error("PDF operations not initialized");
+
+      setIsProcessing(true);
+      setError(null);
+      setProgress(0);
+
+      try {
+        const result = await pdfOpsRef.current.compress(
+          pdfData,
+          options,
+          onProgress || handleProgress,
+        );
+        return result;
+      } catch (err) {
+        const error =
+          err instanceof Error ? err : new Error("Compress operation failed");
+        setError(error);
+        throw error;
+      } finally {
+        setIsProcessing(false);
+        setProgress(0);
+      }
+    },
+    [handleProgress],
+  );
+
   return {
     split,
     merge,
@@ -238,6 +276,7 @@ export function usePdfOperations(): UsePdfOperationsResult {
     pdfToImages,
     getPageCount,
     getMetadata,
+    compress,
     isProcessing,
     progress,
     error,

@@ -1,109 +1,206 @@
 import React, { useState, useCallback, useRef } from "react";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { usePdfOperations } from "../../hooks/usePdfOperations";
-import { parsePageRanges } from "../../lib/pdf-operations";
 import {
-  RotateCw,
+  Upload,
   Download,
   FileText,
+  Settings2,
   AlertCircle,
-  Upload,
-  FileUp,
-  FileCheck,
-  CheckCircle,
+  Shield,
+  Zap,
+  ChevronRight,
   Loader2,
-  Eye,
   Info,
+  RotateCw,
   RotateCcw,
+  CheckCircle2,
+  Eye,
+  EyeOff,
+  X,
   FileOutput,
 } from "lucide-react";
-import FileSaver from "file-saver";
-import { DropZone } from "../ui/drop-zone";
+import { Button } from "../ui/button";
+import { FAQ, type FAQItem } from "../ui/FAQ";
+import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
+import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
+import { cn } from "../../lib/utils";
+import { usePdfOperations } from "../../hooks/usePdfOperations";
+import { parsePageRanges } from "../../lib/pdf-operations";
 import { PdfPreview } from "../ui/pdf-preview";
-import { ProgressIndicator, MultiStepProgress } from "../ui/progress-indicator";
+import FileSaver from "file-saver";
+
 const { saveAs } = FileSaver;
 
-export const PdfRotate: React.FC = () => {
+interface RotateOptions {
+  angle: 90 | 180 | 270;
+  mode: "all" | "visual" | "manual";
+  selectedPages: number[];
+  manualPages: string;
+}
+
+const features = [
+  {
+    icon: Shield,
+    text: "Privacy-first",
+    description: "Files never leave your device",
+  },
+  { icon: Zap, text: "Lightning fast", description: "Instant rotation" },
+  {
+    icon: Eye,
+    text: "Visual selection",
+    description: "Click pages to rotate",
+  },
+];
+
+const relatedTools: RelatedTool[] = [
+  {
+    id: "pdf-split",
+    name: "PDF Split",
+    description: "Split PDFs into parts",
+    icon: FileText,
+  },
+  {
+    id: "pdf-merge",
+    name: "PDF Merge",
+    description: "Combine multiple PDFs",
+    icon: FileText,
+  },
+  {
+    id: "pdf-compress",
+    name: "PDF Compress",
+    description: "Reduce PDF file size",
+    icon: FileText,
+  },
+];
+
+const faqs: FAQItem[] = [
+  {
+    question: "How do I rotate specific pages?",
+    answer:
+      "You have three options: 'All Pages' rotates the entire document, 'Visual Selection' lets you click on specific pages to rotate, and 'Manual Ranges' allows you to enter page numbers like '1-3, 5, 7-10'.",
+  },
+  {
+    question: "What rotation angles are available?",
+    answer:
+      "You can rotate pages 90° clockwise, 180° (upside down), or 270° counter-clockwise. The visual preview shows exactly how your pages will be oriented after rotation.",
+  },
+  {
+    question: "Will rotating affect the quality of my PDF?",
+    answer:
+      "No, rotating a PDF is a lossless operation. All text, images, and formatting remain exactly as they were, just in a different orientation. The file quality and resolution are preserved.",
+  },
+  {
+    question: "Can I rotate different pages in different directions?",
+    answer:
+      "Currently, all selected pages are rotated by the same angle in a single operation. To rotate different pages in different directions, you'll need to process the PDF multiple times, selecting different pages each time.",
+  },
+];
+
+const ROTATION_OPTIONS = [
+  { angle: 90 as const, label: "Clockwise", icon: RotateCw },
+  { angle: 180 as const, label: "Upside down", icon: RotateCw },
+  { angle: 270 as const, label: "Counter-clockwise", icon: RotateCcw },
+];
+
+export default function PdfRotate() {
   const [file, setFile] = useState<File | null>(null);
   const [fileData, setFileData] = useState<Uint8Array | null>(null);
-  const [pageCount, setPageCount] = useState<number>(0);
-  const [metadata, setMetadata] = useState<any>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [activeFeature, setActiveFeature] = useState<number | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
   const [rotatedResult, setRotatedResult] = useState<Uint8Array | null>(null);
-  const [selectedRotation, setSelectedRotation] = useState<90 | 180 | 270>(90);
-  const [rotateMode, setRotateMode] = useState<"all" | "visual" | "manual">(
-    "all",
-  );
-  const [selectedPages, setSelectedPages] = useState<number[]>([]);
-  const [specificPages, setSpecificPages] = useState<string>("");
-  const [showPreview, setShowPreview] = useState(true);
-  const [previewKey, setPreviewKey] = useState(0);
-  const [processingSteps, setProcessingSteps] = useState<any[]>([]);
+  const [pageCount, setPageCount] = useState<number>(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { rotate, getPageCount, getMetadata, isProcessing, progress, error } =
+  const { rotate, getPageCount, isProcessing, progress, error } =
     usePdfOperations();
 
+  const [options, setOptions] = useState<RotateOptions>({
+    angle: 90,
+    mode: "all",
+    selectedPages: [],
+    manualPages: "",
+  });
+
   const handleFileSelect = useCallback(
-    async (files: FileList) => {
-      const selectedFile = files[0];
+    async (selectedFile: File) => {
       if (!selectedFile || selectedFile.type !== "application/pdf") return;
 
       setFile(selectedFile);
       setRotatedResult(null);
-      setSpecificPages("");
-      setSelectedPages([]);
-
+      
       try {
         const data = new Uint8Array(await selectedFile.arrayBuffer());
         setFileData(data);
-
         const count = await getPageCount(data);
-        const meta = await getMetadata(data);
         setPageCount(count);
-        setMetadata(meta);
-
-        // Set default to all pages
-        setSpecificPages(`1-${count}`);
-
-        // Always show preview for better UX
-        setShowPreview(true);
+        setOptions((prev) => ({
+          ...prev,
+          manualPages: `1-${count}`,
+          selectedPages: [],
+        }));
       } catch (err) {
         console.error("Error reading PDF:", err);
       }
     },
-    [getPageCount, getMetadata],
+    [getPageCount]
   );
 
-  const handlePageSelect = useCallback((pages: number[]) => {
-    setSelectedPages(pages);
-    // Convert selected pages to ranges for manual mode
-    if (pages.length > 0) {
-      const ranges = [];
-      let start = pages[0];
-      let end = pages[0];
-
-      for (let i = 1; i < pages.length; i++) {
-        if (pages[i] === end + 1) {
-          end = pages[i];
-        } else {
-          ranges.push(start === end ? `${start}` : `${start}-${end}`);
-          start = pages[i];
-          end = pages[i];
-        }
+  const handleFileChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const selectedFile = e.target.files?.[0];
+      if (selectedFile) {
+        handleFileSelect(selectedFile);
       }
-      ranges.push(start === end ? `${start}` : `${start}-${end}`);
-      setSpecificPages(ranges.join(", "));
+    },
+    [handleFileSelect]
+  );
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragging(false);
+      const droppedFile = e.dataTransfer.files[0];
+      if (droppedFile) {
+        handleFileSelect(droppedFile);
+      }
+    },
+    [handleFileSelect]
+  );
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX;
+    const y = e.clientY;
+    if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
+      setIsDragging(false);
     }
   }, []);
 
-  const getPageNumbers = useCallback((): number[] => {
-    if (rotateMode === "all") {
+  const handlePageSelect = useCallback((pages: number[]) => {
+    setOptions((prev) => ({ ...prev, selectedPages: pages }));
+  }, []);
+
+  const getPageNumbers = (): number[] => {
+    if (options.mode === "all") {
       return []; // Empty array means all pages
-    } else if (rotateMode === "visual") {
-      return selectedPages;
+    } else if (options.mode === "visual") {
+      return options.selectedPages;
     } else {
-      const ranges = parsePageRanges(specificPages, pageCount);
+      const ranges = parsePageRanges(options.manualPages, pageCount);
       return ranges.flatMap((range) => {
         const pages = [];
         for (let i = range.start; i <= range.end; i++) {
@@ -112,76 +209,32 @@ export const PdfRotate: React.FC = () => {
         return pages;
       });
     }
-  }, [rotateMode, selectedPages, specificPages, pageCount]);
+  };
 
-  const handleRotate = useCallback(async () => {
+  const handleRotate = async () => {
     if (!file || !fileData) return;
 
+    setRotatedResult(null);
+    
     try {
-      // Set up processing steps for visual feedback
-      setProcessingSteps([
-        { id: "prepare", label: "Preparing PDF", status: "processing" },
-        { id: "rotate", label: `Rotating pages`, status: "pending" },
-        { id: "finalize", label: "Creating rotated PDF", status: "pending" },
-      ]);
-
       const pageNumbers = getPageNumbers();
-
-      setProcessingSteps((prev) =>
-        prev.map((step) => ({
-          ...step,
-          status:
-            step.id === "prepare"
-              ? "completed"
-              : step.id === "rotate"
-                ? "processing"
-                : step.status,
-        })),
-      );
-
       const rotated = await rotate(fileData, {
-        angle: selectedRotation,
+        angle: options.angle,
         pages: pageNumbers,
       });
-
-      setProcessingSteps((prev) =>
-        prev.map((step) => ({
-          ...step,
-          status:
-            step.id === "finalize"
-              ? "processing"
-              : step.status === "pending"
-                ? "completed"
-                : step.status,
-        })),
-      );
-
       setRotatedResult(rotated);
-
-      setProcessingSteps((prev) =>
-        prev.map((step) => ({
-          ...step,
-          status: "completed",
-        })),
-      );
     } catch (err) {
       console.error("Error rotating PDF:", err);
-      setProcessingSteps((prev) =>
-        prev.map((step, idx) => ({
-          ...step,
-          status: idx === 0 ? "error" : "pending",
-        })),
-      );
     }
-  }, [file, fileData, rotate, selectedRotation, getPageNumbers]);
+  };
 
-  const downloadRotated = useCallback(() => {
-    if (!rotatedResult) return;
-
+  const handleDownload = () => {
+    if (!rotatedResult || !file) return;
+    
     const blob = new Blob([rotatedResult], { type: "application/pdf" });
-    const fileName = file?.name.replace(".pdf", "") || "rotated";
-    saveAs(blob, `${fileName}_rotated_${selectedRotation}deg.pdf`);
-  }, [rotatedResult, file, selectedRotation]);
+    const baseName = file.name.replace(/\.pdf$/i, "");
+    saveAs(blob, `${baseName}_rotated_${options.angle}deg.pdf`);
+  };
 
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return bytes + " B";
@@ -190,159 +243,163 @@ export const PdfRotate: React.FC = () => {
   };
 
   return (
-    <div className="bg-background">
-      {/* Tool Header - Mobile optimized */}
-      <div className="border-b bg-card/[0.5]">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-          <div>
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold flex items-center gap-2 sm:gap-3">
-              <div className="p-1.5 sm:p-2 bg-tool-pdf/[0.1] text-tool-pdf rounded-lg flex-shrink-0">
-                <RotateCw className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
-              </div>
-              <span>Rotate PDF</span>
-            </h1>
-            <p className="mt-2 text-sm sm:text-base text-muted-foreground max-w-3xl">
-              Rotate PDF pages or entire documents. Preview pages visually and
-              choose 90°, 180°, or 270° rotation. 100% private - all processing
-              happens in your browser.
-            </p>
-          </div>
+    <div className="w-full">
+      <section className="w-full max-w-6xl mx-auto p-4 sm:p-6 lg:p-8">
+        {/* Header */}
+        <div className="text-center mb-8 sm:mb-12 space-y-4">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold animate-fade-in flex items-center justify-center flex-wrap gap-3">
+            <span>Rotate</span>
+            <span className="text-primary">PDF</span>
+          </h1>
+
+          <p
+            className="text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in-up"
+            style={{ animationDelay: "0.1s" }}
+          >
+            Rotate PDF pages or entire documents. Choose specific pages
+            visually or rotate everything at once with multiple angle options.
+          </p>
         </div>
-      </div>
 
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
-        {/* Drop Zone */}
-        {!file && (
-          <DropZone
-            onDrop={handleFileSelect}
-            accept=".pdf,application/pdf"
-            maxSize={100 * 1024 * 1024} // 100MB
-            className="h-64"
-          />
-        )}
-
-        {file && pageCount > 0 && (
-          <div className="space-y-6">
-            {/* File Info Card - Mobile optimized */}
-            <div className="bg-card border rounded-lg p-3 sm:p-4">
-              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                <div className="flex items-start gap-2.5 sm:gap-3">
-                  <div className="p-1.5 sm:p-2 bg-tool-pdf/[0.1] text-tool-pdf rounded flex-shrink-0">
-                    <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
+        {/* Features - Responsive */}
+        <div className="animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+          {/* Desktop view */}
+          <div className="hidden sm:flex flex-wrap justify-center gap-6 mb-12">
+            {features.map((feature, index) => {
+              const Icon = feature.icon;
+              return (
+                <div key={index} className="flex items-center gap-3 group">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Icon className="w-5 h-5 text-primary" />
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-medium text-sm sm:text-base truncate">
-                      {file.name}
-                    </h3>
-                    <div className="mt-0.5 sm:mt-1 flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
-                      <span>{pageCount} pages</span>
-                      <span>{formatFileSize(file.size)}</span>
-                      {metadata?.title && (
-                        <span className="hidden sm:inline">
-                          Title: {metadata.title}
-                        </span>
-                      )}
-                    </div>
+                  <div>
+                    <p className="font-medium text-sm">{feature.text}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {feature.description}
+                    </p>
                   </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setFile(null);
-                    setFileData(null);
-                    setRotatedResult(null);
-                    setPageCount(0);
-                    setMetadata(null);
-                    setShowPreview(false);
-                  }}
-                  className="self-end sm:self-auto text-xs sm:text-sm"
-                >
-                  Change file
-                </Button>
-              </div>
+              );
+            })}
+          </div>
+
+          {/* Mobile view - Compact icons */}
+          <div className="sm:hidden space-y-3 mb-8">
+            <div className="flex justify-center gap-4">
+              {features.map((feature, index) => {
+                const Icon = feature.icon;
+                return (
+                  <button
+                    key={index}
+                    onClick={() =>
+                      setActiveFeature(activeFeature === index ? null : index)
+                    }
+                    className={cn(
+                      "w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-300",
+                      activeFeature === index
+                        ? "bg-primary text-primary-foreground scale-105"
+                        : "bg-primary/10 hover:bg-primary/20"
+                    )}
+                  >
+                    <Icon className="w-6 h-6" />
+                  </button>
+                );
+              })}
             </div>
 
-            {/* PDF Preview - Show directly without card wrapper */}
-            {showPreview && fileData && (
-              <PdfPreview
-                key={`pdf-preview-${previewKey}`}
-                pdfData={new Uint8Array(fileData)}
-                mode={rotateMode === "visual" ? "grid" : "strip"}
-                selectable={rotateMode === "visual"}
-                selectedPages={selectedPages}
-                onPageSelect={handlePageSelect}
-                maxHeight={500}
-                className="mb-6"
-              />
+            {/* Mobile feature details */}
+            {activeFeature !== null && (
+              <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border/50 p-4 mx-4 animate-in slide-in-from-top-2 duration-300">
+                <p className="font-medium text-sm mb-1">
+                  {features[activeFeature].text}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {features[activeFeature].description}
+                </p>
+              </div>
             )}
+          </div>
+        </div>
 
-            {/* Rotation Options - Mobile optimized */}
-            <div className="bg-card border rounded-lg p-4 sm:p-6 space-y-4 sm:space-y-6">
-              <h3 className="font-medium text-base sm:text-lg">
-                Rotation Options
-              </h3>
+        {/* Main Interface */}
+        <div className="space-y-6">
+          {/* Hidden file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="application/pdf"
+            onChange={handleFileChange}
+            className="hidden"
+          />
 
-              {/* Rotation Angle Selection - Mobile optimized */}
-              <div className="space-y-2 sm:space-y-3">
-                <label className="text-xs sm:text-sm font-medium">
-                  Rotation angle
-                </label>
-                <div className="grid grid-cols-3 gap-2 sm:gap-3">
-                  {[
-                    { angle: 90 as const, label: "Clockwise", icon: RotateCw },
-                    {
-                      angle: 180 as const,
-                      label: "Upside down",
-                      icon: RotateCw,
-                    },
-                    {
-                      angle: 270 as const,
-                      label: "Counter-clockwise",
-                      icon: RotateCcw,
-                    },
-                  ].map(({ angle, label, icon: Icon }) => (
+          {error && (
+            <div className="mb-4 px-4 py-3 bg-destructive/10 text-destructive rounded-lg flex items-center gap-2">
+              <AlertCircle className="w-4 h-4" />
+              <span className="text-sm">{error.message || 'An error occurred'}</span>
+            </div>
+          )}
+
+          {/* Settings Card */}
+          <div
+            className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 overflow-hidden animate-fade-in-up"
+            style={{ animationDelay: "0.3s" }}
+          >
+            {/* Card Header */}
+            <div className="border-b border-border/50 px-6 py-4 bg-gradient-to-r from-primary/5 to-transparent">
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <Settings2 className="w-5 h-5 text-primary" />
+                Rotation Settings
+              </h2>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Rotation Angle */}
+              <div className="space-y-4">
+                <label className="text-sm font-medium">Rotation Angle</label>
+                <div className="grid grid-cols-3 gap-3">
+                  {ROTATION_OPTIONS.map(({ angle, label, icon: Icon }) => (
                     <button
                       key={angle}
-                      onClick={() => setSelectedRotation(angle)}
-                      className={`relative p-3 sm:p-6 rounded-lg border-2 ff-transition ${
-                        selectedRotation === angle
-                          ? "border-primary bg-primary/[0.05] ring-2 ring-primary/20"
-                          : "border-border hover:border-primary/[0.3]"
-                      }`}
+                      onClick={() =>
+                        setOptions((prev) => ({ ...prev, angle }))
+                      }
+                      className={cn(
+                        "relative p-4 rounded-xl border-2 transition-all duration-200",
+                        options.angle === angle
+                          ? "border-primary bg-primary/10"
+                          : "border-border/50 hover:border-primary/50 bg-card/50"
+                      )}
                     >
-                      <div className="flex flex-col items-center gap-2 sm:gap-3">
-                        {/* Visual rotation preview - Smaller on mobile */}
-                        <div className="relative w-12 h-12 sm:w-16 sm:h-16 bg-secondary rounded flex items-center justify-center">
+                      <div className="flex flex-col items-center gap-3">
+                        {/* Visual rotation preview */}
+                        <div className="relative w-16 h-16 bg-secondary rounded flex items-center justify-center">
                           <div
-                            className="w-9 h-12 sm:w-12 sm:h-16 bg-card border-2 border-primary/20 rounded ff-transition"
+                            className="w-12 h-16 bg-card border-2 border-primary/20 rounded transition-transform duration-300"
                             style={{ transform: `rotate(${angle}deg)` }}
                           >
                             <div className="h-full flex flex-col">
-                              <div className="h-1.5 sm:h-2 bg-primary/20 rounded-t" />
-                              <div className="flex-1 p-0.5 sm:p-1">
-                                <div className="h-0.5 sm:h-1 bg-border rounded mb-0.5 sm:mb-1" />
-                                <div className="h-0.5 sm:h-1 bg-border rounded mb-0.5 sm:mb-1" />
-                                <div className="h-0.5 sm:h-1 bg-border rounded" />
+                              <div className="h-2 bg-primary/20 rounded-t" />
+                              <div className="flex-1 p-1">
+                                <div className="h-1 bg-border rounded mb-1" />
+                                <div className="h-1 bg-border rounded mb-1" />
+                                <div className="h-1 bg-border rounded" />
                               </div>
                             </div>
                           </div>
                         </div>
                         <div className="text-center">
-                          <div className="flex items-center gap-1 sm:gap-2 justify-center">
-                            <Icon className="w-3 h-3 sm:w-4 sm:h-4" />
-                            <span className="font-medium text-xs sm:text-sm">
-                              {angle}°
-                            </span>
+                          <div className="flex items-center gap-1 justify-center">
+                            <Icon className="w-4 h-4" />
+                            <span className="font-medium text-sm">{angle}°</span>
                           </div>
-                          <span className="text-[10px] sm:text-xs text-muted-foreground">
+                          <span className="text-xs text-muted-foreground">
                             {label}
                           </span>
                         </div>
                       </div>
-                      {selectedRotation === angle && (
-                        <div className="absolute top-1 right-1 sm:top-2 sm:right-2 w-5 h-5 sm:w-6 sm:h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
-                          <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
+                      {options.angle === angle && (
+                        <div className="absolute top-2 right-2 w-5 h-5 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
+                          <CheckCircle2 className="w-3 h-3" />
                         </div>
                       )}
                     </button>
@@ -350,245 +407,274 @@ export const PdfRotate: React.FC = () => {
                 </div>
               </div>
 
-              {/* Page Selection */}
-              <div className="space-y-3">
-                <label className="text-sm font-medium">
-                  Which pages to rotate?
-                </label>
-
-                {/* Mode Selection - Mobile optimized */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
+              {/* Page Selection Mode */}
+              <div className="space-y-4">
+                <label className="text-sm font-medium">Pages to Rotate</label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <button
-                    onClick={() => setRotateMode("all")}
-                    className={`p-3 sm:p-4 rounded-lg border-2 text-left ff-transition ${
-                      rotateMode === "all"
-                        ? "border-primary bg-primary/[0.05]"
-                        : "border-border hover:border-primary/[0.3]"
-                    }`}
+                    onClick={() =>
+                      setOptions((prev) => ({ ...prev, mode: "all" }))
+                    }
+                    className={cn(
+                      "p-3 rounded-lg border-2 transition-all duration-200 text-left",
+                      options.mode === "all"
+                        ? "border-primary bg-primary/10"
+                        : "border-border/50 hover:border-primary/50 bg-card/50"
+                    )}
                   >
-                    <FileOutput className="w-4 h-4 sm:w-5 sm:h-5 text-primary mb-1.5 sm:mb-2" />
-                    <div className="font-medium text-sm sm:text-base">
-                      All Pages
-                    </div>
-                    <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">
+                    <FileOutput className="w-5 h-5 text-primary mb-2" />
+                    <div className="font-medium text-sm">All Pages</div>
+                    <div className="text-xs text-muted-foreground mt-1">
                       Rotate entire document
                     </div>
                   </button>
 
                   <button
-                    onClick={() => setRotateMode("visual")}
-                    className={`p-3 sm:p-4 rounded-lg border-2 text-left ff-transition ${
-                      rotateMode === "visual"
-                        ? "border-primary bg-primary/[0.05]"
-                        : "border-border hover:border-primary/[0.3]"
-                    }`}
+                    onClick={() =>
+                      setOptions((prev) => ({ ...prev, mode: "visual" }))
+                    }
+                    className={cn(
+                      "p-3 rounded-lg border-2 transition-all duration-200 text-left",
+                      options.mode === "visual"
+                        ? "border-primary bg-primary/10"
+                        : "border-border/50 hover:border-primary/50 bg-card/50"
+                    )}
                   >
-                    <Eye className="w-4 h-4 sm:w-5 sm:h-5 text-primary mb-1.5 sm:mb-2" />
-                    <div className="font-medium text-sm sm:text-base">
-                      Visual Selection
-                    </div>
-                    <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">
+                    <Eye className="w-5 h-5 text-primary mb-2" />
+                    <div className="font-medium text-sm">Visual Selection</div>
+                    <div className="text-xs text-muted-foreground mt-1">
                       Click pages to select
                     </div>
                   </button>
 
                   <button
-                    onClick={() => setRotateMode("manual")}
-                    className={`p-3 sm:p-4 rounded-lg border-2 text-left ff-transition ${
-                      rotateMode === "manual"
-                        ? "border-primary bg-primary/[0.05]"
-                        : "border-border hover:border-primary/[0.3]"
-                    }`}
+                    onClick={() =>
+                      setOptions((prev) => ({ ...prev, mode: "manual" }))
+                    }
+                    className={cn(
+                      "p-3 rounded-lg border-2 transition-all duration-200 text-left",
+                      options.mode === "manual"
+                        ? "border-primary bg-primary/10"
+                        : "border-border/50 hover:border-primary/50 bg-card/50"
+                    )}
                   >
-                    <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-primary mb-1.5 sm:mb-2" />
-                    <div className="font-medium text-sm sm:text-base">
-                      Manual Ranges
-                    </div>
-                    <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">
+                    <FileText className="w-5 h-5 text-primary mb-2" />
+                    <div className="font-medium text-sm">Manual Ranges</div>
+                    <div className="text-xs text-muted-foreground mt-1">
                       Enter page numbers
                     </div>
                   </button>
                 </div>
+              </div>
 
-                {/* Visual Selection Info - Mobile optimized */}
-                {rotateMode === "visual" && (
-                  <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-lg p-3">
-                    <div className="flex items-start gap-2">
-                      <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-                      <div className="text-xs sm:text-sm text-blue-700 dark:text-blue-300">
-                        <span className="hidden sm:inline">
-                          Click on pages to select them for rotation. Selected
-                          pages will be rotated by the angle you choose. Use the
-                          enlarge button on each page for full-screen view.
-                        </span>
-                        <span className="sm:hidden">
-                          Tap pages to select them for rotation. Selected pages
-                          will be rotated by the chosen angle.
-                        </span>
-                      </div>
+              {/* Visual Selection Info */}
+              {options.mode === "visual" && file && (
+                <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-lg p-3">
+                  <div className="flex items-start gap-2">
+                    <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                    <div className="text-xs sm:text-sm text-blue-700 dark:text-blue-300">
+                      Click on pages below to select them for rotation. Selected
+                      pages will be highlighted and rotated by your chosen angle.
                     </div>
-                  </div>
-                )}
-
-                {/* Manual Range Input */}
-                {rotateMode === "manual" && (
-                  <div className="space-y-2">
-                    <Input
-                      type="text"
-                      placeholder="e.g., 1-3, 5, 7-10"
-                      value={specificPages}
-                      onChange={(e) => setSpecificPages(e.target.value)}
-                      className="font-mono"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Enter page numbers or ranges separated by commas
-                    </p>
-                  </div>
-                )}
-
-                {/* Selected Pages Summary */}
-                {rotateMode !== "all" &&
-                  (selectedPages.length > 0 || specificPages) && (
-                    <div className="bg-secondary/30 rounded-lg p-3">
-                      <p className="text-sm text-muted-foreground mb-1">
-                        Pages to rotate:
-                      </p>
-                      <p className="text-sm font-mono">
-                        {rotateMode === "visual"
-                          ? selectedPages.sort((a, b) => a - b).join(", ")
-                          : specificPages || "None selected"}
-                      </p>
-                    </div>
-                  )}
-              </div>
-            </div>
-
-            {/* Action Button - Mobile optimized */}
-            <Button
-              onClick={handleRotate}
-              disabled={isProcessing || !file}
-              size="default"
-              className="w-full h-11 text-sm sm:text-base"
-            >
-              {isProcessing ? (
-                <>
-                  <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 animate-spin" />
-                  Rotating PDF...
-                </>
-              ) : (
-                <>
-                  <RotateCw className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
-                  Rotate PDF
-                </>
-              )}
-            </Button>
-          </div>
-        )}
-
-        {/* Progress */}
-        {isProcessing && (
-          <div className="mt-6">
-            <ProgressIndicator
-              progress={progress}
-              status="processing"
-              message="Rotating your PDF..."
-              showDetails={true}
-            />
-
-            {processingSteps.length > 0 && (
-              <div className="mt-4">
-                <MultiStepProgress
-                  steps={processingSteps}
-                  currentStep={
-                    processingSteps.find((s) => s.status === "processing")?.id
-                  }
-                />
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Error Message */}
-        {error && (
-          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mt-6">
-            <div className="flex items-center gap-2 text-destructive">
-              <AlertCircle className="h-4 w-4 flex-shrink-0" />
-              <span className="text-sm">{error.message}</span>
-            </div>
-          </div>
-        )}
-
-        {/* Result */}
-        {rotatedResult && (
-          <div className="space-y-4 mt-6">
-            <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-lg p-4">
-              <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
-                <CheckCircle className="h-5 w-5" />
-                <span className="font-medium">PDF rotated successfully!</span>
-              </div>
-            </div>
-
-            <div className="bg-card border rounded-lg p-4 sm:p-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div className="flex items-center gap-2.5 sm:gap-3">
-                  <div className="p-1.5 sm:p-2 bg-tool-pdf/[0.1] text-tool-pdf rounded flex-shrink-0">
-                    <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-sm sm:text-base">
-                      Rotated PDF
-                    </h3>
-                    <p className="text-xs sm:text-sm text-muted-foreground">
-                      {rotateMode === "all"
-                        ? `All ${pageCount} pages`
-                        : `${getPageNumbers().length} pages`}{" "}
-                      rotated {selectedRotation}° •{" "}
-                      {formatFileSize(rotatedResult.length)}
-                    </p>
                   </div>
                 </div>
-                <Button onClick={downloadRotated} className="w-full sm:w-auto">
-                  <Download className="h-4 w-4 mr-2" />
-                  Download
-                </Button>
-              </div>
+              )}
+
+              {/* Manual Range Input */}
+              {options.mode === "manual" && (
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    value={options.manualPages}
+                    onChange={(e) =>
+                      setOptions((prev) => ({
+                        ...prev,
+                        manualPages: e.target.value,
+                      }))
+                    }
+                    placeholder="e.g., 1-3, 5, 7-10"
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary text-sm font-mono"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Enter page numbers or ranges separated by commas
+                  </p>
+                </div>
+              )}
+
+              {/* Selected Pages Summary */}
+              {options.mode !== "all" && pageCount > 0 && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
+                    Preview: {options.mode === "visual" 
+                      ? options.selectedPages.length 
+                      : getPageNumbers().length} page{(options.mode === "visual" ? options.selectedPages.length : getPageNumbers().length) !== 1 ? 's' : ''} will be rotated
+                  </label>
+                  {options.mode === "visual" && options.selectedPages.length > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      Pages: {options.selectedPages.sort((a, b) => a - b).join(", ")}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
-        )}
 
-        {/* Features - Mobile optimized */}
-        <div className="mt-12 sm:mt-16 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-          <div className="p-3 sm:p-4 rounded-lg border">
-            <Eye className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
-            <h3 className="font-semibold text-sm sm:text-base mb-1">
-              Visual Page Selection
-            </h3>
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              Click on specific pages to rotate only what you need
-            </p>
+          {/* Drop Zone / File Display */}
+          {!file ? (
+            <label
+              htmlFor="file-upload"
+              className="group relative block cursor-pointer"
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+            >
+              <div
+                className={cn(
+                  "relative p-12 sm:p-16 md:p-20 rounded-2xl border-2 border-dashed transition-all duration-300",
+                  isDragging
+                    ? "border-primary bg-primary/10 scale-[1.02]"
+                    : "border-border bg-card/50 hover:border-primary hover:bg-card group-hover:scale-[1.01]"
+                )}
+              >
+                <div className="text-center">
+                  <Upload
+                    className={cn(
+                      "w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 transition-all duration-300",
+                      isDragging
+                        ? "text-primary scale-110"
+                        : "text-muted-foreground group-hover:text-primary"
+                    )}
+                  />
+                  <p className="text-lg sm:text-xl font-medium mb-2">
+                    Drop PDF here
+                  </p>
+                  <p className="text-sm sm:text-base text-muted-foreground mb-4">
+                    or click to browse
+                  </p>
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-muted/50">
+                    <Info className="w-4 h-4 text-primary" />
+                    <span className="text-sm text-muted-foreground">
+                      Rotate PDF pages to any angle
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </label>
+          ) : (
+            <div className="space-y-4">
+              {/* File Info */}
+              <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-6">
+                <div className="flex items-center gap-3">
+                  <FileText className="w-8 h-8 text-muted-foreground" />
+                  <div className="flex-1">
+                    <p className="font-medium">{file.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {formatFileSize(file.size)} • {pageCount} page{pageCount !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowPreview(!showPreview)}
+                  >
+                    {showPreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      setFile(null);
+                      setFileData(null);
+                      setRotatedResult(null);
+                      setPageCount(0);
+                      setOptions((prev) => ({ ...prev, selectedPages: [] }));
+                    }}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                {/* PDF Preview */}
+                {showPreview && fileData && (
+                  <div className="mt-4 border-t pt-4">
+                    <PdfPreview
+                      pdfData={fileData}
+                      mode={options.mode === "visual" ? "grid" : "strip"}
+                      maxHeight={options.mode === "visual" ? 400 : 200}
+                      selectable={options.mode === "visual"}
+                      selectedPages={options.selectedPages}
+                      onPageSelect={handlePageSelect}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Action Button */}
+              <Button
+                onClick={handleRotate}
+                disabled={isProcessing}
+                className="w-full"
+              >
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Rotating... ({Math.round(progress)}%)
+                  </>
+                ) : (
+                  <>
+                    <RotateCw className="w-4 h-4 mr-2" />
+                    Rotate PDF
+                  </>
+                )}
+              </Button>
+
+              {/* Result */}
+              {rotatedResult && (
+                <>
+                  <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-lg p-4 flex items-center gap-2">
+                    <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
+                    <div>
+                      <p className="font-medium text-green-900 dark:text-green-200">
+                        Rotation complete!
+                      </p>
+                      <p className="text-sm text-green-700 dark:text-green-300">
+                        {options.mode === "all" 
+                          ? `All ${pageCount} pages` 
+                          : `${getPageNumbers().length} pages`} rotated {options.angle}°
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border/50 p-4 flex items-center gap-3">
+                    <FileText className="w-6 h-6 text-muted-foreground" />
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">Rotated PDF</p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatFileSize(rotatedResult.byteLength)}
+                      </p>
+                    </div>
+                    <Button size="sm" onClick={handleDownload}>
+                      <Download className="w-3 h-3 mr-1" />
+                      Download
+                    </Button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Related Tools */}
+          <div className="mt-12 pt-12 border-t">
+            <RelatedTools tools={relatedTools} direction="horizontal" />
           </div>
-          <div className="p-3 sm:p-4 rounded-lg border">
-            <RotateCw className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
-            <h3 className="font-semibold text-sm sm:text-base mb-1">
-              Multiple Angles
-            </h3>
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              Rotate pages 90°, 180°, or 270° with instant preview
-            </p>
-          </div>
-          <div className="p-3 sm:p-4 rounded-lg border">
-            <FileText className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
-            <h3 className="font-semibold text-sm sm:text-base mb-1">
-              Preserve Quality
-            </h3>
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              All formatting and quality retained after rotation
-            </p>
+
+          {/* FAQ Section */}
+          <div className="mt-12">
+            <FAQ items={faqs} />
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
-};
-
-export default PdfRotate;
+}
