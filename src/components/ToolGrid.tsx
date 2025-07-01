@@ -19,13 +19,33 @@ export default function ToolGridNew() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
+    // Fallback for mobile: Check if element is already in viewport on mount
+    const checkInitialVisibility = () => {
+      const element = document.getElementById("all-tools");
+      if (element) {
+        const rect = element.getBoundingClientRect();
+        const windowHeight = window.innerHeight || document.documentElement.clientHeight;
+        // Check if element is already visible
+        if (rect.top < windowHeight && rect.bottom > 0) {
+          setIsVisible(true);
+        }
+      }
+    };
+
+    // Check immediately
+    checkInitialVisibility();
+
+    // Set up Intersection Observer for scroll-triggered animation
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsVisible(true);
         }
       },
-      { threshold: 0.1 },
+      { 
+        threshold: 0.01, // Lower threshold for better mobile detection
+        rootMargin: '50px' // Trigger animation 50px before element enters viewport
+      },
     );
 
     const element = document.getElementById("all-tools");
@@ -33,12 +53,22 @@ export default function ToolGridNew() {
       observer.observe(element);
     }
 
+    // Also check on scroll for mobile browsers that might not support IO well
+    const handleScroll = () => {
+      if (!isVisible) {
+        checkInitialVisibility();
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
     return () => {
       if (element) {
         observer.unobserve(element);
       }
+      window.removeEventListener('scroll', handleScroll);
     };
-  }, []);
+  }, [isVisible]);
 
   const filteredTools = selectedCategory
     ? tools.filter((tool) => tool.category === selectedCategory)
