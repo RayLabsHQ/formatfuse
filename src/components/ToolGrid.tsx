@@ -221,9 +221,6 @@ export default function ToolGridNew() {
                               style={{ color: category?.color }}
                             />
                           </div>
-                          <span className="text-xs font-medium px-2 py-1 rounded-md bg-primary/10 text-primary">
-                            Popular
-                          </span>
                         </div>
 
                         <h4 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors">
