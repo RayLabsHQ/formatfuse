@@ -551,10 +551,10 @@ export default function JsonFormatter() {
         </div>
 
         {/* Main Content - Split Screen for Desktop, Tabbed for Mobile */}
-        <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden gap-0 lg:gap-4">
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 min-h-0 gap-0 lg:gap-4">
           {/* Input Panel */}
           <div
-            className={`flex-1 flex flex-col min-h-0 rounded-none lg:rounded-lg overflow-hidden border-0 lg:border bg-card/50 ${
+            className={`flex flex-col min-h-0 rounded-none lg:rounded-lg overflow-hidden border-0 lg:border bg-card/50 ${
               activeTab === "input" ? "flex" : "hidden lg:flex"
             }`}
           >
@@ -629,7 +629,7 @@ export default function JsonFormatter() {
 
           {/* Output Panel */}
           <div
-            className={`flex-1 flex flex-col min-h-0 h-full rounded-none lg:rounded-lg overflow-hidden border-0 lg:border border-t lg:border-t bg-card/50 ${
+            className={`flex flex-col min-h-0 rounded-none lg:rounded-lg overflow-hidden border-0 lg:border border-t lg:border-t bg-card/50 ${
               activeTab === "output" ? "flex" : "hidden lg:flex"
             }`}
           >
