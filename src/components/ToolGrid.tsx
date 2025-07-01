@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FileText, Image, Code, Archive, Wrench, TrendingUp } from "lucide-react";
+import { FileText, Image, Code, Archive, Wrench, TrendingUp, ArrowUpRight } from "lucide-react";
 import { allTools as tools } from "../data/tools";
 
 const categories = [
@@ -294,13 +294,17 @@ export default function ToolGridNew() {
 
                     {/* Hover indicator */}
                     <div
-                      className={`absolute -right-2 -top-2 w-2 h-2 rounded-full transition-all duration-300 ${
+                      className={`absolute -right-1 -top-1 transition-all duration-300 ${
                         isHovered
                           ? "opacity-100 scale-100"
                           : "opacity-0 scale-0"
                       }`}
-                      style={{ backgroundColor: category?.color }}
-                    />
+                    >
+                      <ArrowUpRight
+                        className="w-4 h-4"
+                        style={{ color: category?.color }}
+                      />
+                    </div>
                   </div>
                 </div>
               </a>
