@@ -3,7 +3,8 @@ import {
   Upload, Download, X, ArrowRight, ArrowUpDown,
   FileImage, AlertCircle, CheckCircle2, Loader2, Shield, Zap,
   Sparkles, Info, Minimize2, Image,
-  Sliders, Crown, Star, Scale, Package
+  Sliders, Crown, Star, Scale, Package,
+  File
 } from 'lucide-react';
 import { useImageCompress } from '../../hooks/useImageCompress';
 import type { CompressOptions, CompressFormat } from '../../lib/image-compress';
@@ -805,7 +806,10 @@ export default function ImageCompressor() {
 
         {/* Format Comparison */}
         <div className="space-y-6 mt-12">
-          <h2 className="text-2xl font-semibold">Format Comparison</h2>
+          <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
+            <File className="w-6 h-6 text-primary" />
+            Format Comparison
+          </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-4xl mx-auto">
             <div className="bg-card/50 backdrop-blur-sm rounded-xl p-6 border border-border/50 hover:border-primary/30 transition-all duration-300">
               <div className="flex items-center gap-4 mb-4">

@@ -34,8 +34,8 @@ export function RelatedTools({ tools, title = "Related Tools", className = "", d
 
   return (
     <div className={className}>
-      <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-        <ToolCase className="w-5 h-5 text-primary" />
+      <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
+        <ToolCase className="w-6 h-6 text-primary" />
         {title}
       </h2>
       <div className={getGridClasses()}>

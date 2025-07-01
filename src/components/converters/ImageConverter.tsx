@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { 
   Upload, Download, X, ArrowRight, ArrowUpDown,
   FileImage, AlertCircle, CheckCircle2, Loader2, Shield, Zap,
-  Sparkles, Info, FileText, Image, ChevronRight, HelpCircle
+  Sparkles, Info, FileText, Image, FileQuestionMark
 } from 'lucide-react';
 import { getImageConverterComlink as getImageConverter, IMAGE_FORMATS, type ImageFormat } from '../../lib/image-converter-comlink';
 import { getHeicImageConverter } from '../../lib/heic-image-converter';
@@ -959,7 +959,7 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
             {/* How It Works */}
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold flex items-center gap-2">
+              <h2 className="text-2xl font-semibold flex items-center gap-2">
                 <Info className="w-6 h-6 text-primary" />
                 How It Works
               </h2>
@@ -996,7 +996,10 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
 
             {/* Format Information */}
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold">Supported Formats</h2>
+                <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
+                  <FileQuestionMark className="w-6 h-6 text-primary" />
+                  Supported Formats
+                </h2>
               <div className="grid grid-cols-3 gap-3">
                 {Object.values(FORMATS).map(format => {
                   const formatKey = format.displayName.toLowerCase();

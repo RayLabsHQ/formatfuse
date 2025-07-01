@@ -16,7 +16,7 @@ interface FAQProps {
 export function FAQ({ items, title = "Frequently Asked Questions", className = "" }: FAQProps) {
   return (
     <div className={className}>
-      <h2 className="text-2xl font-bold mb-8 flex items-center gap-2">
+      <h2 className="text-2xl font-semibold mb-8 flex items-center gap-2">
         <HelpCircle className="w-6 h-6 text-primary" />
         {title}
       </h2>
