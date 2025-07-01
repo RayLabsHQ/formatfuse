@@ -1,25 +1,52 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { 
-  FileText, Copy, Check, GitBranch, Eye, EyeOff,
-  Columns, Rows, Download, Upload, Palette,
-  Settings, Info, ChevronDown, ChevronUp, X, Plus,
-  Minus, RefreshCw, FileJson, Code, Type
-} from 'lucide-react';
-import { Button } from '../ui/button';
-import { Label } from '../ui/label';
-import { Textarea } from '../ui/textarea';
-import { Card } from '../ui/card';
-import { Separator } from '../ui/separator';
-import { Badge } from '../ui/badge';
-import { Switch } from '../ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { Alert, AlertDescription } from '../ui/alert';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
-import { cn } from '@/lib/utils';
+import React, { useState, useCallback, useMemo } from "react";
+import {
+  FileText,
+  Copy,
+  Check,
+  GitBranch,
+  Eye,
+  Columns,
+  Rows,
+  Download,
+  Upload,
+  Palette,
+  Settings,
+  Info,
+  ChevronDown,
+  ChevronUp,
+  X,
+  Plus,
+  Minus,
+  RefreshCw,
+  FileJson,
+  Code,
+  Type,
+} from "lucide-react";
+import { Button } from "../ui/button";
+import { Label } from "../ui/label";
+import { Textarea } from "../ui/textarea";
+import { Card } from "../ui/card";
+import { Separator } from "../ui/separator";
+import { Badge } from "../ui/badge";
+import { Switch } from "../ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import { Alert, AlertDescription } from "../ui/alert";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "../ui/collapsible";
+import { cn } from "@/lib/utils";
 
 interface DiffResult {
-  type: 'added' | 'removed' | 'unchanged' | 'modified';
+  type: "added" | "removed" | "unchanged" | "modified";
   lineNumber?: number;
   content: string;
   oldLine?: number;
@@ -33,14 +60,14 @@ interface DiffStats {
   total: number;
 }
 
-type ViewMode = 'side-by-side' | 'unified' | 'split';
-type DiffMode = 'lines' | 'words' | 'characters';
+type ViewMode = "side-by-side" | "unified" | "split";
+type DiffMode = "lines" | "words" | "characters";
 
 export function TextDiffChecker() {
-  const [text1, setText1] = useState('');
-  const [text2, setText2] = useState('');
-  const [viewMode, setViewMode] = useState<ViewMode>('side-by-side');
-  const [diffMode, setDiffMode] = useState<DiffMode>('lines');
+  const [text1, setText1] = useState("");
+  const [text2, setText2] = useState("");
+  const [viewMode, setViewMode] = useState<ViewMode>("side-by-side");
+  const [diffMode, setDiffMode] = useState<DiffMode>("lines");
   const [showLineNumbers, setShowLineNumbers] = useState(true);
   const [ignoreCase, setIgnoreCase] = useState(false);
   const [ignoreWhitespace, setIgnoreWhitespace] = useState(false);
@@ -48,106 +75,120 @@ export function TextDiffChecker() {
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
   // Compute line-by-line diff using LCS algorithm
-  const computeLineDiff = useCallback((text1: string, text2: string): DiffResult[] => {
-    const lines1 = text1.split('\n');
-    const lines2 = text2.split('\n');
-    
-    // Apply ignore options
-    const processLine = (line: string) => {
-      if (ignoreWhitespace) line = line.trim();
-      if (ignoreCase) line = line.toLowerCase();
-      return line;
-    };
+  const computeLineDiff = useCallback(
+    (text1: string, text2: string): DiffResult[] => {
+      const lines1 = text1.split("\n");
+      const lines2 = text2.split("\n");
 
-    const processed1 = lines1.map(processLine);
-    const processed2 = lines2.map(processLine);
+      // Apply ignore options
+      const processLine = (line: string) => {
+        if (ignoreWhitespace) line = line.trim();
+        if (ignoreCase) line = line.toLowerCase();
+        return line;
+      };
 
-    // LCS-based diff algorithm
-    const lcs = computeLCS(processed1, processed2);
-    const result: DiffResult[] = [];
-    
-    let i = 0, j = 0;
-    let lineNum1 = 1, lineNum2 = 1;
+      const processed1 = lines1.map(processLine);
+      const processed2 = lines2.map(processLine);
 
-    for (const action of lcs) {
-      if (action === 'match') {
-        result.push({
-          type: 'unchanged',
-          content: lines1[i],
-          oldLine: lineNum1++,
-          newLine: lineNum2++
-        });
-        i++;
-        j++;
-      } else if (action === 'delete') {
-        result.push({
-          type: 'removed',
-          content: lines1[i],
-          oldLine: lineNum1++
-        });
-        i++;
-      } else if (action === 'insert') {
-        result.push({
-          type: 'added',
-          content: lines2[j],
-          newLine: lineNum2++
-        });
-        j++;
+      // LCS-based diff algorithm
+      const lcs = computeLCS(processed1, processed2);
+      const result: DiffResult[] = [];
+
+      let i = 0,
+        j = 0;
+      let lineNum1 = 1,
+        lineNum2 = 1;
+
+      for (const action of lcs) {
+        if (action === "match") {
+          result.push({
+            type: "unchanged",
+            content: lines1[i],
+            oldLine: lineNum1++,
+            newLine: lineNum2++,
+          });
+          i++;
+          j++;
+        } else if (action === "delete") {
+          result.push({
+            type: "removed",
+            content: lines1[i],
+            oldLine: lineNum1++,
+          });
+          i++;
+        } else if (action === "insert") {
+          result.push({
+            type: "added",
+            content: lines2[j],
+            newLine: lineNum2++,
+          });
+          j++;
+        }
       }
-    }
 
-    return result;
-  }, [ignoreCase, ignoreWhitespace]);
+      return result;
+    },
+    [ignoreCase, ignoreWhitespace],
+  );
 
   // Compute word-level diff
-  const computeWordDiff = useCallback((text1: string, text2: string): DiffResult[] => {
-    const words1 = text1.match(/\S+|\s+/g) || [];
-    const words2 = text2.match(/\S+|\s+/g) || [];
-    
-    const processWord = (word: string) => {
-      if (ignoreCase) word = word.toLowerCase();
-      return word;
-    };
+  const computeWordDiff = useCallback(
+    (text1: string, text2: string): DiffResult[] => {
+      const words1 = text1.match(/\S+|\s+/g) || [];
+      const words2 = text2.match(/\S+|\s+/g) || [];
 
-    const processed1 = words1.map(processWord);
-    const processed2 = words2.map(processWord);
+      const processWord = (word: string) => {
+        if (ignoreCase) word = word.toLowerCase();
+        return word;
+      };
 
-    const lcs = computeLCS(processed1, processed2);
-    const result: DiffResult[] = [];
-    
-    let i = 0, j = 0;
+      const processed1 = words1.map(processWord);
+      const processed2 = words2.map(processWord);
 
-    for (const action of lcs) {
-      if (action === 'match') {
-        result.push({
-          type: 'unchanged',
-          content: words1[i]
-        });
-        i++;
-        j++;
-      } else if (action === 'delete') {
-        result.push({
-          type: 'removed',
-          content: words1[i]
-        });
-        i++;
-      } else if (action === 'insert') {
-        result.push({
-          type: 'added',
-          content: words2[j]
-        });
-        j++;
+      const lcs = computeLCS(processed1, processed2);
+      const result: DiffResult[] = [];
+
+      let i = 0,
+        j = 0;
+
+      for (const action of lcs) {
+        if (action === "match") {
+          result.push({
+            type: "unchanged",
+            content: words1[i],
+          });
+          i++;
+          j++;
+        } else if (action === "delete") {
+          result.push({
+            type: "removed",
+            content: words1[i],
+          });
+          i++;
+        } else if (action === "insert") {
+          result.push({
+            type: "added",
+            content: words2[j],
+          });
+          j++;
+        }
       }
-    }
 
-    return result;
-  }, [ignoreCase]);
+      return result;
+    },
+    [ignoreCase],
+  );
 
   // LCS (Longest Common Subsequence) algorithm
-  const computeLCS = (arr1: string[], arr2: string[]): ('match' | 'delete' | 'insert')[] => {
+  const computeLCS = (
+    arr1: string[],
+    arr2: string[],
+  ): ("match" | "delete" | "insert")[] => {
     const m = arr1.length;
     const n = arr2.length;
-    const dp: number[][] = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
+    const dp: number[][] = Array(m + 1)
+      .fill(null)
+      .map(() => Array(n + 1).fill(0));
 
     // Build LCS table
     for (let i = 1; i <= m; i++) {
@@ -161,19 +202,20 @@ export function TextDiffChecker() {
     }
 
     // Backtrack to find the actual LCS
-    const actions: ('match' | 'delete' | 'insert')[] = [];
-    let i = m, j = n;
+    const actions: ("match" | "delete" | "insert")[] = [];
+    let i = m,
+      j = n;
 
     while (i > 0 || j > 0) {
       if (i > 0 && j > 0 && arr1[i - 1] === arr2[j - 1]) {
-        actions.unshift('match');
+        actions.unshift("match");
         i--;
         j--;
       } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
-        actions.unshift('insert');
+        actions.unshift("insert");
         j--;
       } else {
-        actions.unshift('delete');
+        actions.unshift("delete");
         i--;
       }
     }
@@ -184,20 +226,20 @@ export function TextDiffChecker() {
   // Compute diff based on mode
   const diffResults = useMemo(() => {
     if (!text1 && !text2) return [];
-    
-    if (diffMode === 'lines') {
+
+    if (diffMode === "lines") {
       return computeLineDiff(text1, text2);
-    } else if (diffMode === 'words') {
+    } else if (diffMode === "words") {
       return computeWordDiff(text1, text2);
     }
-    
+
     return [];
   }, [text1, text2, diffMode, computeLineDiff, computeWordDiff]);
 
   // Calculate statistics
   const stats = useMemo((): DiffStats => {
-    const additions = diffResults.filter(r => r.type === 'added').length;
-    const deletions = diffResults.filter(r => r.type === 'removed').length;
+    const additions = diffResults.filter((r) => r.type === "added").length;
+    const deletions = diffResults.filter((r) => r.type === "removed").length;
     const modifications = 0; // Could be calculated for more advanced diff
     const total = diffResults.length;
 
@@ -210,15 +252,15 @@ export function TextDiffChecker() {
       setCopiedField(field);
       setTimeout(() => setCopiedField(null), 2000);
     } catch (err) {
-      console.error('Failed to copy:', err);
+      console.error("Failed to copy:", err);
     }
   }, []);
 
-  const handleFileUpload = useCallback((file: File, side: 'left' | 'right') => {
+  const handleFileUpload = useCallback((file: File, side: "left" | "right") => {
     const reader = new FileReader();
     reader.onload = (e) => {
       const content = e.target?.result as string;
-      if (side === 'left') {
+      if (side === "left") {
         setText1(content);
       } else {
         setText2(content);
@@ -235,24 +277,24 @@ export function TextDiffChecker() {
 
   const renderDiffLine = (result: DiffResult, index: number) => {
     const bgColor = {
-      added: 'bg-green-100 dark:bg-green-900/30',
-      removed: 'bg-red-100 dark:bg-red-900/30',
-      unchanged: '',
-      modified: 'bg-yellow-100 dark:bg-yellow-900/30'
+      added: "bg-green-100 dark:bg-green-900/30",
+      removed: "bg-red-100 dark:bg-red-900/30",
+      unchanged: "",
+      modified: "bg-yellow-100 dark:bg-yellow-900/30",
     }[result.type];
 
     const textColor = {
-      added: 'text-green-900 dark:text-green-100',
-      removed: 'text-red-900 dark:text-red-100',
-      unchanged: '',
-      modified: 'text-yellow-900 dark:text-yellow-100'
+      added: "text-green-900 dark:text-green-100",
+      removed: "text-red-900 dark:text-red-100",
+      unchanged: "",
+      modified: "text-yellow-900 dark:text-yellow-100",
     }[result.type];
 
     const icon = {
       added: <Plus className="h-3 w-3" />,
       removed: <Minus className="h-3 w-3" />,
       unchanged: null,
-      modified: <RefreshCw className="h-3 w-3" />
+      modified: <RefreshCw className="h-3 w-3" />,
     }[result.type];
 
     return (
@@ -262,7 +304,7 @@ export function TextDiffChecker() {
           "font-mono text-sm",
           bgColor,
           textColor,
-          result.type !== 'unchanged' && "px-2 py-0.5"
+          result.type !== "unchanged" && "px-2 py-0.5",
         )}
       >
         <div className="flex items-start gap-2">
@@ -278,7 +320,7 @@ export function TextDiffChecker() {
           )}
           {icon && <span className="mt-0.5">{icon}</span>}
           <span className="flex-1 whitespace-pre-wrap break-words">
-            {result.content || '\u00A0'}
+            {result.content || "\u00A0"}
           </span>
         </div>
       </div>
@@ -290,11 +332,11 @@ export function TextDiffChecker() {
     const rightLines: DiffResult[] = [];
 
     diffResults.forEach((result) => {
-      if (result.type === 'removed') {
+      if (result.type === "removed") {
         leftLines.push(result);
-        rightLines.push({ type: 'unchanged', content: '' });
-      } else if (result.type === 'added') {
-        leftLines.push({ type: 'unchanged', content: '' });
+        rightLines.push({ type: "unchanged", content: "" });
+      } else if (result.type === "added") {
+        leftLines.push({ type: "unchanged", content: "" });
         rightLines.push(result);
       } else {
         leftLines.push(result);
@@ -336,9 +378,11 @@ export function TextDiffChecker() {
             <span
               key={i}
               className={cn(
-                result.type === 'added' && "bg-green-200 dark:bg-green-900/50 text-green-900 dark:text-green-100",
-                result.type === 'removed' && "bg-red-200 dark:bg-red-900/50 text-red-900 dark:text-red-100 line-through",
-                result.type === 'unchanged' && ""
+                result.type === "added" &&
+                  "bg-green-200 dark:bg-green-900/50 text-green-900 dark:text-green-100",
+                result.type === "removed" &&
+                  "bg-red-200 dark:bg-red-900/50 text-red-900 dark:text-red-100 line-through",
+                result.type === "unchanged" && "",
               )}
             >
               {result.content}
@@ -354,7 +398,8 @@ export function TextDiffChecker() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Text Diff Checker</h1>
         <p className="text-neutral-600 dark:text-neutral-400">
-          Compare two texts and visualize the differences with multiple view modes
+          Compare two texts and visualize the differences with multiple view
+          modes
         </p>
       </div>
 
@@ -367,7 +412,7 @@ export function TextDiffChecker() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => document.getElementById('file-input-1')?.click()}
+                onClick={() => document.getElementById("file-input-1")?.click()}
               >
                 <Upload className="h-4 w-4" />
               </Button>
@@ -376,15 +421,18 @@ export function TextDiffChecker() {
                 type="file"
                 className="hidden"
                 accept=".txt,.md,.json,.js,.ts,.css,.html"
-                onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'left')}
+                onChange={(e) =>
+                  e.target.files?.[0] &&
+                  handleFileUpload(e.target.files[0], "left")
+                }
                 aria-label="Select text file for original text"
               />
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => handleCopy(text1, 'text1')}
+                onClick={() => handleCopy(text1, "text1")}
               >
-                {copiedField === 'text1' ? (
+                {copiedField === "text1" ? (
                   <Check className="h-4 w-4" />
                 ) : (
                   <Copy className="h-4 w-4" />
@@ -407,7 +455,7 @@ export function TextDiffChecker() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => document.getElementById('file-input-2')?.click()}
+                onClick={() => document.getElementById("file-input-2")?.click()}
               >
                 <Upload className="h-4 w-4" />
               </Button>
@@ -416,15 +464,18 @@ export function TextDiffChecker() {
                 type="file"
                 className="hidden"
                 accept=".txt,.md,.json,.js,.ts,.css,.html"
-                onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'right')}
+                onChange={(e) =>
+                  e.target.files?.[0] &&
+                  handleFileUpload(e.target.files[0], "right")
+                }
                 aria-label="Select text file for modified text"
               />
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => handleCopy(text2, 'text2')}
+                onClick={() => handleCopy(text2, "text2")}
               >
-                {copiedField === 'text2' ? (
+                {copiedField === "text2" ? (
                   <Check className="h-4 w-4" />
                 ) : (
                   <Copy className="h-4 w-4" />
@@ -452,8 +503,13 @@ export function TextDiffChecker() {
           <Separator orientation="vertical" className="h-8" />
 
           <div className="flex items-center gap-2">
-            <Label htmlFor="view-mode" className="text-sm">View:</Label>
-            <Select value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
+            <Label htmlFor="view-mode" className="text-sm">
+              View:
+            </Label>
+            <Select
+              value={viewMode}
+              onValueChange={(v) => setViewMode(v as ViewMode)}
+            >
               <SelectTrigger id="view-mode" className="w-40">
                 <SelectValue />
               </SelectTrigger>
@@ -475,8 +531,13 @@ export function TextDiffChecker() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Label htmlFor="diff-mode" className="text-sm">Mode:</Label>
-            <Select value={diffMode} onValueChange={(v) => setDiffMode(v as DiffMode)}>
+            <Label htmlFor="diff-mode" className="text-sm">
+              Mode:
+            </Label>
+            <Select
+              value={diffMode}
+              onValueChange={(v) => setDiffMode(v as DiffMode)}
+            >
               <SelectTrigger id="diff-mode" className="w-32">
                 <SelectValue />
               </SelectTrigger>
@@ -517,7 +578,10 @@ export function TextDiffChecker() {
               checked={ignoreWhitespace}
               onCheckedChange={setIgnoreWhitespace}
             />
-            <Label htmlFor="ignore-whitespace" className="text-sm cursor-pointer">
+            <Label
+              htmlFor="ignore-whitespace"
+              className="text-sm cursor-pointer"
+            >
               Ignore Whitespace
             </Label>
           </div>
@@ -557,10 +621,12 @@ export function TextDiffChecker() {
             <GitBranch className="h-5 w-5" />
             Difference View
           </h3>
-          
-          {diffMode === 'lines' && viewMode === 'side-by-side' && renderSideBySide()}
-          {diffMode === 'lines' && viewMode === 'unified' && renderUnified()}
-          {diffMode === 'words' && renderWordDiff()}
+
+          {diffMode === "lines" &&
+            viewMode === "side-by-side" &&
+            renderSideBySide()}
+          {diffMode === "lines" && viewMode === "unified" && renderUnified()}
+          {diffMode === "words" && renderWordDiff()}
         </div>
       )}
 
@@ -573,24 +639,50 @@ export function TextDiffChecker() {
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-4 space-y-4 text-sm text-neutral-600 dark:text-neutral-400">
             <div>
-              <h4 className="font-semibold text-neutral-900 dark:text-neutral-100 mb-2">View Modes</h4>
+              <h4 className="font-semibold text-neutral-900 dark:text-neutral-100 mb-2">
+                View Modes
+              </h4>
               <ul className="list-disc list-inside space-y-1">
-                <li><strong>Side by Side:</strong> Shows original and modified text in separate columns</li>
-                <li><strong>Unified:</strong> Shows all changes in a single view with inline highlighting</li>
+                <li>
+                  <strong>Side by Side:</strong> Shows original and modified
+                  text in separate columns
+                </li>
+                <li>
+                  <strong>Unified:</strong> Shows all changes in a single view
+                  with inline highlighting
+                </li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold text-neutral-900 dark:text-neutral-100 mb-2">Diff Modes</h4>
+              <h4 className="font-semibold text-neutral-900 dark:text-neutral-100 mb-2">
+                Diff Modes
+              </h4>
               <ul className="list-disc list-inside space-y-1">
-                <li><strong>Lines:</strong> Compares text line by line (best for code and structured text)</li>
-                <li><strong>Words:</strong> Compares word by word (best for prose and documents)</li>
+                <li>
+                  <strong>Lines:</strong> Compares text line by line (best for
+                  code and structured text)
+                </li>
+                <li>
+                  <strong>Words:</strong> Compares word by word (best for prose
+                  and documents)
+                </li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold text-neutral-900 dark:text-neutral-100 mb-2">Color Legend</h4>
+              <h4 className="font-semibold text-neutral-900 dark:text-neutral-100 mb-2">
+                Color Legend
+              </h4>
               <ul className="list-disc list-inside space-y-1">
-                <li><span className="text-green-600 dark:text-green-400">Green:</span> Added content</li>
-                <li><span className="text-red-600 dark:text-red-400">Red:</span> Removed content</li>
+                <li>
+                  <span className="text-green-600 dark:text-green-400">
+                    Green:
+                  </span>{" "}
+                  Added content
+                </li>
+                <li>
+                  <span className="text-red-600 dark:text-red-400">Red:</span>{" "}
+                  Removed content
+                </li>
                 <li>No highlight: Unchanged content</li>
               </ul>
             </div>

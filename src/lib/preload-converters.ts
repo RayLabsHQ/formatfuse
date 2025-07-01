@@ -1,9 +1,9 @@
 // Preloading utilities for WASM converters
 // These functions trigger WASM initialization in the background
 
-import { getImageConverter } from './image-converter';
-import { getHeicImageConverter } from './heic-image-converter';
-import { SvgConverter } from './svg-converter';
+import { getImageConverterComlink } from "./image-converter-comlink";
+import { getHeicImageConverter } from "./heic-image-converter";
+import { SvgConverter } from "./svg-converter";
 
 let imageConverterPreloaded = false;
 let heicConverterPreloaded = false;
@@ -16,28 +16,85 @@ let svgConverterInstance: SvgConverter | null = null;
  */
 export async function preloadImageConverter(): Promise<void> {
   if (imageConverterPreloaded) return;
-  
+
   try {
-    const converter = getImageConverter();
+    const converter = getImageConverterComlink();
     // Trigger WASM initialization by calling getMetadata with a tiny test image
     const testPixel = new Uint8Array([
-      0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG signature
-      0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52, // IHDR chunk
-      0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
-      0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4,
-      0x89, 0x00, 0x00, 0x00, 0x0A, 0x49, 0x44, 0x41,
-      0x54, 0x78, 0x9C, 0x62, 0x00, 0x00, 0x00, 0x02,
-      0x00, 0x01, 0xE5, 0x27, 0xDE, 0xFC, 0x00, 0x00,
-      0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42,
-      0x60, 0x82
+      0x89,
+      0x50,
+      0x4e,
+      0x47,
+      0x0d,
+      0x0a,
+      0x1a,
+      0x0a, // PNG signature
+      0x00,
+      0x00,
+      0x00,
+      0x0d,
+      0x49,
+      0x48,
+      0x44,
+      0x52, // IHDR chunk
+      0x00,
+      0x00,
+      0x00,
+      0x01,
+      0x00,
+      0x00,
+      0x00,
+      0x01,
+      0x08,
+      0x06,
+      0x00,
+      0x00,
+      0x00,
+      0x1f,
+      0x15,
+      0xc4,
+      0x89,
+      0x00,
+      0x00,
+      0x00,
+      0x0a,
+      0x49,
+      0x44,
+      0x41,
+      0x54,
+      0x78,
+      0x9c,
+      0x62,
+      0x00,
+      0x00,
+      0x00,
+      0x02,
+      0x00,
+      0x01,
+      0xe5,
+      0x27,
+      0xde,
+      0xfc,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x49,
+      0x45,
+      0x4e,
+      0x44,
+      0xae,
+      0x42,
+      0x60,
+      0x82,
     ]);
-    
+
     await converter.getMetadata(
-      new File([testPixel], 'preload.png', { type: 'image/png' })
+      new File([testPixel], "preload.png", { type: "image/png" }),
     );
     imageConverterPreloaded = true;
   } catch (error) {
-    console.warn('Failed to preload image converter:', error);
+    console.warn("Failed to preload image converter:", error);
   }
 }
 
@@ -47,14 +104,14 @@ export async function preloadImageConverter(): Promise<void> {
  */
 export async function preloadHeicConverter(): Promise<void> {
   if (heicConverterPreloaded) return;
-  
+
   try {
     const converter = getHeicImageConverter();
     // The constructor itself triggers initialization
     // Just accessing it is enough to start loading
     heicConverterPreloaded = true;
   } catch (error) {
-    console.warn('Failed to preload HEIC converter:', error);
+    console.warn("Failed to preload HEIC converter:", error);
   }
 }
 
@@ -64,18 +121,19 @@ export async function preloadHeicConverter(): Promise<void> {
  */
 export async function preloadSvgConverter(): Promise<void> {
   if (svgConverterPreloaded) return;
-  
+
   try {
     if (!svgConverterInstance) {
       svgConverterInstance = new SvgConverter();
     }
-    
+
     // Get SVG info for a minimal SVG to trigger WASM loading
-    const testSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"></svg>';
+    const testSvg =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"></svg>';
     await svgConverterInstance.getSvgInfo(testSvg);
     svgConverterPreloaded = true;
   } catch (error) {
-    console.warn('Failed to preload SVG converter:', error);
+    console.warn("Failed to preload SVG converter:", error);
   }
 }
 
@@ -85,22 +143,22 @@ export async function preloadSvgConverter(): Promise<void> {
  * @param targetFormat - The target format (e.g., 'jpg', 'webp')
  */
 export async function preloadConvertersForFormats(
-  sourceFormat?: string, 
-  targetFormat?: string
+  sourceFormat?: string,
+  targetFormat?: string,
 ): Promise<void> {
   const formats = [sourceFormat?.toLowerCase(), targetFormat?.toLowerCase()];
-  
+
   // Preload SVG converter if SVG is involved
-  if (formats.includes('svg')) {
+  if (formats.includes("svg")) {
     preloadSvgConverter();
     return; // SVG uses its own converter
   }
-  
+
   // Always preload the main image converter for common formats
   preloadImageConverter();
-  
+
   // Preload HEIC converter if HEIC is involved
-  if (formats.includes('heic')) {
+  if (formats.includes("heic")) {
     preloadHeicConverter();
   }
 }

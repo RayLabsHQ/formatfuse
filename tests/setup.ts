@@ -1,7 +1,7 @@
-import { readFile } from 'fs/promises';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { expect } from 'vitest';
+import { readFile } from "fs/promises";
+import { resolve, dirname } from "path";
+import { fileURLToPath } from "url";
+import { expect } from "vitest";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -10,18 +10,21 @@ const __dirname = dirname(__filename);
  * Load a test fixture file
  */
 export async function loadFixture(relativePath: string): Promise<ArrayBuffer> {
-  const fullPath = resolve(__dirname, 'fixtures', relativePath);
+  const fullPath = resolve(__dirname, "fixtures", relativePath);
   const buffer = await readFile(fullPath);
-  return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength) as ArrayBuffer;
+  return buffer.buffer.slice(
+    buffer.byteOffset,
+    buffer.byteOffset + buffer.byteLength,
+  ) as ArrayBuffer;
 }
 
 /**
  * Create a File object from fixture for testing
  */
 export async function createFileFromFixture(
-  relativePath: string, 
-  fileName: string, 
-  mimeType: string
+  relativePath: string,
+  fileName: string,
+  mimeType: string,
 ): Promise<File> {
   const arrayBuffer = await loadFixture(relativePath);
   const blob = new Blob([arrayBuffer], { type: mimeType });
@@ -34,7 +37,7 @@ export async function createFileFromFixture(
 export function validateOutput(
   result: ArrayBuffer | Blob,
   expectedMimeType?: string,
-  minSize: number = 0
+  minSize: number = 0,
 ): void {
   if (result instanceof ArrayBuffer) {
     expect(result.byteLength).toBeGreaterThan(minSize);
@@ -51,7 +54,7 @@ export function validateOutput(
  */
 export function createWorkerMock() {
   const messages: any[] = [];
-  
+
   return {
     postMessage: (message: any) => {
       messages.push(message);
@@ -59,7 +62,7 @@ export function createWorkerMock() {
     messages,
     clearMessages: () => {
       messages.length = 0;
-    }
+    },
   };
 }
 
@@ -69,34 +72,34 @@ export function createWorkerMock() {
 export async function testWorker(
   workerPath: string,
   input: any,
-  timeout: number = 5000
+  timeout: number = 5000,
 ): Promise<any> {
   return new Promise((resolve, reject) => {
-    const worker = new Worker(workerPath, { type: 'module' });
-    
+    const worker = new Worker(workerPath, { type: "module" });
+
     const timer = setTimeout(() => {
       worker.terminate();
-      reject(new Error('Worker timeout'));
+      reject(new Error("Worker timeout"));
     }, timeout);
-    
+
     worker.onmessage = (event) => {
-      if (event.data.type === 'complete') {
+      if (event.data.type === "complete") {
         clearTimeout(timer);
         worker.terminate();
         resolve(event.data);
-      } else if (event.data.type === 'error') {
+      } else if (event.data.type === "error") {
         clearTimeout(timer);
         worker.terminate();
         reject(new Error(event.data.error));
       }
     };
-    
+
     worker.onerror = (error) => {
       clearTimeout(timer);
       worker.terminate();
       reject(error);
     };
-    
+
     worker.postMessage(input);
   });
 }

@@ -5,18 +5,21 @@ This directory contains test images downloaded from [placehold.co](https://place
 ## Available Test Images
 
 ### Different Formats
+
 - `test.png` - PNG format (200x200, red background)
-- `test.jpg` - JPEG format (200x200, green background)  
+- `test.jpg` - JPEG format (200x200, green background)
 - `test.webp` - WebP format (200x200, blue background)
 - `test.gif` - GIF format (200x200, yellow background)
 - `test.avif` - AVIF format (200x200, magenta background)
 
 ### Different Sizes
+
 - `small.png` - 100x100 (orange background)
 - `medium.png` - 500x300 (purple background)
 - `large.png` - 1000x800 (teal background)
 
 ### Special Cases
+
 - `transparent.png` - PNG with transparent background (200x200)
 - `retina-2x.png` - 2x retina resolution (400x400)
 - `retina-3x.png` - 3x retina resolution (600x600)
@@ -24,12 +27,14 @@ This directory contains test images downloaded from [placehold.co](https://place
 ## Placehold.co API Reference
 
 ### Basic Usage
+
 ```
 https://placehold.co/[SIZE]/[FORMAT]
 https://placehold.co/[WIDTH]x[HEIGHT]/[BG_COLOR]/[TEXT_COLOR]/[FORMAT]?text=[TEXT]
 ```
 
 ### Examples
+
 ```bash
 # Simple square
 https://placehold.co/400
@@ -49,6 +54,7 @@ https://placehold.co/600x400@2x.png
 ```
 
 ### Supported Formats
+
 - SVG (default)
 - PNG
 - JPEG
@@ -57,11 +63,13 @@ https://placehold.co/600x400@2x.png
 - AVIF
 
 ### Color Options
+
 - Hex: `000000` (without #)
 - CSS names: `orange`, `white`, etc.
 - Transparent: `transparent`
 
 ### Available Fonts
+
 - Lato (default)
 - Lora
 - Montserrat
@@ -74,7 +82,9 @@ https://placehold.co/600x400@2x.png
 - Source Sans Pro
 
 ### Regenerating Test Images
+
 To regenerate these test images, run:
+
 ```bash
 node tests/fixtures/download-test-images.js
 ```

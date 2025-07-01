@@ -1,5 +1,5 @@
-import * as Comlink from 'comlink';
-import type { Remote } from 'comlink';
+import * as Comlink from "comlink";
+import type { Remote } from "comlink";
 
 export interface SplitOptions {
   pageRanges: Array<{ start: number; end: number }>;
@@ -20,7 +20,7 @@ export interface ExtractOptions {
 
 export interface PdfToImageOptions {
   pages?: number[];
-  format: 'png' | 'jpeg';
+  format: "png" | "jpeg";
   quality?: number;
   scale?: number;
 }
@@ -37,11 +37,30 @@ export interface PdfMetadata {
 }
 
 interface PDFOperationsWorkerAPI {
-  split(pdfData: Uint8Array, options: SplitOptions, onProgress?: (progress: number) => void): Promise<Uint8Array[]>;
-  merge(options: MergeOptions, onProgress?: (progress: number) => void): Promise<Uint8Array>;
-  rotate(pdfData: Uint8Array, options: RotateOptions, onProgress?: (progress: number) => void): Promise<Uint8Array>;
-  extract(pdfData: Uint8Array, options: ExtractOptions, onProgress?: (progress: number) => void): Promise<Uint8Array>;
-  pdfToImages(pdfData: Uint8Array, options: PdfToImageOptions, onProgress?: (progress: number) => void): Promise<{ page: number; data: Uint8Array; mimeType: string }[]>;
+  split(
+    pdfData: Uint8Array,
+    options: SplitOptions,
+    onProgress?: (progress: number) => void,
+  ): Promise<Uint8Array[]>;
+  merge(
+    options: MergeOptions,
+    onProgress?: (progress: number) => void,
+  ): Promise<Uint8Array>;
+  rotate(
+    pdfData: Uint8Array,
+    options: RotateOptions,
+    onProgress?: (progress: number) => void,
+  ): Promise<Uint8Array>;
+  extract(
+    pdfData: Uint8Array,
+    options: ExtractOptions,
+    onProgress?: (progress: number) => void,
+  ): Promise<Uint8Array>;
+  pdfToImages(
+    pdfData: Uint8Array,
+    options: PdfToImageOptions,
+    onProgress?: (progress: number) => void,
+  ): Promise<{ page: number; data: Uint8Array; mimeType: string }[]>;
   getPageCount(pdfData: Uint8Array): Promise<number>;
   getMetadata(pdfData: Uint8Array): Promise<PdfMetadata>;
 }
@@ -52,8 +71,8 @@ export class PDFOperations {
 
   constructor() {
     this.worker = new Worker(
-      new URL('../workers/pdf-operations.worker.ts', import.meta.url),
-      { type: 'module' }
+      new URL("../workers/pdf-operations.worker.ts", import.meta.url),
+      { type: "module" },
     );
     this.api = Comlink.wrap<PDFOperationsWorkerAPI>(this.worker);
   }
@@ -61,66 +80,66 @@ export class PDFOperations {
   async split(
     pdfData: Uint8Array,
     options: SplitOptions,
-    onProgress?: (progress: number) => void
+    onProgress?: (progress: number) => void,
   ): Promise<Uint8Array[]> {
     // Create a copy to avoid transferring the original
     const dataCopy = new Uint8Array(pdfData);
     return this.api.split(
       dataCopy,
       options,
-      onProgress ? Comlink.proxy(onProgress) : undefined
+      onProgress ? Comlink.proxy(onProgress) : undefined,
     );
   }
 
   async merge(
     options: MergeOptions,
-    onProgress?: (progress: number) => void
+    onProgress?: (progress: number) => void,
   ): Promise<Uint8Array> {
     return this.api.merge(
       options,
-      onProgress ? Comlink.proxy(onProgress) : undefined
+      onProgress ? Comlink.proxy(onProgress) : undefined,
     );
   }
 
   async rotate(
     pdfData: Uint8Array,
     options: RotateOptions,
-    onProgress?: (progress: number) => void
+    onProgress?: (progress: number) => void,
   ): Promise<Uint8Array> {
     // Create a copy to avoid transferring the original
     const dataCopy = new Uint8Array(pdfData);
     return this.api.rotate(
       dataCopy,
       options,
-      onProgress ? Comlink.proxy(onProgress) : undefined
+      onProgress ? Comlink.proxy(onProgress) : undefined,
     );
   }
 
   async extract(
     pdfData: Uint8Array,
     options: ExtractOptions,
-    onProgress?: (progress: number) => void
+    onProgress?: (progress: number) => void,
   ): Promise<Uint8Array> {
     // Create a copy to avoid transferring the original
     const dataCopy = new Uint8Array(pdfData);
     return this.api.extract(
       dataCopy,
       options,
-      onProgress ? Comlink.proxy(onProgress) : undefined
+      onProgress ? Comlink.proxy(onProgress) : undefined,
     );
   }
 
   async pdfToImages(
     pdfData: Uint8Array,
     options: PdfToImageOptions,
-    onProgress?: (progress: number) => void
+    onProgress?: (progress: number) => void,
   ): Promise<{ page: number; data: Uint8Array; mimeType: string }[]> {
     // Create a copy to avoid transferring the original
     const dataCopy = new Uint8Array(pdfData);
     return this.api.pdfToImages(
       dataCopy,
       options,
-      onProgress ? Comlink.proxy(onProgress) : undefined
+      onProgress ? Comlink.proxy(onProgress) : undefined,
     );
   }
 
@@ -142,20 +161,23 @@ export class PDFOperations {
 }
 
 // Utility function to parse page ranges from user input
-export function parsePageRanges(input: string, maxPages?: number): Array<{ start: number; end: number }> {
+export function parsePageRanges(
+  input: string,
+  maxPages?: number,
+): Array<{ start: number; end: number }> {
   const ranges: Array<{ start: number; end: number }> = [];
-  const parts = input.split(',').map(s => s.trim());
+  const parts = input.split(",").map((s) => s.trim());
 
   for (const part of parts) {
-    if (part.includes('-')) {
-      const [startStr, endStr] = part.split('-').map(s => s.trim());
+    if (part.includes("-")) {
+      const [startStr, endStr] = part.split("-").map((s) => s.trim());
       const start = parseInt(startStr);
       const end = parseInt(endStr);
-      
+
       if (!isNaN(start) && !isNaN(end) && start > 0 && end >= start) {
         ranges.push({
           start,
-          end: maxPages ? Math.min(end, maxPages) : end
+          end: maxPages ? Math.min(end, maxPages) : end,
         });
       }
     } else {
@@ -170,7 +192,7 @@ export function parsePageRanges(input: string, maxPages?: number): Array<{ start
 
   // Sort and merge overlapping ranges
   ranges.sort((a, b) => a.start - b.start);
-  
+
   const merged: Array<{ start: number; end: number }> = [];
   for (const range of ranges) {
     if (merged.length === 0) {
@@ -189,8 +211,14 @@ export function parsePageRanges(input: string, maxPages?: number): Array<{ start
 }
 
 // Utility function to format page ranges for display
-export function formatPageRanges(ranges: Array<{ start: number; end: number }>): string {
+export function formatPageRanges(
+  ranges: Array<{ start: number; end: number }>,
+): string {
   return ranges
-    .map(range => range.start === range.end ? `${range.start}` : `${range.start}-${range.end}`)
-    .join(', ');
+    .map((range) =>
+      range.start === range.end
+        ? `${range.start}`
+        : `${range.start}-${range.end}`,
+    )
+    .join(", ");
 }

@@ -1,4 +1,4 @@
-import * as Comlink from 'comlink';
+import * as Comlink from "comlink";
 
 export interface ImageFormat {
   mime: string;
@@ -7,15 +7,15 @@ export interface ImageFormat {
 }
 
 export const IMAGE_FORMATS: Record<string, ImageFormat> = {
-  PNG: { mime: 'image/png', extension: 'png', name: 'PNG' },
-  JPEG: { mime: 'image/jpeg', extension: 'jpg', name: 'JPEG' },
-  WEBP: { mime: 'image/webp', extension: 'webp', name: 'WebP' },
-  GIF: { mime: 'image/gif', extension: 'gif', name: 'GIF' },
-  BMP: { mime: 'image/bmp', extension: 'bmp', name: 'BMP' },
-  ICO: { mime: 'image/x-icon', extension: 'ico', name: 'ICO' },
-  TIFF: { mime: 'image/tiff', extension: 'tiff', name: 'TIFF' },
-  AVIF: { mime: 'image/avif', extension: 'avif', name: 'AVIF' },
-  HEIC: { mime: 'image/heic', extension: 'heic', name: 'HEIC' }
+  PNG: { mime: "image/png", extension: "png", name: "PNG" },
+  JPEG: { mime: "image/jpeg", extension: "jpg", name: "JPEG" },
+  WEBP: { mime: "image/webp", extension: "webp", name: "WebP" },
+  GIF: { mime: "image/gif", extension: "gif", name: "GIF" },
+  BMP: { mime: "image/bmp", extension: "bmp", name: "BMP" },
+  ICO: { mime: "image/x-icon", extension: "ico", name: "ICO" },
+  TIFF: { mime: "image/tiff", extension: "tiff", name: "TIFF" },
+  AVIF: { mime: "image/avif", extension: "avif", name: "AVIF" },
+  HEIC: { mime: "image/heic", extension: "heic", name: "HEIC" },
 };
 
 export class ImageConverterComlink {
@@ -29,8 +29,8 @@ export class ImageConverterComlink {
   private async initWorker() {
     // Create worker with proper type module
     this.worker = new Worker(
-      new URL('../workers/image-converter-comlink.worker.ts', import.meta.url),
-      { type: 'module' }
+      new URL("../workers/image-converter-comlink.worker.ts", import.meta.url),
+      { type: "module" },
     );
 
     // Wrap with Comlink
@@ -41,18 +41,18 @@ export class ImageConverterComlink {
   async convert(
     file: File | Blob | ArrayBuffer,
     targetFormat: ImageFormat,
-    onProgress?: (progress: number) => void
+    onProgress?: (progress: number) => void,
+    quality?: number,
   ): Promise<Blob> {
     if (!this.workerApi) {
       await this.initWorker();
     }
 
-    const fileBuffer = file instanceof ArrayBuffer 
-      ? file 
-      : await (file as Blob).arrayBuffer();
-    
+    const fileBuffer =
+      file instanceof ArrayBuffer ? file : await (file as Blob).arrayBuffer();
+
     const fileArray = new Uint8Array(fileBuffer);
-    const srcType = file instanceof File ? file.type : 'image/png'; // Default to PNG if unknown
+    const srcType = file instanceof File ? file.type : "image/png"; // Default to PNG if unknown
 
     // Use Comlink.proxy for the progress callback
     const progressProxy = onProgress ? Comlink.proxy(onProgress) : undefined;
@@ -61,7 +61,8 @@ export class ImageConverterComlink {
       fileArray,
       srcType,
       targetFormat.mime,
-      progressProxy
+      progressProxy,
+      quality,
     );
 
     return new Blob([converted], { type: targetFormat.mime });
@@ -72,12 +73,11 @@ export class ImageConverterComlink {
       await this.initWorker();
     }
 
-    const fileBuffer = file instanceof ArrayBuffer 
-      ? file 
-      : await (file as Blob).arrayBuffer();
-    
+    const fileBuffer =
+      file instanceof ArrayBuffer ? file : await (file as Blob).arrayBuffer();
+
     const fileArray = new Uint8Array(fileBuffer);
-    const srcType = file instanceof File ? file.type : 'image/png';
+    const srcType = file instanceof File ? file.type : "image/png";
 
     return this.workerApi!.getMetadata(fileArray, srcType);
   }
@@ -87,12 +87,11 @@ export class ImageConverterComlink {
       await this.initWorker();
     }
 
-    const fileBuffer = file instanceof ArrayBuffer 
-      ? file 
-      : await (file as Blob).arrayBuffer();
-    
+    const fileBuffer =
+      file instanceof ArrayBuffer ? file : await (file as Blob).arrayBuffer();
+
     const fileArray = new Uint8Array(fileBuffer);
-    const srcType = file instanceof File ? file.type : 'image/png';
+    const srcType = file instanceof File ? file.type : "image/png";
 
     return this.workerApi!.getPixels(fileArray, srcType);
   }

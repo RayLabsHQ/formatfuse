@@ -1,16 +1,123 @@
 ---
+import { Shield, Sparkles, ExternalLink } from 'lucide-react';
+
 const currentYear = new Date().getFullYear();
+
+const footerLinks = {
+  popularTools: [
+    { name: 'PDF Tools', href: '#all-tools' },
+    { name: 'Image Converters', href: '#all-tools' },
+    { name: 'Developer Tools', href: '#all-tools' },
+    { name: 'Document Tools', href: '#all-tools' },
+  ],
+  legal: [
+    { name: 'Privacy Policy', href: '/privacy' },
+    { name: 'Terms of Service', href: '/terms' },
+  ],
+};
+
+const features = [
+  { icon: Shield, text: 'Privacy-First Conversion' },
+  { icon: Sparkles, text: 'No Sign-up Required' },
+];
 ---
 
-<footer class="border-t py-8 mt-20">
-  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-    <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-      <div class="text-sm text-muted-foreground">
-        © {currentYear} FormatFuse • A <a href="https://raylabs.io" target="_blank" rel="noopener noreferrer" class="hover:text-foreground ff-transition">RayLabs</a> Company
+<footer class="relative overflow-hidden">
+  {/* Subtle gradient background */}
+  <div class="absolute inset-0 bg-gradient-to-b from-transparent via-primary/[0.02] to-primary/[0.05]" />
+  
+  <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    {/* Main footer content */}
+    <div class="py-12 border-t border-border/50">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+        {/* Brand section */}
+        <div class="lg:col-span-1">
+          <h3 class="font-bold text-2xl mb-4">FormatFuse</h3>
+          <p class="text-sm text-muted-foreground mb-6 leading-relaxed">
+            Professional file conversion tools that work instantly in your browser. 
+            No uploads, no servers, no limits. Everything stays on your device.
+          </p>
+          
+          {/* Key features */}
+          <div class="space-y-3">
+            {features.map((feature) => {
+              const Icon = feature.icon;
+              return (
+                <div class="flex items-center gap-3">
+                  <Icon className="w-4 h-4 text-primary" />
+                  <span class="text-sm text-muted-foreground">{feature.text}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Popular Tools */}
+        <div>
+          <h4 class="font-semibold mb-6">Popular Tools</h4>
+          <ul class="space-y-3">
+            {footerLinks.popularTools.map((link) => (
+              <li class="group">
+                <a 
+                  href={link.href} 
+                  class="text-sm text-muted-foreground hover:text-primary transition-all duration-300 inline-block relative"
+                >
+                  <span class="relative">
+                    {link.name}
+                    <span class="absolute -bottom-0.5 left-0 w-0 h-px bg-primary transition-all duration-300 group-hover:w-full"></span>
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Company & Legal */}
+        <div>
+          <h4 class="font-semibold mb-6">Company</h4>
+          <ul class="space-y-3">
+            <li>
+              <a 
+                href="https://raylabs.io" 
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
+                About RayLabs
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </li>
+            {footerLinks.legal.map((link) => (
+              <li>
+                <a 
+                  href={link.href} 
+                  class="text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  {link.name}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
-      <div class="flex space-x-6 text-sm text-muted-foreground">
-        <a href="/privacy" class="hover:text-foreground ff-transition">Privacy</a>
-        <a href="/terms" class="hover:text-foreground ff-transition">Terms</a>
+    </div>
+
+    {/* Bottom section */}
+    <div class="py-6 border-t border-border/50">
+      <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+        <div class="text-sm text-muted-foreground text-center md:text-left">
+          © {currentYear} FormatFuse • A <a 
+            href="https://raylabs.io" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            class="hover:text-primary transition-colors"
+          >RayLabs</a> Company
+        </div>
+        
+        <div class="flex items-center gap-2 text-xs text-muted-foreground">
+          <Shield className="w-4 h-4" />
+          <span>Your files never leave your device</span>
+        </div>
       </div>
     </div>
   </div>

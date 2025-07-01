@@ -1,7 +1,7 @@
-import React from 'react';
-import type { ReactNode } from 'react';
-import * as Tabs from '@radix-ui/react-tabs';
-import { cn } from '@/lib/utils';
+import React from "react";
+import type { ReactNode } from "react";
+import * as Tabs from "@radix-ui/react-tabs";
+import { cn } from "@/lib/utils";
 
 interface MobileTabsProps {
   defaultValue: string;
@@ -16,7 +16,7 @@ export function MobileTabs({
   value,
   onValueChange,
   children,
-  className
+  className,
 }: MobileTabsProps) {
   return (
     <Tabs.Root
@@ -33,29 +33,31 @@ export function MobileTabs({
 interface MobileTabsListProps {
   children: ReactNode;
   className?: string;
-  variant?: 'default' | 'pills' | 'underline';
+  variant?: "default" | "pills" | "underline";
 }
 
 export function MobileTabsList({
   children,
   className,
-  variant = 'default'
+  variant = "default",
 }: MobileTabsListProps) {
   const variantClasses = {
     default: "bg-muted p-1 rounded-lg",
     pills: "gap-2 p-1",
-    underline: "border-b"
+    underline: "border-b",
   };
 
   return (
-    <Tabs.List className={cn(
-      "flex items-center",
-      "overflow-x-auto scrollbar-hide",
-      "-mx-4 px-4", // Full width scroll on mobile
-      "lg:mx-0 lg:px-0",
-      variantClasses[variant],
-      className
-    )}>
+    <Tabs.List
+      className={cn(
+        "flex items-center",
+        "overflow-x-auto scrollbar-hide",
+        "-mx-4 px-4", // Full width scroll on mobile
+        "lg:mx-0 lg:px-0",
+        variantClasses[variant],
+        className,
+      )}
+    >
       {children}
     </Tabs.List>
   );
@@ -74,7 +76,7 @@ export function MobileTabsTrigger({
   children,
   className,
   icon,
-  badge
+  badge,
 }: MobileTabsTriggerProps) {
   return (
     <Tabs.Trigger
@@ -91,7 +93,7 @@ export function MobileTabsTrigger({
         "data-[state=active]:text-foreground",
         "data-[state=active]:shadow-sm",
         "data-[state=inactive]:text-muted-foreground",
-        className
+        className,
       )}
     >
       {icon && <span className="h-4 w-4">{icon}</span>}
@@ -114,16 +116,12 @@ interface MobileTabsContentProps {
 export function MobileTabsContent({
   value,
   children,
-  className
+  className,
 }: MobileTabsContentProps) {
   return (
     <Tabs.Content
       value={value}
-      className={cn(
-        "flex-1",
-        "focus-visible:outline-none",
-        className
-      )}
+      className={cn("flex-1", "focus-visible:outline-none", className)}
     >
       {children}
     </Tabs.Content>
@@ -146,14 +144,16 @@ export function SegmentedControl({
   options,
   value,
   onChange,
-  className
+  className,
 }: SegmentedControlProps) {
   return (
-    <div className={cn(
-      "flex p-1 bg-muted rounded-lg",
-      "lg:hidden", // Mobile only
-      className
-    )}>
+    <div
+      className={cn(
+        "flex p-1 bg-muted rounded-lg",
+        "lg:hidden", // Mobile only
+        className,
+      )}
+    >
       {options.map((option) => (
         <button
           key={option.value}
@@ -167,7 +167,7 @@ export function SegmentedControl({
             "min-h-[44px]",
             value === option.value
               ? "bg-background text-foreground shadow-sm"
-              : "text-muted-foreground"
+              : "text-muted-foreground",
           )}
         >
           {option.icon && <span className="h-4 w-4">{option.icon}</span>}

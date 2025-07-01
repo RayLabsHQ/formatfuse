@@ -3,8 +3,8 @@
  * Uses sessionStorage for temporary file storage
  */
 
-const FILE_STORAGE_KEY = 'ff_pending_file';
-const FILE_METADATA_KEY = 'ff_pending_file_meta';
+const FILE_STORAGE_KEY = "ff_pending_file";
+const FILE_METADATA_KEY = "ff_pending_file_meta";
 
 export interface FileMetadata {
   name: string;
@@ -23,17 +23,19 @@ export async function storeFileForTransfer(file: File): Promise<boolean> {
       name: file.name,
       size: file.size,
       type: file.type,
-      lastModified: file.lastModified
+      lastModified: file.lastModified,
     };
     sessionStorage.setItem(FILE_METADATA_KEY, JSON.stringify(metadata));
 
     // Convert file to base64 for storage
     const arrayBuffer = await file.arrayBuffer();
     const base64 = btoa(
-      new Uint8Array(arrayBuffer)
-        .reduce((data, byte) => data + String.fromCharCode(byte), '')
+      new Uint8Array(arrayBuffer).reduce(
+        (data, byte) => data + String.fromCharCode(byte),
+        "",
+      ),
     );
-    
+
     // Check if file is too large for sessionStorage (typically ~5-10MB limit)
     try {
       sessionStorage.setItem(FILE_STORAGE_KEY, base64);
@@ -41,11 +43,11 @@ export async function storeFileForTransfer(file: File): Promise<boolean> {
     } catch (e) {
       // If storage fails (likely quota exceeded), clean up
       sessionStorage.removeItem(FILE_METADATA_KEY);
-      console.error('File too large for session storage');
+      console.error("File too large for session storage");
       return false;
     }
   } catch (error) {
-    console.error('Error storing file:', error);
+    console.error("Error storing file:", error);
     return false;
   }
 }
@@ -57,7 +59,7 @@ export async function retrieveStoredFile(): Promise<File | null> {
   try {
     const base64 = sessionStorage.getItem(FILE_STORAGE_KEY);
     const metadataJson = sessionStorage.getItem(FILE_METADATA_KEY);
-    
+
     if (!base64 || !metadataJson) {
       return null;
     }
@@ -71,19 +73,19 @@ export async function retrieveStoredFile(): Promise<File | null> {
     for (let i = 0; i < binaryString.length; i++) {
       bytes[i] = binaryString.charCodeAt(i);
     }
-    
+
     const blob = new Blob([bytes], { type: metadata.type });
     const file = new File([blob], metadata.name, {
       type: metadata.type,
-      lastModified: metadata.lastModified
+      lastModified: metadata.lastModified,
     });
 
     // Clear storage after retrieval
     clearStoredFile();
-    
+
     return file;
   } catch (error) {
-    console.error('Error retrieving stored file:', error);
+    console.error("Error retrieving stored file:", error);
     clearStoredFile();
     return null;
   }

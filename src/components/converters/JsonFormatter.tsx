@@ -1,15 +1,25 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { Copy, Download, AlertCircle, Check, Minimize2, Maximize2, FileJson, Settings, Wrench } from 'lucide-react';
-import { CodeEditor } from '../ui/code-editor';
-import { Button } from '../ui/button';
-import { Label } from '../ui/label';
-import { 
+import React, { useState, useCallback, useMemo, useEffect } from "react";
+import {
+  Copy,
+  Download,
+  AlertCircle,
+  Check,
+  Minimize2,
+  Maximize2,
+  FileJson,
+  Settings,
+  Wrench,
+} from "lucide-react";
+import { CodeEditor } from "../ui/code-editor";
+import { Button } from "../ui/button";
+import { Label } from "../ui/label";
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../ui/select';
+} from "../ui/select";
 import {
   MobileToolLayout,
   MobileToolHeader,
@@ -22,9 +32,9 @@ import {
   MobileTabsTrigger,
   MobileTabsContent,
   SegmentedControl,
-  CollapsibleSection
-} from '../ui/mobile';
-import { cn } from '@/lib/utils';
+  CollapsibleSection,
+} from "../ui/mobile";
+import { cn } from "@/lib/utils";
 
 interface JsonError {
   line?: number;
@@ -35,28 +45,30 @@ interface JsonError {
 export default function JsonFormatter() {
   // Mobile detection
   const [isMobile, setIsMobile] = useState(false);
-  
+
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 1024);
     };
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
-  const [input, setInput] = useState('');
-  const [indentSize, setIndentSize] = useState('2');
+  const [input, setInput] = useState("");
+  const [indentSize, setIndentSize] = useState("2");
   const [error, setError] = useState<JsonError | null>(null);
   const [copied, setCopied] = useState(false);
-  const [viewMode, setViewMode] = useState<'formatted' | 'minified'>('formatted');
-  const [activeTab, setActiveTab] = useState<'input' | 'output'>('input');
+  const [viewMode, setViewMode] = useState<"formatted" | "minified">(
+    "formatted",
+  );
+  const [activeTab, setActiveTab] = useState<"input" | "output">("input");
   const [showSettingsSheet, setShowSettingsSheet] = useState(false);
 
   // Parse and validate JSON
   const { formatted, minified, isValid } = useMemo(() => {
     if (!input.trim()) {
       setError(null);
-      return { formatted: '', minified: '', isValid: false };
+      return { formatted: "", minified: "", isValid: false };
     }
 
     try {
@@ -65,72 +77,72 @@ export default function JsonFormatter() {
       return {
         formatted: JSON.stringify(parsed, null, parseInt(indentSize)),
         minified: JSON.stringify(parsed),
-        isValid: true
+        isValid: true,
       };
     } catch (e) {
-      const errorMessage = e instanceof Error ? e.message : 'Invalid JSON';
-      
+      const errorMessage = e instanceof Error ? e.message : "Invalid JSON";
+
       // Try to extract line/column from error message
       const match = errorMessage.match(/position (\d+)/);
       if (match) {
         const position = parseInt(match[1]);
-        const lines = input.substring(0, position).split('\n');
+        const lines = input.substring(0, position).split("\n");
         const line = lines.length;
         const column = lines[lines.length - 1].length + 1;
         setError({ line, column, message: errorMessage });
       } else {
         setError({ message: errorMessage });
       }
-      
-      return { formatted: '', minified: '', isValid: false };
+
+      return { formatted: "", minified: "", isValid: false };
     }
   }, [input, indentSize]);
-  
+
   // Auto-switch to output tab on mobile when valid JSON is detected
   useEffect(() => {
-    if (isMobile && isValid && activeTab === 'input') {
-      setActiveTab('output');
+    if (isMobile && isValid && activeTab === "input") {
+      setActiveTab("output");
     }
   }, [isValid, isMobile, activeTab]);
 
-  const displayValue = viewMode === 'formatted' ? formatted : minified;
+  const displayValue = viewMode === "formatted" ? formatted : minified;
 
   const handleCopy = useCallback(async () => {
     if (!displayValue) return;
-    
+
     try {
       await navigator.clipboard.writeText(displayValue);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error('Failed to copy:', err);
+      console.error("Failed to copy:", err);
     }
   }, [displayValue]);
 
   const handleDownload = useCallback(() => {
     if (!displayValue) return;
-    
-    const blob = new Blob([displayValue], { type: 'application/json' });
+
+    const blob = new Blob([displayValue], { type: "application/json" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = `formatted.${viewMode === 'minified' ? 'min.' : ''}json`;
+    a.download = `formatted.${viewMode === "minified" ? "min." : ""}json`;
     a.click();
     URL.revokeObjectURL(url);
   }, [displayValue, viewMode]);
 
   const handleFormat = useCallback(() => {
     if (!input.trim()) return;
-    
+
     // Try to fix common JSON errors
     let fixedInput = input.trim();
-    
+
     // Fix trailing commas
-    fixedInput = fixedInput.replace(/,(\s*[}\]])/g, '$1');
-    
+    fixedInput = fixedInput.replace(/,(\s*[}\]])/g, "$1");
+
     // Fix single quotes (convert to double quotes)
     fixedInput = fixedInput.replace(/'/g, '"');
-    
+
     // Try to parse the fixed input
     try {
       const parsed = JSON.parse(fixedInput);
@@ -144,23 +156,27 @@ export default function JsonFormatter() {
 
   const stats = useMemo(() => {
     if (!isValid) return null;
-    
+
     try {
       const parsed = JSON.parse(input);
       const countKeys = (obj: any): number => {
-        if (typeof obj !== 'object' || obj === null) return 0;
+        if (typeof obj !== "object" || obj === null) return 0;
         if (Array.isArray(obj)) {
           return obj.reduce((sum, item) => sum + countKeys(item), 0);
         }
-        return Object.keys(obj).length + 
-          Object.values(obj).reduce((sum, val) => sum + countKeys(val), 0);
+        return (
+          Object.keys(obj).length +
+          Object.values(obj).reduce((sum, val) => sum + countKeys(val), 0)
+        );
       };
-      
+
       return {
         keys: countKeys(parsed),
         size: new Blob([minified]).size,
         formattedSize: new Blob([formatted]).size,
-        compression: Math.round((1 - new Blob([minified]).size / new Blob([formatted]).size) * 100)
+        compression: Math.round(
+          (1 - new Blob([minified]).size / new Blob([formatted]).size) * 100,
+        ),
       };
     } catch {
       return null;
@@ -168,8 +184,8 @@ export default function JsonFormatter() {
   }, [input, formatted, minified, isValid]);
 
   const formatFileSize = (bytes: number): string => {
-    if (bytes < 1024) return bytes + ' B';
-    return (bytes / 1024).toFixed(1) + ' KB';
+    if (bytes < 1024) return bytes + " B";
+    return (bytes / 1024).toFixed(1) + " KB";
   };
 
   // Mobile layout
@@ -189,13 +205,23 @@ export default function JsonFormatter() {
           }
         />
 
-        <MobileTabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'input' | 'output')}>
+        <MobileTabs
+          value={activeTab}
+          onValueChange={(v) => setActiveTab(v as "input" | "output")}
+          defaultValue="input"
+        >
           <div className="px-4 pt-2">
             <MobileTabsList variant="default">
-              <MobileTabsTrigger value="input" badge={error ? "Error" : undefined}>
+              <MobileTabsTrigger
+                value="input"
+                badge={error ? "Error" : undefined}
+              >
                 Input
               </MobileTabsTrigger>
-              <MobileTabsTrigger value="output" badge={isValid ? "Valid" : undefined}>
+              <MobileTabsTrigger
+                value="output"
+                badge={isValid ? "Valid" : undefined}
+              >
                 Output
               </MobileTabsTrigger>
             </MobileTabsList>
@@ -212,22 +238,24 @@ export default function JsonFormatter() {
                   fullWidth
                 />
               </div>
-              
+
               <div className="px-4">
                 {error && (
                   <div className="mb-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20 flex items-start gap-2">
                     <AlertCircle className="w-4 h-4 text-destructive flex-shrink-0 mt-0.5" />
                     <div className="flex-1">
                       <p className="text-sm font-medium">
-                        {error.line && error.column 
-                          ? `Line ${error.line}, Column ${error.column}` 
-                          : 'Invalid JSON'}
+                        {error.line && error.column
+                          ? `Line ${error.line}, Column ${error.column}`
+                          : "Invalid JSON"}
                       </p>
-                      <p className="text-xs text-muted-foreground mt-1">{error.message}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {error.message}
+                      </p>
                     </div>
                   </div>
                 )}
-                
+
                 <CodeEditor
                   value={input}
                   onChange={setInput}
@@ -245,23 +273,33 @@ export default function JsonFormatter() {
               <div className="p-4 pb-2">
                 <SegmentedControl
                   options={[
-                    { value: 'formatted', label: 'Formatted', icon: <Maximize2 className="h-4 w-4" /> },
-                    { value: 'minified', label: 'Minified', icon: <Minimize2 className="h-4 w-4" /> }
+                    {
+                      value: "formatted",
+                      label: "Formatted",
+                      icon: <Maximize2 className="h-4 w-4" />,
+                    },
+                    {
+                      value: "minified",
+                      label: "Minified",
+                      icon: <Minimize2 className="h-4 w-4" />,
+                    },
                   ]}
                   value={viewMode}
-                  onChange={(v) => setViewMode(v as 'formatted' | 'minified')}
+                  onChange={(v) => setViewMode(v as "formatted" | "minified")}
                 />
               </div>
-              
+
               <div className="px-4">
                 <CodeEditor
                   value={displayValue}
                   readOnly
-                  placeholder={error ? 'Invalid JSON' : 'Output will appear here...'}
+                  placeholder={
+                    error ? "Invalid JSON" : "Output will appear here..."
+                  }
                   className="h-[400px] mb-4"
                   language="json"
                 />
-                
+
                 {isValid && (
                   <div className="flex gap-3 justify-center mb-4">
                     <ActionButton
@@ -278,7 +316,7 @@ export default function JsonFormatter() {
                     />
                   </div>
                 )}
-                
+
                 {stats && (
                   <CollapsibleSection
                     title="Statistics"
@@ -291,15 +329,23 @@ export default function JsonFormatter() {
                         <span className="ml-2 font-medium">{stats.keys}</span>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">Formatted:</span>
-                        <span className="ml-2 font-medium">{formatFileSize(stats.formattedSize)}</span>
+                        <span className="text-muted-foreground">
+                          Formatted:
+                        </span>
+                        <span className="ml-2 font-medium">
+                          {formatFileSize(stats.formattedSize)}
+                        </span>
                       </div>
                       <div>
                         <span className="text-muted-foreground">Minified:</span>
-                        <span className="ml-2 font-medium">{formatFileSize(stats.size)}</span>
+                        <span className="ml-2 font-medium">
+                          {formatFileSize(stats.size)}
+                        </span>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">Compression:</span>
+                        <span className="text-muted-foreground">
+                          Compression:
+                        </span>
                         <span className="ml-2 font-medium text-green-600 dark:text-green-400">
                           {stats.compression}% smaller
                         </span>
@@ -320,7 +366,9 @@ export default function JsonFormatter() {
         >
           <div className="space-y-4">
             <div>
-              <Label htmlFor="mobile-indent-size" className="mb-2 block">Indentation</Label>
+              <Label htmlFor="mobile-indent-size" className="mb-2 block">
+                Indentation
+              </Label>
               <Select value={indentSize} onValueChange={setIndentSize}>
                 <SelectTrigger id="mobile-indent-size" className="w-full">
                   <SelectValue />
@@ -357,9 +405,14 @@ export default function JsonFormatter() {
       <div className="mb-4 p-3 sm:p-4 rounded-lg border bg-card">
         <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-3 sm:gap-4">
           <div className="flex items-center gap-2">
-            <Label htmlFor="indent-size" className="text-sm">Indent:</Label>
+            <Label htmlFor="indent-size" className="text-sm">
+              Indent:
+            </Label>
             <Select value={indentSize} onValueChange={setIndentSize}>
-              <SelectTrigger id="indent-size" className="w-[100px] sm:w-[120px] text-xs sm:text-sm">
+              <SelectTrigger
+                id="indent-size"
+                className="w-[100px] sm:w-[120px] text-xs sm:text-sm"
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -369,12 +422,12 @@ export default function JsonFormatter() {
               </SelectContent>
             </Select>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <Button
-              variant={viewMode === 'formatted' ? 'default' : 'outline'}
+              variant={viewMode === "formatted" ? "default" : "outline"}
               size="sm"
-              onClick={() => setViewMode('formatted')}
+              onClick={() => setViewMode("formatted")}
               className="text-xs sm:text-sm"
             >
               <Maximize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
@@ -382,9 +435,9 @@ export default function JsonFormatter() {
               <span className="sm:hidden">Format</span>
             </Button>
             <Button
-              variant={viewMode === 'minified' ? 'default' : 'outline'}
+              variant={viewMode === "minified" ? "default" : "outline"}
               size="sm"
-              onClick={() => setViewMode('minified')}
+              onClick={() => setViewMode("minified")}
               className="text-xs sm:text-sm"
             >
               <Minimize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
@@ -413,9 +466,9 @@ export default function JsonFormatter() {
             {error && (
               <span className="text-xs text-destructive flex items-center gap-1">
                 <AlertCircle className="w-3 h-3" />
-                {error.line && error.column 
-                  ? `Line ${error.line}, Column ${error.column}` 
-                  : 'Invalid JSON'}
+                {error.line && error.column
+                  ? `Line ${error.line}, Column ${error.column}`
+                  : "Invalid JSON"}
               </span>
             )}
           </div>
@@ -445,7 +498,11 @@ export default function JsonFormatter() {
                 title="Copy to clipboard"
                 className="h-8 w-8"
               >
-                {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                {copied ? (
+                  <Check className="w-4 h-4 text-green-500" />
+                ) : (
+                  <Copy className="w-4 h-4" />
+                )}
               </Button>
               <Button
                 variant="ghost"
@@ -462,7 +519,7 @@ export default function JsonFormatter() {
           <CodeEditor
             value={displayValue}
             readOnly
-            placeholder={error ? 'Invalid JSON' : 'Output will appear here...'}
+            placeholder={error ? "Invalid JSON" : "Output will appear here..."}
             className="h-[300px] sm:h-[400px] lg:h-[500px]"
             language="json"
           />
@@ -479,11 +536,15 @@ export default function JsonFormatter() {
             </div>
             <div>
               <span className="text-muted-foreground">Formatted:</span>
-              <span className="ml-1 sm:ml-2 font-medium">{formatFileSize(stats.formattedSize)}</span>
+              <span className="ml-1 sm:ml-2 font-medium">
+                {formatFileSize(stats.formattedSize)}
+              </span>
             </div>
             <div>
               <span className="text-muted-foreground">Minified:</span>
-              <span className="ml-1 sm:ml-2 font-medium">{formatFileSize(stats.size)}</span>
+              <span className="ml-1 sm:ml-2 font-medium">
+                {formatFileSize(stats.size)}
+              </span>
             </div>
             <div>
               <span className="text-muted-foreground">Compression:</span>
@@ -499,14 +560,18 @@ export default function JsonFormatter() {
       <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
         <div className="p-3 sm:p-4 rounded-lg border">
           <FileJson className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
-          <h3 className="font-semibold text-sm sm:text-base mb-1">Smart Validation</h3>
+          <h3 className="font-semibold text-sm sm:text-base mb-1">
+            Smart Validation
+          </h3>
           <p className="text-xs sm:text-sm text-muted-foreground">
             Identifies and highlights JSON syntax errors with line numbers
           </p>
         </div>
         <div className="p-3 sm:p-4 rounded-lg border">
           <Maximize2 className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
-          <h3 className="font-semibold text-sm sm:text-base mb-1">Format & Minify</h3>
+          <h3 className="font-semibold text-sm sm:text-base mb-1">
+            Format & Minify
+          </h3>
           <p className="text-xs sm:text-sm text-muted-foreground">
             Switch between beautified and minified views instantly
           </p>

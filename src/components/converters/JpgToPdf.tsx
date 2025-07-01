@@ -1,14 +1,25 @@
-import React, { useState, useCallback, useRef } from 'react';
-import { Button } from '../ui/button';
-import { Progress } from '../ui/progress';
-import { 
-  Image, Download, FileText, AlertCircle, Upload, FileUp,
-  FileCheck, CheckCircle, Loader2, X, GripVertical, Plus,
-  ChevronUp, ChevronDown
-} from 'lucide-react';
-import FileSaver from 'file-saver';
-import { DropZone } from '../ui/drop-zone';
-import { ProgressIndicator, MultiStepProgress } from '../ui/progress-indicator';
+import React, { useState, useCallback, useRef } from "react";
+import { Button } from "../ui/button";
+import { Progress } from "../ui/progress";
+import {
+  Image,
+  Download,
+  FileText,
+  AlertCircle,
+  Upload,
+  FileUp,
+  FileCheck,
+  CheckCircle,
+  Loader2,
+  X,
+  GripVertical,
+  Plus,
+  ChevronUp,
+  ChevronDown,
+} from "lucide-react";
+import FileSaver from "file-saver";
+import { DropZone } from "../ui/drop-zone";
+import { ProgressIndicator, MultiStepProgress } from "../ui/progress-indicator";
 const { saveAs } = FileSaver;
 
 interface ImageWithPreview {
@@ -18,12 +29,12 @@ interface ImageWithPreview {
 }
 
 interface WorkerMessage {
-  type: 'convert';
+  type: "convert";
   images: Array<{ data: ArrayBuffer; name: string }>;
 }
 
 interface ResponseMessage {
-  type: 'progress' | 'complete' | 'error';
+  type: "progress" | "complete" | "error";
   progress?: number;
   result?: ArrayBuffer;
   error?: string;
@@ -45,35 +56,49 @@ export const JpgToPdf: React.FC = () => {
   // Initialize worker
   React.useEffect(() => {
     workerRef.current = new Worker(
-      new URL('../../workers/jpg-to-pdf.worker.ts', import.meta.url),
-      { type: 'module' }
+      new URL("../../workers/jpg-to-pdf.worker.ts", import.meta.url),
+      { type: "module" },
     );
 
-    workerRef.current.addEventListener('message', (event: MessageEvent<ResponseMessage>) => {
-      const { type } = event.data;
-      
-      if (type === 'progress' && event.data.progress !== undefined) {
-        setProgress(event.data.progress);
-      } else if (type === 'complete' && event.data.result) {
-        setProcessingSteps(prev => prev.map(step => ({
-          ...step,
-          status: step.id === 'finalize' ? 'processing' : step.status === 'pending' ? 'completed' : step.status
-        })));
-        setPdfResult(event.data.result);
-        setIsProcessing(false);
-        setProcessingSteps(prev => prev.map(step => ({
-          ...step,
-          status: 'completed'
-        })));
-      } else if (type === 'error') {
-        setError(new Error(event.data.error || 'Conversion failed'));
-        setIsProcessing(false);
-        setProcessingSteps(prev => prev.map((step, idx) => ({
-          ...step,
-          status: idx === 0 ? 'error' : 'pending'
-        })));
-      }
-    });
+    workerRef.current.addEventListener(
+      "message",
+      (event: MessageEvent<ResponseMessage>) => {
+        const { type } = event.data;
+
+        if (type === "progress" && event.data.progress !== undefined) {
+          setProgress(event.data.progress);
+        } else if (type === "complete" && event.data.result) {
+          setProcessingSteps((prev) =>
+            prev.map((step) => ({
+              ...step,
+              status:
+                step.id === "finalize"
+                  ? "processing"
+                  : step.status === "pending"
+                    ? "completed"
+                    : step.status,
+            })),
+          );
+          setPdfResult(event.data.result);
+          setIsProcessing(false);
+          setProcessingSteps((prev) =>
+            prev.map((step) => ({
+              ...step,
+              status: "completed",
+            })),
+          );
+        } else if (type === "error") {
+          setError(new Error(event.data.error || "Conversion failed"));
+          setIsProcessing(false);
+          setProcessingSteps((prev) =>
+            prev.map((step, idx) => ({
+              ...step,
+              status: idx === 0 ? "error" : "pending",
+            })),
+          );
+        }
+      },
+    );
 
     return () => {
       workerRef.current?.terminate();
@@ -82,39 +107,41 @@ export const JpgToPdf: React.FC = () => {
 
   const handleFileSelect = useCallback(async (selectedFiles: FileList) => {
     const newImages: ImageWithPreview[] = [];
-    
+
     for (let i = 0; i < selectedFiles.length; i++) {
       const file = selectedFiles[i];
-      if (file.type.startsWith('image/')) {
+      if (file.type.startsWith("image/")) {
         const preview = URL.createObjectURL(file);
         newImages.push({
           file,
           id: `${Date.now()}-${i}`,
-          preview
+          preview,
         });
       }
     }
-    
-    setImages(prev => [...prev, ...newImages]);
+
+    setImages((prev) => [...prev, ...newImages]);
     setPdfResult(null);
     setError(null);
   }, []);
 
-  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = e.target.files;
-    if (selectedFiles) {
-      handleFileSelect(selectedFiles);
-    }
-  }, [handleFileSelect]);
-
+  const handleFileChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const selectedFiles = e.target.files;
+      if (selectedFiles) {
+        handleFileSelect(selectedFiles);
+      }
+    },
+    [handleFileSelect],
+  );
 
   const removeImage = useCallback((id: string) => {
-    setImages(prev => {
-      const imageToRemove = prev.find(img => img.id === id);
+    setImages((prev) => {
+      const imageToRemove = prev.find((img) => img.id === id);
       if (imageToRemove) {
         URL.revokeObjectURL(imageToRemove.preview);
       }
-      return prev.filter(img => img.id !== id);
+      return prev.filter((img) => img.id !== id);
     });
     setPdfResult(null);
   }, []);
@@ -122,43 +149,55 @@ export const JpgToPdf: React.FC = () => {
   // Drag and drop reordering
   const handleDragStart = useCallback((e: React.DragEvent, id: string) => {
     setDraggedImage(id);
-    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.effectAllowed = "move";
   }, []);
 
-  const handleDragOverImage = useCallback((e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    setDragOverIndex(index);
-  }, []);
+  const handleDragOverImage = useCallback(
+    (e: React.DragEvent, index: number) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      setDragOverIndex(index);
+    },
+    [],
+  );
 
-  const handleDropImage = useCallback((e: React.DragEvent, dropIndex: number) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (draggedImage === null) return;
-    
-    const draggedIndex = images.findIndex(img => img.id === draggedImage);
-    if (draggedIndex === -1) return;
-    
-    const newImages = [...images];
-    const [removed] = newImages.splice(draggedIndex, 1);
-    newImages.splice(dropIndex, 0, removed);
-    
-    setImages(newImages);
-    setDraggedImage(null);
-    setDragOverIndex(null);
-    setPdfResult(null);
-  }, [images, draggedImage]);
+  const handleDropImage = useCallback(
+    (e: React.DragEvent, dropIndex: number) => {
+      e.preventDefault();
+      e.stopPropagation();
 
-  const moveImage = useCallback((index: number, direction: 'up' | 'down') => {
-    const newImages = [...images];
-    const newIndex = direction === 'up' ? index - 1 : index + 1;
-    if (newIndex < 0 || newIndex >= images.length) return;
-    
-    [newImages[index], newImages[newIndex]] = [newImages[newIndex], newImages[index]];
-    setImages(newImages);
-    setPdfResult(null);
-  }, [images]);
+      if (draggedImage === null) return;
+
+      const draggedIndex = images.findIndex((img) => img.id === draggedImage);
+      if (draggedIndex === -1) return;
+
+      const newImages = [...images];
+      const [removed] = newImages.splice(draggedIndex, 1);
+      newImages.splice(dropIndex, 0, removed);
+
+      setImages(newImages);
+      setDraggedImage(null);
+      setDragOverIndex(null);
+      setPdfResult(null);
+    },
+    [images, draggedImage],
+  );
+
+  const moveImage = useCallback(
+    (index: number, direction: "up" | "down") => {
+      const newImages = [...images];
+      const newIndex = direction === "up" ? index - 1 : index + 1;
+      if (newIndex < 0 || newIndex >= images.length) return;
+
+      [newImages[index], newImages[newIndex]] = [
+        newImages[newIndex],
+        newImages[index],
+      ];
+      setImages(newImages);
+      setPdfResult(null);
+    },
+    [images],
+  );
 
   const handleConvert = useCallback(async () => {
     if (images.length === 0 || !workerRef.current) return;
@@ -166,63 +205,77 @@ export const JpgToPdf: React.FC = () => {
     setIsProcessing(true);
     setProgress(0);
     setError(null);
-    
+
     // Set up processing steps for visual feedback
     setProcessingSteps([
-      { id: 'prepare', label: 'Preparing images', status: 'processing' },
-      { id: 'convert', label: `Converting ${images.length} images`, status: 'pending' },
-      { id: 'finalize', label: 'Creating PDF', status: 'pending' }
+      { id: "prepare", label: "Preparing images", status: "processing" },
+      {
+        id: "convert",
+        label: `Converting ${images.length} images`,
+        status: "pending",
+      },
+      { id: "finalize", label: "Creating PDF", status: "pending" },
     ]);
 
     try {
       const imageDataArray = await Promise.all(
         images.map(async (img) => ({
           data: await img.file.arrayBuffer(),
-          name: img.file.name
-        }))
+          name: img.file.name,
+        })),
       );
-      
-      setProcessingSteps(prev => prev.map(step => ({
-        ...step,
-        status: step.id === 'prepare' ? 'completed' : step.id === 'convert' ? 'processing' : step.status
-      })));
+
+      setProcessingSteps((prev) =>
+        prev.map((step) => ({
+          ...step,
+          status:
+            step.id === "prepare"
+              ? "completed"
+              : step.id === "convert"
+                ? "processing"
+                : step.status,
+        })),
+      );
 
       const message: WorkerMessage = {
-        type: 'convert',
-        images: imageDataArray
+        type: "convert",
+        images: imageDataArray,
       };
 
       workerRef.current.postMessage(message);
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('Conversion failed'));
+      setError(err instanceof Error ? err : new Error("Conversion failed"));
       setIsProcessing(false);
-      setProcessingSteps(prev => prev.map((step, idx) => ({
-        ...step,
-        status: idx === 0 ? 'error' : 'pending'
-      })));
+      setProcessingSteps((prev) =>
+        prev.map((step, idx) => ({
+          ...step,
+          status: idx === 0 ? "error" : "pending",
+        })),
+      );
     }
   }, [images]);
 
   const downloadPdf = useCallback(() => {
     if (!pdfResult) return;
-    
-    const blob = new Blob([pdfResult], { type: 'application/pdf' });
-    const fileName = images.length === 1 
-      ? `${images[0].file.name.replace(/\.[^/.]+$/, '')}.pdf`
-      : `images_to_pdf_${new Date().getTime()}.pdf`;
+
+    const blob = new Blob([pdfResult], { type: "application/pdf" });
+    const fileName =
+      images.length === 1
+        ? `${images[0].file.name.replace(/\.[^/.]+$/, "")}.pdf`
+        : `images_to_pdf_${new Date().getTime()}.pdf`;
     saveAs(blob, fileName);
   }, [pdfResult, images]);
 
   const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
   };
 
   // Cleanup previews on unmount
   React.useEffect(() => {
     return () => {
-      images.forEach(img => URL.revokeObjectURL(img.preview));
+      images.forEach((img) => URL.revokeObjectURL(img.preview));
     };
   }, [images]);
 
@@ -239,10 +292,10 @@ export const JpgToPdf: React.FC = () => {
               <span>JPG to PDF Converter</span>
             </h1>
             <p className="mt-2 text-sm sm:text-base text-muted-foreground max-w-3xl">
-              Convert multiple images into a single PDF document. Preview pages, drag to reorder, and create perfect PDFs.
-              100% private - all processing happens in your browser.
+              Convert multiple images into a single PDF document. Preview pages,
+              drag to reorder, and create perfect PDFs. 100% private - all
+              processing happens in your browser.
             </p>
-            
           </div>
         </div>
       </div>
@@ -265,9 +318,12 @@ export const JpgToPdf: React.FC = () => {
             <div className="bg-card border rounded-lg p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                 <div>
-                  <h3 className="font-medium text-base sm:text-lg">Images to convert</h3>
+                  <h3 className="font-medium text-base sm:text-lg">
+                    Images to convert
+                  </h3>
                   <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1">
-                    {images.length} image{images.length !== 1 ? 's' : ''} selected
+                    {images.length} image{images.length !== 1 ? "s" : ""}{" "}
+                    selected
                   </p>
                 </div>
                 <Button
@@ -280,7 +336,7 @@ export const JpgToPdf: React.FC = () => {
                   Add more
                 </Button>
               </div>
-              
+
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
                 {images.map((imageInfo, index) => (
                   <div
@@ -294,12 +350,12 @@ export const JpgToPdf: React.FC = () => {
                       setDraggedImage(null);
                     }}
                     className={`relative group sm:cursor-move ff-transition ${
-                      dragOverIndex === index ? 'ring-2 ring-primary' : ''
-                    } ${draggedImage === imageInfo.id ? 'opacity-50' : ''}`}
+                      dragOverIndex === index ? "ring-2 ring-primary" : ""
+                    } ${draggedImage === imageInfo.id ? "opacity-50" : ""}`}
                   >
                     <div className="aspect-square bg-secondary/[0.3] rounded-lg overflow-hidden">
-                      <img 
-                        src={imageInfo.preview} 
+                      <img
+                        src={imageInfo.preview}
                         alt={imageInfo.file.name}
                         className="w-full h-full object-cover"
                       />
@@ -322,7 +378,7 @@ export const JpgToPdf: React.FC = () => {
                           variant="secondary"
                           size="icon"
                           className="h-6 w-6"
-                          onClick={() => moveImage(index, 'up')}
+                          onClick={() => moveImage(index, "up")}
                         >
                           <ChevronUp className="h-3 w-3" />
                         </Button>
@@ -332,22 +388,28 @@ export const JpgToPdf: React.FC = () => {
                           variant="secondary"
                           size="icon"
                           className="h-6 w-6"
-                          onClick={() => moveImage(index, 'down')}
+                          onClick={() => moveImage(index, "down")}
                         >
                           <ChevronDown className="h-3 w-3" />
                         </Button>
                       )}
                     </div>
                     <div className="mt-1.5 sm:mt-2">
-                      <p className="text-[10px] sm:text-xs font-medium truncate">{imageInfo.file.name}</p>
-                      <p className="text-[10px] sm:text-xs text-muted-foreground">{formatFileSize(imageInfo.file.size)}</p>
+                      <p className="text-[10px] sm:text-xs font-medium truncate">
+                        {imageInfo.file.name}
+                      </p>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground">
+                        {formatFileSize(imageInfo.file.size)}
+                      </p>
                     </div>
                   </div>
                 ))}
               </div>
-              
+
               <p className="text-xs text-muted-foreground mt-3 sm:mt-4">
-                <span className="hidden sm:inline">Drag images to reorder them in the PDF</span>
+                <span className="hidden sm:inline">
+                  Drag images to reorder them in the PDF
+                </span>
                 <span className="sm:hidden">Use arrows to reorder pages</span>
               </p>
             </div>
@@ -414,9 +476,12 @@ export const JpgToPdf: React.FC = () => {
                     <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-sm sm:text-base">Your PDF is ready</h3>
+                    <h3 className="font-medium text-sm sm:text-base">
+                      Your PDF is ready
+                    </h3>
                     <p className="text-xs sm:text-sm text-muted-foreground">
-                      {images.length} image{images.length !== 1 ? 's' : ''} • {formatFileSize(pdfResult.byteLength)}
+                      {images.length} image{images.length !== 1 ? "s" : ""} •{" "}
+                      {formatFileSize(pdfResult.byteLength)}
                     </p>
                   </div>
                 </div>
@@ -428,27 +493,32 @@ export const JpgToPdf: React.FC = () => {
             </div>
           </div>
         )}
-        
-        
+
         {/* Features - Mobile optimized */}
         <div className="mt-12 sm:mt-16 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
           <div className="p-3 sm:p-4 rounded-lg border">
             <Image className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
-            <h3 className="font-semibold text-sm sm:text-base mb-1">Image Preview</h3>
+            <h3 className="font-semibold text-sm sm:text-base mb-1">
+              Image Preview
+            </h3>
             <p className="text-xs sm:text-sm text-muted-foreground">
               See all images before converting them to PDF
             </p>
           </div>
           <div className="p-3 sm:p-4 rounded-lg border">
             <GripVertical className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
-            <h3 className="font-semibold text-sm sm:text-base mb-1">Drag to Reorder</h3>
+            <h3 className="font-semibold text-sm sm:text-base mb-1">
+              Drag to Reorder
+            </h3>
             <p className="text-xs sm:text-sm text-muted-foreground">
               Arrange images in the perfect order for your PDF
             </p>
           </div>
           <div className="p-3 sm:p-4 rounded-lg border">
             <FileText className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
-            <h3 className="font-semibold text-sm sm:text-base mb-1">High Quality PDF</h3>
+            <h3 className="font-semibold text-sm sm:text-base mb-1">
+              High Quality PDF
+            </h3>
             <p className="text-xs sm:text-sm text-muted-foreground">
               Creates professional PDFs with optimal compression
             </p>

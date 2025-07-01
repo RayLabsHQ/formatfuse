@@ -1,6 +1,6 @@
-import * as Comlink from 'comlink';
+import * as Comlink from "comlink";
 
-type OutputFormat = 'png' | 'jpeg' | 'webp' | 'avif';
+type OutputFormat = "png" | "jpeg" | "webp" | "avif";
 
 export class SvgConverter {
   private worker: Worker;
@@ -9,8 +9,8 @@ export class SvgConverter {
 
   constructor() {
     this.worker = new Worker(
-      new URL('../workers/svg-converter.worker.ts', import.meta.url),
-      { type: 'module' }
+      new URL("../workers/svg-converter.worker.ts", import.meta.url),
+      { type: "module" },
     );
   }
 
@@ -24,7 +24,7 @@ export class SvgConverter {
 
   async convert(
     svgData: File | Uint8Array | string,
-    targetFormat: OutputFormat = 'png',
+    targetFormat: OutputFormat = "png",
     options: {
       width?: number;
       height?: number;
@@ -32,7 +32,7 @@ export class SvgConverter {
       scale?: number;
       quality?: number;
     } = {},
-    onProgress?: (progress: number) => void
+    onProgress?: (progress: number) => void,
   ): Promise<Uint8Array> {
     await this.ensureInitialized();
 
@@ -49,7 +49,7 @@ export class SvgConverter {
       data,
       targetFormat,
       options,
-      onProgress ? Comlink.proxy(onProgress) : undefined
+      onProgress ? Comlink.proxy(onProgress) : undefined,
     );
   }
 

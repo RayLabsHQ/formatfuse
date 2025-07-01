@@ -1,14 +1,34 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { Copy, RefreshCw, Check, Hash, Settings2, FileDown } from 'lucide-react';
-import { v4 as uuidv4, v1 as uuidv1, v5 as uuidv5, v3 as uuidv3, validate, version as getVersion } from 'uuid';
-import { Button } from '../ui/button';
-import { Label } from '../ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Switch } from '../ui/switch';
-import { Separator } from '../ui/separator';
+import React, { useState, useCallback, useMemo } from "react";
+import {
+  Copy,
+  RefreshCw,
+  Check,
+  Hash,
+  Settings2,
+  FileDown,
+} from "lucide-react";
+import {
+  v4 as uuidv4,
+  v1 as uuidv1,
+  v5 as uuidv5,
+  v3 as uuidv3,
+  validate,
+  version as getVersion,
+} from "uuid";
+import { Button } from "../ui/button";
+import { Label } from "../ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { Switch } from "../ui/switch";
+import { Separator } from "../ui/separator";
 
-type UuidVersion = 'v4' | 'v1' | 'v5' | 'v3';
-type UuidFormat = 'standard' | 'uppercase' | 'no-hyphens' | 'braces' | 'urn';
+type UuidVersion = "v4" | "v1" | "v5" | "v3";
+type UuidFormat = "standard" | "uppercase" | "no-hyphens" | "braces" | "urn";
 
 interface GeneratedUuid {
   id: string;
@@ -18,68 +38,76 @@ interface GeneratedUuid {
 }
 
 export default function UuidGenerator() {
-  const [version, setVersion] = useState<UuidVersion>('v4');
-  const [format, setFormat] = useState<UuidFormat>('standard');
+  const [version, setVersion] = useState<UuidVersion>("v4");
+  const [format, setFormat] = useState<UuidFormat>("standard");
   const [count, setCount] = useState(1);
-  const [namespace, setNamespace] = useState('');
-  const [name, setName] = useState('');
+  const [namespace, setNamespace] = useState("");
+  const [name, setName] = useState("");
   const [bulkMode, setBulkMode] = useState(false);
   const [uuids, setUuids] = useState<GeneratedUuid[]>([]);
   const [copied, setCopied] = useState<string | null>(null);
-  const [validationInput, setValidationInput] = useState('');
+  const [validationInput, setValidationInput] = useState("");
 
   // Predefined namespaces for v3/v5
   const namespaces = {
-    dns: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
-    url: '6ba7b811-9dad-11d1-80b4-00c04fd430c8',
-    oid: '6ba7b812-9dad-11d1-80b4-00c04fd430c8',
-    x500: '6ba7b814-9dad-11d1-80b4-00c04fd430c8',
+    dns: "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+    url: "6ba7b811-9dad-11d1-80b4-00c04fd430c8",
+    oid: "6ba7b812-9dad-11d1-80b4-00c04fd430c8",
+    x500: "6ba7b814-9dad-11d1-80b4-00c04fd430c8",
   };
 
-  const generateUuid = useCallback((ver: UuidVersion = version): string => {
-    switch (ver) {
-      case 'v1':
-        return uuidv1();
-      case 'v3':
-        if (namespace && name) {
-          const ns = namespaces[namespace as keyof typeof namespaces] || namespace;
-          return uuidv3(name, ns);
-        }
-        return '';
-      case 'v5':
-        if (namespace && name) {
-          const ns = namespaces[namespace as keyof typeof namespaces] || namespace;
-          return uuidv5(name, ns);
-        }
-        return '';
-      case 'v4':
-      default:
-        return uuidv4();
-    }
-  }, [version, namespace, name]);
+  const generateUuid = useCallback(
+    (ver: UuidVersion = version): string => {
+      switch (ver) {
+        case "v1":
+          return uuidv1();
+        case "v3":
+          if (namespace && name) {
+            const ns =
+              namespaces[namespace as keyof typeof namespaces] || namespace;
+            return uuidv3(name, ns);
+          }
+          return "";
+        case "v5":
+          if (namespace && name) {
+            const ns =
+              namespaces[namespace as keyof typeof namespaces] || namespace;
+            return uuidv5(name, ns);
+          }
+          return "";
+        case "v4":
+        default:
+          return uuidv4();
+      }
+    },
+    [version, namespace, name],
+  );
 
-  const formatUuid = useCallback((uuid: string, fmt: UuidFormat = format): string => {
-    if (!uuid) return '';
-    
-    switch (fmt) {
-      case 'uppercase':
-        return uuid.toUpperCase();
-      case 'no-hyphens':
-        return uuid.replace(/-/g, '');
-      case 'braces':
-        return `{${uuid}}`;
-      case 'urn':
-        return `urn:uuid:${uuid}`;
-      case 'standard':
-      default:
-        return uuid;
-    }
-  }, [format]);
+  const formatUuid = useCallback(
+    (uuid: string, fmt: UuidFormat = format): string => {
+      if (!uuid) return "";
+
+      switch (fmt) {
+        case "uppercase":
+          return uuid.toUpperCase();
+        case "no-hyphens":
+          return uuid.replace(/-/g, "");
+        case "braces":
+          return `{${uuid}}`;
+        case "urn":
+          return `urn:uuid:${uuid}`;
+        case "standard":
+        default:
+          return uuid;
+      }
+    },
+    [format],
+  );
 
   const handleGenerate = useCallback(() => {
     const newUuids: GeneratedUuid[] = [];
     const generateCount = bulkMode ? count : 1;
-    
+
     for (let i = 0; i < generateCount; i++) {
       const uuid = generateUuid();
       if (uuid) {
@@ -87,61 +115,64 @@ export default function UuidGenerator() {
           id: Date.now().toString() + i,
           uuid,
           version,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
       }
     }
-    
+
     if (bulkMode) {
-      setUuids(prev => [...newUuids, ...prev].slice(0, 1000)); // Keep max 1000
+      setUuids((prev) => [...newUuids, ...prev].slice(0, 1000)); // Keep max 1000
     } else {
       setUuids(newUuids);
     }
   }, [generateUuid, version, bulkMode, count]);
 
-  const handleCopy = useCallback(async (uuid: string, id: string) => {
-    try {
-      await navigator.clipboard.writeText(formatUuid(uuid));
-      setCopied(id);
-      setTimeout(() => setCopied(null), 2000);
-    } catch (err) {
-      console.error('Failed to copy:', err);
-    }
-  }, [formatUuid]);
+  const handleCopy = useCallback(
+    async (uuid: string, id: string) => {
+      try {
+        await navigator.clipboard.writeText(formatUuid(uuid));
+        setCopied(id);
+        setTimeout(() => setCopied(null), 2000);
+      } catch (err) {
+        console.error("Failed to copy:", err);
+      }
+    },
+    [formatUuid],
+  );
 
   const handleCopyAll = useCallback(async () => {
-    const allUuids = uuids.map(u => formatUuid(u.uuid)).join('\n');
+    const allUuids = uuids.map((u) => formatUuid(u.uuid)).join("\n");
     try {
       await navigator.clipboard.writeText(allUuids);
-      setCopied('all');
+      setCopied("all");
       setTimeout(() => setCopied(null), 2000);
     } catch (err) {
-      console.error('Failed to copy:', err);
+      console.error("Failed to copy:", err);
     }
   }, [uuids, formatUuid]);
 
   const handleDownload = useCallback(() => {
-    const content = uuids.map(u => formatUuid(u.uuid)).join('\n');
-    const blob = new Blob([content], { type: 'text/plain' });
+    const content = uuids.map((u) => formatUuid(u.uuid)).join("\n");
+    const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = `uuids-${version}-${new Date().toISOString().split('T')[0]}.txt`;
+    a.download = `uuids-${version}-${new Date().toISOString().split("T")[0]}.txt`;
     a.click();
     URL.revokeObjectURL(url);
   }, [uuids, version, formatUuid]);
 
   const validationResult = useMemo(() => {
     if (!validationInput.trim()) return null;
-    
+
     const isValid = validate(validationInput);
     if (!isValid) return { valid: false };
-    
+
     const ver = getVersion(validationInput);
     return { valid: true, version: ver };
   }, [validationInput]);
 
-  const needsNamespace = version === 'v3' || version === 'v5';
+  const needsNamespace = version === "v3" || version === "v5";
 
   return (
     <div className="w-full max-w-4xl mx-auto p-4">
@@ -161,13 +192,20 @@ export default function UuidGenerator() {
       <div className="mb-4 p-3 sm:p-4 rounded-lg border bg-card space-y-4">
         <div className="flex items-center gap-2 mb-3">
           <Settings2 className="w-4 h-4 text-muted-foreground" />
-          <h2 className="font-semibold text-sm sm:text-base">Generation Settings</h2>
+          <h2 className="font-semibold text-sm sm:text-base">
+            Generation Settings
+          </h2>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="version" className="text-sm">UUID Version</Label>
-            <Select value={version} onValueChange={(v) => setVersion(v as UuidVersion)}>
+            <Label htmlFor="version" className="text-sm">
+              UUID Version
+            </Label>
+            <Select
+              value={version}
+              onValueChange={(v) => setVersion(v as UuidVersion)}
+            >
               <SelectTrigger id="version" className="h-9 sm:h-10">
                 <SelectValue />
               </SelectTrigger>
@@ -181,8 +219,13 @@ export default function UuidGenerator() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="format" className="text-sm">Output Format</Label>
-            <Select value={format} onValueChange={(f) => setFormat(f as UuidFormat)}>
+            <Label htmlFor="format" className="text-sm">
+              Output Format
+            </Label>
+            <Select
+              value={format}
+              onValueChange={(f) => setFormat(f as UuidFormat)}
+            >
               <SelectTrigger id="format" className="h-9 sm:h-10">
                 <SelectValue />
               </SelectTrigger>
@@ -202,11 +245,14 @@ export default function UuidGenerator() {
             <Separator />
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Version {version} requires a namespace and name to generate deterministic UUIDs
+                Version {version} requires a namespace and name to generate
+                deterministic UUIDs
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="namespace" className="text-sm">Namespace</Label>
+                  <Label htmlFor="namespace" className="text-sm">
+                    Namespace
+                  </Label>
                   <Select value={namespace} onValueChange={setNamespace}>
                     <SelectTrigger id="namespace" className="h-9 sm:h-10">
                       <SelectValue placeholder="Select namespace" />
@@ -220,7 +266,9 @@ export default function UuidGenerator() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="name" className="text-sm">Name</Label>
+                  <Label htmlFor="name" className="text-sm">
+                    Name
+                  </Label>
                   <input
                     id="name"
                     type="text"
@@ -248,17 +296,23 @@ export default function UuidGenerator() {
               Bulk Generation
             </Label>
           </div>
-          
+
           {bulkMode && (
             <div className="flex items-center gap-2 w-full sm:w-auto">
-              <Label htmlFor="count" className="text-sm whitespace-nowrap">Count:</Label>
+              <Label htmlFor="count" className="text-sm whitespace-nowrap">
+                Count:
+              </Label>
               <input
                 id="count"
                 type="number"
                 min="1"
                 max="100"
                 value={count}
-                onChange={(e) => setCount(Math.min(100, Math.max(1, parseInt(e.target.value) || 1)))}
+                onChange={(e) =>
+                  setCount(
+                    Math.min(100, Math.max(1, parseInt(e.target.value) || 1)),
+                  )
+                }
                 className="w-20 h-8 sm:h-9 px-2 rounded-md border bg-background text-sm"
               />
             </div>
@@ -275,7 +329,7 @@ export default function UuidGenerator() {
           className="w-full sm:w-auto"
         >
           <RefreshCw className="w-4 h-4 mr-2" />
-          Generate UUID{bulkMode ? 's' : ''}
+          Generate UUID{bulkMode ? "s" : ""}
         </Button>
       </div>
 
@@ -283,7 +337,9 @@ export default function UuidGenerator() {
       {uuids.length > 0 && (
         <div className="mb-6 space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-sm sm:text-base">Generated UUIDs</h3>
+            <h3 className="font-semibold text-sm sm:text-base">
+              Generated UUIDs
+            </h3>
             {uuids.length > 1 && (
               <div className="flex items-center gap-2">
                 <Button
@@ -292,7 +348,7 @@ export default function UuidGenerator() {
                   onClick={handleCopyAll}
                   className="text-xs sm:text-sm"
                 >
-                  {copied === 'all' ? (
+                  {copied === "all" ? (
                     <Check className="w-3.5 h-3.5 mr-1 text-green-500" />
                   ) : (
                     <Copy className="w-3.5 h-3.5 mr-1" />
@@ -351,7 +407,9 @@ export default function UuidGenerator() {
             className="w-full h-9 sm:h-10 px-3 rounded-md border bg-background text-sm font-mono"
           />
           {validationInput && validationResult && (
-            <div className={`text-sm ${validationResult.valid ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+            <div
+              className={`text-sm ${validationResult.valid ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
+            >
               {validationResult.valid ? (
                 <>✓ Valid UUID (Version {validationResult.version})</>
               ) : (
@@ -366,14 +424,18 @@ export default function UuidGenerator() {
       <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div className="p-3 sm:p-4 rounded-lg border">
           <Hash className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
-          <h3 className="font-semibold text-sm sm:text-base mb-1">Multiple Versions</h3>
+          <h3 className="font-semibold text-sm sm:text-base mb-1">
+            Multiple Versions
+          </h3>
           <p className="text-xs sm:text-sm text-muted-foreground">
             Support for UUID v1, v3, v4, and v5 generation algorithms
           </p>
         </div>
         <div className="p-3 sm:p-4 rounded-lg border">
           <Settings2 className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
-          <h3 className="font-semibold text-sm sm:text-base mb-1">Format Options</h3>
+          <h3 className="font-semibold text-sm sm:text-base mb-1">
+            Format Options
+          </h3>
           <p className="text-xs sm:text-sm text-muted-foreground">
             Generate UUIDs in standard, uppercase, braces, or URN format
           </p>

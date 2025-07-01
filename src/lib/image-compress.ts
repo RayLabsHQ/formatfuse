@@ -1,5 +1,8 @@
-import * as Comlink from 'comlink';
-import type { CompressOptions, CompressResult } from '../workers/image-compress.worker';
+import * as Comlink from "comlink";
+import type {
+  CompressOptions,
+  CompressResult,
+} from "../workers/image-compress.worker";
 
 export class ImageCompressor {
   private worker: Worker;
@@ -7,8 +10,8 @@ export class ImageCompressor {
 
   constructor() {
     this.worker = new Worker(
-      new URL('../workers/image-compress.worker.ts', import.meta.url),
-      { type: 'module' }
+      new URL("../workers/image-compress.worker.ts", import.meta.url),
+      { type: "module" },
     );
   }
 
@@ -22,17 +25,28 @@ export class ImageCompressor {
   async compress(
     file: File | Blob,
     options: CompressOptions = {},
-    onProgress?: (progress: number) => void
+    onProgress?: (progress: number) => void,
   ): Promise<CompressResult> {
     await this.ensureWorkerReady();
-    
-    const progressProxy = onProgress ? Comlink.proxy(onProgress) : undefined;
-    
+
+    let progressProxy: any = undefined;
+
     try {
-      const result = await this.workerApi.compress(file, options, progressProxy);
+      if (onProgress) {
+        progressProxy = Comlink.proxy(onProgress);
+      }
+
+      const result = await this.workerApi.compress(
+        file,
+        options,
+        progressProxy,
+      );
       return result;
     } finally {
-      if (progressProxy) {
+      if (
+        progressProxy &&
+        typeof progressProxy[Comlink.releaseProxy] === "function"
+      ) {
         progressProxy[Comlink.releaseProxy]();
       }
     }
@@ -41,17 +55,28 @@ export class ImageCompressor {
   async compressBatch(
     files: (File | Blob)[],
     options: CompressOptions = {},
-    onProgress?: (index: number, progress: number) => void
+    onProgress?: (index: number, progress: number) => void,
   ): Promise<CompressResult[]> {
     await this.ensureWorkerReady();
-    
-    const progressProxy = onProgress ? Comlink.proxy(onProgress) : undefined;
-    
+
+    let progressProxy: any = undefined;
+
     try {
-      const results = await this.workerApi.compressBatch(files, options, progressProxy);
+      if (onProgress) {
+        progressProxy = Comlink.proxy(onProgress);
+      }
+
+      const results = await this.workerApi.compressBatch(
+        files,
+        options,
+        progressProxy,
+      );
       return results;
     } finally {
-      if (progressProxy) {
+      if (
+        progressProxy &&
+        typeof progressProxy[Comlink.releaseProxy] === "function"
+      ) {
         progressProxy[Comlink.releaseProxy]();
       }
     }
@@ -66,4 +91,8 @@ export class ImageCompressor {
   }
 }
 
-export type { CompressOptions, CompressResult, CompressFormat } from '../workers/image-compress.worker';
+export type {
+  CompressOptions,
+  CompressResult,
+  CompressFormat,
+} from "../workers/image-compress.worker";

@@ -1,22 +1,46 @@
-import React from 'react';
-import { 
-  Search, Sun, Moon, Menu, X, ChevronDown,
-  ArrowRight, TrendingUp, Sparkles
-} from 'lucide-react';
-import { categories, searchTools, pdfTools, imageTools, devTools, allTools } from '../data/tools';
-import type { Tool } from '../data/tools';
+import React from "react";
+import {
+  Search,
+  Sun,
+  Moon,
+  Menu,
+  X,
+  ChevronDown,
+  ArrowRight,
+  TrendingUp,
+  Sparkles,
+} from "lucide-react";
+import {
+  categories,
+  searchTools,
+  pdfTools,
+  imageTools,
+  devTools,
+  allTools,
+} from "../data/tools";
+import type { Tool } from "../data/tools";
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = React.useState(false);
   const [isDark, setIsDark] = React.useState(false);
-  const [searchQuery, setSearchQuery] = React.useState('');
-  const [activeDropdown, setActiveDropdown] = React.useState<string | null>(null);
-  const [mobileCategory, setMobileCategory] = React.useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const [activeDropdown, setActiveDropdown] = React.useState<string | null>(
+    null,
+  );
+  const [mobileCategory, setMobileCategory] = React.useState<string | null>(
+    null,
+  );
   const [showSearchResults, setShowSearchResults] = React.useState(false);
-  const [dropdownTimeout, setDropdownTimeout] = React.useState<NodeJS.Timeout | null>(null);
+  const [dropdownTimeout, setDropdownTimeout] =
+    React.useState<NodeJS.Timeout | null>(null);
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
+  const [isMac, setIsMac] = React.useState(true);
+  const [selectedIndex, setSelectedIndex] = React.useState(-1);
 
   React.useEffect(() => {
-    setIsDark(document.documentElement.classList.contains('dark'));
+    setIsDark(document.documentElement.classList.contains("dark"));
+    // Detect operating system
+    setIsMac(navigator.platform.toUpperCase().indexOf("MAC") >= 0);
   }, []);
 
   // Cleanup timeout on unmount
@@ -30,13 +54,13 @@ export default function Navigation() {
 
   const toggleTheme = () => {
     const html = document.documentElement;
-    if (html.classList.contains('dark')) {
-      html.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
+    if (html.classList.contains("dark")) {
+      html.classList.remove("dark");
+      localStorage.setItem("theme", "light");
       setIsDark(false);
     } else {
-      html.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
+      html.classList.add("dark");
+      localStorage.setItem("theme", "dark");
       setIsDark(true);
     }
   };
@@ -44,19 +68,83 @@ export default function Navigation() {
   // Get search results
   const searchResults = React.useMemo(() => {
     if (!searchQuery) return [];
-    
+
     const matchedTools = searchTools(searchQuery);
-    const results: Array<{tool: Tool, category: typeof categories[0]}> = [];
-    
-    matchedTools.forEach(tool => {
-      const category = categories.find(cat => cat.id === tool.category);
+    const results: Array<{ tool: Tool; category: (typeof categories)[0] }> = [];
+
+    matchedTools.forEach((tool) => {
+      const category = categories.find((cat) => cat.id === tool.category);
       if (category) {
         results.push({ tool, category });
       }
     });
-    
+
     return results.slice(0, 8); // Limit to 8 results
   }, [searchQuery]);
+
+  // Reset selected index when search results change
+  React.useEffect(() => {
+    setSelectedIndex(-1);
+  }, [searchResults]);
+
+  // Keyboard shortcuts
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Cmd+K or Ctrl+K to open search
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+        setShowSearchResults(true);
+      }
+      // Escape to close search
+      if (e.key === "Escape" && showSearchResults) {
+        e.preventDefault();
+        searchInputRef.current?.blur();
+        setShowSearchResults(false);
+        setSearchQuery("");
+        setSelectedIndex(-1);
+      }
+      // Arrow navigation
+      if (showSearchResults && searchResults.length > 0) {
+        if (e.key === "ArrowDown") {
+          e.preventDefault();
+          setSelectedIndex((prev) =>
+            prev < searchResults.length - 1 ? prev + 1 : 0,
+          );
+        } else if (e.key === "ArrowUp") {
+          e.preventDefault();
+          setSelectedIndex((prev) =>
+            prev > 0 ? prev - 1 : searchResults.length - 1,
+          );
+        } else if (e.key === "Enter" && selectedIndex >= 0) {
+          e.preventDefault();
+          const { tool } = searchResults[selectedIndex];
+          const url =
+            tool.id === "image-resizer"
+              ? "/tools/image-resizer"
+              : tool.id === "image-compressor"
+                ? "/tools/image-compressor"
+                : tool.id === "json-formatter"
+                  ? "/tools/json-formatter"
+                  : tool.id === "word-counter"
+                    ? "/tools/word-counter"
+                    : tool.id === "base64-encoder"
+                      ? "/tools/base64-encoder"
+                      : tool.id === "case-converter"
+                        ? "/tools/case-converter"
+                        : tool.id === "hash-generator"
+                          ? "/tools/hash-generator"
+                          : tool.id === "qr-generator"
+                            ? "/tools/qr-generator"
+                            : `/convert/${tool.id}`;
+          window.location.href = url;
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [showSearchResults, searchResults, selectedIndex]);
 
   return (
     <nav className="sticky top-0 z-50 bg-background border-b">
@@ -65,11 +153,7 @@ export default function Navigation() {
           {/* Logo */}
           <div className="flex items-center">
             <a href="/" className="flex items-center space-x-2 group">
-              <img 
-                src="/logo.svg" 
-                alt="FormatFuse" 
-                className="h-10 w-auto"
-              />
+              <img src="/logo.svg" alt="FormatFuse" className="h-10 w-auto" />
               <span className="text-xl font-bold">Format Fuse</span>
             </a>
           </div>
@@ -94,7 +178,7 @@ export default function Navigation() {
                   setDropdownTimeout(timeout);
                 }}
               >
-                <button 
+                <button
                   className="group px-4 py-2 text-sm font-medium hover:text-foreground text-muted-foreground ff-transition flex items-center gap-1 h-full"
                   onClick={(e) => {
                     e.preventDefault();
@@ -102,66 +186,73 @@ export default function Navigation() {
                       clearTimeout(dropdownTimeout);
                       setDropdownTimeout(null);
                     }
-                    setActiveDropdown(activeDropdown === category.name ? null : category.name);
+                    setActiveDropdown(
+                      activeDropdown === category.name ? null : category.name,
+                    );
                   }}
                 >
                   {category.name}
-                  <ChevronDown className={`w-3 h-3 ff-transition ${activeDropdown === category.name ? 'rotate-180' : ''}`} />
+                  <ChevronDown
+                    className={`w-3 h-3 ff-transition ${activeDropdown === category.name ? "rotate-180" : ""}`}
+                  />
                 </button>
-                
+
                 {activeDropdown === category.name && (
                   <div className="absolute top-full left-0 mt-1 w-[600px] z-[100] pointer-events-auto">
                     <div className="bg-card rounded-lg shadow-lg border p-4">
                       <div className="mb-3 flex items-center justify-between">
-                        <h3 className="font-semibold text-sm">{category.name}</h3>
-                        <a href={`/tools#${category.id}`} className="text-xs text-primary hover:underline flex items-center gap-1">
+                        <h3 className="font-semibold text-sm">
+                          {category.name}
+                        </h3>
+                        <a
+                          href={`/tools#${category.id}`}
+                          className="text-xs text-primary hover:underline flex items-center gap-1"
+                        >
                           View all
                           <ArrowRight className="w-3 h-3" />
                         </a>
                       </div>
                       <div className="grid grid-cols-2 gap-1">
-                      {(category.id === 'image' ? category.tools.slice(0, 6) : category.tools).map((tool) => (
-                        <a
-                          key={tool.id}
-                          href={tool.route || `/convert/${tool.id}`}
-                          className="group/item flex items-center gap-3 p-3 rounded-md hover:bg-secondary ff-transition"
-                        >
-                          <div className={`p-1.5 rounded ${category.bgColor} ${category.color}`}>
-                            <tool.icon className="w-4 h-4" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium group-hover/item:text-primary ff-transition">
-                                {tool.name}
-                              </span>
-                              {tool.isPopular && (
-                                <TrendingUp className="w-3 h-3 text-primary" />
-                              )}
-                              {tool.isNew && (
-                                <Sparkles className="w-3 h-3 text-accent" />
-                              )}
-                              {tool.isBeta && (
-                                <span className="text-xs bg-amber-500/20 text-amber-700 dark:text-amber-400 px-1 py-0.5 rounded ml-1">
-                                  Beta
-                                </span>
-                              )}
+                        {(category.id === "image"
+                          ? category.tools.slice(0, 6)
+                          : category.tools
+                        ).map((tool) => (
+                          <a
+                            key={tool.id}
+                            href={tool.route || `/convert/${tool.id}`}
+                            className="group/item flex items-center gap-3 p-3 rounded-md hover:bg-secondary ff-transition"
+                          >
+                            <div
+                              className={`p-1.5 rounded ${category.bgColor} ${category.color}`}
+                            >
+                              <tool.icon className="w-4 h-4" />
                             </div>
-                          </div>
-                        </a>
-                      ))}
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium group-hover/item:text-primary ff-transition">
+                                  {tool.name}
+                                </span>
+                                {tool.isPopular && (
+                                  <TrendingUp className="w-3 h-3 text-primary" />
+                                )}
+                                {tool.isNew && (
+                                  <Sparkles className="w-3 h-3 text-accent" />
+                                )}
+                                {tool.isBeta && (
+                                  <span className="text-xs bg-amber-500/20 text-amber-700 dark:text-amber-400 px-1 py-0.5 rounded ml-1">
+                                    Beta
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </a>
+                        ))}
                       </div>
                     </div>
                   </div>
                 )}
               </div>
             ))}
-            
-            <a
-              href="/tools"
-              className="px-4 py-2 text-sm font-medium hover:text-foreground text-muted-foreground ff-transition"
-            >
-              All Tools
-            </a>
           </div>
 
           {/* Search and Actions */}
@@ -171,53 +262,153 @@ export default function Navigation() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
+                  ref={searchInputRef}
                   type="text"
                   placeholder="Quick search..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => setShowSearchResults(true)}
-                  onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
-                  className="pl-10 pr-4 py-2 w-56 bg-secondary border border-input rounded-md text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring"
+                  onBlur={() =>
+                    setTimeout(() => setShowSearchResults(false), 200)
+                  }
+                  className="pl-10 pr-16 py-2 w-64 bg-secondary border border-input rounded-md text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring"
                 />
-                
+                <kbd className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-60">
+                  <span className="text-xs">{isMac ? "⌘" : "Ctrl"}</span>K
+                </kbd>
+
                 {/* Search Results Dropdown */}
-                {showSearchResults && searchResults.length > 0 && (
+                {showSearchResults && (
                   <div className="absolute top-full mt-2 w-80 bg-card rounded-lg shadow-lg border p-2 z-[100]">
-                    <div className="text-xs text-muted-foreground px-2 py-1 mb-1">
-                      {searchResults.length} results
-                    </div>
-                    {searchResults.map(({ tool, category }, index) => (
-                      <a
-                        key={`${tool.id}-${index}`}
-                        href={
-                          tool.id === 'image-resizer' ? '/tools/image-resizer' : 
-                          tool.id === 'image-compressor' ? '/tools/image-compressor' :
-                          tool.id === 'json-formatter' ? '/tools/json-formatter' :
-                          tool.id === 'word-counter' ? '/tools/word-counter' :
-                          tool.id === 'base64-encoder' ? '/tools/base64-encoder' :
-                          tool.id === 'case-converter' ? '/tools/case-converter' :
-                          tool.id === 'hash-generator' ? '/tools/hash-generator' :
-                          tool.id === 'qr-generator' ? '/tools/qr-generator' :
-                          `/convert/${tool.id}`
-                        }
-                        className="flex items-center gap-3 p-2 rounded-md hover:bg-secondary ff-transition"
-                      >
-                        <div className={`p-1.5 rounded ${category.bgColor} ${category.color}`}>
-                          <tool.icon className="w-4 h-4" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="text-sm font-medium">{tool.name}</div>
-                          <div className="text-xs text-muted-foreground">{category.name}</div>
-                        </div>
-                        {tool.isPopular && <TrendingUp className="w-3 h-3 text-primary" />}
-                        {tool.isNew && <Sparkles className="w-3 h-3 text-accent" />}
-                        {tool.isBeta && (
-                          <span className="text-xs bg-amber-500/20 text-amber-700 dark:text-amber-400 px-1 py-0.5 rounded">
-                            Beta
+                    {searchQuery ? (
+                      <>
+                        <div className="flex items-center justify-between text-xs text-muted-foreground px-2 py-1 mb-1">
+                          <span>{searchResults.length} results</span>
+                          <span className="flex items-center gap-1">
+                            <kbd className="px-1 py-0.5 rounded bg-muted text-[10px]">
+                              ↑↓
+                            </kbd>
+                            <span>to navigate</span>
                           </span>
-                        )}
-                      </a>
-                    ))}
+                        </div>
+                        {searchResults.map(({ tool, category }, index) => (
+                          <a
+                            key={`${tool.id}-${index}`}
+                            href={
+                              tool.id === "image-resizer"
+                                ? "/tools/image-resizer"
+                                : tool.id === "image-compressor"
+                                  ? "/tools/image-compressor"
+                                  : tool.id === "json-formatter"
+                                    ? "/tools/json-formatter"
+                                    : tool.id === "word-counter"
+                                      ? "/tools/word-counter"
+                                      : tool.id === "base64-encoder"
+                                        ? "/tools/base64-encoder"
+                                        : tool.id === "case-converter"
+                                          ? "/tools/case-converter"
+                                          : tool.id === "hash-generator"
+                                            ? "/tools/hash-generator"
+                                            : tool.id === "qr-generator"
+                                              ? "/tools/qr-generator"
+                                              : `/convert/${tool.id}`
+                            }
+                            className={`flex items-center gap-3 p-2 rounded-md ff-transition ${
+                              selectedIndex === index
+                                ? "bg-secondary"
+                                : "hover:bg-secondary"
+                            }`}
+                            onMouseEnter={() => setSelectedIndex(index)}
+                          >
+                            <div
+                              className={`p-1.5 rounded ${category.bgColor} ${category.color}`}
+                            >
+                              <tool.icon className="w-4 h-4" />
+                            </div>
+                            <div className="flex-1">
+                              <div className="text-sm font-medium">
+                                {tool.name}
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                {category.name}
+                              </div>
+                            </div>
+                            {tool.isPopular && (
+                              <TrendingUp className="w-3 h-3 text-primary" />
+                            )}
+                            {tool.isNew && (
+                              <Sparkles className="w-3 h-3 text-accent" />
+                            )}
+                            {tool.isBeta && (
+                              <span className="text-xs bg-amber-500/20 text-amber-700 dark:text-amber-400 px-1 py-0.5 rounded">
+                                Beta
+                              </span>
+                            )}
+                          </a>
+                        ))}
+                      </>
+                    ) : (
+                      /* Popular tools when no search */
+                      <>
+                        <div className="text-xs text-muted-foreground px-2 py-1 mb-1">
+                          Popular tools
+                        </div>
+                        {allTools
+                          .filter((tool) => tool.isPopular)
+                          .slice(0, 6)
+                          .map((tool, index) => {
+                            const category = categories.find(
+                              (cat) => cat.id === tool.category,
+                            );
+                            if (!category) return null;
+                            return (
+                              <a
+                                key={tool.id}
+                                href={
+                                  tool.id === "image-resizer"
+                                    ? "/tools/image-resizer"
+                                    : tool.id === "image-compressor"
+                                      ? "/tools/image-compressor"
+                                      : tool.id === "json-formatter"
+                                        ? "/tools/json-formatter"
+                                        : tool.id === "word-counter"
+                                          ? "/tools/word-counter"
+                                          : tool.id === "base64-encoder"
+                                            ? "/tools/base64-encoder"
+                                            : tool.id === "case-converter"
+                                              ? "/tools/case-converter"
+                                              : tool.id === "hash-generator"
+                                                ? "/tools/hash-generator"
+                                                : tool.id === "qr-generator"
+                                                  ? "/tools/qr-generator"
+                                                  : `/convert/${tool.id}`
+                                }
+                                className={`flex items-center gap-3 p-2 rounded-md ff-transition ${
+                                  selectedIndex === index
+                                    ? "bg-secondary"
+                                    : "hover:bg-secondary"
+                                }`}
+                                onMouseEnter={() => setSelectedIndex(index)}
+                              >
+                                <div
+                                  className={`p-1.5 rounded ${category.bgColor} ${category.color}`}
+                                >
+                                  <tool.icon className="w-4 h-4" />
+                                </div>
+                                <div className="flex-1">
+                                  <div className="text-sm font-medium">
+                                    {tool.name}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {category.name}
+                                  </div>
+                                </div>
+                                <TrendingUp className="w-3 h-3 text-primary" />
+                              </a>
+                            );
+                          })}
+                      </>
+                    )}
                   </div>
                 )}
               </div>
@@ -256,16 +447,18 @@ export default function Navigation() {
       {isOpen && (
         <div className="lg:hidden border-t bg-background">
           <div className="px-4 py-4 space-y-3">
-            {/* Mobile Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Search tools..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-secondary border border-input rounded-md text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-              />
+            {/* Mobile Search - Only show on phones, not tablets */}
+            <div className="block md:hidden">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Search tools..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-secondary border border-input rounded-md text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                />
+              </div>
             </div>
 
             {/* Mobile Search Results or Categories */}
@@ -278,13 +471,19 @@ export default function Navigation() {
                   <a
                     key={`${tool.id}-${index}`}
                     href={
-                      tool.id === 'image-resizer' ? '/tools/image-resizer' : 
-                      tool.id === 'image-compressor' ? '/tools/image-compressor' :
-                      tool.id === 'json-formatter' ? '/tools/json-formatter' :
-                      tool.id === 'word-counter' ? '/tools/word-counter' :
-                      tool.id === 'base64-encoder' ? '/tools/base64-encoder' :
-                      tool.id === 'case-converter' ? '/tools/case-converter' :
-                      `/convert/${tool.id}`
+                      tool.id === "image-resizer"
+                        ? "/tools/image-resizer"
+                        : tool.id === "image-compressor"
+                          ? "/tools/image-compressor"
+                          : tool.id === "json-formatter"
+                            ? "/tools/json-formatter"
+                            : tool.id === "word-counter"
+                              ? "/tools/word-counter"
+                              : tool.id === "base64-encoder"
+                                ? "/tools/base64-encoder"
+                                : tool.id === "case-converter"
+                                  ? "/tools/case-converter"
+                                  : `/convert/${tool.id}`
                     }
                     className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-secondary active:bg-secondary/80 ff-transition touch-manipulation min-h-[48px]"
                     onClick={() => setIsOpen(false)}
@@ -299,9 +498,7 @@ export default function Navigation() {
                     {tool.isPopular && (
                       <TrendingUp className="w-3 h-3 text-primary" />
                     )}
-                    {tool.isNew && (
-                      <Sparkles className="w-3 h-3 text-accent" />
-                    )}
+                    {tool.isNew && <Sparkles className="w-3 h-3 text-accent" />}
                   </a>
                 ))}
               </div>
@@ -310,22 +507,27 @@ export default function Navigation() {
               categories.map((category) => (
                 <div key={category.name} className="space-y-2">
                   <button
-                    onClick={() => setMobileCategory(
-                      mobileCategory === category.name ? null : category.name
-                    )}
+                    onClick={() =>
+                      setMobileCategory(
+                        mobileCategory === category.name ? null : category.name,
+                      )
+                    }
                     className="w-full flex items-center justify-between px-4 py-3 rounded-md hover:bg-secondary active:bg-secondary/80 ff-transition touch-manipulation min-h-[48px]"
                   >
                     <span className="text-sm font-medium">{category.name}</span>
-                    <ChevronDown 
+                    <ChevronDown
                       className={`w-4 h-4 ff-transition ${
-                        mobileCategory === category.name ? 'rotate-180' : ''
-                      }`} 
+                        mobileCategory === category.name ? "rotate-180" : ""
+                      }`}
                     />
                   </button>
-                  
+
                   {mobileCategory === category.name && (
                     <div className="pl-4 space-y-1">
-                      {(category.id === 'image' ? category.tools.slice(0, 6) : category.tools).map((tool) => (
+                      {(category.id === "image"
+                        ? category.tools.slice(0, 6)
+                        : category.tools
+                      ).map((tool) => (
                         <a
                           key={tool.id}
                           href={tool.route || `/convert/${tool.id}`}
@@ -347,7 +549,7 @@ export default function Navigation() {
                           )}
                         </a>
                       ))}
-                      {category.id === 'image' && category.tools.length > 6 && (
+                      {category.id === "image" && category.tools.length > 6 && (
                         <a
                           href="/tools#image"
                           className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-secondary active:bg-secondary/80 ff-transition text-primary text-sm font-medium touch-manipulation min-h-[48px]"
@@ -362,14 +564,6 @@ export default function Navigation() {
                 </div>
               ))
             )}
-
-            <a
-              href="/tools"
-              className="flex items-center px-4 py-3 rounded-md hover:bg-secondary active:bg-secondary/80 ff-transition text-sm font-medium touch-manipulation min-h-[48px]"
-              onClick={() => setIsOpen(false)}
-            >
-              View All Tools
-            </a>
           </div>
         </div>
       )}

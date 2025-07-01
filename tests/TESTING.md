@@ -40,16 +40,19 @@ tests/
 ## Creating Tests for New Converters
 
 1. **Generate test fixtures** (if needed):
+
    ```bash
    pnpm tsx tests/fixtures/generate-samples.ts
    ```
 
 2. **Copy the test template**:
+
    ```bash
    cp tests/workers/converter-test-template.ts tests/workers/your-converter.test.ts
    ```
 
 3. **Customize the template**:
+
    - Replace `CONVERTER_NAME` with your converter name
    - Import your actual conversion function
    - Update fixture paths
@@ -64,21 +67,31 @@ tests/
 ## Test Utilities
 
 ### loadFixture(path)
+
 Loads a test file as ArrayBuffer:
+
 ```typescript
-const pdfData = await loadFixture('pdf/sample.pdf');
+const pdfData = await loadFixture("pdf/sample.pdf");
 ```
 
 ### validateOutput(result, mimeType?, minSize?)
+
 Validates conversion output:
+
 ```typescript
-validateOutput(result, 'application/pdf', 1000);
+validateOutput(result, "application/pdf", 1000);
 ```
 
 ### createFileFromFixture(path, name, mimeType)
+
 Creates a File object for testing:
+
 ```typescript
-const file = await createFileFromFixture('pdf/sample.pdf', 'test.pdf', 'application/pdf');
+const file = await createFileFromFixture(
+  "pdf/sample.pdf",
+  "test.pdf",
+  "application/pdf",
+);
 ```
 
 ## Best Practices
@@ -92,6 +105,7 @@ const file = await createFileFromFixture('pdf/sample.pdf', 'test.pdf', 'applicat
 ## Adding New Test Fixtures
 
 Place test files in the appropriate directory:
+
 - Small files (<100KB) for basic tests
 - Large files (>1MB) for performance tests
 - Corrupted files for error handling
@@ -100,6 +114,7 @@ Place test files in the appropriate directory:
 ## CI/CD Integration
 
 Tests run automatically on:
+
 - Every push to main
 - Pull requests
 - Pre-commit hooks (if configured)
