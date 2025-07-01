@@ -5,30 +5,26 @@ import {
   Clock,
   Hash,
   Type,
-  AlignLeft,
   TrendingUp,
   Settings,
   Download,
+  Shield,
+  Zap,
+  BarChart3,
+  ClipboardPaste,
+  Trash2,
 } from "lucide-react";
-import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
-import { Input } from "../ui/input";
-import {
-  MobileToolLayout,
-  MobileToolHeader,
-  MobileToolContent,
-  BottomSheet,
-  ActionButton,
-  ActionIconButton,
-  MobileTabs,
-  MobileTabsList,
-  MobileTabsTrigger,
-  MobileTabsContent,
-  MobileFileUpload,
-  CollapsibleSection,
-} from "../ui/mobile";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Separator } from "../ui/separator";
+import { Badge } from "../ui/badge";
+import { Slider } from "../ui/slider";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { FAQ, type FAQItem } from "../ui/FAQ";
+import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
+import { CodeEditor } from "../ui/code-editor";
 
 interface TextStats {
   words: number;
@@ -44,24 +40,97 @@ interface TextStats {
   keywordDensity: Array<{ word: string; count: number; density: number }>;
 }
 
-export default function WordCounter() {
-  // Mobile detection
-  const [isMobile, setIsMobile] = useState(false);
+const features = [
+  {
+    icon: Shield,
+    text: "Privacy-first",
+    description: "All analysis done locally",
+  },
+  {
+    icon: Zap,
+    text: "Real-time stats",
+    description: "Instant word & character count",
+  },
+  {
+    icon: BarChart3,
+    text: "Keyword density",
+    description: "Find most used words",
+  },
+];
 
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024);
-    };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-  const [text, setText] = useState("");
-  const [showKeywords, setShowKeywords] = useState(true);
+const relatedTools: RelatedTool[] = [
+  {
+    id: "case-converter",
+    name: "Case Converter",
+    description: "Convert text case formats",
+    icon: Type,
+  },
+  {
+    id: "text-diff-checker",
+    name: "Text Diff Checker",
+    description: "Compare two texts",
+    icon: FileText,
+  },
+  {
+    id: "json-formatter",
+    name: "JSON Formatter",
+    description: "Format and validate JSON",
+    icon: FileText,
+  },
+];
+
+const faqs: FAQItem[] = [
+  {
+    question: "How accurate is the word count?",
+    answer:
+      "Very accurate! We count words by splitting on whitespace and filtering empty strings. The character count includes all characters including spaces, while 'characters without spaces' excludes all whitespace. Sentence detection uses punctuation marks (. ! ?) as delimiters.",
+  },
+  {
+    question: "What are reading and speaking speeds?",
+    answer:
+      "Average reading speed is 200-250 words per minute for adults, while average speaking speed is 130-160 words per minute. These are adjustable in the settings to match your personal pace. The estimates help you gauge content length for presentations or reading materials.",
+  },
+  {
+    question: "How does keyword density work?",
+    answer:
+      "Keyword density shows the frequency of words in your text as a percentage. We exclude common words (the, a, an, etc.) and focus on meaningful terms. This helps identify the main topics and can be useful for SEO optimization or content analysis.",
+  },
+  {
+    question: "Can I analyze large documents?",
+    answer:
+      "Yes! Since all processing happens in your browser, there's no hard limit on document size. However, very large texts (>1MB) may cause performance issues. The tool works best with typical documents, articles, and essays.",
+  },
+];
+
+const SAMPLE_TEXT = `The quick brown fox jumps over the lazy dog. This pangram sentence contains every letter of the alphabet at least once.
+
+Pangrams are often used to display typefaces, test equipment, and develop fonts. The quick brown fox jumps over the lazy dog is probably the most famous pangram in the English language.`;
+
+export default function WordCounter() {
+  const [text, setText] = useState(SAMPLE_TEXT);
   const [readingSpeed, setReadingSpeed] = useState(200); // words per minute
   const [speakingSpeed, setSpeakingSpeed] = useState(150); // words per minute
-  const [activeTab, setActiveTab] = useState<"editor" | "stats">("editor");
-  const [showSettingsSheet, setShowSettingsSheet] = useState(false);
+  const [activeTab, setActiveTab] = useState<"input" | "output">("input");
+  const [activeFeature, setActiveFeature] = useState<number | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  
+  // Theme detection for CodeEditor
+  const [theme, setTheme] = useState("github-dark");
+  useEffect(() => {
+    const checkTheme = () => {
+      const isDark = document.documentElement.classList.contains('dark');
+      setTheme(isDark ? 'github-dark' : 'github-light');
+    };
+    checkTheme();
+    
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+    
+    return () => observer.disconnect();
+  }, []);
 
   const stats: TextStats = useMemo(() => {
     if (!text.trim()) {
@@ -249,12 +318,33 @@ export default function WordCounter() {
         const reader = new FileReader();
         reader.onload = (e) => {
           setText((e.target?.result as string) || "");
+          toast.success(`Loaded ${file.name}`);
         };
         reader.readAsText(file);
+      } else if (file) {
+        toast.error("Please select a .txt file");
       }
     },
     [],
   );
+
+  const handlePaste = useCallback(async () => {
+    try {
+      const clipboardText = await navigator.clipboard.readText();
+      if (clipboardText) {
+        setText(clipboardText);
+        toast.success("Pasted from clipboard");
+      }
+    } catch (err) {
+      console.error("Failed to paste:", err);
+      toast.error("Failed to paste from clipboard");
+    }
+  }, []);
+
+  const handleClear = useCallback(() => {
+    setText("");
+    toast.success("Cleared text");
+  }, []);
 
   const handleExport = useCallback(() => {
     const report = `Text Analysis Report
@@ -296,530 +386,418 @@ ${text}`;
     a.download = "text-analysis-report.txt";
     a.click();
     URL.revokeObjectURL(url);
+    toast.success("Analysis report exported");
   }, [stats, text, readingSpeed, speakingSpeed]);
 
-  // Mobile layout
-  if (isMobile) {
-    return (
-      <MobileToolLayout>
-        <MobileToolHeader
-          title="Word Counter"
-          description="Analyze text statistics"
-          action={
-            <ActionIconButton
-              onClick={() => setShowSettingsSheet(true)}
-              icon={<Settings />}
-              label="Settings"
-              variant="ghost"
-            />
-          }
-        />
+  // Auto-switch to output tab when text is entered
+  useEffect(() => {
+    if (text && stats.words > 0) {
+      setActiveTab("output");
+    }
+  }, [text, stats.words]);
 
-        <MobileTabs
-          value={activeTab}
-          onValueChange={(v) => setActiveTab(v as "editor" | "stats")}
-          defaultValue="editor"
-        >
-          <div className="px-4 pt-2">
-            <MobileTabsList variant="default">
-              <MobileTabsTrigger value="editor">Editor</MobileTabsTrigger>
-              <MobileTabsTrigger
-                value="stats"
-                badge={stats.words > 0 ? stats.words.toString() : undefined}
-              >
-                Statistics
-              </MobileTabsTrigger>
-            </MobileTabsList>
+  return (
+    <div className="w-full flex flex-col flex-1 min-h-0">
+      <section className="flex-1 w-full max-w-7xl mx-auto p-0 sm:p-4 md:p-6 lg:p-8 flex flex-col h-full">
+        {/* Header */}
+        <div className="text-center mb-4 sm:mb-8 md:mb-12 space-y-2 sm:space-y-4 px-4 sm:px-0 pt-4 sm:pt-0">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold animate-fade-in flex items-center justify-center flex-wrap gap-2 sm:gap-3">
+            <span>Word</span>
+            <span className="text-primary">Counter</span>
+          </h1>
+
+          <p
+            className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in-up"
+            style={{ animationDelay: "0.1s" }}
+          >
+            Count words, characters, and analyze text with reading time estimates
+          </p>
+        </div>
+
+        {/* Features - Desktop */}
+        <div className="hidden sm:block animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+          <div className="hidden sm:flex flex-wrap justify-center gap-6 mb-12">
+            {features.map((feature, index) => {
+              const Icon = feature.icon;
+              return (
+                <div key={index} className="flex items-center gap-3 group">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Icon className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-medium">{feature.text}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {feature.description}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
+        </div>
 
-          <MobileTabsContent value="editor">
-            <MobileToolContent>
-              <div className="space-y-4">
+        {/* Features - Mobile */}
+        <div className="sm:hidden space-y-3 mb-8 px-4" style={{ animationDelay: "0.2s" }}>
+          <div className="flex justify-center gap-4 mb-4">
+            {features.map((feature, index) => {
+              const Icon = feature.icon;
+              return (
+                <button
+                  key={index}
+                  onClick={() => setActiveFeature(activeFeature === index ? null : index)}
+                  className={cn(
+                    "w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300",
+                    activeFeature === index
+                      ? "bg-primary text-primary-foreground scale-110"
+                      : "bg-primary/10 text-primary hover:scale-105"
+                  )}
+                >
+                  <Icon className="w-6 h-6" />
+                </button>
+              );
+            })}
+          </div>
+          {activeFeature !== null && (
+            <div className="bg-muted/50 rounded-lg p-4 animate-fade-in">
+              <p className="font-medium mb-1">{features[activeFeature].text}</p>
+              <p className="text-sm text-muted-foreground">
+                {features[activeFeature].description}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Mobile Tabs */}
+        <div className="sm:hidden mb-4 px-4">
+          <div className="grid grid-cols-2 gap-2 p-1 bg-muted rounded-lg">
+            <button
+              onClick={() => setActiveTab("input")}
+              className={cn(
+                "py-2 px-3 rounded-md text-sm font-medium transition-all duration-300",
+                activeTab === "input"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <FileText className="w-4 h-4 inline mr-1" />
+              Text
+            </button>
+            <button
+              onClick={() => setActiveTab("output")}
+              className={cn(
+                "py-2 px-3 rounded-md text-sm font-medium transition-all duration-300 relative",
+                activeTab === "output"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <BarChart3 className="w-4 h-4 inline mr-1" />
+              Analysis
+              {stats.words > 0 && (
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full animate-pulse" />
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col gap-4 sm:gap-6 px-4 sm:px-0 min-h-0">
+          {/* Settings Card */}
+          <Card className="shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent pb-4">
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="w-5 h-5 text-primary" />
+                Analysis Settings
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex flex-wrap items-center gap-6">
+                <div className="flex-1 min-w-[200px]">
+                  <Label htmlFor="reading-speed" className="mb-2 block">
+                    Reading Speed: {readingSpeed} wpm
+                  </Label>
+                  <Slider
+                    id="reading-speed"
+                    value={[readingSpeed]}
+                    onValueChange={([value]) => setReadingSpeed(value)}
+                    min={100}
+                    max={500}
+                    step={10}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Average: 200-250 wpm
+                  </p>
+                </div>
+
+                <div className="flex-1 min-w-[200px]">
+                  <Label htmlFor="speaking-speed" className="mb-2 block">
+                    Speaking Speed: {speakingSpeed} wpm
+                  </Label>
+                  <Slider
+                    id="speaking-speed"
+                    value={[speakingSpeed]}
+                    onValueChange={([value]) => setSpeakingSpeed(value)}
+                    min={100}
+                    max={300}
+                    step={10}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Average: 130-160 wpm
+                  </p>
+                </div>
+
                 <div className="flex gap-2">
                   <input
+                    ref={fileInputRef}
                     type="file"
                     accept=".txt"
                     onChange={handleFileUpload}
                     className="hidden"
-                    id="mobile-file-upload"
-                    aria-label="Select text files"
+                    aria-label="Select text file"
                   />
                   <Button
                     variant="outline"
                     size="sm"
-                    asChild
-                    className="flex-1"
+                    onClick={() => fileInputRef.current?.click()}
                   >
-                    <label
-                      htmlFor="mobile-file-upload"
-                      className="cursor-pointer"
-                    >
-                      <Upload className="w-4 h-4 mr-2" />
-                      Upload Text
-                    </label>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Upload
                   </Button>
                   <Button
                     onClick={handleExport}
                     disabled={stats.words === 0}
                     size="sm"
-                    variant="secondary"
-                    className="flex-1"
                   >
                     <Download className="w-4 h-4 mr-2" />
                     Export
                   </Button>
                 </div>
-
-                <Textarea
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                  placeholder="Type or paste your text here..."
-                  className="min-h-[400px] resize-none"
-                  spellCheck={false}
-                />
-
-                {/* Quick stats bar */}
-                <div className="grid grid-cols-3 gap-2 p-3 bg-muted/30 rounded-lg text-center">
-                  <div>
-                    <p className="text-2xl font-bold">{stats.words}</p>
-                    <p className="text-xs text-muted-foreground">Words</p>
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{stats.characters}</p>
-                    <p className="text-xs text-muted-foreground">Characters</p>
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{stats.sentences}</p>
-                    <p className="text-xs text-muted-foreground">Sentences</p>
-                  </div>
-                </div>
               </div>
-            </MobileToolContent>
-          </MobileTabsContent>
+            </CardContent>
+          </Card>
 
-          <MobileTabsContent value="stats">
-            <MobileToolContent>
-              <div className="space-y-4">
-                {/* Basic Statistics */}
-                <CollapsibleSection title="Basic Statistics" defaultOpen={true}>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Words</span>
-                      <span className="font-medium">
-                        {stats.words.toLocaleString()}
-                      </span>
+          {/* Main Grid */}
+          <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 min-h-0">
+            {/* Input Panel */}
+            <div className={cn(
+              "flex flex-col",
+              activeTab !== "input" && "hidden lg:flex"
+            )}>
+              <Card className="flex-1 flex flex-col shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
+                <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent pb-4">
+                  <CardTitle className="flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      <FileText className="w-5 h-5 text-primary" />
+                      Text Input
+                    </span>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handlePaste}
+                      >
+                        <ClipboardPaste className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleClear}
+                        disabled={!text}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Characters</span>
-                      <span className="font-medium">
-                        {stats.characters.toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">
-                        Characters (no spaces)
-                      </span>
-                      <span className="font-medium">
-                        {stats.charactersNoSpaces.toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Sentences</span>
-                      <span className="font-medium">{stats.sentences}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Paragraphs</span>
-                      <span className="font-medium">{stats.paragraphs}</span>
-                    </div>
-                  </div>
-                </CollapsibleSection>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="flex-1 p-4 sm:p-6 overflow-hidden">
+                  <CodeEditor
+                    value={text}
+                    onChange={(value) => setText(value || "")}
+                    language="text"
+                    theme={theme}
+                    placeholder="Type or paste your text here..."
+                    className="h-full"
+                  />
+                </CardContent>
+              </Card>
+            </div>
 
-                {/* Time Estimates */}
-                <CollapsibleSection title="Time Estimates" defaultOpen={true}>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">
-                        Reading time
-                      </span>
-                      <span className="font-medium">
-                        {stats.readingTime === 0
-                          ? "0"
-                          : stats.readingTime < 1
-                            ? "< 1"
-                            : stats.readingTime}{" "}
-                        min
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">
-                        Speaking time
-                      </span>
-                      <span className="font-medium">
-                        {stats.speakingTime === 0
-                          ? "0"
-                          : stats.speakingTime < 1
-                            ? "< 1"
-                            : stats.speakingTime}{" "}
-                        min
-                      </span>
-                    </div>
-                  </div>
-                </CollapsibleSection>
-
-                {/* Word Analysis */}
-                <CollapsibleSection title="Word Analysis" defaultOpen={true}>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">
-                        Unique words
-                      </span>
-                      <span className="font-medium">{stats.uniqueWords}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">
-                        Average length
-                      </span>
-                      <span className="font-medium">
-                        {stats.averageWordLength.toFixed(1)} chars
-                      </span>
-                    </div>
-                    {stats.longestWord && (
-                      <div className="flex justify-between items-start">
-                        <span className="text-muted-foreground">
-                          Longest word
-                        </span>
-                        <span className="font-medium text-right break-all">
-                          {stats.longestWord}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </CollapsibleSection>
-
-                {/* Top Keywords */}
-                {stats.keywordDensity.length > 0 && (
-                  <CollapsibleSection title="Top Keywords" defaultOpen={false}>
-                    <div className="space-y-2">
-                      {stats.keywordDensity.map((kw, index) => (
-                        <div
-                          key={kw.word}
-                          className="flex items-center justify-between p-2 rounded bg-secondary/50"
-                        >
-                          <span className="text-sm">
-                            <span className="font-medium">{index + 1}.</span>{" "}
-                            {kw.word}
-                          </span>
-                          <span className="text-sm text-muted-foreground">
-                            {kw.count}× ({kw.density.toFixed(1)}%)
-                          </span>
+            {/* Analysis Panel */}
+            <div className={cn(
+              "flex flex-col min-h-0",
+              activeTab !== "output" && "hidden lg:flex"
+            )}>
+              <Card className="flex-1 flex flex-col shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
+                <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent pb-4">
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="w-5 h-5 text-primary" />
+                    Text Analysis
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="flex-1 overflow-y-auto p-4 sm:p-6">
+                  {stats.words > 0 ? (
+                    <div className="space-y-6">
+                      {/* Basic Statistics */}
+                      <div>
+                        <h3 className="font-semibold mb-3 flex items-center gap-2">
+                          <Hash className="w-4 h-4" />
+                          Basic Statistics
+                        </h3>
+                        <div className="space-y-2">
+                          <div className="flex justify-between p-2 rounded hover:bg-muted/50 transition-colors">
+                            <span className="text-muted-foreground">Words</span>
+                            <span className="font-medium font-mono">
+                              {stats.words.toLocaleString()}
+                            </span>
+                          </div>
+                          <div className="flex justify-between p-2 rounded hover:bg-muted/50 transition-colors">
+                            <span className="text-muted-foreground">Characters</span>
+                            <span className="font-medium font-mono">
+                              {stats.characters.toLocaleString()}
+                            </span>
+                          </div>
+                          <div className="flex justify-between p-2 rounded hover:bg-muted/50 transition-colors">
+                            <span className="text-muted-foreground">Characters (no spaces)</span>
+                            <span className="font-medium font-mono">
+                              {stats.charactersNoSpaces.toLocaleString()}
+                            </span>
+                          </div>
+                          <div className="flex justify-between p-2 rounded hover:bg-muted/50 transition-colors">
+                            <span className="text-muted-foreground">Sentences</span>
+                            <span className="font-medium font-mono">
+                              {stats.sentences}
+                            </span>
+                          </div>
+                          <div className="flex justify-between p-2 rounded hover:bg-muted/50 transition-colors">
+                            <span className="text-muted-foreground">Paragraphs</span>
+                            <span className="font-medium font-mono">
+                              {stats.paragraphs}
+                            </span>
+                          </div>
                         </div>
-                      ))}
+                      </div>
+
+                      <Separator />
+
+                      {/* Time Estimates */}
+                      <div>
+                        <h3 className="font-semibold mb-3 flex items-center gap-2">
+                          <Clock className="w-4 h-4" />
+                          Time Estimates
+                        </h3>
+                        <div className="space-y-2">
+                          <div className="flex justify-between p-2 rounded hover:bg-muted/50 transition-colors">
+                            <span className="text-muted-foreground">Reading time</span>
+                            <span className="font-medium">
+                              {stats.readingTime === 0
+                                ? "0"
+                                : stats.readingTime < 1
+                                  ? "< 1"
+                                  : stats.readingTime}{" "}
+                              min
+                            </span>
+                          </div>
+                          <div className="flex justify-between p-2 rounded hover:bg-muted/50 transition-colors">
+                            <span className="text-muted-foreground">Speaking time</span>
+                            <span className="font-medium">
+                              {stats.speakingTime === 0
+                                ? "0"
+                                : stats.speakingTime < 1
+                                  ? "< 1"
+                                  : stats.speakingTime}{" "}
+                              min
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <Separator />
+
+                      {/* Word Analysis */}
+                      <div>
+                        <h3 className="font-semibold mb-3 flex items-center gap-2">
+                          <Type className="w-4 h-4" />
+                          Word Analysis
+                        </h3>
+                        <div className="space-y-2">
+                          <div className="flex justify-between p-2 rounded hover:bg-muted/50 transition-colors">
+                            <span className="text-muted-foreground">Unique words</span>
+                            <span className="font-medium font-mono">
+                              {stats.uniqueWords}
+                            </span>
+                          </div>
+                          <div className="flex justify-between p-2 rounded hover:bg-muted/50 transition-colors">
+                            <span className="text-muted-foreground">Average word length</span>
+                            <span className="font-medium font-mono">
+                              {stats.averageWordLength.toFixed(1)} chars
+                            </span>
+                          </div>
+                          {stats.longestWord && (
+                            <div className="flex justify-between items-start p-2 rounded hover:bg-muted/50 transition-colors">
+                              <span className="text-muted-foreground">Longest word</span>
+                              <span className="font-medium text-right break-all">
+                                {stats.longestWord}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Top Keywords */}
+                      {stats.keywordDensity.length > 0 && (
+                        <>
+                          <Separator />
+                          <div>
+                            <h3 className="font-semibold mb-3 flex items-center gap-2">
+                              <TrendingUp className="w-4 h-4" />
+                              Top Keywords
+                            </h3>
+                            <div className="space-y-2">
+                              {stats.keywordDensity.map((kw, index) => (
+                                <div
+                                  key={kw.word}
+                                  className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
+                                >
+                                  <span className="flex items-center gap-2">
+                                    <Badge variant="secondary" className="w-6 h-6 p-0 flex items-center justify-center">
+                                      {index + 1}
+                                    </Badge>
+                                    <span className="font-medium">{kw.word}</span>
+                                  </span>
+                                  <span className="text-sm text-muted-foreground">
+                                    {kw.count}× ({kw.density.toFixed(1)}%)
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </>
+                      )}
                     </div>
-                  </CollapsibleSection>
-                )}
-              </div>
-            </MobileToolContent>
-          </MobileTabsContent>
-        </MobileTabs>
-
-        {/* Settings bottom sheet */}
-        <BottomSheet
-          open={showSettingsSheet}
-          onOpenChange={setShowSettingsSheet}
-          title="Reading Settings"
-        >
-          <div className="space-y-6">
-            <div>
-              <Label htmlFor="mobile-reading-speed" className="mb-2 block">
-                Reading Speed: {readingSpeed} wpm
-              </Label>
-              <Input
-                id="mobile-reading-speed"
-                type="range"
-                value={readingSpeed}
-                onChange={(e) => setReadingSpeed(Number(e.target.value))}
-                min="100"
-                max="500"
-                step="10"
-                className="w-full"
-              />
-              <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                <span>100</span>
-                <span>Average: 200-250</span>
-                <span>500</span>
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="mobile-speaking-speed" className="mb-2 block">
-                Speaking Speed: {speakingSpeed} wpm
-              </Label>
-              <Input
-                id="mobile-speaking-speed"
-                type="range"
-                value={speakingSpeed}
-                onChange={(e) => setSpeakingSpeed(Number(e.target.value))}
-                min="100"
-                max="300"
-                step="10"
-                className="w-full"
-              />
-              <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                <span>100</span>
-                <span>Average: 130-160</span>
-                <span>300</span>
-              </div>
-            </div>
-          </div>
-        </BottomSheet>
-      </MobileToolLayout>
-    );
-  }
-
-  // Desktop layout
-  return (
-    <div className="w-full max-w-6xl mx-auto p-4">
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold mb-2">Word Counter</h1>
-        <p className="text-muted-foreground">
-          Count words, characters, and analyze text with reading time estimates
-        </p>
-      </div>
-
-      {/* Settings Bar */}
-      <div className="mb-4 p-4 rounded-lg border bg-card">
-        <div className="flex flex-wrap items-center gap-6">
-          <div className="flex items-center gap-2">
-            <Label>Reading Speed:</Label>
-            <Input
-              type="number"
-              value={readingSpeed}
-              onChange={(e) => setReadingSpeed(Number(e.target.value))}
-              className="w-20 h-8"
-              min="100"
-              max="500"
-            />
-            <span className="text-sm text-muted-foreground">wpm</span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Label>Speaking Speed:</Label>
-            <Input
-              type="number"
-              value={speakingSpeed}
-              onChange={(e) => setSpeakingSpeed(Number(e.target.value))}
-              className="w-20 h-8"
-              min="100"
-              max="300"
-            />
-            <span className="text-sm text-muted-foreground">wpm</span>
-          </div>
-
-          <div className="ml-auto flex gap-2">
-            <input
-              type="file"
-              accept=".txt"
-              onChange={handleFileUpload}
-              className="hidden"
-              id="file-upload"
-              aria-label="Select text files"
-            />
-            <Button variant="outline" size="sm" asChild>
-              <label htmlFor="file-upload" className="cursor-pointer">
-                <Upload className="w-4 h-4 mr-1" />
-                Upload Text
-              </label>
-            </Button>
-            <Button
-              onClick={handleExport}
-              disabled={stats.words === 0}
-              size="sm"
-            >
-              Export Report
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Editor and Stats */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Text Input */}
-        <div className="lg:col-span-2 space-y-2">
-          <Textarea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Type or paste your text here..."
-            className="min-h-[500px] resize-none"
-            spellCheck={false}
-          />
-        </div>
-
-        {/* Statistics Panel */}
-        <div className="space-y-4">
-          <div className="p-4 rounded-lg border bg-card">
-            <h3 className="font-semibold mb-3 flex items-center gap-2">
-              <Hash className="w-4 h-4" />
-              Basic Statistics
-            </h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Words:</span>
-                <span className="font-medium">
-                  {stats.words.toLocaleString()}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Characters:</span>
-                <span className="font-medium">
-                  {stats.characters.toLocaleString()}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">
-                  Characters (no spaces):
-                </span>
-                <span className="font-medium">
-                  {stats.charactersNoSpaces.toLocaleString()}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Sentences:</span>
-                <span className="font-medium">{stats.sentences}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Paragraphs:</span>
-                <span className="font-medium">{stats.paragraphs}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="p-4 rounded-lg border bg-card">
-            <h3 className="font-semibold mb-3 flex items-center gap-2">
-              <Clock className="w-4 h-4" />
-              Time Estimates
-            </h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Reading time:</span>
-                <span className="font-medium">
-                  {stats.readingTime === 0
-                    ? "0"
-                    : stats.readingTime < 1
-                      ? "< 1"
-                      : stats.readingTime}{" "}
-                  min
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Speaking time:</span>
-                <span className="font-medium">
-                  {stats.speakingTime === 0
-                    ? "0"
-                    : stats.speakingTime < 1
-                      ? "< 1"
-                      : stats.speakingTime}{" "}
-                  min
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="p-4 rounded-lg border bg-card">
-            <h3 className="font-semibold mb-3 flex items-center gap-2">
-              <Type className="w-4 h-4" />
-              Word Analysis
-            </h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Unique words:</span>
-                <span className="font-medium">{stats.uniqueWords}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Average length:</span>
-                <span className="font-medium">
-                  {stats.averageWordLength.toFixed(1)} chars
-                </span>
-              </div>
-              {stats.longestWord && (
-                <div className="flex justify-between items-start">
-                  <span className="text-muted-foreground">Longest word:</span>
-                  <span className="font-medium text-right break-all">
-                    {stats.longestWord}
-                  </span>
-                </div>
-              )}
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <div className="text-center">
+                        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+                          <BarChart3 className="w-8 h-8 text-muted-foreground" />
+                        </div>
+                        <p className="text-muted-foreground">
+                          Enter text to see analysis
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Keyword Density */}
-      {stats.words > 0 && (
-        <div className="mt-6 p-4 rounded-lg border bg-card">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold flex items-center gap-2">
-              <TrendingUp className="w-4 h-4" />
-              Top Keywords
-            </h3>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowKeywords(!showKeywords)}
-            >
-              {showKeywords ? "Hide" : "Show"}
-            </Button>
-          </div>
-
-          {showKeywords && stats.keywordDensity.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-              {stats.keywordDensity.map((kw, index) => (
-                <div
-                  key={kw.word}
-                  className="flex items-center justify-between p-2 rounded bg-secondary/50"
-                >
-                  <span className="text-sm">
-                    <span className="font-medium">{index + 1}.</span> {kw.word}
-                  </span>
-                  <span className="text-sm text-muted-foreground">
-                    {kw.count}× ({kw.density.toFixed(1)}%)
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
+        {/* FAQ and Related Tools */}
+        <div className="mt-12 space-y-12 px-4 sm:px-0">
+          <FAQ items={faqs} />
+          <RelatedTools tools={relatedTools} />
         </div>
-      )}
-
-      {/* Features - Mobile optimized */}
-      <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-        <div className="p-3 sm:p-4 rounded-lg border">
-          <FileText className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
-          <h3 className="font-semibold text-sm sm:text-base mb-1">
-            Comprehensive Analysis
-          </h3>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Get detailed statistics including unique words and keyword density
-          </p>
-        </div>
-        <div className="p-3 sm:p-4 rounded-lg border">
-          <Clock className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
-          <h3 className="font-semibold text-sm sm:text-base mb-1">
-            Time Estimates
-          </h3>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Calculate reading and speaking time with adjustable speeds
-          </p>
-        </div>
-        <div className="p-3 sm:p-4 rounded-lg border">
-          <AlignLeft className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
-          <h3 className="font-semibold text-sm sm:text-base mb-1">
-            Export Reports
-          </h3>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Download detailed analysis reports for your records
-          </p>
-        </div>
-      </div>
+      </section>
     </div>
   );
 }
