@@ -1,11 +1,18 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
+import { Button } from "../ui/button";
+import { toast } from "sonner";
 import {
   Copy,
   RefreshCw,
-  Check,
   Hash,
-  Settings2,
-  FileDown,
+  Shield,
+  Zap,
+  Sparkles,
+  Download,
+  Settings,
+  FileText,
+  Dices,
+  History,
 } from "lucide-react";
 import {
   v4 as uuidv4,
@@ -15,8 +22,8 @@ import {
   validate,
   version as getVersion,
 } from "uuid";
-import { Button } from "../ui/button";
 import { Label } from "../ui/label";
+import { Input } from "../ui/input";
 import {
   Select,
   SelectContent,
@@ -25,7 +32,9 @@ import {
   SelectValue,
 } from "../ui/select";
 import { Switch } from "../ui/switch";
-import { Separator } from "../ui/separator";
+import { FAQ, type FAQItem } from "../ui/FAQ";
+import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
+import { cn } from "@/lib/utils";
 
 type UuidVersion = "v4" | "v1" | "v5" | "v3";
 type UuidFormat = "standard" | "uppercase" | "no-hyphens" | "braces" | "urn";
@@ -37,24 +46,88 @@ interface GeneratedUuid {
   timestamp: number;
 }
 
+const features = [
+  {
+    icon: Shield,
+    text: "Privacy-first",
+    description: "Generated locally in browser",
+  },
+  {
+    icon: Zap,
+    text: "Multiple versions",
+    description: "v1, v3, v4, v5 UUID support",
+  },
+  {
+    icon: Sparkles,
+    text: "Format options",
+    description: "Standard, URN, braces & more",
+  },
+];
+
+const relatedTools: RelatedTool[] = [
+  {
+    id: "password-generator",
+    name: "Password Generator",
+    description: "Create strong passwords",
+    icon: FileText,
+  },
+  {
+    id: "hash-generator",
+    name: "Hash Generator",
+    description: "Generate MD5, SHA hashes",
+    icon: FileText,
+  },
+  {
+    id: "base64-encoder",
+    name: "Base64 Encoder",
+    description: "Encode and decode Base64",
+    icon: FileText,
+  },
+];
+
+const faqs: FAQItem[] = [
+  {
+    question: "What is a UUID?",
+    answer:
+      "A UUID (Universally Unique Identifier) is a 128-bit number used to uniquely identify information in computer systems. The probability of generating duplicate UUIDs is so low that they can be considered unique for practical purposes.",
+  },
+  {
+    question: "What's the difference between UUID versions?",
+    answer:
+      "v1 uses timestamp and MAC address, v3 uses MD5 hashing of a namespace/name, v4 uses random or pseudo-random numbers (most common), and v5 uses SHA-1 hashing of a namespace/name. v4 is recommended for most use cases as it doesn't leak information about when or where it was generated.",
+  },
+  {
+    question: "When should I use each UUID version?",
+    answer:
+      "Use v4 for general purposes (random IDs), v1 when you need chronological sorting (but be aware it exposes MAC address), v3/v5 when you need deterministic IDs from a namespace and name (v5 preferred over v3). Most applications use v4.",
+  },
+  {
+    question: "Are UUIDs truly unique?",
+    answer:
+      "While not mathematically guaranteed to be unique, the probability of generating duplicate UUIDs is negligible. For v4 UUIDs, you'd need to generate billions of UUIDs before having a meaningful chance of collision. They're considered unique for all practical purposes.",
+  },
+];
+
+// Predefined namespaces for v3/v5
+const namespaces = {
+  dns: "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+  url: "6ba7b811-9dad-11d1-80b4-00c04fd430c8",
+  oid: "6ba7b812-9dad-11d1-80b4-00c04fd430c8",
+  x500: "6ba7b814-9dad-11d1-80b4-00c04fd430c8",
+};
+
 export default function UuidGenerator() {
   const [version, setVersion] = useState<UuidVersion>("v4");
   const [format, setFormat] = useState<UuidFormat>("standard");
-  const [count, setCount] = useState(1);
-  const [namespace, setNamespace] = useState("");
+  const [count, setCount] = useState("1");
+  const [namespace, setNamespace] = useState("dns");
+  const [customNamespace, setCustomNamespace] = useState("");
   const [name, setName] = useState("");
   const [bulkMode, setBulkMode] = useState(false);
   const [uuids, setUuids] = useState<GeneratedUuid[]>([]);
-  const [copied, setCopied] = useState<string | null>(null);
   const [validationInput, setValidationInput] = useState("");
-
-  // Predefined namespaces for v3/v5
-  const namespaces = {
-    dns: "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
-    url: "6ba7b811-9dad-11d1-80b4-00c04fd430c8",
-    oid: "6ba7b812-9dad-11d1-80b4-00c04fd430c8",
-    x500: "6ba7b814-9dad-11d1-80b4-00c04fd430c8",
-  };
+  const [activeTab, setActiveTab] = useState<"generate" | "validate" | "history">("generate");
+  const [activeFeature, setActiveFeature] = useState<number | null>(null);
 
   const generateUuid = useCallback(
     (ver: UuidVersion = version): string => {
@@ -62,16 +135,14 @@ export default function UuidGenerator() {
         case "v1":
           return uuidv1();
         case "v3":
-          if (namespace && name) {
-            const ns =
-              namespaces[namespace as keyof typeof namespaces] || namespace;
+          if ((namespace || customNamespace) && name) {
+            const ns = customNamespace || namespaces[namespace as keyof typeof namespaces];
             return uuidv3(name, ns);
           }
           return "";
         case "v5":
-          if (namespace && name) {
-            const ns =
-              namespaces[namespace as keyof typeof namespaces] || namespace;
+          if ((namespace || customNamespace) && name) {
+            const ns = customNamespace || namespaces[namespace as keyof typeof namespaces];
             return uuidv5(name, ns);
           }
           return "";
@@ -80,7 +151,7 @@ export default function UuidGenerator() {
           return uuidv4();
       }
     },
-    [version, namespace, name],
+    [version, namespace, customNamespace, name],
   );
 
   const formatUuid = useCallback(
@@ -106,7 +177,13 @@ export default function UuidGenerator() {
 
   const handleGenerate = useCallback(() => {
     const newUuids: GeneratedUuid[] = [];
-    const generateCount = bulkMode ? count : 1;
+    const generateCount = bulkMode ? parseInt(count) || 1 : 1;
+
+    // Validate namespace requirements
+    if ((version === "v3" || version === "v5") && (!name || (!namespace && !customNamespace))) {
+      toast.error("Namespace and name are required for v3/v5 UUIDs");
+      return;
+    }
 
     for (let i = 0; i < generateCount; i++) {
       const uuid = generateUuid();
@@ -121,20 +198,22 @@ export default function UuidGenerator() {
     }
 
     if (bulkMode) {
-      setUuids((prev) => [...newUuids, ...prev].slice(0, 1000)); // Keep max 1000
+      setUuids((prev) => [...newUuids, ...prev].slice(0, 100)); // Keep max 100
     } else {
       setUuids(newUuids);
     }
-  }, [generateUuid, version, bulkMode, count]);
+    
+    toast.success(`Generated ${generateCount} UUID${generateCount > 1 ? 's' : ''}`);
+  }, [generateUuid, version, bulkMode, count, name, namespace, customNamespace]);
 
   const handleCopy = useCallback(
-    async (uuid: string, id: string) => {
+    async (uuid: string) => {
       try {
         await navigator.clipboard.writeText(formatUuid(uuid));
-        setCopied(id);
-        setTimeout(() => setCopied(null), 2000);
+        toast.success("UUID copied to clipboard");
       } catch (err) {
         console.error("Failed to copy:", err);
+        toast.error("Failed to copy to clipboard");
       }
     },
     [formatUuid],
@@ -144,10 +223,10 @@ export default function UuidGenerator() {
     const allUuids = uuids.map((u) => formatUuid(u.uuid)).join("\n");
     try {
       await navigator.clipboard.writeText(allUuids);
-      setCopied("all");
-      setTimeout(() => setCopied(null), 2000);
+      toast.success("All UUIDs copied to clipboard");
     } catch (err) {
       console.error("Failed to copy:", err);
+      toast.error("Failed to copy to clipboard");
     }
   }, [uuids, formatUuid]);
 
@@ -160,6 +239,7 @@ export default function UuidGenerator() {
     a.download = `uuids-${version}-${new Date().toISOString().split("T")[0]}.txt`;
     a.click();
     URL.revokeObjectURL(url);
+    toast.success("Downloaded UUIDs");
   }, [uuids, version, formatUuid]);
 
   const validationResult = useMemo(() => {
@@ -172,273 +252,534 @@ export default function UuidGenerator() {
     return { valid: true, version: ver };
   }, [validationInput]);
 
+  const handleValidate = useCallback(() => {
+    if (!validationInput.trim()) {
+      toast.error("Please enter a UUID to validate");
+      return;
+    }
+
+    if (validationResult?.valid) {
+      toast.success(`Valid UUID v${validationResult.version}`);
+    } else {
+      toast.error("Invalid UUID format");
+    }
+  }, [validationInput, validationResult]);
+
   const needsNamespace = version === "v3" || version === "v5";
 
+  // Generate initial UUID on mount
+  useEffect(() => {
+    handleGenerate();
+  }, []);
+
   return (
-    <div className="w-full max-w-4xl mx-auto p-4">
-      <div className="mb-6 sm:mb-8 text-center">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-2 flex items-center justify-center gap-2">
-          <div className="p-1.5 sm:p-2 bg-primary/10 text-primary rounded-lg">
-            <Hash className="w-4 h-4 sm:w-5 sm:h-5" />
-          </div>
-          UUID Generator
-        </h1>
-        <p className="text-sm sm:text-base text-muted-foreground px-2">
-          Generate universally unique identifiers (UUIDs) in various formats
-        </p>
-      </div>
+    <div className="w-full flex flex-col flex-1 min-h-0">
+      <section className="flex-1 w-full max-w-7xl mx-auto p-0 sm:p-4 md:p-6 lg:p-8 flex flex-col h-full">
+        {/* Header */}
+        <div className="text-center mb-4 sm:mb-8 md:mb-12 space-y-2 sm:space-y-4 px-4 sm:px-0 pt-4 sm:pt-0">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold animate-fade-in flex items-center justify-center flex-wrap gap-2 sm:gap-3">
+            <span>UUID</span>
+            <span className="text-primary">Generator</span>
+          </h1>
 
-      {/* Settings - Mobile optimized */}
-      <div className="mb-4 p-3 sm:p-4 rounded-lg border bg-card space-y-4">
-        <div className="flex items-center gap-2 mb-3">
-          <Settings2 className="w-4 h-4 text-muted-foreground" />
-          <h2 className="font-semibold text-sm sm:text-base">
-            Generation Settings
-          </h2>
+          <p
+            className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in-up"
+            style={{ animationDelay: "0.1s" }}
+          >
+            Generate universally unique identifiers in various versions and formats
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="version" className="text-sm">
-              UUID Version
-            </Label>
-            <Select
-              value={version}
-              onValueChange={(v) => setVersion(v as UuidVersion)}
-            >
-              <SelectTrigger id="version" className="h-9 sm:h-10">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="v4">Version 4 (Random)</SelectItem>
-                <SelectItem value="v1">Version 1 (Timestamp + MAC)</SelectItem>
-                <SelectItem value="v3">Version 3 (MD5 Hash)</SelectItem>
-                <SelectItem value="v5">Version 5 (SHA-1 Hash)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="format" className="text-sm">
-              Output Format
-            </Label>
-            <Select
-              value={format}
-              onValueChange={(f) => setFormat(f as UuidFormat)}
-            >
-              <SelectTrigger id="format" className="h-9 sm:h-10">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="standard">Standard</SelectItem>
-                <SelectItem value="uppercase">UPPERCASE</SelectItem>
-                <SelectItem value="no-hyphens">No Hyphens</SelectItem>
-                <SelectItem value="braces">With Braces</SelectItem>
-                <SelectItem value="urn">URN Format</SelectItem>
-              </SelectContent>
-            </Select>
+        {/* Features - Hide on mobile to save space */}
+        <div className="hidden sm:block animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+          <div className="hidden sm:flex flex-wrap justify-center gap-6 mb-12">
+            {features.map((feature, index) => {
+              const Icon = feature.icon;
+              return (
+                <div key={index} className="flex items-center gap-3 group">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Icon className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm">{feature.text}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {feature.description}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        {needsNamespace && (
-          <>
-            <Separator />
-            <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Version {version} requires a namespace and name to generate
-                deterministic UUIDs
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="namespace" className="text-sm">
-                    Namespace
-                  </Label>
-                  <Select value={namespace} onValueChange={setNamespace}>
-                    <SelectTrigger id="namespace" className="h-9 sm:h-10">
-                      <SelectValue placeholder="Select namespace" />
+        {/* Settings Card - Desktop only */}
+        <div className="hidden sm:block mb-6">
+          <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
+            <div className="bg-gradient-to-r from-primary/5 to-transparent p-4 border-b">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Settings className="w-5 h-5 text-primary" />
+                  <h3 className="font-medium">Generation Options</h3>
+                </div>
+                <div className="flex items-center gap-4">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={handleGenerate}
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Generate New
+                  </Button>
+                </div>
+              </div>
+            </div>
+            <div className="p-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                  <Label className="text-sm">Version</Label>
+                  <Select value={version} onValueChange={(v) => setVersion(v as UuidVersion)}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="dns">DNS</SelectItem>
-                      <SelectItem value="url">URL</SelectItem>
-                      <SelectItem value="oid">OID</SelectItem>
-                      <SelectItem value="x500">X500</SelectItem>
+                      <SelectItem value="v4">v4 (Random)</SelectItem>
+                      <SelectItem value="v1">v1 (Timestamp)</SelectItem>
+                      <SelectItem value="v3">v3 (MD5 namespace)</SelectItem>
+                      <SelectItem value="v5">v5 (SHA-1 namespace)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="name" className="text-sm">
-                    Name
-                  </Label>
-                  <input
-                    id="name"
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Enter name for UUID generation"
-                    className="w-full h-9 sm:h-10 px-3 rounded-md border bg-background text-sm"
+
+                <div>
+                  <Label className="text-sm">Format</Label>
+                  <Select value={format} onValueChange={(f) => setFormat(f as UuidFormat)}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="standard">Standard</SelectItem>
+                      <SelectItem value="uppercase">UPPERCASE</SelectItem>
+                      <SelectItem value="no-hyphens">No hyphens</SelectItem>
+                      <SelectItem value="braces">{"{Braces}"}</SelectItem>
+                      <SelectItem value="urn">URN format</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {needsNamespace && (
+                  <>
+                    <div>
+                      <Label className="text-sm">Namespace</Label>
+                      <Select value={namespace} onValueChange={setNamespace}>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="dns">DNS</SelectItem>
+                          <SelectItem value="url">URL</SelectItem>
+                          <SelectItem value="oid">OID</SelectItem>
+                          <SelectItem value="x500">X.500 DN</SelectItem>
+                          <SelectItem value="custom">Custom UUID</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label className="text-sm">Name</Label>
+                      <Input
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Enter name..."
+                        className="mt-1"
+                      />
+                    </div>
+                  </>
+                )}
+
+                <div className="flex items-end gap-2">
+                  <div className="flex-1">
+                    <Label className="text-sm">Bulk mode</Label>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Switch
+                        checked={bulkMode}
+                        onCheckedChange={setBulkMode}
+                      />
+                      {bulkMode && (
+                        <Input
+                          type="number"
+                          value={count}
+                          onChange={(e) => setCount(e.target.value)}
+                          min="1"
+                          max="100"
+                          className="w-20"
+                        />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {namespace === "custom" && needsNamespace && (
+                <div className="mt-4">
+                  <Label className="text-sm">Custom Namespace UUID</Label>
+                  <Input
+                    value={customNamespace}
+                    onChange={(e) => setCustomNamespace(e.target.value)}
+                    placeholder="Enter custom namespace UUID..."
+                    className="mt-1"
                   />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Settings Bar */}
+        <div className="sm:hidden px-4 pb-3">
+          <div className="bg-card/50 rounded-lg border p-3 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground font-medium">Version</span>
+              <Select value={version} onValueChange={(v) => setVersion(v as UuidVersion)}>
+                <SelectTrigger className="w-[120px] h-7 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="v4">v4 (Random)</SelectItem>
+                  <SelectItem value="v1">v1 (Time)</SelectItem>
+                  <SelectItem value="v3">v3 (MD5)</SelectItem>
+                  <SelectItem value="v5">v5 (SHA-1)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground font-medium">Format</span>
+              <Select value={format} onValueChange={(f) => setFormat(f as UuidFormat)}>
+                <SelectTrigger className="w-[120px] h-7 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="standard">Standard</SelectItem>
+                  <SelectItem value="uppercase">UPPERCASE</SelectItem>
+                  <SelectItem value="no-hyphens">No hyphens</SelectItem>
+                  <SelectItem value="braces">Braces</SelectItem>
+                  <SelectItem value="urn">URN</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Tab Navigation */}
+        <div className="sm:hidden border-b sticky top-0 z-20 bg-background">
+          <div className="flex">
+            <button
+              onClick={() => setActiveTab("generate")}
+              className={`flex-1 px-4 py-3 text-sm font-medium touch-manipulation transition-colors ${
+                activeTab === "generate"
+                  ? "text-primary border-b-2 border-primary bg-primary/5"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <div className="flex items-center justify-center gap-2">
+                <Dices className="h-4 w-4" />
+                Generate
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab("validate")}
+              className={`flex-1 px-4 py-3 text-sm font-medium touch-manipulation transition-colors ${
+                activeTab === "validate"
+                  ? "text-primary border-b-2 border-primary bg-primary/5"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <div className="flex items-center justify-center gap-2">
+                <Shield className="h-4 w-4" />
+                Validate
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab("history")}
+              className={`flex-1 px-4 py-3 text-sm font-medium touch-manipulation transition-colors ${
+                activeTab === "history"
+                  ? "text-primary border-b-2 border-primary bg-primary/5"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <div className="flex items-center justify-center gap-2">
+                <History className="h-4 w-4" />
+                History
+                {uuids.length > 0 && (
+                  <span className="ml-1 px-1.5 py-0.5 text-xs bg-green-500 text-white rounded-full">
+                    {uuids.length}
+                  </span>
+                )}
+              </div>
+            </button>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 overflow-y-auto">
+          {/* Desktop Layout */}
+          <div className="hidden sm:block">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Generation Panel */}
+              <div className="bg-card rounded-lg border p-4">
+                <h3 className="font-medium mb-4 flex items-center gap-2">
+                  <Dices className="w-4 h-4" />
+                  Generated UUIDs
+                </h3>
+                {uuids.length > 0 ? (
+                  <div className="space-y-2">
+                    {uuids.slice(0, 10).map((item) => (
+                      <div
+                        key={item.id}
+                        className="group p-3 bg-muted/20 rounded-lg hover:bg-muted/30 transition-colors cursor-pointer"
+                        onClick={() => handleCopy(item.uuid)}
+                      >
+                        <p className="font-mono text-sm break-all select-all">
+                          {formatUuid(item.uuid)}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {item.version} • Click to copy
+                        </p>
+                      </div>
+                    ))}
+                    {uuids.length > 1 && (
+                      <div className="flex gap-2 mt-4">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleCopyAll}
+                          className="flex-1"
+                        >
+                          <Copy className="w-4 h-4 mr-2" />
+                          Copy All
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleDownload}
+                          className="flex-1"
+                        >
+                          <Download className="w-4 h-4 mr-2" />
+                          Download
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Hash className="w-12 h-12 mx-auto mb-2 opacity-20" />
+                    <p>Click "Generate New" to create UUIDs</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Validation Panel */}
+              <div className="bg-card rounded-lg border p-4">
+                <h3 className="font-medium mb-4 flex items-center gap-2">
+                  <Shield className="w-4 h-4" />
+                  UUID Validator
+                </h3>
+                <div className="space-y-4">
+                  <div>
+                    <Label className="text-sm">UUID to validate</Label>
+                    <Input
+                      value={validationInput}
+                      onChange={(e) => setValidationInput(e.target.value)}
+                      placeholder="Paste UUID here..."
+                      className="mt-1 font-mono text-sm"
+                    />
+                  </div>
+                  {validationResult && (
+                    <div className={cn(
+                      "p-3 rounded-lg",
+                      validationResult.valid 
+                        ? "bg-green-500/10 border border-green-500/20 text-green-600 dark:text-green-400"
+                        : "bg-destructive/10 border border-destructive/20 text-destructive"
+                    )}>
+                      {validationResult.valid ? (
+                        <p className="text-sm">
+                          ✓ Valid UUID version {validationResult.version}
+                        </p>
+                      ) : (
+                        <p className="text-sm">✗ Invalid UUID format</p>
+                      )}
+                    </div>
+                  )}
+                  <Button
+                    variant="secondary"
+                    onClick={handleValidate}
+                    disabled={!validationInput.trim()}
+                    className="w-full"
+                  >
+                    Validate UUID
+                  </Button>
                 </div>
               </div>
             </div>
-          </>
-        )}
-
-        <Separator />
-
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <Switch
-              id="bulk"
-              checked={bulkMode}
-              onCheckedChange={setBulkMode}
-            />
-            <Label htmlFor="bulk" className="text-sm cursor-pointer">
-              Bulk Generation
-            </Label>
           </div>
 
-          {bulkMode && (
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <Label htmlFor="count" className="text-sm whitespace-nowrap">
-                Count:
-              </Label>
-              <input
-                id="count"
-                type="number"
-                min="1"
-                max="100"
-                value={count}
-                onChange={(e) =>
-                  setCount(
-                    Math.min(100, Math.max(1, parseInt(e.target.value) || 1)),
-                  )
-                }
-                className="w-20 h-8 sm:h-9 px-2 rounded-md border bg-background text-sm"
-              />
-            </div>
-          )}
-        </div>
-      </div>
+          {/* Mobile Layout */}
+          <div className="sm:hidden">
+            {activeTab === "generate" && (
+              <div className="p-4 space-y-4">
+                {needsNamespace && (
+                  <div className="space-y-3 p-3 bg-card/50 rounded-lg border">
+                    <div>
+                      <Label className="text-xs">Namespace</Label>
+                      <Select value={namespace} onValueChange={setNamespace}>
+                        <SelectTrigger className="mt-1 h-8">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="dns">DNS</SelectItem>
+                          <SelectItem value="url">URL</SelectItem>
+                          <SelectItem value="oid">OID</SelectItem>
+                          <SelectItem value="x500">X.500 DN</SelectItem>
+                          <SelectItem value="custom">Custom</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label className="text-xs">Name</Label>
+                      <Input
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Enter name..."
+                        className="mt-1 h-8 text-sm"
+                      />
+                    </div>
+                  </div>
+                )}
 
-      {/* Generate Button */}
-      <div className="mb-6 flex justify-center">
-        <Button
-          onClick={handleGenerate}
-          size="lg"
-          disabled={needsNamespace && (!namespace || !name)}
-          className="w-full sm:w-auto"
-        >
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Generate UUID{bulkMode ? "s" : ""}
-        </Button>
-      </div>
-
-      {/* Generated UUIDs - Mobile optimized */}
-      {uuids.length > 0 && (
-        <div className="mb-6 space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-sm sm:text-base">
-              Generated UUIDs
-            </h3>
-            {uuids.length > 1 && (
-              <div className="flex items-center gap-2">
                 <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleCopyAll}
-                  className="text-xs sm:text-sm"
+                  onClick={handleGenerate}
+                  className="w-full"
+                  size="lg"
                 >
-                  {copied === "all" ? (
-                    <Check className="w-3.5 h-3.5 mr-1 text-green-500" />
-                  ) : (
-                    <Copy className="w-3.5 h-3.5 mr-1" />
-                  )}
-                  Copy All
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Generate UUID
                 </Button>
+
+                {uuids.length > 0 && (
+                  <div className="space-y-2">
+                    {uuids[0] && (
+                      <div
+                        className="p-4 bg-primary/5 border border-primary/20 rounded-lg cursor-pointer"
+                        onClick={() => handleCopy(uuids[0].uuid)}
+                      >
+                        <p className="font-mono text-sm break-all select-all">
+                          {formatUuid(uuids[0].uuid)}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Tap to copy
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === "validate" && (
+              <div className="p-4 space-y-4">
+                <div>
+                  <Label className="text-sm">UUID to validate</Label>
+                  <Input
+                    value={validationInput}
+                    onChange={(e) => setValidationInput(e.target.value)}
+                    placeholder="Paste UUID here..."
+                    className="mt-2 font-mono text-sm"
+                  />
+                </div>
+                {validationResult && (
+                  <div className={cn(
+                    "p-3 rounded-lg",
+                    validationResult.valid 
+                      ? "bg-green-500/10 border border-green-500/20 text-green-600 dark:text-green-400"
+                      : "bg-destructive/10 border border-destructive/20 text-destructive"
+                  )}>
+                    {validationResult.valid ? (
+                      <p className="text-sm">
+                        ✓ Valid UUID version {validationResult.version}
+                      </p>
+                    ) : (
+                      <p className="text-sm">✗ Invalid UUID format</p>
+                    )}
+                  </div>
+                )}
                 <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleDownload}
-                  className="text-xs sm:text-sm"
+                  variant="secondary"
+                  onClick={handleValidate}
+                  disabled={!validationInput.trim()}
+                  className="w-full"
                 >
-                  <FileDown className="w-3.5 h-3.5 mr-1" />
-                  Download
+                  Validate UUID
                 </Button>
               </div>
             )}
-          </div>
 
-          <div className="space-y-2 max-h-[400px] overflow-y-auto">
-            {uuids.map((item) => (
-              <div
-                key={item.id}
-                className="p-2 sm:p-3 rounded-lg border bg-card flex items-center justify-between gap-2 group hover:bg-accent/5 transition-colors"
-              >
-                <code className="text-xs sm:text-sm font-mono break-all flex-1">
-                  {formatUuid(item.uuid)}
-                </code>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleCopy(item.uuid, item.id)}
-                  className="h-7 w-7 sm:h-8 sm:w-8 shrink-0"
-                >
-                  {copied === item.id ? (
-                    <Check className="w-3.5 h-3.5 text-green-500" />
-                  ) : (
-                    <Copy className="w-3.5 h-3.5" />
-                  )}
-                </Button>
+            {activeTab === "history" && (
+              <div className="p-4">
+                {uuids.length > 0 ? (
+                  <div className="space-y-2">
+                    {uuids.map((item) => (
+                      <div
+                        key={item.id}
+                        className="p-3 bg-muted/20 rounded-lg cursor-pointer"
+                        onClick={() => handleCopy(item.uuid)}
+                      >
+                        <p className="font-mono text-xs break-all">
+                          {formatUuid(item.uuid)}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {item.version} • Tap to copy
+                        </p>
+                      </div>
+                    ))}
+                    {uuids.length > 1 && (
+                      <div className="flex gap-2 mt-4">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleCopyAll}
+                          className="flex-1"
+                        >
+                          Copy All
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleDownload}
+                          className="flex-1"
+                        >
+                          Download
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <History className="w-12 h-12 mx-auto mb-2 opacity-20" />
+                    <p className="text-sm">No UUIDs generated yet</p>
+                  </div>
+                )}
               </div>
-            ))}
+            )}
           </div>
         </div>
-      )}
+      </section>
 
-      {/* UUID Validator - Mobile optimized */}
-      <div className="p-3 sm:p-4 rounded-lg border bg-card space-y-3">
-        <h3 className="font-semibold text-sm sm:text-base">UUID Validator</h3>
-        <div className="space-y-2">
-          <input
-            type="text"
-            value={validationInput}
-            onChange={(e) => setValidationInput(e.target.value)}
-            placeholder="Paste a UUID to validate..."
-            className="w-full h-9 sm:h-10 px-3 rounded-md border bg-background text-sm font-mono"
-          />
-          {validationInput && validationResult && (
-            <div
-              className={`text-sm ${validationResult.valid ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
-            >
-              {validationResult.valid ? (
-                <>✓ Valid UUID (Version {validationResult.version})</>
-              ) : (
-                <>✗ Invalid UUID format</>
-              )}
-            </div>
-          )}
+      {/* Related Tools and FAQ - Hidden on mobile */}
+      <div className="hidden lg:block w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+        <div className="mt-12 pt-12 border-t">
+          <RelatedTools tools={relatedTools} direction="horizontal" />
         </div>
-      </div>
-
-      {/* Features - Mobile optimized */}
-      <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-        <div className="p-3 sm:p-4 rounded-lg border">
-          <Hash className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
-          <h3 className="font-semibold text-sm sm:text-base mb-1">
-            Multiple Versions
-          </h3>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Support for UUID v1, v3, v4, and v5 generation algorithms
-          </p>
-        </div>
-        <div className="p-3 sm:p-4 rounded-lg border">
-          <Settings2 className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
-          <h3 className="font-semibold text-sm sm:text-base mb-1">
-            Format Options
-          </h3>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Generate UUIDs in standard, uppercase, braces, or URN format
-          </p>
+        <div className="mt-12">
+          <FAQ items={faqs} />
         </div>
       </div>
     </div>

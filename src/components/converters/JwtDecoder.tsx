@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import {
   Shield,
   Copy,
@@ -10,9 +10,7 @@ import {
   Calendar,
   CheckCircle,
   XCircle,
-  Eye,
   FileJson,
-  Code,
   Info,
   Lock,
   Globe,
@@ -20,20 +18,21 @@ import {
   Package,
   Hash,
   Fingerprint,
+  Zap,
+  Settings,
+  ClipboardPaste,
+  Trash2,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
-import { Textarea } from "../ui/textarea";
-import { Card } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Separator } from "../ui/separator";
 import { Badge } from "../ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
-import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "../ui/collapsible";
+import { CodeEditor } from "../ui/code-editor";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { FAQ, type FAQItem } from "../ui/FAQ";
+import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 
 interface JWTHeader {
   alg?: string;
@@ -132,11 +131,95 @@ const ALGORITHMS: Record<
   none: { name: "No signature", type: "None", secure: false },
 };
 
+const features = [
+  {
+    icon: Shield,
+    text: "Privacy-first",
+    description: "Decode tokens locally",
+  },
+  {
+    icon: Zap,
+    text: "Instant decode",
+    description: "Real-time JWT parsing",
+  },
+  {
+    icon: Lock,
+    text: "Security analysis",
+    description: "Algorithm & expiry check",
+  },
+];
+
+const relatedTools: RelatedTool[] = [
+  {
+    id: "base64-encoder",
+    name: "Base64 Encoder",
+    description: "Encode and decode Base64",
+    icon: FileJson,
+  },
+  {
+    id: "json-formatter",
+    name: "JSON Formatter",
+    description: "Format and validate JSON",
+    icon: FileJson,
+  },
+  {
+    id: "hash-generator",
+    name: "Hash Generator",
+    description: "Generate MD5, SHA hashes",
+    icon: Key,
+  },
+];
+
+const faqs: FAQItem[] = [
+  {
+    question: "What is a JWT (JSON Web Token)?",
+    answer:
+      "JWT is an open standard (RFC 7519) for securely transmitting information between parties as a JSON object. It consists of three parts: Header (algorithm & token type), Payload (claims), and Signature (verification). JWTs are commonly used for authentication and information exchange.",
+  },
+  {
+    question: "Is it safe to decode JWTs here?",
+    answer:
+      "Yes! All decoding happens entirely in your browser. No JWT data is sent to any server. However, remember that JWTs are not encrypted - they're just base64 encoded. Anyone can decode them, so never store sensitive information in JWT payloads.",
+  },
+  {
+    question: "What do the different parts mean?",
+    answer:
+      "Header: Contains the token type (JWT) and signing algorithm. Payload: Contains claims (statements about the user and additional metadata). Signature: Used to verify the token hasn't been tampered with. The signature requires the secret key to verify.",
+  },
+  {
+    question: "How can I verify the signature?",
+    answer:
+      "Signature verification requires the secret key (for HMAC algorithms) or public key (for RSA/ECDSA algorithms) that was used to sign the token. This tool only decodes JWTs - it cannot verify signatures without the appropriate keys.",
+  },
+];
+
+// Sample JWT for demo purposes
+const SAMPLE_JWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMiwiZXhwIjoxOTUxNjIzOTAyMn0.4Adcj3UFYzPUVaVF43FmMab3EguRlv9zZJPjSyVHG4I";
+
 export function JwtDecoder() {
-  const [jwt, setJwt] = useState("");
+  const [jwt, setJwt] = useState(SAMPLE_JWT);
   const [decoded, setDecoded] = useState<DecodedJWT | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
-  const [showRaw, setShowRaw] = useState(false);
+  const [activeTab, setActiveTab] = useState<"input" | "output">("input");
+  const [activeFeature, setActiveFeature] = useState<number | null>(null);
+  const [theme, setTheme] = useState("github-dark");
+
+  // Theme detection for CodeEditor
+  useEffect(() => {
+    const checkTheme = () => {
+      const isDark = document.documentElement.classList.contains('dark');
+      setTheme(isDark ? 'github-dark' : 'github-light');
+    };
+    checkTheme();
+    
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+    
+    return () => observer.disconnect();
+  }, []);
 
   const decodeJWT = useCallback((token: string): DecodedJWT | null => {
     try {
@@ -184,10 +267,17 @@ export function JwtDecoder() {
   const handleDecode = useCallback(() => {
     if (!jwt.trim()) {
       setDecoded(null);
+      toast.error("Please enter a JWT token");
       return;
     }
     const result = decodeJWT(jwt);
     setDecoded(result);
+    if (result?.isValid) {
+      setActiveTab("output");
+      toast.success("JWT decoded successfully");
+    } else {
+      toast.error(result?.error || "Invalid JWT");
+    }
   }, [jwt, decodeJWT]);
 
   const handleCopy = useCallback(async (text: string, field: string) => {
@@ -195,9 +285,30 @@ export function JwtDecoder() {
       await navigator.clipboard.writeText(text);
       setCopiedField(field);
       setTimeout(() => setCopiedField(null), 2000);
+      toast.success(`${field.charAt(0).toUpperCase() + field.slice(1)} copied`);
     } catch (err) {
       console.error("Failed to copy:", err);
+      toast.error("Failed to copy to clipboard");
     }
+  }, []);
+
+  const handlePaste = useCallback(async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text) {
+        setJwt(text);
+        toast.success("Pasted from clipboard");
+      }
+    } catch (err) {
+      console.error("Failed to paste:", err);
+      toast.error("Failed to paste from clipboard");
+    }
+  }, []);
+
+  const handleClear = useCallback(() => {
+    setJwt("");
+    setDecoded(null);
+    toast.success("Cleared input");
   }, []);
 
   const formatDate = useCallback((timestamp: number): string => {
@@ -248,7 +359,7 @@ export function JwtDecoder() {
     }
     if (typeof value === "object" && value !== null) {
       return (
-        <pre className="text-xs bg-neutral-100 dark:bg-neutral-800 p-2 rounded overflow-x-auto">
+        <pre className="text-xs bg-muted/50 p-2 rounded overflow-x-auto">
           {JSON.stringify(value, null, 2)}
         </pre>
       );
@@ -266,370 +377,440 @@ export function JwtDecoder() {
     return checkExpiration(decoded.payload.exp);
   }, [decoded, checkExpiration]);
 
+  // Auto-decode on load if sample JWT
+  useEffect(() => {
+    if (jwt === SAMPLE_JWT) {
+      handleDecode();
+    }
+  }, []);
+
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">JWT Decoder</h1>
-        <p className="text-neutral-600 dark:text-neutral-400">
-          Decode and inspect JSON Web Tokens without sending them to a server
-        </p>
-      </div>
+    <div className="w-full flex flex-col flex-1 min-h-0">
+      <section className="flex-1 w-full max-w-7xl mx-auto p-0 sm:p-4 md:p-6 lg:p-8 flex flex-col h-full">
+        {/* Header */}
+        <div className="text-center mb-4 sm:mb-8 md:mb-12 space-y-2 sm:space-y-4 px-4 sm:px-0 pt-4 sm:pt-0">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold animate-fade-in flex items-center justify-center flex-wrap gap-2 sm:gap-3">
+            <span>JWT</span>
+            <span className="text-primary">Decoder</span>
+          </h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Input Section */}
-        <div className="space-y-4">
-          <Card className="p-6">
-            <div className="space-y-4">
-              <div>
-                <Label
-                  htmlFor="jwt-input"
-                  className="text-sm font-medium mb-2 block"
-                >
-                  Paste JWT Token
-                </Label>
-                <Textarea
-                  id="jwt-input"
-                  value={jwt}
-                  onChange={(e) => setJwt(e.target.value)}
-                  placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                  className="font-mono text-sm min-h-[200px]"
-                />
-              </div>
+          <p
+            className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in-up"
+            style={{ animationDelay: "0.1s" }}
+          >
+            Decode and inspect JSON Web Tokens without sending them to a server
+          </p>
+        </div>
 
-              <div className="flex gap-2">
-                <Button
-                  onClick={handleDecode}
-                  disabled={!jwt.trim()}
-                  className="flex-1"
+        {/* Features - Desktop */}
+        <div className="hidden sm:block animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+          <div className="hidden sm:flex flex-wrap justify-center gap-6 mb-12">
+            {features.map((feature, index) => {
+              const Icon = feature.icon;
+              return (
+                <div key={index} className="flex items-center gap-3 group">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Icon className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-medium">{feature.text}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {feature.description}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Features - Mobile */}
+        <div className="sm:hidden space-y-3 mb-8 px-4" style={{ animationDelay: "0.2s" }}>
+          <div className="flex justify-center gap-4 mb-4">
+            {features.map((feature, index) => {
+              const Icon = feature.icon;
+              return (
+                <button
+                  key={index}
+                  onClick={() => setActiveFeature(activeFeature === index ? null : index)}
+                  className={cn(
+                    "w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300",
+                    activeFeature === index
+                      ? "bg-primary text-primary-foreground scale-110"
+                      : "bg-primary/10 text-primary hover:scale-105"
+                  )}
                 >
-                  <Shield className="h-4 w-4 mr-2" />
-                  Decode Token
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setJwt("");
-                    setDecoded(null);
-                  }}
-                >
-                  Clear
-                </Button>
-              </div>
+                  <Icon className="w-6 h-6" />
+                </button>
+              );
+            })}
+          </div>
+          {activeFeature !== null && (
+            <div className="bg-muted/50 rounded-lg p-4 animate-fade-in">
+              <p className="font-medium mb-1">{features[activeFeature].text}</p>
+              <p className="text-sm text-muted-foreground">
+                {features[activeFeature].description}
+              </p>
             </div>
-          </Card>
-
-          {/* Algorithm & Security Info */}
-          {decoded && algorithmInfo && (
-            <Card className="p-6">
-              <h3 className="font-semibold mb-4 flex items-center gap-2">
-                <Lock className="h-4 w-4" />
-                Security Information
-              </h3>
-              <div className="space-y-3">
-                <div>
-                  <div className="text-sm text-neutral-600 dark:text-neutral-400">
-                    Algorithm
-                  </div>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge
-                      variant={algorithmInfo.secure ? "default" : "destructive"}
-                    >
-                      {decoded.header.alg}
-                    </Badge>
-                    <span className="text-sm">{algorithmInfo.name}</span>
-                  </div>
-                </div>
-                <div>
-                  <div className="text-sm text-neutral-600 dark:text-neutral-400">
-                    Type
-                  </div>
-                  <div className="text-sm mt-1">{algorithmInfo.type}</div>
-                </div>
-                {!algorithmInfo.secure && (
-                  <Alert className="bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>Security Warning</AlertTitle>
-                    <AlertDescription>
-                      This token uses an insecure algorithm. Do not trust this
-                      token for authentication.
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </div>
-            </Card>
           )}
         </div>
 
-        {/* Decoded Output Section */}
-        <div className="space-y-4">
-          {decoded ? (
-            decoded.isValid ? (
-              <Tabs defaultValue="formatted" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="formatted">Formatted</TabsTrigger>
-                  <TabsTrigger value="raw">Raw JSON</TabsTrigger>
-                </TabsList>
+        {/* Mobile Tabs */}
+        <div className="sm:hidden mb-4 px-4">
+          <div className="grid grid-cols-2 gap-2 p-1 bg-muted rounded-lg">
+            <button
+              onClick={() => setActiveTab("input")}
+              className={cn(
+                "py-2 px-3 rounded-md text-sm font-medium transition-all duration-300",
+                activeTab === "input"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <Settings className="w-4 h-4 inline mr-1" />
+              Input
+            </button>
+            <button
+              onClick={() => setActiveTab("output")}
+              className={cn(
+                "py-2 px-3 rounded-md text-sm font-medium transition-all duration-300 relative",
+                activeTab === "output"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <FileJson className="w-4 h-4 inline mr-1" />
+              Decoded
+              {decoded?.isValid && (
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full animate-pulse" />
+              )}
+            </button>
+          </div>
+        </div>
 
-                <TabsContent value="formatted" className="space-y-4">
-                  {/* Header Section */}
-                  <Card className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-semibold flex items-center gap-2">
-                        <Package className="h-4 w-4" />
-                        Header
-                      </h3>
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col sm:grid sm:grid-cols-[1fr,1fr] gap-4 sm:gap-6 px-4 sm:px-0 min-h-0">
+          {/* Input Panel */}
+          <div className={cn(
+            "flex flex-col min-h-0",
+            activeTab !== "input" && "hidden sm:flex"
+          )}>
+            <Card className="flex-1 flex flex-col shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent pb-4">
+                <CardTitle className="flex items-center gap-2">
+                  <Key className="w-5 h-5 text-primary" />
+                  JWT Token Input
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex-1 flex flex-col p-4 sm:p-6 overflow-hidden">
+                <div className="flex-1 flex flex-col min-h-0">
+                  <div className="mb-4">
+                    <Label htmlFor="jwt-input" className="text-sm font-medium mb-2 block">
+                      Paste JWT Token
+                    </Label>
+                    <div className="flex gap-2 mb-2">
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
-                        onClick={() =>
-                          handleCopy(
-                            JSON.stringify(decoded.header, null, 2),
-                            "header",
-                          )
-                        }
+                        onClick={handlePaste}
                       >
-                        {copiedField === "header" ? (
-                          <Check className="h-4 w-4" />
-                        ) : (
-                          <Copy className="h-4 w-4" />
-                        )}
+                        <ClipboardPaste className="w-4 h-4 mr-2" />
+                        Paste
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleClear}
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Clear
                       </Button>
                     </div>
-                    <div className="space-y-2">
-                      {Object.entries(decoded.header).map(([key, value]) => (
+                  </div>
+                  
+                  <div className="flex-1 min-h-0">
+                    <CodeEditor
+                      value={jwt}
+                      onChange={(value) => setJwt(value || "")}
+                      language="text"
+                      theme={theme}
+                      placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                      className="h-full"
+                      options={{
+                        minimap: { enabled: false },
+                        lineNumbers: "off",
+                        folding: false,
+                        wordWrap: "on",
+                        fontSize: 14,
+                      }}
+                    />
+                  </div>
+
+                  <div className="mt-4">
+                    <Button
+                      onClick={handleDecode}
+                      disabled={!jwt.trim()}
+                      className="w-full"
+                      size="lg"
+                    >
+                      <Shield className="w-4 h-4 mr-2" />
+                      Decode Token
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Output Panel */}
+          <div className={cn(
+            "flex flex-col min-h-0",
+            activeTab !== "output" && "hidden sm:flex"
+          )}>
+            <Card className="flex-1 flex flex-col shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent pb-4">
+                <CardTitle className="flex items-center gap-2">
+                  <FileJson className="w-5 h-5 text-primary" />
+                  Decoded Output
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex-1 overflow-y-auto p-4 sm:p-6">
+                {decoded ? (
+                  decoded.isValid ? (
+                    <div className="space-y-4">
+                      {/* Expiration Status */}
+                      {expirationStatus && (
                         <div
-                          key={key}
-                          className="flex justify-between items-start"
+                          className={cn(
+                            "p-3 rounded-lg flex items-center gap-2",
+                            expirationStatus.expired
+                              ? "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
+                              : "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800"
+                          )}
                         >
-                          <span className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
-                            {key}
-                          </span>
-                          <span className="text-sm font-mono">
-                            {String(value)}
+                          {expirationStatus.expired ? (
+                            <XCircle className="w-4 h-4 text-red-600 dark:text-red-400" />
+                          ) : (
+                            <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
+                          )}
+                          <span className={cn(
+                            "text-sm font-medium",
+                            expirationStatus.expired
+                              ? "text-red-700 dark:text-red-300"
+                              : "text-green-700 dark:text-green-300"
+                          )}>
+                            {expirationStatus.message}
                           </span>
                         </div>
-                      ))}
-                    </div>
-                  </Card>
+                      )}
 
-                  {/* Payload Section */}
-                  <Card className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-semibold flex items-center gap-2">
-                        <FileJson className="h-4 w-4" />
-                        Payload
-                      </h3>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() =>
-                          handleCopy(
-                            JSON.stringify(decoded.payload, null, 2),
-                            "payload",
-                          )
-                        }
-                      >
-                        {copiedField === "payload" ? (
-                          <Check className="h-4 w-4" />
-                        ) : (
-                          <Copy className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </div>
-
-                    {/* Expiration Status */}
-                    {expirationStatus && (
-                      <Alert
-                        className={
-                          expirationStatus.expired
-                            ? "mb-4 bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800"
-                            : "mb-4 bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800"
-                        }
-                      >
-                        {expirationStatus.expired ? (
-                          <XCircle className="h-4 w-4" />
-                        ) : (
-                          <CheckCircle className="h-4 w-4" />
-                        )}
-                        <AlertDescription>
-                          {expirationStatus.message}
-                        </AlertDescription>
-                      </Alert>
-                    )}
-
-                    <div className="space-y-3">
-                      {Object.entries(decoded.payload).map(([key, value]) => {
-                        const claimInfo = STANDARD_CLAIMS[key];
-                        const Icon = claimInfo?.icon || Hash;
-
-                        return (
-                          <div key={key} className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <Icon className="h-4 w-4 text-neutral-500" />
-                              <span className="text-sm font-medium">
-                                {claimInfo?.name || key}
-                              </span>
-                              {claimInfo && (
-                                <Badge variant="outline" className="text-xs">
-                                  Standard
+                      {/* Algorithm & Security Info */}
+                      {algorithmInfo && (
+                        <div className="p-4 rounded-lg bg-muted/30 border border-muted-foreground/10">
+                          <h3 className="font-semibold mb-3 flex items-center gap-2">
+                            <Lock className="w-4 w-4" />
+                            Security Information
+                          </h3>
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-muted-foreground">Algorithm</span>
+                              <div className="flex items-center gap-2">
+                                <Badge
+                                  variant={algorithmInfo.secure ? "default" : "destructive"}
+                                >
+                                  {decoded.header.alg}
                                 </Badge>
-                              )}
+                                <span className="text-sm">{algorithmInfo.name}</span>
+                              </div>
                             </div>
-                            <div className="ml-6 text-sm">
-                              {["exp", "nbf", "iat"].includes(key) &&
-                              typeof value === "number" ? (
-                                <div className="space-y-1">
-                                  <div className="font-mono">{value}</div>
-                                  <div className="text-neutral-500 dark:text-neutral-400">
-                                    {formatDate(value)}
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-muted-foreground">Type</span>
+                              <span className="text-sm">{algorithmInfo.type}</span>
+                            </div>
+                            {!algorithmInfo.secure && (
+                              <div className="mt-2 p-2 rounded bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                                <div className="flex items-start gap-2">
+                                  <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400 mt-0.5" />
+                                  <div>
+                                    <p className="text-sm font-medium text-red-700 dark:text-red-300">
+                                      Security Warning
+                                    </p>
+                                    <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                                      This token uses an insecure algorithm. Do not trust this
+                                      token for authentication.
+                                    </p>
                                   </div>
                                 </div>
-                              ) : (
-                                renderClaimValue(value)
-                              )}
-                            </div>
-                            {claimInfo && (
-                              <div className="ml-6 text-xs text-neutral-500 dark:text-neutral-400">
-                                {claimInfo.description}
                               </div>
                             )}
                           </div>
-                        );
-                      })}
-                    </div>
-                  </Card>
-
-                  {/* Signature Section */}
-                  <Card className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-semibold flex items-center gap-2">
-                        <Key className="h-4 w-4" />
-                        Signature
-                      </h3>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() =>
-                          handleCopy(decoded.signature, "signature")
-                        }
-                      >
-                        {copiedField === "signature" ? (
-                          <Check className="h-4 w-4" />
-                        ) : (
-                          <Copy className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </div>
-                    <div className="font-mono text-xs break-all bg-neutral-100 dark:bg-neutral-800 p-3 rounded">
-                      {decoded.signature}
-                    </div>
-                    <div className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
-                      Note: Signature verification requires the secret key
-                    </div>
-                  </Card>
-                </TabsContent>
-
-                <TabsContent value="raw" className="space-y-4">
-                  <Card className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-semibold">Raw JSON</h3>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() =>
-                          handleCopy(
-                            JSON.stringify(
-                              {
-                                header: decoded.header,
-                                payload: decoded.payload,
-                              },
-                              null,
-                              2,
-                            ),
-                            "raw",
-                          )
-                        }
-                      >
-                        {copiedField === "raw" ? (
-                          <Check className="h-4 w-4" />
-                        ) : (
-                          <Copy className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </div>
-                    <pre className="text-xs bg-neutral-100 dark:bg-neutral-800 p-4 rounded overflow-x-auto">
-                      {JSON.stringify(
-                        {
-                          header: decoded.header,
-                          payload: decoded.payload,
-                        },
-                        null,
-                        2,
+                        </div>
                       )}
-                    </pre>
-                  </Card>
-                </TabsContent>
-              </Tabs>
-            ) : (
-              <Alert className="bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>Invalid JWT</AlertTitle>
-                <AlertDescription>{decoded.error}</AlertDescription>
-              </Alert>
-            )
-          ) : jwt.trim() ? (
-            <Card className="p-12 text-center">
-              <Shield className="h-12 w-12 mx-auto mb-4 text-neutral-300 dark:text-neutral-700" />
-              <p className="text-neutral-500 dark:text-neutral-400">
-                Click "Decode Token" to inspect the JWT
-              </p>
-            </Card>
-          ) : (
-            <Card className="p-12 text-center">
-              <Info className="h-12 w-12 mx-auto mb-4 text-neutral-300 dark:text-neutral-700" />
-              <p className="text-neutral-500 dark:text-neutral-400">
-                Paste a JWT token to decode and inspect its contents
-              </p>
-            </Card>
-          )}
-        </div>
-      </div>
 
-      {/* Info Section */}
-      <Card className="mt-6 p-6">
-        <Collapsible>
-          <CollapsibleTrigger className="flex items-center gap-2 font-semibold hover:text-primary transition-colors">
-            <Info className="h-4 w-4" />
-            About JWT (JSON Web Tokens)
-          </CollapsibleTrigger>
-          <CollapsibleContent className="mt-4 space-y-4 text-sm text-neutral-600 dark:text-neutral-400">
-            <p>
-              JSON Web Tokens (JWT) are an open standard (RFC 7519) for securely
-              transmitting information between parties as a JSON object.
-            </p>
-            <div>
-              <h4 className="font-semibold text-neutral-900 dark:text-neutral-100 mb-2">
-                Structure
-              </h4>
-              <p>
-                JWTs consist of three parts separated by dots (.):
-                Header.Payload.Signature
-              </p>
-            </div>
-            <div>
-              <h4 className="font-semibold text-neutral-900 dark:text-neutral-100 mb-2">
-                Security Note
-              </h4>
-              <p>
-                This tool decodes JWTs client-side without sending them to any
-                server. However, JWTs are not encrypted - anyone can decode and
-                read their contents. Never store sensitive information in JWT
-                payloads.
-              </p>
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-      </Card>
+                      {/* Header Section */}
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-semibold flex items-center gap-2">
+                            <Package className="w-4 h-4" />
+                            Header
+                          </h3>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              handleCopy(
+                                JSON.stringify(decoded.header, null, 2),
+                                "header",
+                              )
+                            }
+                          >
+                            {copiedField === "header" ? (
+                              <Check className="w-4 h-4" />
+                            ) : (
+                              <Copy className="w-4 h-4" />
+                            )}
+                          </Button>
+                        </div>
+                        <div className="bg-muted/30 rounded-lg p-3">
+                          <pre className="text-xs overflow-x-auto">
+                            {JSON.stringify(decoded.header, null, 2)}
+                          </pre>
+                        </div>
+                      </div>
+
+                      {/* Payload Section */}
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-semibold flex items-center gap-2">
+                            <FileJson className="w-4 h-4" />
+                            Payload
+                          </h3>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              handleCopy(
+                                JSON.stringify(decoded.payload, null, 2),
+                                "payload",
+                              )
+                            }
+                          >
+                            {copiedField === "payload" ? (
+                              <Check className="w-4 h-4" />
+                            ) : (
+                              <Copy className="w-4 h-4" />
+                            )}
+                          </Button>
+                        </div>
+                        <div className="space-y-3">
+                          {Object.entries(decoded.payload).map(([key, value]) => {
+                            const claimInfo = STANDARD_CLAIMS[key];
+                            const Icon = claimInfo?.icon || Hash;
+
+                            return (
+                              <div key={key} className="bg-muted/30 rounded-lg p-3">
+                                <div className="flex items-start justify-between mb-2">
+                                  <div className="flex items-center gap-2">
+                                    <Icon className="w-4 h-4 text-muted-foreground" />
+                                    <span className="font-medium">
+                                      {claimInfo?.name || key}
+                                    </span>
+                                    {claimInfo && (
+                                      <Badge variant="outline" className="text-xs">
+                                        Standard
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="ml-6">
+                                  {["exp", "nbf", "iat"].includes(key) &&
+                                  typeof value === "number" ? (
+                                    <div className="space-y-1">
+                                      <div className="font-mono text-sm">{value}</div>
+                                      <div className="text-xs text-muted-foreground">
+                                        {formatDate(value)}
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="text-sm">{renderClaimValue(value)}</div>
+                                  )}
+                                </div>
+                                {claimInfo && (
+                                  <div className="ml-6 text-xs text-muted-foreground mt-1">
+                                    {claimInfo.description}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Signature Section */}
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-semibold flex items-center gap-2">
+                            <Key className="w-4 h-4" />
+                            Signature
+                          </h3>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              handleCopy(decoded.signature, "signature")
+                            }
+                          >
+                            {copiedField === "signature" ? (
+                              <Check className="w-4 h-4" />
+                            ) : (
+                              <Copy className="w-4 h-4" />
+                            )}
+                          </Button>
+                        </div>
+                        <div className="bg-muted/30 rounded-lg p-3">
+                          <p className="font-mono text-xs break-all">
+                            {decoded.signature}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-2">
+                            Note: Signature verification requires the secret key
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <div className="text-center">
+                        <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center mx-auto mb-4">
+                          <AlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400" />
+                        </div>
+                        <h3 className="font-semibold text-lg mb-2">Invalid JWT</h3>
+                        <p className="text-sm text-muted-foreground">{decoded.error}</p>
+                      </div>
+                    </div>
+                  )
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-center">
+                      <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+                        <Shield className="w-8 h-8 text-muted-foreground" />
+                      </div>
+                      <p className="text-muted-foreground">
+                        Enter a JWT token and click "Decode Token"
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* FAQ and Related Tools */}
+        <div className="mt-12 space-y-12 px-4 sm:px-0">
+          <FAQ items={faqs} />
+          <RelatedTools tools={relatedTools} />
+        </div>
+      </section>
     </div>
   );
 }

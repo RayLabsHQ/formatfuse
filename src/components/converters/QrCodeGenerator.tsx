@@ -508,6 +508,7 @@ export default function QrCodeGenerator() {
           link.href = url;
           link.click();
           URL.revokeObjectURL(url);
+          toast.success(`QR code downloaded as ${format.toUpperCase()}`);
         },
       );
     }
