@@ -102,7 +102,7 @@ const faqs: FAQItem[] = [
 const SAMPLE_JSON = `{
   "name": "John Doe",
   "age": 30,
-  "email": "john.doe@example.com",
+  "email": "john.doe@raylabs.io",
   "address": {
     "street": "123 Main St",
     "city": "New York",

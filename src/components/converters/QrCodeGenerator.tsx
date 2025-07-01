@@ -6,49 +6,31 @@ import {
   Copy,
   Check,
   Palette,
-  Settings,
   Wifi,
-  User,
-  Globe,
   Phone,
   Mail,
-  Calendar,
-  MapPin,
-  Smartphone,
-  Package,
-  Share2,
-  Sparkles,
-  ChevronLeft,
-  ChevronRight,
-  Shield,
-  Zap,
-  Info,
-  ClipboardPaste,
-  FileText,
   Hash,
   Binary,
   Key,
+  Shield,
+  Zap,
+  Link,
+  MessageSquare,
+  Users,
+  Navigation,
+  CalendarDays,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
 import { Slider } from "../ui/slider";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { Separator } from "../ui/separator";
+import { Card, CardContent } from "../ui/card";
 import { Badge } from "../ui/badge";
-import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
 
 interface QrTemplate {
   id: string;
@@ -129,26 +111,26 @@ const faqs: FAQItem[] = [
 
 const qrTemplates: QrTemplate[] = [
   {
-    id: "text",
-    name: "Text/URL",
-    icon: Globe,
-    description: "Simple text or URL",
+    id: "url",
+    name: "URL",
+    icon: Link,
+    description: "Website link",
     fields: [
       {
-        name: "content",
-        label: "Content",
-        type: "textarea",
-        placeholder: "Enter text or URL...",
+        name: "url",
+        label: "URL",
+        type: "url",
+        placeholder: "https://raylabs.io",
         required: true,
       },
     ],
-    formatter: (data) => data.content,
+    formatter: (data) => data.url,
   },
   {
     id: "wifi",
     name: "WiFi",
     icon: Wifi,
-    description: "WiFi network credentials",
+    description: "Network credentials",
     fields: [
       {
         name: "ssid",
@@ -178,13 +160,13 @@ const qrTemplates: QrTemplate[] = [
     id: "email",
     name: "Email",
     icon: Mail,
-    description: "Pre-filled email message",
+    description: "Email message",
     fields: [
       {
         name: "to",
         label: "To",
         type: "email",
-        placeholder: "recipient@example.com",
+        placeholder: "recipient@raylabs.io",
         required: true,
       },
       {
@@ -212,7 +194,7 @@ const qrTemplates: QrTemplate[] = [
     id: "phone",
     name: "Phone",
     icon: Phone,
-    description: "Phone number for calling",
+    description: "Phone call",
     fields: [
       {
         name: "number",
@@ -227,8 +209,8 @@ const qrTemplates: QrTemplate[] = [
   {
     id: "sms",
     name: "SMS",
-    icon: Smartphone,
-    description: "Pre-filled SMS message",
+    icon: MessageSquare,
+    description: "Text message",
     fields: [
       {
         name: "number",
@@ -250,8 +232,8 @@ const qrTemplates: QrTemplate[] = [
   {
     id: "vcard",
     name: "Contact",
-    icon: User,
-    description: "Contact information (vCard)",
+    icon: Users,
+    description: "Contact card",
     fields: [
       {
         name: "firstName",
@@ -277,7 +259,7 @@ const qrTemplates: QrTemplate[] = [
         name: "email",
         label: "Email",
         type: "email",
-        placeholder: "john@example.com",
+        placeholder: "john@raylabs.io",
       },
       {
         name: "company",
@@ -289,7 +271,7 @@ const qrTemplates: QrTemplate[] = [
         name: "url",
         label: "Website",
         type: "url",
-        placeholder: "https://example.com",
+        placeholder: "https://raylabs.io",
       },
     ],
     formatter: (data) => {
@@ -310,7 +292,7 @@ const qrTemplates: QrTemplate[] = [
   {
     id: "event",
     name: "Event",
-    icon: Calendar,
+    icon: CalendarDays,
     description: "Calendar event",
     fields: [
       {
@@ -363,8 +345,8 @@ const qrTemplates: QrTemplate[] = [
   {
     id: "location",
     name: "Location",
-    icon: MapPin,
-    description: "Geographic coordinates",
+    icon: Navigation,
+    description: "GPS coordinates",
     fields: [
       {
         name: "latitude",
@@ -383,6 +365,22 @@ const qrTemplates: QrTemplate[] = [
     ],
     formatter: (data) => `geo:${data.latitude},${data.longitude}`,
   },
+  {
+    id: "text",
+    name: "Text",
+    icon: MessageSquare,
+    description: "Plain text",
+    fields: [
+      {
+        name: "content",
+        label: "Text Content",
+        type: "textarea",
+        placeholder: "Enter your text here...",
+        required: true,
+      },
+    ],
+    formatter: (data) => data.content,
+  },
 ];
 
 interface QrStyle {
@@ -397,7 +395,6 @@ interface QrStyle {
 
 export default function QrCodeGenerator() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const carouselRef = useRef<HTMLDivElement>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<QrTemplate>(
     qrTemplates[0],
   );
@@ -412,8 +409,8 @@ export default function QrCodeGenerator() {
     lightColor: "#ffffff",
     errorCorrectionLevel: "M",
   });
-  const [activeTab, setActiveTab] = useState<"input" | "output">("input");
   const [activeFeature, setActiveFeature] = useState<number | null>(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   // Generate QR code
   const generateQrCode = useCallback(async () => {
@@ -502,11 +499,6 @@ export default function QrCodeGenerator() {
         img.src = style.logo;
       } else {
         setQrDataUrl(dataUrl);
-      }
-
-      // Auto-switch to output tab when QR is generated
-      if (dataUrl) {
-        setActiveTab("output");
       }
     } catch (error) {
       console.error("Failed to generate QR code:", error);
@@ -598,58 +590,38 @@ export default function QrCodeGenerator() {
     setFormData({});
   }, [selectedTemplate]);
 
-  // Scroll carousel
-  const scrollCarousel = (direction: "left" | "right") => {
-    if (!carouselRef.current) return;
-    const scrollAmount = 200;
-    carouselRef.current.scrollBy({
-      left: direction === "left" ? -scrollAmount : scrollAmount,
-      behavior: "smooth",
-    });
-  };
-
   return (
     <div className="w-full flex flex-col flex-1 min-h-0">
-      <section className="flex-1 w-full max-w-7xl mx-auto p-0 sm:p-4 md:p-6 lg:p-8 flex flex-col h-full">
-        {/* Header */}
-        <div className="text-center mb-4 sm:mb-8 md:mb-12 space-y-2 sm:space-y-4 px-4 sm:px-0 pt-4 sm:pt-0">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold animate-fade-in flex items-center justify-center flex-wrap gap-2 sm:gap-3">
-            <span>QR Code</span>
-            <span className="text-primary">Generator</span>
-          </h1>
+      {/* Gradient Blobs - Hidden on mobile */}
+      <div className="hidden sm:block fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/20 rounded-full blur-3xl animate-blob" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary/20 rounded-full blur-3xl animate-blob animation-delay-2000" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-primary/10 rounded-full blur-3xl animate-blob animation-delay-4000" />
+      </div>
 
+      <section className="flex-1 w-full max-w-7xl mx-auto p-0 sm:p-4 md:p-6 lg:p-8 flex flex-col h-full relative z-10">
+        {/* Header */}
+        <div className="text-center mb-4 sm:mb-6 md:mb-8 space-y-2 sm:space-y-3 px-4 sm:px-0 pt-4 sm:pt-0">
+          <Badge
+            className="mb-2 bg-primary/10 text-primary border-primary/20 hover:bg-primary/15"
+            variant="secondary"
+          >
+            <Zap className="w-3 h-3 mr-1" />
+            Fast QR Generation
+          </Badge>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold animate-fade-in">
+            QR Code Generator
+          </h1>
           <p
             className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in-up"
             style={{ animationDelay: "0.1s" }}
           >
-            Create QR codes for URLs, WiFi, contacts, and more with customizable colors and logos
+            Create customizable QR codes instantly. Perfect for URLs, WiFi, contacts, and more.
           </p>
         </div>
 
-        {/* Features - Desktop */}
-        <div className="hidden sm:block animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
-          <div className="hidden sm:flex flex-wrap justify-center gap-6 mb-12">
-            {features.map((feature, index) => {
-              const Icon = feature.icon;
-              return (
-                <div key={index} className="flex items-center gap-3 group">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <Icon className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-medium">{feature.text}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {feature.description}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
         {/* Features - Mobile */}
-        <div className="sm:hidden space-y-3 mb-8 px-4" style={{ animationDelay: "0.2s" }}>
+        <div className="sm:hidden space-y-3 mb-6 px-4" style={{ animationDelay: "0.2s" }}>
           <div className="flex justify-center gap-4 mb-4">
             {features.map((feature, index) => {
               const Icon = feature.icon;
@@ -679,85 +651,46 @@ export default function QrCodeGenerator() {
           )}
         </div>
 
-        {/* Mobile Tabs */}
-        <div className="sm:hidden mb-4 px-4">
-          <div className="grid grid-cols-2 gap-2 p-1 bg-muted rounded-lg">
-            <button
-              onClick={() => setActiveTab("input")}
-              className={cn(
-                "py-2 px-3 rounded-md text-sm font-medium transition-all duration-300",
-                activeTab === "input"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <Settings className="w-4 h-4 inline mr-1" />
-              Settings
-            </button>
-            <button
-              onClick={() => setActiveTab("output")}
-              className={cn(
-                "py-2 px-3 rounded-md text-sm font-medium transition-all duration-300 relative",
-                activeTab === "output"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <QrCode className="w-4 h-4 inline mr-1" />
-              QR Code
-              {qrDataUrl && (
-                <span className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full animate-pulse" />
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Main Content Area */}
-        <div className="flex-1 flex flex-col gap-4 sm:gap-6 px-4 sm:px-0 min-h-0">
-          {/* Settings Card */}
-          <Card className={cn(
-            "shadow-lg",
-            activeTab !== "input" && "hidden sm:block"
-          )}>
-            <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent pb-4">
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="w-5 h-5 text-primary" />
-                QR Code Settings
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 sm:p-6">
+        {/* Main Content - Side by Side on Desktop */}
+        <div className="flex-1 flex flex-col lg:flex-row gap-4 sm:gap-6 px-4 sm:px-0 min-h-0">
+          {/* Left Side - Input */}
+          <Card className="flex-1 lg:max-w-md shadow-lg hover:shadow-xl transition-shadow duration-300 border-muted/50 bg-background/95 backdrop-blur-sm overflow-hidden">
+            <CardContent className="p-4 sm:p-6 h-full overflow-y-auto">
               {/* Template Selection */}
               <div className="mb-6">
-                <Label className="mb-3 block">QR Code Type</Label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                <Label className="text-base font-semibold mb-4 block">Choose Type</Label>
+                <div className="grid grid-cols-3 gap-2">
                   {qrTemplates.map((template) => (
                     <button
                       key={template.id}
                       onClick={() => setSelectedTemplate(template)}
                       className={cn(
-                        "p-3 rounded-lg border text-left transition-all hover:scale-105",
+                        "p-3 rounded-lg border text-center transition-all hover:scale-105 group",
                         selectedTemplate.id === template.id
                           ? "border-primary bg-primary/10 shadow-sm"
-                          : "border-border hover:border-primary/50",
+                          : "border-border hover:border-primary/50 bg-background",
                       )}
                     >
-                      <template.icon className="w-5 h-5 text-primary mb-2" />
-                      <div className="font-medium text-sm">{template.name}</div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {template.description}
-                      </p>
+                      <template.icon className={cn(
+                        "w-5 h-5 mx-auto mb-2 transition-colors",
+                        selectedTemplate.id === template.id
+                          ? "text-primary"
+                          : "text-muted-foreground group-hover:text-primary"
+                      )} />
+                      <div className="text-xs font-medium">{template.name}</div>
                     </button>
                   ))}
                 </div>
               </div>
 
-              <Separator className="my-6" />
-
               {/* Form Fields */}
-              <div className="space-y-4">
+              <div className="space-y-4 mb-6">
+                <h3 className="text-sm font-semibold text-muted-foreground">
+                  {selectedTemplate.name} Details
+                </h3>
                 {selectedTemplate.fields.map((field) => (
                   <div key={field.name}>
-                    <Label htmlFor={field.name} className="mb-2 block">
+                    <Label htmlFor={field.name} className="mb-2 block text-sm">
                       {field.label}
                       {field.required && (
                         <span className="text-destructive ml-1">*</span>
@@ -789,14 +722,91 @@ export default function QrCodeGenerator() {
                 ))}
               </div>
 
-              {/* Advanced Options */}
-              <div className="mt-6">
-                <CollapsibleSection title="Advanced Options" defaultOpen={false}>
-                  <div className="space-y-4 pt-4">
+              {/* Styling Options */}
+              <div className="space-y-4 mb-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-muted-foreground">Styling</h3>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowAdvanced(!showAdvanced)}
+                    className="text-xs"
+                  >
+                    {showAdvanced ? "Hide" : "Show"} Advanced
+                  </Button>
+                </div>
+
+                {/* Basic Styling */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label htmlFor="dark-color" className="mb-2 block text-sm">
+                      Foreground
+                    </Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="dark-color"
+                        type="color"
+                        value={style.darkColor}
+                        onChange={(e) =>
+                          setStyle((prev) => ({
+                            ...prev,
+                            darkColor: e.target.value,
+                          }))
+                        }
+                        className="w-12 h-9 p-1 cursor-pointer"
+                      />
+                      <Input
+                        type="text"
+                        value={style.darkColor}
+                        onChange={(e) =>
+                          setStyle((prev) => ({
+                            ...prev,
+                            darkColor: e.target.value,
+                          }))
+                        }
+                        className="flex-1 font-mono text-xs"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="light-color" className="mb-2 block text-sm">
+                      Background
+                    </Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="light-color"
+                        type="color"
+                        value={style.lightColor}
+                        onChange={(e) =>
+                          setStyle((prev) => ({
+                            ...prev,
+                            lightColor: e.target.value,
+                          }))
+                        }
+                        className="w-12 h-9 p-1 cursor-pointer"
+                      />
+                      <Input
+                        type="text"
+                        value={style.lightColor}
+                        onChange={(e) =>
+                          setStyle((prev) => ({
+                            ...prev,
+                            lightColor: e.target.value,
+                          }))
+                        }
+                        className="flex-1 font-mono text-xs"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Advanced Options */}
+                {showAdvanced && (
+                  <div className="space-y-4 pt-2 animate-fade-in">
                     {/* Size and Margin */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <Label className="mb-2 block">Size: {style.size}px</Label>
+                    <div>
+                      <Label className="mb-2 block text-sm">Size: {style.size}px</Label>
+                      <div className="flex gap-3 items-center">
                         <Slider
                           value={[style.size]}
                           onValueChange={([value]) =>
@@ -805,90 +815,26 @@ export default function QrCodeGenerator() {
                           min={100}
                           max={500}
                           step={10}
+                          className="flex-1"
                         />
-                      </div>
-                      <div>
-                        <Label className="mb-2 block">Margin: {style.margin}</Label>
-                        <Slider
-                          value={[style.margin]}
-                          onValueChange={([value]) =>
-                            setStyle((prev) => ({ ...prev, margin: value }))
-                          }
-                          min={0}
-                          max={10}
-                          step={1}
+                        <Input
+                          type="number"
+                          value={style.size}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value) || 100;
+                            setStyle((prev) => ({ ...prev, size: Math.min(Math.max(value, 100), 500) }));
+                          }}
+                          className="w-20 text-xs"
+                          min={100}
+                          max={500}
                         />
-                      </div>
-                    </div>
-
-                    {/* Colors */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="dark-color" className="mb-2 block">
-                          Foreground Color
-                        </Label>
-                        <div className="flex gap-2">
-                          <Input
-                            id="dark-color"
-                            type="color"
-                            value={style.darkColor}
-                            onChange={(e) =>
-                              setStyle((prev) => ({
-                                ...prev,
-                                darkColor: e.target.value,
-                              }))
-                            }
-                            className="w-16 h-10 p-1 cursor-pointer"
-                          />
-                          <Input
-                            type="text"
-                            value={style.darkColor}
-                            onChange={(e) =>
-                              setStyle((prev) => ({
-                                ...prev,
-                                darkColor: e.target.value,
-                              }))
-                            }
-                            className="flex-1 font-mono"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <Label htmlFor="light-color" className="mb-2 block">
-                          Background Color
-                        </Label>
-                        <div className="flex gap-2">
-                          <Input
-                            id="light-color"
-                            type="color"
-                            value={style.lightColor}
-                            onChange={(e) =>
-                              setStyle((prev) => ({
-                                ...prev,
-                                lightColor: e.target.value,
-                              }))
-                            }
-                            className="w-16 h-10 p-1 cursor-pointer"
-                          />
-                          <Input
-                            type="text"
-                            value={style.lightColor}
-                            onChange={(e) =>
-                              setStyle((prev) => ({
-                                ...prev,
-                                lightColor: e.target.value,
-                              }))
-                            }
-                            className="flex-1 font-mono"
-                          />
-                        </div>
                       </div>
                     </div>
 
                     {/* Error Correction */}
                     <div>
-                      <Label className="mb-3 block">Error Correction Level</Label>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      <Label className="mb-3 block text-sm">Error Correction</Label>
+                      <div className="grid grid-cols-4 gap-2">
                         {(["L", "M", "Q", "H"] as const).map((level) => (
                           <button
                             key={level}
@@ -899,171 +845,174 @@ export default function QrCodeGenerator() {
                               }))
                             }
                             className={cn(
-                              "py-2 px-3 rounded-md text-sm font-medium transition-colors",
+                              "py-1.5 px-2 rounded-md text-xs font-medium transition-all",
                               style.errorCorrectionLevel === level
                                 ? "bg-primary text-primary-foreground"
                                 : "bg-secondary hover:bg-secondary/80",
                             )}
                           >
-                            {level} (
-                            {level === "L"
-                              ? "7%"
-                              : level === "M"
-                                ? "15%"
-                                : level === "Q"
-                                  ? "25%"
-                                  : "30%"}
-                            )
+                            {level}
                           </button>
                         ))}
                       </div>
                       <p className="text-xs text-muted-foreground mt-2">
-                        Higher levels allow more damage but reduce data capacity
+                        L: 7%, M: 15%, Q: 25%, H: 30% damage recovery
                       </p>
                     </div>
 
-                    {/* Logo */}
+                    {/* Logo Upload */}
                     <div>
-                      <Label className="mb-2 block">Logo (Optional)</Label>
-                      <div className="space-y-3">
-                        <Input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              const reader = new FileReader();
-                              reader.onload = (e) => {
-                                setStyle((prev) => ({
-                                  ...prev,
-                                  logo: e.target?.result as string,
-                                }));
-                              };
-                              reader.readAsDataURL(file);
+                      <Label className="mb-2 block text-sm">Logo (Optional)</Label>
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (e) => {
+                              setStyle((prev) => ({
+                                ...prev,
+                                logo: e.target?.result as string,
+                              }));
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                        className="cursor-pointer text-xs"
+                      />
+                      {style.logo && (
+                        <div className="flex items-center gap-3 mt-2">
+                          <img
+                            src={style.logo}
+                            alt="Logo"
+                            className="w-10 h-10 rounded object-contain bg-muted"
+                          />
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              setStyle((prev) => ({
+                                ...prev,
+                                logo: undefined,
+                                logoSize: undefined,
+                              }))
                             }
-                          }}
-                          className="cursor-pointer"
-                        />
-                        {style.logo && (
-                          <>
-                            <div className="flex items-center gap-4">
-                              <img
-                                src={style.logo}
-                                alt="Logo preview"
-                                className="w-12 h-12 rounded object-contain bg-muted"
-                              />
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() =>
-                                  setStyle((prev) => ({
-                                    ...prev,
-                                    logo: undefined,
-                                    logoSize: undefined,
-                                  }))
-                                }
-                              >
-                                Remove Logo
-                              </Button>
-                            </div>
-                            <div>
-                              <Label className="mb-2 block">
-                                Logo Size: {style.logoSize || 60}px
-                              </Label>
-                              <Slider
-                                value={[style.logoSize || 60]}
-                                onValueChange={([value]) =>
-                                  setStyle((prev) => ({ ...prev, logoSize: value }))
-                                }
-                                min={20}
-                                max={100}
-                                step={5}
-                              />
-                            </div>
-                          </>
-                        )}
-                        <p className="text-xs text-muted-foreground">
-                          Add your logo to the center of the QR code. Use high error
-                          correction (H) for best results.
-                        </p>
-                      </div>
+                            className="text-xs"
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
-                </CollapsibleSection>
+                )}
               </div>
             </CardContent>
           </Card>
 
-          {/* Output Section */}
-          <div className={cn(
-            "flex-1 flex flex-col",
-            activeTab !== "output" && "hidden sm:flex"
-          )}>
-            <Card className="flex-1 flex flex-col shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent pb-4">
-                <CardTitle className="flex items-center justify-between">
-                  <span className="flex items-center gap-2">
-                    <QrCode className="w-5 h-5 text-primary" />
-                    Generated QR Code
-                  </span>
+          {/* Right Side - Output (Desktop) / Second Card (Mobile) */}
+          <div className="flex-1 flex flex-col min-h-0 lg:min-h-0 h-auto lg:h-full">
+            <Card className="flex-1 flex flex-col shadow-lg hover:shadow-xl transition-shadow duration-300 border-muted/50 bg-background/95 backdrop-blur-sm overflow-hidden">
+              <CardContent className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 overflow-auto">
+                <div className="space-y-4 w-full flex flex-col items-center">
+                  <div 
+                    className="p-4 sm:p-6 rounded-2xl border bg-white dark:bg-muted/30 w-full sm:w-auto lg:max-h-[calc(100vh-400px)]"
+                  >
+                    <div className="relative overflow-auto max-h-full">
+                      <canvas
+                        ref={canvasRef}
+                        width={style.size}
+                        height={style.size}
+                        className={cn(
+                          "transition-opacity block mx-auto",
+                          isGenerating ? "opacity-50" : "opacity-100",
+                          !qrDataUrl ? "hidden" : ""
+                        )}
+                        style={{ 
+                          maxWidth: "100%", 
+                          height: "auto",
+                          aspectRatio: "1"
+                        }}
+                      />
+                      {!qrDataUrl && (
+                        <div className="flex items-center justify-center text-center p-8">
+                          <div>
+                            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mx-auto mb-4">
+                              <QrCode className="w-10 h-10 text-primary/60" />
+                            </div>
+                            <p className="text-muted-foreground">
+                              Fill in the details to generate your QR code
+                            </p>
+                            <p className="text-sm text-muted-foreground/60 mt-1">
+                              Your QR code will appear here instantly
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Download Actions */}
                   {qrDataUrl && (
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 justify-center">
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
                         onClick={copyQrCode}
+                        className="gap-2"
                       >
                         {copied ? (
                           <Check className="w-4 h-4" />
                         ) : (
                           <Copy className="w-4 h-4" />
                         )}
+                        {copied ? "Copied" : "Copy"}
                       </Button>
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
                         onClick={() => downloadQrCode("png")}
+                        className="gap-2"
                       >
-                        <Download className="w-4 h-4 mr-1" />
+                        <Download className="w-4 h-4" />
                         PNG
                       </Button>
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
                         onClick={() => downloadQrCode("svg")}
+                        className="gap-2"
                       >
-                        <Download className="w-4 h-4 mr-1" />
+                        <Download className="w-4 h-4" />
                         SVG
                       </Button>
                     </div>
                   )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex-1 flex items-center justify-center p-4 sm:p-6">
-                {qrDataUrl ? (
-                  <div className="p-6 rounded-lg border bg-white dark:bg-muted/30">
-                    <canvas
-                      ref={canvasRef}
-                      className={cn(
-                        "transition-opacity",
-                        isGenerating ? "opacity-50" : "opacity-100",
-                      )}
-                      style={{ maxWidth: "100%", height: "auto" }}
-                    />
-                  </div>
-                ) : (
-                  <div className="text-center">
-                    <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
-                      <QrCode className="w-8 h-8 text-muted-foreground" />
-                    </div>
-                    <p className="text-muted-foreground">
-                      Fill in the settings to generate a QR code
-                    </p>
-                  </div>
-                )}
+                </div>
               </CardContent>
             </Card>
           </div>
+        </div>
+
+        {/* Features - Desktop */}
+        <div className="hidden sm:flex justify-center gap-8 mt-8 mb-12 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
+          {features.map((feature, index) => {
+            const Icon = feature.icon;
+            return (
+              <div key={index} className="flex items-center gap-3 group">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <Icon className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <p className="font-medium">{feature.text}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {feature.description}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {/* FAQ and Related Tools */}
