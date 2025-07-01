@@ -654,8 +654,9 @@ export default function QrCodeGenerator() {
         {/* Main Content - Side by Side on Desktop */}
         <div className="flex-1 flex flex-col lg:flex-row gap-4 sm:gap-6 px-4 sm:px-0 min-h-0">
           {/* Left Side - Input */}
-          <Card className="flex-1 lg:max-w-md shadow-lg hover:shadow-xl transition-shadow duration-300 border-muted/50 bg-background/95 backdrop-blur-sm overflow-hidden">
-            <CardContent className="p-4 sm:p-6 h-full overflow-y-auto">
+          <div className="flex-1 lg:max-w-md flex flex-col">
+            <Card className="flex-1 shadow-lg hover:shadow-xl transition-shadow duration-300 border-muted/50 bg-background/95 backdrop-blur-sm overflow-hidden">
+              <CardContent className="p-4 sm:p-6 h-full overflow-y-auto">
               {/* Template Selection */}
               <div className="mb-6">
                 <Label className="text-base font-semibold mb-4 block">Choose Type</Label>
@@ -910,51 +911,48 @@ export default function QrCodeGenerator() {
               </div>
             </CardContent>
           </Card>
+          </div>
 
           {/* Right Side - Output (Desktop) / Second Card (Mobile) */}
-          <div className="flex-1 flex flex-col min-h-0 lg:min-h-0 h-auto lg:h-full">
-            <Card className="flex-1 flex flex-col shadow-lg hover:shadow-xl transition-shadow duration-300 border-muted/50 bg-background/95 backdrop-blur-sm overflow-hidden">
-              <CardContent className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 overflow-auto">
-                <div className="space-y-4 w-full flex flex-col items-center">
-                  <div 
-                    className="p-4 sm:p-6 rounded-2xl border bg-white dark:bg-muted/30 w-full sm:w-auto lg:max-h-[calc(100vh-400px)]"
-                  >
-                    <div className="relative overflow-auto max-h-full">
-                      <canvas
-                        ref={canvasRef}
-                        width={style.size}
-                        height={style.size}
-                        className={cn(
-                          "transition-opacity block mx-auto",
-                          isGenerating ? "opacity-50" : "opacity-100",
-                          !qrDataUrl ? "hidden" : ""
-                        )}
-                        style={{ 
-                          maxWidth: "100%", 
-                          height: "auto",
-                          aspectRatio: "1"
-                        }}
-                      />
-                      {!qrDataUrl && (
-                        <div className="flex items-center justify-center text-center p-8">
-                          <div>
-                            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mx-auto mb-4">
-                              <QrCode className="w-10 h-10 text-primary/60" />
-                            </div>
-                            <p className="text-muted-foreground">
-                              Fill in the details to generate your QR code
-                            </p>
-                            <p className="text-sm text-muted-foreground/60 mt-1">
-                              Your QR code will appear here instantly
-                            </p>
-                          </div>
-                        </div>
-                      )}
+          <div className="flex-1 flex flex-col">
+            <Card className="flex-1 flex shadow-lg hover:shadow-xl transition-shadow duration-300 border-muted/50 bg-background/95 backdrop-blur-sm overflow-hidden">
+              <CardContent className="flex-1 flex items-center justify-center p-4 sm:p-6 overflow-auto">
+                {!qrDataUrl ? (
+                  <div className="text-center">
+                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mx-auto mb-4">
+                      <QrCode className="w-10 h-10 text-primary/60" />
                     </div>
+                    <p className="text-muted-foreground">
+                      Fill in the details to generate your QR code
+                    </p>
+                    <p className="text-sm text-muted-foreground/60 mt-1">
+                      Your QR code will appear here instantly
+                    </p>
                   </div>
-                  
-                  {/* Download Actions */}
-                  {qrDataUrl && (
+                ) : (
+                  <div className="space-y-4 w-full flex flex-col items-center">
+                    <div 
+                      className="qr-output-container p-4 sm:p-6 rounded-2xl border bg-white dark:bg-muted/30 w-full sm:w-auto"
+                    >
+                      <div className="relative overflow-auto max-h-full">
+                        <canvas
+                          ref={canvasRef}
+                          width={style.size}
+                          height={style.size}
+                          className={cn(
+                            "transition-opacity block mx-auto",
+                            isGenerating ? "opacity-50" : "opacity-100"
+                          )}
+                          style={{ 
+                            maxWidth: "100%", 
+                            height: "auto",
+                            aspectRatio: "1"
+                          }}
+                        />
+                      </div>
+                    </div>
+                    
+                    {/* Download Actions */}
                     <div className="flex gap-2 justify-center">
                       <Button
                         variant="outline"
@@ -988,11 +986,10 @@ export default function QrCodeGenerator() {
                         SVG
                       </Button>
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </CardContent>
-            </Card>
-          </div>
+            </Card>          </div>
         </div>
 
         {/* Features - Desktop */}

@@ -478,6 +478,17 @@
   }
 }
 
+/* QR Code output container responsive sizing */
+.qr-output-container {
+  max-width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .qr-output-container {
+    max-height: calc(100vh - 400px);
+  }
+}
+
 /* Navigation menu positioning fix */
 [data-radix-popper-content-wrapper] {
   z-index: 50 !important;
