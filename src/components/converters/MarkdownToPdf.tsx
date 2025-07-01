@@ -16,6 +16,8 @@ import {
   Code,
   ClipboardPaste,
   Copy,
+  Hash,
+  ListOrdered,
 } from "lucide-react";
 import {
   Select,
@@ -600,13 +602,15 @@ export const MarkdownToPdf: React.FC = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6 sm:h-7 sm:w-7 lg:hidden"
+                className="h-6 w-6 sm:h-7 sm:w-7 hidden sm:inline-flex"
                 onClick={() => setShowLineNumbers(!showLineNumbers)}
                 title="Toggle line numbers"
               >
-                <span className="text-[10px] font-mono">
-                  {showLineNumbers ? "1." : "#"}
-                </span>
+                {showLineNumbers ? (
+                  <ListOrdered className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                ) : (
+                  <Hash className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                )}
               </Button>
               <Button
                 variant="ghost"
