@@ -9,6 +9,8 @@ import { getHeicImageConverter } from '../../lib/heic-image-converter';
 import { Slider } from '../ui/slider';
 import { Button } from '../ui/button';
 import { CollapsibleSection } from '../ui/mobile/CollapsibleSection';
+import { FAQ, type FAQItem } from '../ui/FAQ';
+import { RelatedTools, type RelatedTool } from '../ui/RelatedTools';
 import { FormatSelect } from '../ui/format-select';
 import { cn } from '../../lib/utils';
 import { ImageCarouselModal } from './ImageCarouselModal';
@@ -48,13 +50,13 @@ const features = [
   { icon: Sparkles, text: 'Premium quality', description: 'Lossless conversion options' },
 ];
 
-const relatedTools = [
+const relatedTools: RelatedTool[] = [
   { id: 'image-resizer', name: 'Image Resizer', description: 'Resize images to any dimension', icon: Image },
   { id: 'image-compressor', name: 'Image Compressor', description: 'Reduce file size without quality loss', icon: FileImage },
   { id: 'pdf-to-jpg', name: 'PDF to JPG', description: 'Convert PDF pages to images', icon: FileText },
 ];
 
-const faqs = [
+const faqs: FAQItem[] = [
   {
     question: 'Is my data secure during conversion?',
     answer: 'Yes! All conversions happen locally in your browser. Your files never leave your device or get uploaded to any server.'
@@ -1042,68 +1044,14 @@ export default function ImageConverter({ sourceFormat, targetFormat }: ImageConv
             </div>
 
             {/* Related Tools */}
-            <div className="space-y-6">
-              <h2 className="text-2xl font-bold">Related Tools</h2>
-              <div className="space-y-3">
-                {relatedTools.map(tool => {
-                  const Icon = tool.icon;
-                  return (
-                    <a
-                      key={tool.id}
-                      href={`/tools/${tool.id}`}
-                      className="flex items-center gap-3 p-3 rounded-lg bg-card/30 border border-border/30 hover:bg-card/50 hover:border-primary/30 transition-all duration-300 group"
-                    >
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                        <Icon className="w-5 h-5 text-primary" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-sm group-hover:text-primary transition-colors">{tool.name}</p>
-                        <p className="text-xs text-muted-foreground">{tool.description}</p>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto group-hover:text-primary transition-colors" />
-                    </a>
-                  );
-                })}
-              </div>
+            <div className="mt-12 md:mt-0 pt-12 md:pt-0 border-t md:border-t-0">
+              <RelatedTools tools={relatedTools} direction="vertical" />
             </div>
           </div>
 
           {/* FAQ Section */}
           <div className="mt-16 pt-16 border-t">
-            <h2 className="text-2xl font-bold mb-8 flex items-center gap-2">
-              <HelpCircle className="w-6 h-6 text-primary" />
-              Frequently Asked Questions
-            </h2>
-            
-            {/* Desktop Grid - Always expanded */}
-            <div className="hidden md:grid md:grid-cols-2 gap-6">
-              {faqs.map((faq, index) => (
-                <div 
-                  key={`faq-desktop-${index}`}
-                  className="rounded-xl bg-card/30 backdrop-blur-sm border border-border/50 p-6"
-                >
-                  <h3 className="font-medium text-base mb-3">{faq.question}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {faq.answer}
-                  </p>
-                </div>
-              ))}
-            </div>
-            
-            {/* Mobile Stack - Collapsible */}
-            <div className="md:hidden space-y-4">
-              {faqs.map((faq, index) => (
-                <CollapsibleSection
-                  key={`faq-mobile-${index}`}
-                  title={faq.question}
-                  defaultOpen={false}
-                >
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {faq.answer}
-                  </p>
-                </CollapsibleSection>
-              ))}
-            </div>
+            <FAQ items={faqs} />
           </div>
         </div>
       </section>

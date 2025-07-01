@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback } from 'react';
 import { 
   Upload, Download, X, ArrowRight, ArrowUpDown,
   FileImage, AlertCircle, CheckCircle2, Loader2, Shield, Zap,
-  Sparkles, Info, Minimize2, Image, ChevronRight, HelpCircle,
+  Sparkles, Info, Minimize2, Image,
   Sliders, Crown, Star, Scale, Package
 } from 'lucide-react';
 import { useImageCompress } from '../../hooks/useImageCompress';
@@ -10,6 +10,8 @@ import type { CompressOptions, CompressFormat } from '../../lib/image-compress';
 import { Slider } from '../ui/slider';
 import { Button } from '../ui/button';
 import { CollapsibleSection } from '../ui/mobile/CollapsibleSection';
+import { FAQ, type FAQItem } from '../ui/FAQ';
+import { RelatedTools, type RelatedTool } from '../ui/RelatedTools';
 import { cn } from '../../lib/utils';
 import { ImageCarouselModal } from './ImageCarouselModal';
 import JSZip from 'jszip';
@@ -40,13 +42,13 @@ const features = [
   { icon: Sparkles, text: 'Smart compression', description: 'Optimal quality-to-size ratio' },
 ];
 
-const relatedTools = [
+const relatedTools: RelatedTool[] = [
   { id: 'image-resizer', name: 'Image Resizer', description: 'Resize images to any dimension', icon: Image },
   { id: 'png-to-jpg', name: 'PNG to JPG', description: 'Convert PNG images to JPG format', icon: FileImage },
   { id: 'image-converter', name: 'Image Converter', description: 'Convert between all image formats', icon: FileImage },
 ];
 
-const faqs = [
+const faqs: FAQItem[] = [
   {
     question: 'How does image compression work?',
     answer: 'Our tool uses advanced algorithms to reduce file size while maintaining visual quality. For lossy formats (JPEG, WebP), it removes imperceptible details. For PNG, it optimizes the encoding.'
@@ -920,70 +922,13 @@ export default function ImageCompressor() {
         </div>
 
         {/* Related Tools */}
-        <div className="space-y-6 mt-12">
-          <h2 className="text-2xl font-semibold">Related Tools</h2>
-          <div className="grid gap-4 sm:grid-cols-3">
-            {relatedTools.map((tool) => {
-              const Icon = tool.icon;
-              return (
-                <a
-                  key={tool.id}
-                  href={`/tools/${tool.id}`}
-                  className="group relative bg-card/50 backdrop-blur-sm rounded-xl p-6 border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 overflow-hidden"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  <div className="relative">
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                      <Icon className="w-6 h-6 text-primary" />
-                    </div>
-                    <h3 className="font-semibold mb-2 group-hover:text-primary transition-colors">{tool.name}</h3>
-                    <p className="text-sm text-muted-foreground mb-4">{tool.description}</p>
-                    <div className="flex items-center text-sm font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <span className="transform -translate-x-2 group-hover:translate-x-0 transition-transform duration-300">Try now</span>
-                      <ChevronRight className="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform duration-300" />
-                    </div>
-                  </div>
-                </a>
-              );
-            })}
-          </div>
+        <div className="mt-12 pt-12 border-t">
+          <RelatedTools tools={relatedTools} direction="responsive" />
         </div>
 
         {/* FAQ Section */}
-        <div className="space-y-6 mt-12">
-          <h2 className="text-2xl font-semibold flex items-center gap-2">
-            <HelpCircle className="w-6 h-6 text-primary" />
-            Frequently Asked Questions
-          </h2>
-          
-          {/* Desktop Grid Layout */}
-          <div className="hidden md:grid md:grid-cols-2 gap-4">
-            {faqs.map((faq, index) => (
-              <div key={index} className="bg-card/50 backdrop-blur-sm rounded-xl p-6 border border-border/50 hover:border-primary/30 transition-all duration-300">
-                <h3 className="font-semibold text-foreground mb-3">
-                  {faq.question}
-                </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {faq.answer}
-                </p>
-              </div>
-            ))}
-          </div>
-          
-          {/* Mobile Accordion Layout */}
-          <div className="md:hidden space-y-3">
-            {faqs.map((faq, index) => (
-              <details key={index} className="group">
-                <summary className="flex items-center justify-between cursor-pointer list-none p-5 rounded-xl bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 transition-all duration-300">
-                  <span className="font-medium pr-4 text-foreground">{faq.question}</span>
-                  <ChevronRight className="w-5 h-5 text-muted-foreground transition-transform duration-300 group-open:rotate-90" />
-                </summary>
-                <div className="px-5 pb-5 pt-3 text-sm text-muted-foreground leading-relaxed">
-                  {faq.answer}
-                </div>
-              </details>
-            ))}
-          </div>
+        <div className="mt-16 pt-16 border-t">
+          <FAQ items={faqs} />
         </div>
       </div>
     </div>
