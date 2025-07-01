@@ -6,10 +6,12 @@ Fast, privacy-first file conversion platform built with Astro and React. All con
 
 - 🚀 **Lightning Fast** - WebAssembly-powered conversions in milliseconds
 - 🔒 **100% Private** - Files never leave your browser
-- 📱 **Responsive** - Works perfectly on desktop and mobile
+- 📱 **Mobile-First** - Optimized for all devices with responsive layouts
 - 🎨 **Modern UI** - Clean, minimalist design with smooth interactions
 - 🔍 **Smart Search** - Fuzzy search to quickly find tools
 - 🌓 **Dark Mode** - Easy on the eyes, day or night
+- 🎯 **Performance Focused** - Zero animations, instant feedback
+- 📦 **Batch Processing** - Convert multiple files at once
 
 ## Tech Stack
 
@@ -64,20 +66,27 @@ pnpm astro [command]
 ```
 /src
 ├── components/
-│   ├── converters/     # Tool-specific conversion components
-│   ├── ui/             # Reusable UI components
-│   ├── Navigation.tsx  # Main navigation with fuzzy search
-│   ├── Hero.tsx        # Landing page hero section
-│   ├── ToolGrid.tsx    # Popular tools showcase
-│   └── AllToolsGrid.tsx # Complete tools listing
+│   ├── converters/         # Tool-specific conversion components
+│   ├── ui/                 # Reusable UI components
+│   │   ├── FAQ.tsx         # Common FAQ component
+│   │   ├── RelatedTools.tsx # Related tools section
+│   │   ├── mobile/         # Mobile-optimized components
+│   │   └── format-select.tsx # Format selector component
+│   ├── Navigation.tsx      # Main navigation with fuzzy search
+│   ├── Hero.tsx            # Landing page hero section
+│   ├── ToolGrid.tsx        # Popular tools showcase
+│   └── AllToolsGrid.tsx    # Complete tools listing
 ├── pages/
-│   ├── index.astro     # Landing page
-│   ├── tools.astro     # All tools page
-│   └── convert/        # Dynamic tool pages
+│   ├── index.astro         # Landing page
+│   ├── tools.astro         # All tools page
+│   └── convert/            # Dynamic tool pages
+├── workers/                # Web Workers for processing
+├── lib/                    # Core utilities and converters
+├── hooks/                  # React hooks
 ├── styles/
-│   └── global.css      # Global styles and CSS variables
+│   └── global.css          # Global styles and CSS variables
 └── layouts/
-    └── Layout.astro    # Base layout template
+    └── Layout.astro        # Base layout template
 ```
 
 ## Features Implemented
@@ -87,22 +96,47 @@ pnpm astro [command]
 - ✅ Modern, performant landing page
 - ✅ Soft, organic color palette with dark mode support
 - ✅ Fuzzy search across all tools
-- ✅ Responsive navigation with dropdowns
-- ✅ Tool cards with search volume indicators
+- ✅ Responsive navigation with mobile-optimized menu
+- ✅ Tool cards without search metrics (clean design)
 - ✅ Category filtering system
+- ✅ Mobile-first responsive design
+- ✅ Reusable component architecture
 
 ### Tools Ready
 
+- ✅ Image Converter (full format support with WASM)
+- ✅ Image Compressor (with quality presets)
+- ✅ Image Resizer (with preset dimensions)
 - ✅ PDF to Word converter (with WASM processing)
-- ⏳ JPG to PDF (UI ready, WASM pending)
-- ⏳ PDF Merge (UI ready, WASM pending)
+- ✅ Background Remover
+- ✅ QR Code Generator
+- ✅ Base64 Encoder/Decoder
+- ✅ JSON Formatter
+- ⏳ JPG to PDF (Basic implementation)
+- ⏳ PDF Merge (UI ready, implementation pending)
+- ⏳ PDF Split (Not implemented)
 
 ## Design Philosophy
 
 - **Performance First**: Every decision prioritizes speed and efficiency
 - **Privacy by Design**: No server uploads, everything processes client-side
+- **Mobile-First**: Designed for touch interfaces, enhanced for desktop
 - **Accessible**: Clean, readable design with proper contrast ratios
-- **Minimal Animations**: Subtle transitions that don't impact performance
+- **Zero Animations**: No animations for maximum performance
+- **Component Reusability**: Shared components across all tools
+
+### UI/UX Principles
+
+1. **Clean and Minimal**: Uncluttered interfaces focused on functionality
+2. **No Search Metrics**: Clean tool cards without search volume indicators
+3. **Responsive Features**: 
+   - Desktop: Full feature display with hover states
+   - Mobile: Compact icon view with tap-to-reveal details
+4. **Consistent Patterns**:
+   - Settings cards with gradient headers
+   - Collapsible sections on mobile
+   - FAQ grid on desktop, accordion on mobile
+   - Related tools with flexible layout options
 
 ## Color System
 
@@ -127,9 +161,15 @@ The project uses oklch color space for better color consistency:
 - Lighthouse score: >90
 - Core Web Vitals: All green
 
+## Documentation
+
+- [Design Guidelines](docs/DESIGN-GUIDELINES.md) - Comprehensive UI/UX patterns and component guidelines
+- [CLAUDE.md](CLAUDE.md) - Development guidelines and project-specific instructions
+- [Future Roadmap](docs/FUTURE-ROADMAP.md) - Planned features and improvements
+
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Please read our [Design Guidelines](docs/DESIGN-GUIDELINES.md) before implementing new features to ensure consistency.
 
 ## License
 

@@ -274,7 +274,126 @@ Use `tests/workers/converter-test-template.ts` as your starting point for all ne
 - **Clean and Minimal**: Keep interfaces uncluttered and focused on functionality
 - **No Search Metrics**: DO NOT display search counts (like "450k searches", "1M+ searches") in tool cards or anywhere in the UI
 - **Performance First**: Every UI decision must consider performance impact
-- **Mobile Responsive**: All components must work well on mobile devices
+- **Mobile-First Design**: Design for mobile first, enhance for desktop
+
+### Component Design Patterns
+
+#### Hero Sections
+- Center-aligned text with proper spacing
+- Responsive typography scaling (text-3xl sm:text-4xl lg:text-5xl)
+- Subtle badge elements for feature highlights
+- Mobile-optimized spacing with flex layouts
+
+#### Feature Display Pattern
+```tsx
+// Desktop: Inline cards
+<div className="hidden sm:flex flex-wrap justify-center gap-6 mb-12">
+  {features.map((feature) => <FeatureCard />)}
+</div>
+
+// Mobile: Compact icons with tap-to-reveal
+<div className="sm:hidden space-y-3 mb-8">
+  <div className="flex justify-center gap-4">
+    {features.map((feature) => <FeatureIcon onClick={() => setActiveFeature(index)} />)}
+  </div>
+  {activeFeature !== null && <FeatureDetail />}
+</div>
+```
+
+#### Settings/Configuration Cards
+- Card header with gradient: `bg-gradient-to-r from-primary/5 to-transparent`
+- Icon + title in header
+- Organized sections within card body
+- Mobile: Use CollapsibleSection for advanced options
+- Desktop: Click-to-expand with chevron rotation
+
+#### File Upload Areas
+- Large drop zones with dashed borders
+- State-based styling: `isDragging ? 'border-primary bg-primary/10' : 'border-border'`
+- Responsive padding: `p-8 sm:p-12`
+- Clear action text and supported formats
+
+#### Common Component Patterns
+
+1. **FAQ Component**:
+   ```tsx
+   // Desktop: 2-column grid
+   <div className="hidden md:grid md:grid-cols-2 gap-6">
+   
+   // Mobile: Collapsible sections
+   <div className="md:hidden space-y-4">
+     <CollapsibleSection title={faq.question} defaultOpen={false}>
+   ```
+
+2. **Related Tools**:
+   - Direction prop for layout control per page
+   - Consistent styling with hover states
+   - Icon + title + description + chevron
+
+3. **Format Selection**:
+   - Visual buttons with format colors
+   - Swap functionality between source/target
+   - Mobile: Vertical with labels
+   - Desktop: Horizontal with centered swap
+
+4. **Quality/Settings Controls**:
+   - Preset buttons for common values
+   - Slider for fine control
+   - Visual feedback (selected state highlighting)
+   - Mobile: Grid layout for presets
+
+#### Responsive Patterns
+- Mobile-first approach
+- Progressive enhancement for larger screens
+- Touch-friendly tap targets (min 44px)
+- Collapsible sections to save space on mobile
+
+#### Spacing & Layout
+- Section separation: `mt-12 pt-12 border-t`
+- Card padding: `p-4 sm:p-6`
+- Consistent gaps: `gap-2` for tight, `gap-3` for normal, `gap-4` for loose
+- Mobile margins: Often smaller than desktop
+
+#### Animation & Performance
+- NO decorative animations
+- Only functional transitions (hover, active states)
+- Use `transition-all duration-300` for smooth interactions
+- Prefer transform and opacity for animations
+
+## Common Components Library
+
+### Reusable UI Components
+
+1. **FAQ Component** (`/src/components/ui/FAQ.tsx`)
+   - Props: `items: FAQItem[]`, `title?: string`, `className?: string`
+   - Responsive: Grid on desktop, collapsible on mobile
+   - Usage: Import and pass FAQ items array
+
+2. **RelatedTools Component** (`/src/components/ui/RelatedTools.tsx`)
+   - Props: `tools: RelatedTool[]`, `title?: string`, `direction?: 'vertical' | 'horizontal' | 'responsive'`
+   - Flexible layout based on direction prop
+   - Usage: Import and configure per-page layout needs
+
+3. **CollapsibleSection** (`/src/components/ui/mobile/CollapsibleSection.tsx`)
+   - Mobile-optimized collapsible container
+   - Props: `title: string`, `defaultOpen?: boolean`, `children`
+   - Usage: Wrap content that should be collapsible on mobile
+
+4. **FormatSelect** (`/src/components/ui/format-select.tsx`)
+   - Visual format selector with color coding
+   - Props: `formats`, `value`, `onChange`, `label?`
+   - Usage: For image format selection in converters
+
+### Design Patterns to Follow
+
+When creating new tools:
+1. Copy the structure from Image Converter/Compressor/Resizer
+2. Use the common FAQ and RelatedTools components
+3. Follow the responsive feature display pattern
+4. Implement settings cards with gradient headers
+5. Use consistent spacing and typography scales
+6. Test thoroughly on mobile devices
+7. Only use emojis if the user explicitly requests it
 
 ## Git Commit Guidelines
 
