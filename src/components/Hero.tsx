@@ -116,17 +116,17 @@ export default function Hero() {
   const CurrentIcon = fileTypes[currentTypeIndex].icon;
 
   return (
-    <section className="relative p-12 md:p-16 overflow-hidden">
+    <section className="relative p-6 sm:p-8 md:p-12 lg:p-16 overflow-hidden">
       {/* Subtle background gradient */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.02] via-transparent to-accent/[0.02]" />
       </div>
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 md:gap-12 lg:gap-16 items-center">
           
           {/* Left column - Content */}
-          <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8">
             {/* Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card/80 backdrop-blur-sm border border-border/50 text-sm animate-fade-in">
               <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
@@ -134,19 +134,19 @@ export default function Hero() {
             </div>
 
             {/* Dynamic headline */}
-            <div className="space-y-4">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold animate-fade-in-up">
+            <div className="space-y-3 sm:space-y-4">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold animate-fade-in-up">
                 <span className="text-foreground">Convert Your</span>
-                <div className="relative h-[1.2em] mt-2">
+                <div className="relative h-[1.2em] mt-1 sm:mt-2">
                   <div className="absolute inset-0 flex items-center gap-3">
                     <CurrentIcon 
-                      className={`w-10 h-10 md:w-12 md:h-12 transition-all duration-300 ${
+                      className={`w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 transition-all duration-300 ${
                         isTypeTransitioning ? 'opacity-0 scale-90' : 'opacity-100 scale-100'
                       }`}
                       style={{ color: fileTypes[currentTypeIndex].color }}
                     />
                     <span 
-                      className={`text-4xl md:text-5xl lg:text-6xl font-bold transition-all duration-300 ${
+                      className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold transition-all duration-300 ${
                         isTypeTransitioning ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'
                       }`}
                       style={{ color: fileTypes[currentTypeIndex].color }}
@@ -157,22 +157,22 @@ export default function Hero() {
                 </div>
               </h1>
               
-              <p className="text-lg md:text-xl text-muted-foreground leading-relaxed animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+              <p className="text-base sm:text-lg md:text-xl text-muted-foreground leading-relaxed animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
                 Fast, secure, and completely private. No uploads, no servers, no payments.
                 Everything happens right in your browser.
               </p>
             </div>
 
             {/* Benefits list */}
-            <div className="space-y-3 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+            <div className="space-y-2 sm:space-y-3 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
               {benefits.map((benefit, index) => {
                 const Icon = benefit.icon;
                 return (
-                  <div key={index} className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Icon className="w-5 h-5 text-primary" />
+                  <div key={index} className="flex items-center gap-2 sm:gap-3">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                     </div>
-                    <span className="text-sm md:text-base text-muted-foreground">
+                    <span className="text-xs sm:text-sm md:text-base text-muted-foreground">
                       {benefit.text}
                     </span>
                   </div>
@@ -205,7 +205,7 @@ export default function Hero() {
                 disabled={isProcessing}
                 aria-label="Upload a file to convert"
               />
-              <div className={`relative p-16 md:p-20 rounded-2xl border-2 border-dashed transition-all duration-300 overflow-hidden ${
+              <div className={`relative p-12 sm:p-16 md:p-20 rounded-2xl border-2 border-dashed transition-all duration-300 overflow-hidden ${
                 isDragging 
                   ? 'border-primary bg-primary/10 scale-[1.02] shadow-lg shadow-primary/20' 
                   : 'border-border bg-card/50 group-hover:border-primary group-hover:bg-card group-hover:shadow-lg group-hover:shadow-primary/10 group-hover:scale-[1.01]'
@@ -217,21 +217,29 @@ export default function Hero() {
                 </div>
 
                 <div className="relative text-center">
-                  <Upload className={`w-16 h-16 mx-auto mb-6 transition-all duration-300 ${
+                  <Upload className={`w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 sm:mb-6 transition-all duration-300 ${
                     isDragging ? 'text-primary scale-110 rotate-12' : 'text-muted-foreground group-hover:text-primary group-hover:scale-105'
                   }`} />
-                  <p className="text-xl font-medium mb-3 transition-colors duration-300 group-hover:text-primary">
+                  <p className="text-lg sm:text-xl font-medium mb-2 sm:mb-3 transition-colors duration-300 group-hover:text-primary">
                     Drop any file here
                   </p>
-                  <p className="text-base text-muted-foreground mb-6 transition-all duration-300 group-hover:text-foreground">
+                  <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6 transition-all duration-300 group-hover:text-foreground">
                     or click to browse
                   </p>
                   
                   {/* Quick action hint */}
-                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-muted/50 transition-all duration-300 group-hover:bg-primary/10">
-                    <CheckCircle className="w-4 h-4 text-primary transition-transform duration-300 group-hover:scale-110" />
-                    <span className="text-sm text-muted-foreground transition-colors duration-300 group-hover:text-foreground">
-                      Instant conversion • No sign-up required
+                  <div className="inline-flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2 rounded-lg bg-muted/50 transition-all duration-300 group-hover:bg-primary/10">
+                    <div className="flex items-center gap-1.5">
+                      <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary transition-transform duration-300 group-hover:scale-110" />
+                      <span className="text-xs sm:text-sm text-muted-foreground transition-colors duration-300 group-hover:text-foreground">
+                        Instant conversion
+                      </span>
+                    </div>
+                    <span className="hidden sm:inline text-xs sm:text-sm text-muted-foreground">
+                      •
+                    </span>
+                    <span className="text-xs sm:text-sm text-muted-foreground transition-colors duration-300 group-hover:text-foreground">
+                      No sign-up required
                     </span>
                   </div>
                 </div>
