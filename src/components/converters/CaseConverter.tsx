@@ -1,36 +1,29 @@
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
+import { Button } from "../ui/button";
+import { toast } from "sonner";
 import {
   Type,
   Copy,
-  Check,
+  Download,
+  Shield,
+  Zap,
   Sparkles,
+  ClipboardPaste,
+  Trash2,
+  Settings,
   Code,
   Database,
   FileCode,
   Hash,
-  ArrowRight,
-  Info,
-  Keyboard,
-  Settings,
-  Search,
+  FileText,
+  ChevronRight,
 } from "lucide-react";
-import { Button } from "../ui/button";
-import { Textarea } from "../ui/textarea";
+import { Label } from "../ui/label";
+import { Switch } from "../ui/switch";
+import { CodeEditor } from "../ui/code-editor";
+import { FAQ, type FAQItem } from "../ui/FAQ";
+import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { cn } from "@/lib/utils";
-import {
-  MobileToolLayout,
-  MobileToolHeader,
-  MobileToolContent,
-  BottomSheet,
-  ActionButton,
-  ActionIconButton,
-  MobileTabs,
-  MobileTabsList,
-  MobileTabsTrigger,
-  MobileTabsContent,
-  CollapsibleSection,
-} from "../ui/mobile";
-import { Input } from "../ui/input";
 
 interface CaseFormat {
   id: string;
@@ -49,25 +42,8 @@ const preserveAcronyms = (
 ): string => {
   // Common acronyms to preserve
   const acronyms = [
-    "API",
-    "URL",
-    "ID",
-    "UUID",
-    "HTTP",
-    "HTTPS",
-    "SQL",
-    "HTML",
-    "CSS",
-    "JS",
-    "JSON",
-    "XML",
-    "PDF",
-    "CEO",
-    "FBI",
-    "NASA",
-    "FAQ",
-    "iOS",
-    "macOS",
+    "API", "URL", "ID", "UUID", "HTTP", "HTTPS", "SQL", "HTML", "CSS", "JS",
+    "JSON", "XML", "PDF", "CEO", "FBI", "NASA", "FAQ", "iOS", "macOS",
   ];
   const upperWord = word.toUpperCase();
 
@@ -245,26 +221,94 @@ const caseFormats: CaseFormat[] = [
   },
 ];
 
+const features = [
+  {
+    icon: Shield,
+    text: "Privacy-first",
+    description: "All conversion happens locally",
+  },
+  {
+    icon: Zap,
+    text: "Smart detection",
+    description: "Auto-detects current format",
+  },
+  {
+    icon: Sparkles,
+    text: "Preserves acronyms",
+    description: "Keeps API, URL, etc intact",
+  },
+];
+
+const relatedTools: RelatedTool[] = [
+  {
+    id: "hash-generator",
+    name: "Hash Generator",
+    description: "Generate MD5, SHA hashes",
+    icon: FileText,
+  },
+  {
+    id: "base64-encoder",
+    name: "Base64 Encoder",
+    description: "Encode and decode Base64",
+    icon: FileText,
+  },
+  {
+    id: "json-formatter",
+    name: "JSON Formatter",
+    description: "Format and validate JSON",
+    icon: FileText,
+  },
+];
+
+const faqs: FAQItem[] = [
+  {
+    question: "How does smart acronym preservation work?",
+    answer:
+      "The converter recognizes common acronyms like API, URL, ID, and preserves their formatting when converting between cases. For example, 'getUserAPI' in camelCase becomes 'GetUserAPI' in PascalCase, not 'GetUserApi'.",
+  },
+  {
+    question: "Which case format should I use for my project?",
+    answer:
+      "It depends on your context: camelCase for JavaScript variables, PascalCase for class names, snake_case for Python and database columns, kebab-case for URLs and CSS classes, and CONSTANT_CASE for environment variables and constants.",
+  },
+  {
+    question: "Can I convert multiple lines at once?",
+    answer:
+      "Yes! The converter handles multi-line text and preserves line breaks. Each line is converted independently, so you can convert entire code blocks or lists of items at once.",
+  },
+  {
+    question: "What's the difference between Title Case and Sentence case?",
+    answer:
+      "Title Case capitalizes the first letter of every word (The Quick Brown Fox), while Sentence case only capitalizes the first letter of the first word (The quick brown fox). Title Case is used for headings, while Sentence case is used for regular text.",
+  },
+];
+
+const SAMPLE_TEXT = "convert this text";
+
 export default function CaseConverter() {
-  // Mobile detection
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024);
-    };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-
-  const [input, setInput] = useState("");
-  const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [showUsage, setShowUsage] = useState(false);
-  const [activeTab, setActiveTab] = useState<"input" | "results">("input");
-  const [showInfoSheet, setShowInfoSheet] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [input, setInput] = useState(SAMPLE_TEXT);
   const [preserveNumbers, setPreserveNumbers] = useState(true);
+  const [smartAcronyms, setSmartAcronyms] = useState(true);
+  const [activeTab, setActiveTab] = useState<"input" | "output">("input");
+  const [activeFeature, setActiveFeature] = useState<number | null>(null);
+  
+  // Theme detection for CodeEditor
+  const [theme, setTheme] = useState("github-dark");
+  useEffect(() => {
+    const checkTheme = () => {
+      const isDark = document.documentElement.classList.contains('dark');
+      setTheme(isDark ? 'github-dark' : 'github-light');
+    };
+    checkTheme();
+    
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+    
+    return () => observer.disconnect();
+  }, []);
 
   // Detect current format
   const detectedFormat = useMemo(() => {
@@ -307,408 +351,349 @@ export default function CaseConverter() {
     }));
   }, [input, detectedFormat]);
 
-  const handleCopy = useCallback(async (text: string, formatId: string) => {
+  const handleCopy = useCallback(async (text: string, formatName: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      setCopiedId(formatId);
-      setTimeout(() => setCopiedId(null), 2000);
+      toast.success(`Copied ${formatName}`);
     } catch (err) {
       console.error("Failed to copy:", err);
+      toast.error("Failed to copy to clipboard");
     }
   }, []);
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key >= "1" && e.key <= "9") {
-        e.preventDefault();
-        const index = parseInt(e.key) - 1;
-        if (conversions[index]) {
-          handleCopy(conversions[index].result, conversions[index].id);
-        }
+  const handlePaste = useCallback(async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text) {
+        setInput(text);
+        setActiveTab("input");
+        toast.success("Pasted from clipboard");
       }
-    };
-
-    window.addEventListener("keydown", handleKeyPress);
-    return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [conversions, handleCopy]);
-
-  // Filter conversions based on search
-  const filteredConversions = useMemo(() => {
-    if (!searchQuery) return conversions;
-    return conversions.filter(
-      (conv) =>
-        conv.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        conv.result.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
-  }, [conversions, searchQuery]);
-
-  // Auto-switch to results on mobile when input is provided
-  useEffect(() => {
-    if (isMobile && input && activeTab === "input") {
-      setActiveTab("results");
+    } catch (err) {
+      console.error("Failed to paste:", err);
+      toast.error("Failed to paste from clipboard");
     }
-  }, [input, isMobile, activeTab]);
+  }, []);
 
-  // Mobile layout
-  if (isMobile) {
-    return (
-      <MobileToolLayout>
-        <MobileToolHeader
-          title="Case Converter"
-          description="Convert text between formats"
-          action={
-            <ActionIconButton
-              onClick={() => setShowInfoSheet(true)}
-              icon={<Info />}
-              label="Info"
-              variant="ghost"
-            />
-          }
-        />
+  const handleClear = useCallback(() => {
+    setInput("");
+    toast.success("Cleared input");
+  }, []);
 
-        <MobileTabs
-          value={activeTab}
-          onValueChange={(v) => setActiveTab(v as "input" | "results")}
-          defaultValue="input"
-        >
-          <div className="px-4 pt-2">
-            <MobileTabsList variant="default">
-              <MobileTabsTrigger value="input">Input</MobileTabsTrigger>
-              <MobileTabsTrigger
-                value="results"
-                badge={
-                  conversions.length > 0
-                    ? conversions.length.toString()
-                    : undefined
-                }
-              >
-                Results
-              </MobileTabsTrigger>
-            </MobileTabsList>
+  const handleDownloadAll = useCallback(() => {
+    if (!input.trim()) return;
+
+    const content = conversions.map(conv => 
+      `${conv.name}:\n${conv.result}\n`
+    ).join('\n');
+
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `case-conversions-${Date.now()}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Downloaded all conversions");
+  }, [conversions, input]);
+
+  // Auto-switch to output tab when conversions are available
+  useEffect(() => {
+    if (conversions.length > 0 && input !== SAMPLE_TEXT) {
+      setActiveTab("output");
+    }
+  }, [conversions, input]);
+
+  return (
+    <div className="w-full flex flex-col flex-1 min-h-0">
+      <section className="flex-1 w-full max-w-7xl mx-auto p-0 sm:p-4 md:p-6 lg:p-8 flex flex-col h-full">
+        {/* Header */}
+        <div className="text-center mb-4 sm:mb-8 md:mb-12 space-y-2 sm:space-y-4 px-4 sm:px-0 pt-4 sm:pt-0">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold animate-fade-in flex items-center justify-center flex-wrap gap-2 sm:gap-3">
+            <span>Case</span>
+            <span className="text-primary">Converter</span>
+          </h1>
+
+          <p
+            className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in-up"
+            style={{ animationDelay: "0.1s" }}
+          >
+            Convert text between different case formats with smart acronym preservation
+          </p>
+        </div>
+
+        {/* Features - Hide on mobile to save space */}
+        <div className="hidden sm:block animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+          <div className="hidden sm:flex flex-wrap justify-center gap-6 mb-12">
+            {features.map((feature, index) => {
+              const Icon = feature.icon;
+              return (
+                <div key={index} className="flex items-center gap-3 group">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Icon className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm">{feature.text}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {feature.description}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
+        </div>
 
-          <MobileTabsContent value="input">
-            <MobileToolContent>
-              <div className="space-y-4">
-                <Textarea
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Type or paste text here..."
-                  className="min-h-[300px] resize-none"
-                  spellCheck={false}
-                />
-
-                {input && (
-                  <div className="space-y-4">
-                    <div className="p-3 bg-muted/30 rounded-lg">
-                      <p className="text-sm text-muted-foreground mb-1">
-                        Detected format:
-                      </p>
-                      <p className="font-medium">
-                        {detectedFormat || "Unknown"}
-                      </p>
-                    </div>
-
-                    <ActionButton
-                      onClick={() => setInput("")}
-                      label="Clear Text"
-                      variant="secondary"
-                      fullWidth
-                    />
+        {/* Settings Card - Desktop only */}
+        <div className="hidden sm:block mb-6">
+          <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
+            <div className="bg-gradient-to-r from-primary/5 to-transparent p-4 border-b">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Settings className="w-5 h-5 text-primary" />
+                  <h3 className="font-medium">Conversion Options</h3>
+                </div>
+                {detectedFormat && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Sparkles className="w-4 h-4 text-primary" />
+                    <span>Detected: {caseFormats.find(f => f.id === detectedFormat)?.name}</span>
                   </div>
                 )}
               </div>
-            </MobileToolContent>
-          </MobileTabsContent>
-
-          <MobileTabsContent value="results">
-            <MobileToolContent>
-              {conversions.length > 0 ? (
-                <div className="space-y-4">
-                  {/* Search bar */}
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      type="text"
-                      placeholder="Search formats..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-9"
-                    />
-                  </div>
-
-                  {/* Results list */}
-                  <div className="space-y-2">
-                    {filteredConversions.map((conversion) => (
-                      <div
-                        key={conversion.id}
-                        className={cn(
-                          "p-4 rounded-lg border transition-all",
-                          conversion.isCurrentFormat
-                            ? "bg-primary/5 border-primary"
-                            : "hover:bg-secondary/50",
-                        )}
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-2">
-                              {conversion.icon && (
-                                <conversion.icon className="w-4 h-4 text-muted-foreground" />
-                              )}
-                              <span className="font-medium text-sm">
-                                {conversion.name}
-                                {conversion.isCurrentFormat && (
-                                  <span className="ml-2 text-xs text-primary">
-                                    (current)
-                                  </span>
-                                )}
-                              </span>
-                            </div>
-                            <p className="font-mono text-sm break-all select-all mb-1">
-                              {conversion.result}
-                            </p>
-                            {showUsage && conversion.usage && (
-                              <p className="text-xs text-muted-foreground">
-                                {conversion.usage}
-                              </p>
-                            )}
-                          </div>
-                          <ActionIconButton
-                            onClick={() =>
-                              handleCopy(conversion.result, conversion.id)
-                            }
-                            icon={
-                              copiedId === conversion.id ? <Check /> : <Copy />
-                            }
-                            label="Copy"
-                            variant="ghost"
-                            className={
-                              copiedId === conversion.id ? "text-green-500" : ""
-                            }
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {filteredConversions.length === 0 && (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <p>No formats match your search</p>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <Type className="w-16 h-16 text-muted-foreground/20 mx-auto mb-4" />
-                  <p className="text-muted-foreground">No text to convert</p>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Go to Input tab to enter text
-                  </p>
-                </div>
-              )}
-            </MobileToolContent>
-          </MobileTabsContent>
-        </MobileTabs>
-
-        {/* Info bottom sheet */}
-        <BottomSheet
-          open={showInfoSheet}
-          onOpenChange={setShowInfoSheet}
-          title="Case Formats"
-        >
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="font-medium">Show usage info</span>
-              <input
-                type="checkbox"
-                checked={showUsage}
-                onChange={(e) => setShowUsage(e.target.checked)}
-                className="rounded h-5 w-5"
-              />
             </div>
-
-            <div className="space-y-3">
-              <h3 className="font-medium">Available Formats</h3>
-              {caseFormats.map((format) => (
-                <div key={format.id} className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    {format.icon && (
-                      <format.icon className="w-4 h-4 text-muted-foreground" />
-                    )}
-                    <span className="font-medium">{format.name}</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {format.description}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Example: {format.example}
-                  </p>
+            <div className="p-4">
+              <div className="flex flex-wrap items-center gap-6">
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="smart-acronyms"
+                    checked={smartAcronyms}
+                    onCheckedChange={setSmartAcronyms}
+                  />
+                  <Label htmlFor="smart-acronyms" className="text-sm cursor-pointer">
+                    Smart acronym preservation
+                  </Label>
                 </div>
-              ))}
-            </div>
-
-            <div>
-              <h3 className="font-medium mb-2">Features</h3>
-              <ul className="space-y-1 text-sm text-muted-foreground">
-                <li>• Smart acronym preservation (API, URL, etc.)</li>
-                <li>• Automatic format detection</li>
-                <li>• One-tap copy for any format</li>
-              </ul>
-            </div>
-          </div>
-        </BottomSheet>
-      </MobileToolLayout>
-    );
-  }
-
-  // Desktop layout
-  return (
-    <div className="w-full max-w-4xl mx-auto p-4">
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold mb-2">Case Converter</h1>
-        <p className="text-muted-foreground">
-          Convert text between different case formats instantly
-        </p>
-      </div>
-
-      {/* Input Area */}
-      <div className="mb-6 space-y-2">
-        <div className="flex items-center justify-between">
-          <label className="text-sm font-medium">Input Text</label>
-          {detectedFormat && (
-            <span className="text-xs text-muted-foreground flex items-center gap-1">
-              <Sparkles className="w-3 h-3" />
-              Detected: {caseFormats.find((f) => f.id === detectedFormat)?.name}
-            </span>
-          )}
-        </div>
-        <Textarea
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Enter your text here..."
-          className="min-h-[100px] resize-none font-mono"
-          spellCheck={false}
-        />
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setShowUsage(!showUsage)}
-              className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
-            >
-              <Info className="w-3 h-3" />
-              {showUsage ? "Hide" : "Show"} usage tips
-            </button>
-            <button
-              className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
-              title="Use Cmd/Ctrl + 1-9 to copy formats"
-            >
-              <Keyboard className="w-3 h-3" />
-              Keyboard shortcuts
-            </button>
-          </div>
-          {input && (
-            <Button variant="ghost" size="sm" onClick={() => setInput("")}>
-              Clear
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* Results Grid */}
-      {conversions.length > 0 && (
-        <div className="space-y-2">
-          {conversions.map((conversion, index) => (
-            <div
-              key={conversion.id}
-              className={cn(
-                "group p-4 rounded-lg border transition-all",
-                conversion.isCurrentFormat
-                  ? "bg-primary/5 border-primary"
-                  : "hover:bg-secondary/50",
-              )}
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    {conversion.icon && (
-                      <conversion.icon className="w-4 h-4 text-muted-foreground" />
-                    )}
-                    <h3 className="font-semibold text-sm">
-                      {conversion.name}
-                      {conversion.isCurrentFormat && (
-                        <span className="ml-2 text-xs font-normal text-primary">
-                          (current format)
-                        </span>
-                      )}
-                    </h3>
-                    <span className="text-xs text-muted-foreground">
-                      {index < 9 && `⌘${index + 1}`}
-                    </span>
-                  </div>
-                  <p className="font-mono text-sm break-all select-all">
-                    {conversion.result}
-                  </p>
-                  {showUsage && conversion.usage && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {conversion.usage}
-                    </p>
-                  )}
+                
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="preserve-numbers"
+                    checked={preserveNumbers}
+                    onCheckedChange={setPreserveNumbers}
+                  />
+                  <Label htmlFor="preserve-numbers" className="text-sm cursor-pointer">
+                    Preserve numbers
+                  </Label>
                 </div>
+
                 <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleCopy(conversion.result, conversion.id)}
-                  className="h-8 w-8 flex-shrink-0"
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleDownloadAll}
+                  disabled={!input.trim()}
                 >
-                  {copiedId === conversion.id ? (
-                    <Check className="w-4 h-4 text-green-500" />
-                  ) : (
-                    <Copy className="w-4 h-4" />
-                  )}
+                  <Download className="w-4 h-4 mr-2" />
+                  Download All
                 </Button>
               </div>
             </div>
-          ))}
+          </div>
         </div>
-      )}
 
-      {/* Empty State */}
-      {!input && (
-        <div className="text-center py-12 text-muted-foreground">
-          <Type className="w-12 h-12 mx-auto mb-4 opacity-50" />
-          <p>Start typing to see all case formats instantly</p>
+        {/* Mobile Settings Bar */}
+        <div className="sm:hidden px-4 pb-3">
+          <div className="bg-card/50 rounded-lg border p-3 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground font-medium">Options</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDownloadAll}
+                disabled={!input.trim()}
+                className="h-7 text-xs"
+              >
+                <Download className="w-3 h-3 mr-1" />
+                Download
+              </Button>
+            </div>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="smart-acronyms-mobile"
+                  checked={smartAcronyms}
+                  onCheckedChange={setSmartAcronyms}
+                  className="h-4 w-8"
+                />
+                <Label htmlFor="smart-acronyms-mobile" className="text-xs cursor-pointer">
+                  Smart acronyms
+                </Label>
+              </div>
+              {detectedFormat && (
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Sparkles className="w-3 h-3" />
+                  <span>Detected: {caseFormats.find(f => f.id === detectedFormat)?.name}</span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      )}
 
-      {/* Features - Mobile optimized */}
-      <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-        <div className="p-3 sm:p-4 rounded-lg border">
-          <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
-          <h3 className="font-semibold text-sm sm:text-base mb-1">
-            Smart Detection
-          </h3>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Automatically detects the current format of your text
-          </p>
+        {/* Mobile Tab Navigation */}
+        <div className="sm:hidden border-b sticky top-0 z-20 bg-background">
+          <div className="flex">
+            <button
+              onClick={() => setActiveTab("input")}
+              className={`flex-1 px-4 py-3 text-sm font-medium touch-manipulation transition-colors ${
+                activeTab === "input"
+                  ? "text-primary border-b-2 border-primary bg-primary/5"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <div className="flex items-center justify-center gap-2">
+                <Type className="h-4 w-4" />
+                Input
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab("output")}
+              className={`flex-1 px-4 py-3 text-sm font-medium touch-manipulation transition-colors ${
+                activeTab === "output"
+                  ? "text-primary border-b-2 border-primary bg-primary/5"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <div className="flex items-center justify-center gap-2">
+                <Type className="h-4 w-4" />
+                Results
+                {conversions.length > 0 && (
+                  <span className="ml-1 px-1.5 py-0.5 text-xs bg-green-500 text-white rounded-full">
+                    {conversions.length}
+                  </span>
+                )}
+              </div>
+            </button>
+          </div>
         </div>
-        <div className="p-3 sm:p-4 rounded-lg border">
-          <Code className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
-          <h3 className="font-semibold text-sm sm:text-base mb-1">
-            Developer Friendly
-          </h3>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Preserves acronyms and handles programming conventions
-          </p>
+
+        {/* Main Content - Split Screen for Desktop, Tabbed for Mobile */}
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 min-h-0 gap-0 lg:gap-4">
+          {/* Input Panel */}
+          <div
+            className={`flex flex-col min-h-0 rounded-none lg:rounded-lg overflow-hidden border-0 lg:border bg-card/50 ${
+              activeTab === "input" ? "flex" : "hidden lg:flex"
+            }`}
+          >
+            <div className="border-b px-3 sm:px-4 py-2 flex items-center justify-between bg-card">
+              <span className="text-xs sm:text-sm font-medium">Input Text</span>
+              <div className="flex items-center gap-1 sm:gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 sm:h-7 sm:w-7"
+                  onClick={handlePaste}
+                  title="Paste from clipboard"
+                >
+                  <ClipboardPaste className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 sm:h-7 sm:w-7"
+                  onClick={handleClear}
+                  disabled={!input}
+                  title="Clear input"
+                >
+                  <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex-1 relative min-h-0 p-3 sm:p-4">
+              <CodeEditor
+                value={input}
+                onChange={setInput}
+                placeholder="Enter text to convert..."
+                className="h-full"
+                language="text"
+                theme={theme}
+              />
+            </div>
+          </div>
+
+          {/* Output Panel */}
+          <div
+            className={`flex flex-col min-h-0 rounded-none lg:rounded-lg overflow-hidden border-0 lg:border border-t lg:border-t bg-card/50 ${
+              activeTab === "output" ? "flex" : "hidden lg:flex"
+            }`}
+          >
+            <div className="border-b px-3 sm:px-4 py-2 flex items-center justify-between bg-card">
+              <span className="text-xs sm:text-sm font-medium">All Formats</span>
+              <div className="text-xs text-muted-foreground">
+                {conversions.length} formats
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-3 sm:p-4">
+              {conversions.length > 0 ? (
+                <div className="space-y-3">
+                  {conversions.map((conversion) => (
+                    <div
+                      key={conversion.id}
+                      className={cn(
+                        "border rounded-lg p-3 sm:p-4 space-y-2 transition-all cursor-pointer hover:bg-muted/30",
+                        conversion.isCurrentFormat && "bg-primary/5 border-primary"
+                      )}
+                      onClick={() => handleCopy(conversion.result, conversion.name)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          {conversion.icon && (
+                            <conversion.icon className="w-4 h-4 text-muted-foreground" />
+                          )}
+                          <span className={cn(
+                            "font-medium",
+                            conversion.isCurrentFormat && "text-primary"
+                          )}>
+                            {conversion.name}
+                          </span>
+                          {conversion.isCurrentFormat && (
+                            <span className="text-xs px-1.5 py-0.5 bg-primary/10 text-primary rounded">
+                              Current
+                            </span>
+                          )}
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                      <p className="font-mono text-xs sm:text-sm break-all select-all">
+                        {conversion.result}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {conversion.usage}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="h-full flex items-center justify-center">
+                  <div className="text-center space-y-2">
+                    <Type className="w-12 h-12 mx-auto text-muted-foreground/30" />
+                    <p className="text-sm text-muted-foreground">
+                      No text to convert yet
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-        <div className="p-3 sm:p-4 rounded-lg border">
-          <Keyboard className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
-          <h3 className="font-semibold text-sm sm:text-base mb-1">
-            Keyboard Shortcuts
-          </h3>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Use Cmd/Ctrl + 1-9 to quickly copy any format
-          </p>
+      </section>
+
+      {/* Related Tools and FAQ - Hidden on mobile */}
+      <div className="hidden lg:block w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+        <div className="mt-12 pt-12 border-t">
+          <RelatedTools tools={relatedTools} direction="horizontal" />
+        </div>
+        <div className="mt-12">
+          <FAQ items={faqs} />
         </div>
       </div>
     </div>
