@@ -610,7 +610,7 @@ export default function QrCodeGenerator() {
             Fast QR Generation
           </Badge>
           <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold animate-fade-in">
-            QR Code Generator
+            <span className="text-primary">QR Code</span> Generator
           </h1>
           <p
             className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in-up"
@@ -618,6 +618,26 @@ export default function QrCodeGenerator() {
           >
             Create customizable QR codes instantly. Perfect for URLs, WiFi, contacts, and more.
           </p>
+        </div>
+
+        {/* Features - Desktop */}
+        <div className="hidden sm:flex justify-center gap-8 mb-12 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
+          {features.map((feature, index) => {
+            const Icon = feature.icon;
+            return (
+              <div key={index} className="flex items-center gap-3 group">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <Icon className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <p className="font-medium">{feature.text}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {feature.description}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {/* Features - Mobile */}
@@ -990,26 +1010,6 @@ export default function QrCodeGenerator() {
                 )}
               </CardContent>
             </Card>          </div>
-        </div>
-
-        {/* Features - Desktop */}
-        <div className="hidden sm:flex justify-center gap-8 mt-8 mb-12 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
-          {features.map((feature, index) => {
-            const Icon = feature.icon;
-            return (
-              <div key={index} className="flex items-center gap-3 group">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  <Icon className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <p className="font-medium">{feature.text}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {feature.description}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
         </div>
 
         {/* FAQ and Related Tools */}
