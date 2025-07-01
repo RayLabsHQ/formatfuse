@@ -661,28 +661,71 @@ export const MarkdownToPdf: React.FC = () => {
           />
 
           <div className="flex-1 relative min-h-0">
-            {showLineNumbers && (
-              <div className="absolute left-0 top-0 bottom-0 w-6 sm:w-12 bg-muted/30 border-r flex flex-col items-center pt-3 sm:pt-4 text-[9px] sm:text-xs text-muted-foreground select-none">
-                {markdownContent.split("\n").map((_, index) => (
-                  <div key={index} className="h-6 flex items-center">
-                    {index + 1}
-                  </div>
-                ))}
+            {/* Fullscreen Container */}
+            {isFullscreen && (
+              <div className="fixed inset-0 z-50 bg-background flex flex-col">
+                <div className="border-b px-4 py-2 flex items-center justify-between bg-card">
+                  <span className="text-sm font-medium">Markdown Editor - Fullscreen</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIsFullscreen(false)}
+                    title="Exit fullscreen"
+                  >
+                    <Minimize2 className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="flex-1 relative">
+                  {showLineNumbers && (
+                    <div className="absolute left-0 top-0 bottom-0 w-12 bg-muted/30 border-r flex flex-col items-center pt-4 text-xs text-muted-foreground select-none">
+                      {markdownContent.split("\n").map((_, index) => (
+                        <div key={index} className="h-6 flex items-center">
+                          {index + 1}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <textarea
+                    ref={textareaRef}
+                    value={markdownContent}
+                    onChange={(e) => {
+                      setMarkdownContent(e.target.value);
+                      setPdfResult(null);
+                    }}
+                    placeholder="Paste your Markdown here..."
+                    className={`w-full h-full ${showLineNumbers ? "pl-16" : "pl-4"} pr-4 py-4 bg-background resize-none outline-none font-mono text-sm leading-6 overflow-auto`}
+                    spellCheck={false}
+                    autoFocus
+                  />
+                </div>
               </div>
             )}
-            <textarea
-              ref={textareaRef}
-              value={markdownContent}
-              onChange={(e) => {
-                setMarkdownContent(e.target.value);
-                setPdfResult(null);
-              }}
-              placeholder="Paste your Markdown here..."
-              className={`w-full h-full ${showLineNumbers ? "pl-9 sm:pl-16" : "pl-3 sm:pl-4"} pr-3 sm:pr-4 py-3 sm:py-4 bg-transparent resize-none outline-none font-mono text-xs sm:text-sm leading-6 sm:leading-6 overflow-auto ${
-                isFullscreen ? "fixed inset-0 z-50 bg-background" : ""
-              }`}
-              spellCheck={false}
-            />
+            
+            {/* Normal Editor */}
+            {!isFullscreen && (
+              <>
+                {showLineNumbers && (
+                  <div className="absolute left-0 top-0 bottom-0 w-6 sm:w-12 bg-muted/30 border-r flex flex-col items-center pt-3 sm:pt-4 text-[9px] sm:text-xs text-muted-foreground select-none">
+                    {markdownContent.split("\n").map((_, index) => (
+                      <div key={index} className="h-6 flex items-center">
+                        {index + 1}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <textarea
+                  ref={textareaRef}
+                  value={markdownContent}
+                  onChange={(e) => {
+                    setMarkdownContent(e.target.value);
+                    setPdfResult(null);
+                  }}
+                  placeholder="Paste your Markdown here..."
+                  className={`w-full h-full ${showLineNumbers ? "pl-9 sm:pl-16" : "pl-3 sm:pl-4"} pr-3 sm:pr-4 py-3 sm:py-4 bg-transparent resize-none outline-none font-mono text-xs sm:text-sm leading-6 sm:leading-6 overflow-auto`}
+                  spellCheck={false}
+                />
+              </>
+            )}
           </div>
         </div>
 
