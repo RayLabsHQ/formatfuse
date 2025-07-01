@@ -322,8 +322,8 @@ export const MarkdownToPdf: React.FC = () => {
 
 
   return (
-    <div className="w-full flex flex-col flex-1 min-h-0 h-full">
-      <section className="flex-1 w-full max-w-7xl mx-auto sm:p-4 md:p-6 lg:p-8 flex flex-col h-full overflow-hidden lg:overflow-visible">
+    <div className="w-full flex flex-col flex-1 min-h-0">
+      <section className="flex-1 w-full max-w-7xl mx-auto p-0 sm:p-4 md:p-6 lg:p-8 flex flex-col h-full">
         {/* Header - Hide on mobile to save space */}
         <div className="hidden sm:block text-center mb-8 sm:mb-12 space-y-4">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold animate-fade-in flex items-center justify-center flex-wrap gap-3">
@@ -566,30 +566,51 @@ export const MarkdownToPdf: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Convert Button - Show above tabs */}
+      {/* Mobile Font Controls - Show above tabs */}
       <div className="sm:hidden px-4 py-3 bg-card/50 border-b">
-        <Button
-          onClick={handleConvert}
-          disabled={isProcessing || !markdownContent.trim()}
-          size="sm"
-          className="w-full touch-manipulation"
-        >
-          {isProcessing ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Converting...
-            </>
-          ) : (
-            <>
-              <FileDown className="w-4 h-4 mr-2" />
-              Convert to PDF
-            </>
-          )}
-        </Button>
+        <div className="space-y-2">
+          <p className="text-xs text-muted-foreground font-medium">PDF Settings</p>
+          <div className="flex items-center gap-3">
+            <div className="flex-1">
+              <Select
+                value={fontFamily}
+                onValueChange={(value: "Helvetica" | "Times" | "Courier") =>
+                  setFontFamily(value)
+                }
+              >
+                <SelectTrigger className="w-full h-9 text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Helvetica">Helvetica</SelectItem>
+                  <SelectItem value="Times">Times</SelectItem>
+                  <SelectItem value="Courier">Courier</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex-1">
+              <Select
+                value={fontSize}
+                onValueChange={(value: "small" | "medium" | "large") =>
+                  setFontSize(value)
+                }
+              >
+                <SelectTrigger className="w-full h-9 text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="small">Small</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="large">Large</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Main Content - Split Screen for Desktop, Tabbed for Mobile */}
-      <div className="flex-1 flex flex-col lg:flex-row lg:min-h-0">
+      <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
         {/* Input Panel */}
         <div
           className={`flex-1 flex flex-col min-h-0 lg:border-r ${
@@ -735,7 +756,7 @@ export const MarkdownToPdf: React.FC = () => {
 
         {/* Output Panel */}
         <div
-          className={`flex-1 flex flex-col min-h-0 border-t lg:border-t-0 ${
+          className={`flex-1 flex flex-col min-h-0 h-full border-t lg:border-t-0 ${
             activeTab === "preview" ? "flex" : "hidden lg:flex"
           }`}
         >
@@ -756,7 +777,7 @@ export const MarkdownToPdf: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex-1 overflow-auto p-3 sm:p-6 bg-muted/10 lg:min-h-0">
+          <div className="flex-1 overflow-auto p-3 sm:p-6 bg-muted/10 min-h-0">
             {error && (
               <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mb-4">
                 <div className="flex items-center gap-2 text-destructive">
@@ -814,8 +835,8 @@ export const MarkdownToPdf: React.FC = () => {
       </div>
       </section>
       
-      {/* Related Tools and FAQ - Outside main flex container */}
-      <div className="w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 lg:block hidden">
+      {/* Related Tools and FAQ - Hidden on mobile */}
+      <div className="hidden lg:block w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
         <div className="mt-12 pt-12 border-t">
           <RelatedTools tools={relatedTools} direction="horizontal" />
         </div>
@@ -824,17 +845,6 @@ export const MarkdownToPdf: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Related Tools and FAQ - Always hidden on mobile for markdown editor */}
-      {false && (
-        <div className="w-full max-w-7xl mx-auto p-4 sm:p-6 lg:hidden">
-          <div className="mt-12 pt-12 border-t">
-            <RelatedTools tools={relatedTools} direction="horizontal" />
-          </div>
-          <div className="mt-12">
-            <FAQ items={faqs} />
-          </div>
-        </div>
-      )}
 
       {/* Mobile Floating Action Button */}
       {markdownContent.trim() && !pdfResult && activeTab === "editor" && (
