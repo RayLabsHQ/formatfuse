@@ -3,6 +3,7 @@ import '../styles/global.css';
 import Navigation from '../components/Navigation.tsx';
 import Footer from '../components/layout/Footer.astro';
 import WasmPrefetch from '../components/WasmPrefetch.astro';
+import ToasterProvider from '../components/ToasterProvider.tsx';
 import { getImagePath } from 'astro-opengraph-images';
 
 export interface Props {
@@ -115,5 +116,6 @@ const finalOgImage = ogImage || generatedOgImageUrl;
       <slot />
     </div>
     <Footer />
+    <ToasterProvider client:only="react" />
   </body>
 </html>

@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import { Button } from "../ui/button";
+import { toast } from "sonner";
 import {
   FileText,
   Download,
@@ -13,6 +14,7 @@ import {
   Zap,
   Type,
   Code,
+  ClipboardPaste,
   Copy,
 } from "lucide-react";
 import {
@@ -199,8 +201,10 @@ export const MarkdownToPdf: React.FC = () => {
       const text = await selectedFile.text();
       setMarkdownContent(text);
       setActiveTab("editor");
+      toast.success(`Loaded ${selectedFile.name}`);
     } catch (err) {
       setError(err instanceof Error ? err : new Error("Failed to read file"));
+      toast.error("Failed to read file");
     }
   }, []);
 
@@ -222,11 +226,25 @@ export const MarkdownToPdf: React.FC = () => {
         setMarkdownContent(text);
         setPdfResult(null);
         setActiveTab("editor");
+        toast.success("Pasted from clipboard");
       }
     } catch (err) {
       console.error("Failed to read clipboard:", err);
+      toast.error("Failed to paste from clipboard");
     }
   }, []);
+
+  const handleCopy = useCallback(async () => {
+    if (markdownContent) {
+      try {
+        await navigator.clipboard.writeText(markdownContent);
+        toast.success("Copied to clipboard");
+      } catch (err) {
+        console.error("Failed to copy:", err);
+        toast.error("Failed to copy to clipboard");
+      }
+    }
+  }, [markdownContent]);
 
 
 
@@ -271,6 +289,7 @@ export const MarkdownToPdf: React.FC = () => {
     const blob = new Blob([pdfResult], { type: "application/pdf" });
     const fileName = "markdown-document.pdf";
     saveAs(blob, fileName);
+    toast.success("PDF downloaded successfully");
   }, [pdfResult]);
 
   const renderMarkdownPreview = (markdown: string) => {
@@ -596,7 +615,16 @@ export const MarkdownToPdf: React.FC = () => {
                 onClick={handlePaste}
                 title="Paste from clipboard"
               >
-                <Upload className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <ClipboardPaste className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 sm:h-7 sm:w-7"
+                onClick={handleCopy}
+                title="Copy markdown"
+              >
+                <Copy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </Button>
               <Button
                 variant="ghost"
@@ -610,7 +638,7 @@ export const MarkdownToPdf: React.FC = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6 sm:h-7 sm:w-7 hidden sm:inline-flex"
+                className="h-6 w-6 sm:h-7 sm:w-7"
                 onClick={() => setIsFullscreen(!isFullscreen)}
                 title="Toggle fullscreen"
               >
