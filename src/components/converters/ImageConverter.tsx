@@ -1331,13 +1331,13 @@ export default function ImageConverter({
             </div>
 
             {/* Related Tools */}
-            <div className="mt-12 md:mt-0 pt-12 md:pt-0 border-t md:border-t-0">
+            <div className="space-y-6">
               <RelatedTools tools={relatedTools} direction="vertical" />
             </div>
           </div>
 
           {/* FAQ Section */}
-          <div className="mt-16 pt-16 border-t">
+          <div className="mt-12 space-y-6">
             <FAQ items={faqs} />
           </div>
         </div>

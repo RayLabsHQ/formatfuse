@@ -898,12 +898,12 @@ export default function ImageResizer() {
           )}
 
           {/* Related Tools */}
-          <div className="mt-12 pt-12 border-t">
+          <div className="mt-12 space-y-6">
             <RelatedTools tools={relatedTools} direction="responsive" />
           </div>
 
           {/* FAQ Section */}
-          <div className="mt-16 pt-16 border-t">
+          <div className="mt-12 space-y-6">
             <FAQ items={faqs} />
           </div>
         </div>
