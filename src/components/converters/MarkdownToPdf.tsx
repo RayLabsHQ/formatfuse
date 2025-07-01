@@ -324,15 +324,15 @@ export const MarkdownToPdf: React.FC = () => {
   return (
     <div className="w-full flex flex-col flex-1 min-h-0">
       <section className="flex-1 w-full max-w-7xl mx-auto p-0 sm:p-4 md:p-6 lg:p-8 flex flex-col h-full">
-        {/* Header - Hide on mobile to save space */}
-        <div className="hidden sm:block text-center mb-8 sm:mb-12 space-y-4">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold animate-fade-in flex items-center justify-center flex-wrap gap-3">
+        {/* Header */}
+        <div className="text-center mb-4 sm:mb-8 md:mb-12 space-y-2 sm:space-y-4 px-4 sm:px-0 pt-4 sm:pt-0">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold animate-fade-in flex items-center justify-center flex-wrap gap-2 sm:gap-3">
             <span>Markdown to</span>
             <span className="text-primary">PDF</span>
           </h1>
 
           <p
-            className="text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in-up"
+            className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in-up"
             style={{ animationDelay: "0.1s" }}
           >
             Transform your Markdown documents into professional PDFs with
