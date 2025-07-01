@@ -11,6 +11,15 @@ import {
   Minimize2,
   Shield,
   Loader2,
+  Type,
+  Zap,
+  Palette,
+  Code,
+  Info,
+  ChevronRight,
+  CheckCircle2,
+  Hash,
+  ClipboardPaste,
 } from "lucide-react";
 import {
   Select,
@@ -22,35 +31,148 @@ import {
 import FileSaver from "file-saver";
 import * as Comlink from "comlink";
 import type { MarkdownToPdfWorker } from "../../workers/markdown-to-pdf.worker";
+import { FAQ, type FAQItem } from "../ui/FAQ";
+import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
+import { cn } from "../../lib/utils";
 
 const { saveAs } = FileSaver;
 
-const SAMPLE_MARKDOWN = `# Project Documentation
+const SAMPLE_MARKDOWN = `# Welcome to Markdown to PDF Converter
 
-This is a sample markdown document demonstrating the conversion capabilities.
+Transform your Markdown documents into professional PDFs with ease. This tool supports all standard Markdown features.
 
-## Features
+## Key Features
 
-- **Bold text** and *italic text*
-- Lists and bullet points
-- Headers and subheaders
-- Code blocks and inline code
+- **Bold text** and *italic text* formatting
+- Headers and subheaders (H1 through H6)
+- Ordered and unordered lists
+- Code blocks with syntax highlighting
+- Tables and blockquotes
+- Links and images
 
 ### Code Example
 
 \`\`\`javascript
-function hello() {
-  console.log("Hello, World!");
+function convertToPDF(markdown) {
+  // Your markdown is converted to PDF
+  // with proper formatting and styling
+  return pdf;
 }
 \`\`\`
 
+## Why Use This Tool?
+
+1. **Privacy-First**: All processing happens in your browser
+2. **No File Size Limits**: Convert documents of any size
+3. **Professional Output**: Clean, well-formatted PDFs
+4. **Instant Conversion**: No waiting or processing queues
+
+> "The best markdown to PDF converter I've used!" - Happy User
+
 ## Getting Started
 
-1. Write your markdown
-2. Preview the output
-3. Download as PDF
+1. Paste or type your markdown in the editor
+2. Customize font and styling options
+3. Click "Convert to PDF"
+4. Download your professional PDF
 
-Enjoy using the Markdown to PDF converter!`;
+---
+
+*Start writing your markdown above to see it transformed into a beautiful PDF!*`;
+
+const features = [
+  {
+    icon: Shield,
+    text: "Privacy-first",
+    description: "Your markdown never leaves your device",
+  },
+  {
+    icon: Zap,
+    text: "Instant conversion",
+    description: "No waiting or server processing",
+  },
+  {
+    icon: Type,
+    text: "Custom styling",
+    description: "Choose fonts and sizes for your PDF",
+  },
+];
+
+const relatedTools: RelatedTool[] = [
+  {
+    id: "text-to-pdf",
+    name: "Text to PDF",
+    description: "Convert plain text to PDF",
+    icon: FileText,
+  },
+  {
+    id: "html-to-pdf",
+    name: "HTML to PDF",
+    description: "Convert HTML documents to PDF",
+    icon: Code,
+  },
+  {
+    id: "pdf-merge",
+    name: "PDF Merge",
+    description: "Combine multiple PDFs",
+    icon: FileText,
+  },
+];
+
+const faqs: FAQItem[] = [
+  {
+    question: "What Markdown features are supported?",
+    answer:
+      "We support all standard Markdown features including headers (H1-H6), bold/italic text, lists (ordered/unordered), code blocks, inline code, blockquotes, horizontal rules, links, and basic tables. Extended features like footnotes and task lists are also supported.",
+  },
+  {
+    question: "Can I customize the PDF appearance?",
+    answer:
+      "Yes! You can choose from three font families (Helvetica, Times, Courier) and three font sizes (small, medium, large). The PDF will have proper margins and professional formatting. Future updates will include more customization options like color themes and page layouts.",
+  },
+  {
+    question: "Is there a file size limit?",
+    answer:
+      "No, there's no file size limit since all processing happens in your browser. However, very large documents may take longer to convert depending on your device's processing power. The tool handles documents with thousands of lines efficiently.",
+  },
+  {
+    question: "How do I include images in my PDF?",
+    answer:
+      "Use standard Markdown image syntax: ![alt text](image-url). The images will be embedded in the PDF. For best results, use web-hosted images or base64-encoded images. Local file paths won't work due to browser security restrictions.",
+  },
+];
+
+interface MarkdownTheme {
+  name: string;
+  icon: React.ComponentType<{ className?: string }>;
+  fontFamily: "Helvetica" | "Times" | "Courier";
+  fontSize: "small" | "medium" | "large";
+  description: string;
+}
+
+const THEMES: MarkdownTheme[] = [
+  {
+    name: "Modern",
+    icon: Palette,
+    fontFamily: "Helvetica",
+    fontSize: "medium",
+    description: "Clean and contemporary",
+  },
+  {
+    name: "Classic",
+    icon: Type,
+    fontFamily: "Times",
+    fontSize: "medium",
+    description: "Traditional document style",
+  },
+  {
+    name: "Code",
+    icon: Code,
+    fontFamily: "Courier",
+    fontSize: "small",
+    description: "Monospace for technical docs",
+  },
+];
 
 export const MarkdownToPdf: React.FC = () => {
   const [markdownContent, setMarkdownContent] =
@@ -66,8 +188,11 @@ export const MarkdownToPdf: React.FC = () => {
   >("Helvetica");
   const [showSettings, setShowSettings] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"input" | "preview">("input");
+  const [activeTab, setActiveTab] = useState<"editor" | "preview">("editor");
   const [showLineNumbers, setShowLineNumbers] = useState(true);
+  const [isDragging, setIsDragging] = useState(false);
+  const [activeFeature, setActiveFeature] = useState<number | null>(null);
+  const [selectedTheme, setSelectedTheme] = useState<number>(0);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -93,15 +218,15 @@ export const MarkdownToPdf: React.FC = () => {
     };
   }, []);
 
-  const handleFileSelect = useCallback(async (files: FileList) => {
-    const selectedFile = files[0];
+  const handleFileSelect = useCallback(async (selectedFile: File) => {
     if (!selectedFile) return;
 
     if (
       !selectedFile.name.endsWith(".md") &&
-      !selectedFile.name.endsWith(".markdown")
+      !selectedFile.name.endsWith(".markdown") &&
+      !selectedFile.name.endsWith(".txt")
     ) {
-      setError(new Error("Please select a Markdown file (.md or .markdown)"));
+      setError(new Error("Please select a Markdown file (.md, .markdown, or .txt)"));
       return;
     }
 
@@ -111,8 +236,54 @@ export const MarkdownToPdf: React.FC = () => {
     try {
       const text = await selectedFile.text();
       setMarkdownContent(text);
+      setActiveTab("editor");
     } catch (err) {
       setError(err instanceof Error ? err : new Error("Failed to read file"));
+    }
+  }, []);
+
+  const handleFileChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const selectedFile = e.target.files?.[0];
+      if (selectedFile) {
+        handleFileSelect(selectedFile);
+      }
+    },
+    [handleFileSelect]
+  );
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragging(false);
+      const droppedFile = e.dataTransfer.files[0];
+      if (droppedFile) {
+        handleFileSelect(droppedFile);
+      }
+    },
+    [handleFileSelect]
+  );
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX;
+    const y = e.clientY;
+    if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
+      setIsDragging(false);
     }
   }, []);
 
@@ -122,6 +293,7 @@ export const MarkdownToPdf: React.FC = () => {
       if (text) {
         setMarkdownContent(text);
         setPdfResult(null);
+        setActiveTab("editor");
       }
     } catch (err) {
       console.error("Failed to read clipboard:", err);
@@ -137,6 +309,11 @@ export const MarkdownToPdf: React.FC = () => {
       }
     }
   }, [markdownContent]);
+
+  const applyTheme = useCallback((theme: MarkdownTheme) => {
+    setFontFamily(theme.fontFamily);
+    setFontSize(theme.fontSize);
+  }, []);
 
   const getFontSize = () => {
     switch (fontSize) {
@@ -164,6 +341,7 @@ export const MarkdownToPdf: React.FC = () => {
       });
 
       setPdfResult(result);
+      setActiveTab("preview");
     } catch (err) {
       setError(err instanceof Error ? err : new Error("Conversion failed"));
     } finally {
@@ -180,38 +358,115 @@ export const MarkdownToPdf: React.FC = () => {
   }, [pdfResult]);
 
   const renderMarkdownPreview = (markdown: string) => {
+    // Enhanced markdown rendering with more features
     return markdown
-      .replace(/^### (.*$)/gim, "<h3>$1</h3>")
-      .replace(/^## (.*$)/gim, "<h2>$1</h2>")
-      .replace(/^# (.*$)/gim, "<h1>$1</h1>")
-      .replace(/```([\s\S]*?)```/g, "<pre><code>$1</code></pre>")
-      .replace(/`([^`]+)`/g, "<code>$1</code>")
-      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-      .replace(/\*(.+?)\*/g, "<em>$1</em>")
-      .replace(/^- (.+)/gim, "<li>$1</li>")
-      .replace(/^\d+\. (.+)/gim, "<li>$1</li>")
-      .replace(/(<li>.*<\/li>)\s*(?=<li>)/g, "$1")
-      .replace(/(<li>.*<\/li>)/s, "<ul>$&</ul>")
-      .replace(/\n\n/g, "</p><p>")
-      .replace(/^([^<].*)$/gim, "<p>$1</p>")
-      .replace(/<p><\/p>/g, "")
-      .replace(/<p>(<h|<ul|<ol|<pre)/g, "$1")
-      .replace(/(<\/h\d>|<\/ul>|<\/ol>|<\/pre>)<\/p>/g, "$1");
+      .replace(/^###### (.*$)/gim, "<h6 class='text-sm font-semibold mb-2'>$1</h6>")
+      .replace(/^##### (.*$)/gim, "<h5 class='text-base font-semibold mb-2'>$1</h5>")
+      .replace(/^#### (.*$)/gim, "<h4 class='text-lg font-semibold mb-3'>$1</h4>")
+      .replace(/^### (.*$)/gim, "<h3 class='text-xl font-bold mb-3'>$1</h3>")
+      .replace(/^## (.*$)/gim, "<h2 class='text-2xl font-bold mb-4'>$1</h2>")
+      .replace(/^# (.*$)/gim, "<h1 class='text-3xl font-bold mb-4'>$1</h1>")
+      .replace(/```([\s\S]*?)```/g, "<pre class='bg-muted p-4 rounded-lg overflow-x-auto mb-4'><code>$1</code></pre>")
+      .replace(/`([^`]+)`/g, "<code class='bg-muted px-1 py-0.5 rounded text-sm'>$1</code>")
+      .replace(/\*\*(.+?)\*\*/g, "<strong class='font-bold'>$1</strong>")
+      .replace(/\*(.+?)\*/g, "<em class='italic'>$1</em>")
+      .replace(/^> (.+)/gim, "<blockquote class='border-l-4 border-primary pl-4 italic my-4'>$1</blockquote>")
+      .replace(/^- (.+)/gim, "<li class='ml-4'>$1</li>")
+      .replace(/^\d+\. (.+)/gim, "<li class='ml-4'>$1</li>")
+      .replace(/(<li.*<\/li>)\s*(?=<li)/g, "$1")
+      .replace(/(<li.*<\/li>)/s, "<ul class='list-disc mb-4'>$&</ul>")
+      .replace(/^---$/gim, "<hr class='my-6 border-t border-border'>")
+      .replace(/\n\n/g, "</p><p class='mb-4'>")
+      .replace(/^([^<].*)$/gim, "<p class='mb-4'>$1</p>")
+      .replace(/<p class='mb-4'><\/p>/g, "")
+      .replace(/<p class='mb-4'>(<h|<ul|<ol|<pre|<blockquote|<hr)/g, "$1")
+      .replace(/(<\/h\d>|<\/ul>|<\/ol>|<\/pre>|<\/blockquote>|<hr[^>]*>)<\/p>/g, "$1");
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
   };
 
   return (
-    <div className="bg-background flex flex-col">
-      {/* Tool Header - Mobile optimized */}
-      <div className="border-b">
-        <div className="px-4 sm:px-6 py-3 sm:py-4">
-          <h1 className="text-xl sm:text-2xl font-bold text-center">
-            Markdown to PDF
+    <div className="w-full">
+      <section className="w-full max-w-6xl mx-auto p-4 sm:p-6 lg:p-8">
+        {/* Header */}
+        <div className="text-center mb-8 sm:mb-12 space-y-4">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold animate-fade-in flex items-center justify-center flex-wrap gap-3">
+            <span>Markdown to</span>
+            <span className="text-primary">PDF</span>
           </h1>
-          <p className="text-center text-xs sm:text-sm text-muted-foreground mt-1">
-            Convert Markdown to PDF with live preview and syntax highlighting
+
+          <p
+            className="text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in-up"
+            style={{ animationDelay: "0.1s" }}
+          >
+            Transform your Markdown documents into professional PDFs with
+            custom styling, live preview, and instant conversion.
           </p>
         </div>
-      </div>
+
+        {/* Features - Responsive */}
+        <div className="animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+          {/* Desktop view */}
+          <div className="hidden sm:flex flex-wrap justify-center gap-6 mb-12">
+            {features.map((feature, index) => {
+              const Icon = feature.icon;
+              return (
+                <div key={index} className="flex items-center gap-3 group">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Icon className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm">{feature.text}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {feature.description}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Mobile view - Compact icons */}
+          <div className="sm:hidden space-y-3 mb-8">
+            <div className="flex justify-center gap-4">
+              {features.map((feature, index) => {
+                const Icon = feature.icon;
+                return (
+                  <button
+                    key={index}
+                    onClick={() =>
+                      setActiveFeature(activeFeature === index ? null : index)
+                    }
+                    className={cn(
+                      "w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-300",
+                      activeFeature === index
+                        ? "bg-primary text-primary-foreground scale-105"
+                        : "bg-primary/10 hover:bg-primary/20"
+                    )}
+                  >
+                    <Icon className="w-6 h-6" />
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Mobile feature details */}
+            {activeFeature !== null && (
+              <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border/50 p-4 mx-4 animate-in slide-in-from-top-2 duration-300">
+                <p className="font-medium text-sm mb-1">
+                  {features[activeFeature].text}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {features[activeFeature].description}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
 
       {/* Controls Bar - Mobile optimized */}
       <div className="border-b px-3 sm:px-6 py-2 sm:py-3 bg-card/50">
@@ -346,9 +601,9 @@ export const MarkdownToPdf: React.FC = () => {
       <div className="lg:hidden border-b">
         <div className="flex">
           <button
-            onClick={() => setActiveTab("input")}
+            onClick={() => setActiveTab("editor")}
             className={`flex-1 px-4 py-3 text-sm font-medium touch-manipulation transition-colors ${
-              activeTab === "input"
+              activeTab === "editor"
                 ? "text-primary border-b-2 border-primary bg-primary/5"
                 : "text-muted-foreground hover:text-foreground"
             }`}
@@ -384,7 +639,7 @@ export const MarkdownToPdf: React.FC = () => {
         {/* Input Panel */}
         <div
           className={`flex-1 flex flex-col lg:border-r ${
-            activeTab === "input" ? "block" : "hidden lg:flex"
+            activeTab === "editor" ? "block" : "hidden lg:flex"
           }`}
         >
           <div className="border-b px-3 sm:px-4 py-2 flex items-center justify-between bg-card/30">
@@ -438,8 +693,8 @@ export const MarkdownToPdf: React.FC = () => {
           <input
             ref={fileInputRef}
             type="file"
-            accept=".md,.markdown"
-            onChange={(e) => e.target.files && handleFileSelect(e.target.files)}
+            accept=".md,.markdown,.txt"
+            onChange={handleFileChange}
             className="hidden"
             aria-label="Select Markdown files"
           />
@@ -550,67 +805,47 @@ export const MarkdownToPdf: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Floating Action Button */}
-      {markdownContent.trim() && !pdfResult && activeTab === "input" && (
-        <div className="lg:hidden fixed bottom-6 right-6 z-40">
-          <Button
-            onClick={handleConvert}
-            disabled={isProcessing}
-            size="icon"
-            className="h-14 w-14 rounded-full shadow-lg bg-primary hover:bg-primary/90 touch-manipulation"
-          >
-            {isProcessing ? (
-              <Loader2 className="h-6 w-6 animate-spin" />
-            ) : (
-              <FileDown className="h-6 w-6" />
-            )}
-          </Button>
-        </div>
-      )}
-
-      {/* Mobile Download FAB */}
-      {pdfResult && activeTab === "preview" && (
-        <div className="lg:hidden fixed bottom-6 right-6 z-40">
-          <Button
-            onClick={downloadPdf}
-            size="icon"
-            className="h-14 w-14 rounded-full shadow-lg bg-green-600 hover:bg-green-700 text-white touch-manipulation"
-          >
-            <Download className="h-6 w-6" />
-          </Button>
-        </div>
-      )}
-
-      {/* Features - Mobile optimized */}
-      <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 px-4 sm:px-6 lg:px-8 pb-24 lg:pb-8">
-        <div className="p-3 sm:p-4 rounded-lg border">
-          <FileText className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
-          <h3 className="font-semibold text-sm sm:text-base mb-1">
-            Live Preview
-          </h3>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            See your markdown rendered in real-time as you type
-          </p>
-        </div>
-        <div className="p-3 sm:p-4 rounded-lg border">
-          <FileDown className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
-          <h3 className="font-semibold text-sm sm:text-base mb-1">
-            Professional PDFs
-          </h3>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Generate clean, formatted PDFs with proper styling
-          </p>
-        </div>
-        <div className="p-3 sm:p-4 rounded-lg border sm:col-span-2 md:col-span-1">
-          <Shield className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-primary" />
-          <h3 className="font-semibold text-sm sm:text-base mb-1">
-            Client-Side Only
-          </h3>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Your markdown stays private - all processing happens locally
-          </p>
-        </div>
+      {/* Related Tools */}
+      <div className="mt-12 pt-12 border-t">
+        <RelatedTools tools={relatedTools} direction="horizontal" />
       </div>
+
+      {/* FAQ Section */}
+      <div className="mt-12">
+        <FAQ items={faqs} />
+      </div>
+    </section>
+
+    {/* Mobile Floating Action Button */}
+    {markdownContent.trim() && !pdfResult && activeTab === "editor" && (
+      <div className="lg:hidden fixed bottom-6 right-6 z-40">
+        <Button
+          onClick={handleConvert}
+          disabled={isProcessing}
+          size="icon"
+          className="h-14 w-14 rounded-full shadow-lg bg-primary hover:bg-primary/90 touch-manipulation"
+        >
+          {isProcessing ? (
+            <Loader2 className="h-6 w-6 animate-spin" />
+          ) : (
+            <FileDown className="h-6 w-6" />
+          )}
+        </Button>
+      </div>
+    )}
+
+    {/* Mobile Download FAB */}
+    {pdfResult && activeTab === "preview" && (
+      <div className="lg:hidden fixed bottom-6 right-6 z-40">
+        <Button
+          onClick={downloadPdf}
+          size="icon"
+          className="h-14 w-14 rounded-full shadow-lg bg-green-600 hover:bg-green-700 text-white touch-manipulation"
+        >
+          <Download className="h-6 w-6" />
+        </Button>
+      </div>
+    )}
     </div>
   );
 };
