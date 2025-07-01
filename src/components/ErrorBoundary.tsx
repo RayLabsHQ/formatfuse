@@ -1,5 +1,5 @@
-import React, { Component, type ReactNode } from 'react';
-import { AlertCircle } from 'lucide-react';
+import React, { Component, type ReactNode } from "react";
+import { AlertCircle } from "lucide-react";
 
 interface Props {
   children: ReactNode;
@@ -22,7 +22,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    console.error("ErrorBoundary caught an error:", error, errorInfo);
   }
 
   render() {
@@ -37,13 +37,18 @@ export class ErrorBoundary extends Component<Props, State> {
             <div className="flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-destructive mt-0.5" />
               <div className="flex-1">
-                <h3 className="font-semibold text-lg mb-2">Something went wrong</h3>
+                <h3 className="font-semibold text-lg mb-2">
+                  Something went wrong
+                </h3>
                 <p className="text-sm text-muted-foreground mb-3">
-                  An error occurred while rendering this component. Please refresh the page and try again.
+                  An error occurred while rendering this component. Please
+                  refresh the page and try again.
                 </p>
                 {this.state.error && (
                   <details className="text-xs text-muted-foreground">
-                    <summary className="cursor-pointer hover:underline">Technical details</summary>
+                    <summary className="cursor-pointer hover:underline">
+                      Technical details
+                    </summary>
                     <pre className="mt-2 p-2 bg-muted/50 rounded overflow-auto">
                       {this.state.error.message}
                       {this.state.error.stack}

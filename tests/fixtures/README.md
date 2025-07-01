@@ -24,6 +24,7 @@ fixtures/
 ## Test Files
 
 Each directory contains:
+
 - `sample.*` - Basic test file
 - `large.*` - Large file for performance testing
 - `corrupted.*` - Corrupted file for error handling

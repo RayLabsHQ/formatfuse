@@ -1,6 +1,6 @@
-import React from 'react';
-import { HelpCircle } from 'lucide-react';
-import { CollapsibleSection } from './mobile/CollapsibleSection';
+import React from "react";
+import { HelpCircle } from "lucide-react";
+import { CollapsibleSection } from "./mobile/CollapsibleSection";
 
 export interface FAQItem {
   question: string;
@@ -13,18 +13,22 @@ interface FAQProps {
   className?: string;
 }
 
-export function FAQ({ items, title = "Frequently Asked Questions", className = "" }: FAQProps) {
+export function FAQ({
+  items,
+  title = "Frequently Asked Questions",
+  className = "",
+}: FAQProps) {
   return (
     <div className={className}>
       <h2 className="text-2xl font-semibold mb-8 flex items-center gap-2">
         <HelpCircle className="w-6 h-6 text-primary" />
         {title}
       </h2>
-      
+
       {/* Desktop Grid - Always expanded */}
       <div className="hidden md:grid md:grid-cols-2 gap-6">
         {items.map((faq, index) => (
-          <div 
+          <div
             key={`faq-desktop-${index}`}
             className="rounded-xl bg-card/30 backdrop-blur-sm border border-border/50 p-6"
           >
@@ -35,7 +39,7 @@ export function FAQ({ items, title = "Frequently Asked Questions", className = "
           </div>
         ))}
       </div>
-      
+
       {/* Mobile Stack - Collapsible */}
       <div className="md:hidden space-y-4">
         {items.map((faq, index) => (

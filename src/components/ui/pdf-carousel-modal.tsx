@@ -1,9 +1,17 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import ReactDOM from 'react-dom';
-import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Maximize2, RotateCcw } from 'lucide-react';
-import { Button } from './button';
-import { cn } from '../../lib/utils';
-import useEmblaCarousel from 'embla-carousel-react';
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import ReactDOM from "react-dom";
+import {
+  X,
+  ChevronLeft,
+  ChevronRight,
+  ZoomIn,
+  ZoomOut,
+  Maximize2,
+  RotateCcw,
+} from "lucide-react";
+import { Button } from "./button";
+import { cn } from "../../lib/utils";
+import useEmblaCarousel from "embla-carousel-react";
 
 interface PdfCarouselModalProps {
   isOpen: boolean;
@@ -18,76 +26,81 @@ export const PdfCarouselModal: React.FC<PdfCarouselModalProps> = ({
   onClose,
   pdfDoc,
   initialPage = 1,
-  totalPages
+  totalPages,
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [scale, setScale] = useState(1);
-  const [renderedPages, setRenderedPages] = useState<Map<number, string>>(new Map());
+  const [renderedPages, setRenderedPages] = useState<Map<number, string>>(
+    new Map(),
+  );
   const [loading, setLoading] = useState(false);
-  
+
   // Carousel setup
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: false,
     skipSnaps: false,
     dragFree: false,
-    containScroll: 'trimSnaps'
+    containScroll: "trimSnaps",
   });
-  
+
   const [thumbEmblaRef, thumbEmblaApi] = useEmblaCarousel({
-    containScroll: 'keepSnaps',
-    dragFree: true
+    containScroll: "keepSnaps",
+    dragFree: true,
   });
 
   // Render PDF page to canvas
-  const renderPage = useCallback(async (pageNum: number) => {
-    if (!pdfDoc || renderedPages.has(pageNum)) return;
-    
-    try {
-      const page = await pdfDoc.getPage(pageNum);
-      const viewport = page.getViewport({ scale: 2 }); // High res for full screen
-      
-      const canvas = document.createElement('canvas');
-      const context = canvas.getContext('2d');
-      if (!context) return;
-      
-      canvas.width = viewport.width;
-      canvas.height = viewport.height;
-      
-      await page.render({
-        canvasContext: context,
-        viewport: viewport,
-      }).promise;
-      
-      const dataUrl = canvas.toDataURL();
-      setRenderedPages(prev => new Map(prev).set(pageNum, dataUrl));
-    } catch (error) {
-      console.error(`Error rendering page ${pageNum}:`, error);
-    }
-  }, [pdfDoc, renderedPages]);
+  const renderPage = useCallback(
+    async (pageNum: number) => {
+      if (!pdfDoc || renderedPages.has(pageNum)) return;
+
+      try {
+        const page = await pdfDoc.getPage(pageNum);
+        const viewport = page.getViewport({ scale: 2 }); // High res for full screen
+
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+        if (!context) return;
+
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+
+        await page.render({
+          canvasContext: context,
+          viewport: viewport,
+        }).promise;
+
+        const dataUrl = canvas.toDataURL();
+        setRenderedPages((prev) => new Map(prev).set(pageNum, dataUrl));
+      } catch (error) {
+        console.error(`Error rendering page ${pageNum}:`, error);
+      }
+    },
+    [pdfDoc, renderedPages],
+  );
 
   // Pre-render initial page and adjacent pages on mount
   useEffect(() => {
     if (!pdfDoc) return;
-    
+
     const pagesToRender = [
       initialPage,
       initialPage - 1,
-      initialPage + 1
-    ].filter(p => p >= 1 && p <= totalPages);
-    
+      initialPage + 1,
+    ].filter((p) => p >= 1 && p <= totalPages);
+
     pagesToRender.forEach(renderPage);
   }, [pdfDoc, initialPage, totalPages, renderPage]);
 
   // Pre-render current and adjacent pages
   useEffect(() => {
     if (!pdfDoc) return;
-    
+
     const pagesToRender = [
       currentPage,
       currentPage - 1,
-      currentPage + 1
-    ].filter(p => p >= 1 && p <= totalPages);
-    
+      currentPage + 1,
+    ].filter((p) => p >= 1 && p <= totalPages);
+
     pagesToRender.forEach(renderPage);
   }, [currentPage, pdfDoc, totalPages, renderPage]);
 
@@ -120,32 +133,32 @@ export const PdfCarouselModal: React.FC<PdfCarouselModalProps> = ({
 
   useEffect(() => {
     if (!emblaApi) return;
-    emblaApi.on('select', onSelect);
+    emblaApi.on("select", onSelect);
     return () => {
-      emblaApi.off('select', onSelect);
+      emblaApi.off("select", onSelect);
     };
   }, [emblaApi, onSelect]);
 
   // Keyboard navigation
   useEffect(() => {
     if (!isOpen) return;
-    
+
     const handleKeyDown = (e: KeyboardEvent) => {
       switch (e.key) {
-        case 'Escape':
+        case "Escape":
           onClose();
           break;
-        case 'ArrowLeft':
-          if (currentPage > 1) setCurrentPage(prev => prev - 1);
+        case "ArrowLeft":
+          if (currentPage > 1) setCurrentPage((prev) => prev - 1);
           break;
-        case 'ArrowRight':
-          if (currentPage < totalPages) setCurrentPage(prev => prev + 1);
+        case "ArrowRight":
+          if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
           break;
       }
     };
-    
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, currentPage, totalPages, onClose]);
 
   if (!isOpen) return null;
@@ -153,11 +166,11 @@ export const PdfCarouselModal: React.FC<PdfCarouselModalProps> = ({
   const modalContent = (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-black/80 backdrop-blur-sm"
         onClick={onClose}
       />
-      
+
       {/* Modal Content */}
       <div className="relative w-full h-full flex flex-col">
         {/* Header */}
@@ -166,14 +179,14 @@ export const PdfCarouselModal: React.FC<PdfCarouselModalProps> = ({
             <span className="text-white font-medium text-sm sm:text-base">
               Page {currentPage} of {totalPages}
             </span>
-            
+
             {/* Zoom Controls */}
             <div className="flex items-center gap-1 sm:gap-2">
               <Button
                 variant="ghost"
                 size="icon"
                 className="text-white hover:bg-white/20 active:bg-white/30 touch-manipulation h-10 w-10 sm:h-9 sm:w-9"
-                onClick={() => setScale(prev => Math.max(prev - 0.25, 0.5))}
+                onClick={() => setScale((prev) => Math.max(prev - 0.25, 0.5))}
                 disabled={scale <= 0.5}
               >
                 <ZoomOut className="h-5 w-5 sm:h-4 sm:w-4" />
@@ -185,7 +198,7 @@ export const PdfCarouselModal: React.FC<PdfCarouselModalProps> = ({
                 variant="ghost"
                 size="icon"
                 className="text-white hover:bg-white/20 active:bg-white/30 touch-manipulation h-10 w-10 sm:h-9 sm:w-9"
-                onClick={() => setScale(prev => Math.min(prev + 0.25, 3))}
+                onClick={() => setScale((prev) => Math.min(prev + 0.25, 3))}
                 disabled={scale >= 3}
               >
                 <ZoomIn className="h-5 w-5 sm:h-4 sm:w-4" />
@@ -202,7 +215,7 @@ export const PdfCarouselModal: React.FC<PdfCarouselModalProps> = ({
               </Button>
             </div>
           </div>
-          
+
           <Button
             variant="ghost"
             size="icon"
@@ -212,32 +225,34 @@ export const PdfCarouselModal: React.FC<PdfCarouselModalProps> = ({
             <X className="h-5 w-5" />
           </Button>
         </div>
-        
+
         {/* Main Carousel */}
         <div className="flex-1 overflow-hidden" ref={emblaRef}>
           <div className="flex h-full">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
-              <div
-                key={pageNum}
-                className="flex-[0_0_100%] flex items-center justify-center p-4 sm:p-8"
-              >
-                {renderedPages.has(pageNum) ? (
-                  <img
-                    src={renderedPages.get(pageNum)}
-                    alt={`Page ${pageNum}`}
-                    className="max-w-full max-h-full object-contain shadow-2xl"
-                    style={{ transform: `scale(${scale})` }}
-                  />
-                ) : (
-                  <div className="flex items-center justify-center w-full h-full">
-                    <div className="animate-pulse bg-white/10 rounded-lg w-[90%] max-w-md h-[400px] sm:h-[600px]" />
-                  </div>
-                )}
-              </div>
-            ))}
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+              (pageNum) => (
+                <div
+                  key={pageNum}
+                  className="flex-[0_0_100%] flex items-center justify-center p-4 sm:p-8"
+                >
+                  {renderedPages.has(pageNum) ? (
+                    <img
+                      src={renderedPages.get(pageNum)}
+                      alt={`Page ${pageNum}`}
+                      className="max-w-full max-h-full object-contain shadow-2xl"
+                      style={{ transform: `scale(${scale})` }}
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center w-full h-full">
+                      <div className="animate-pulse bg-white/10 rounded-lg w-[90%] max-w-md h-[400px] sm:h-[600px]" />
+                    </div>
+                  )}
+                </div>
+              ),
+            )}
           </div>
         </div>
-        
+
         {/* Navigation Buttons */}
         <Button
           variant="ghost"
@@ -248,7 +263,7 @@ export const PdfCarouselModal: React.FC<PdfCarouselModalProps> = ({
         >
           <ChevronLeft className="h-8 w-8" />
         </Button>
-        
+
         <Button
           variant="ghost"
           size="icon"
@@ -258,7 +273,7 @@ export const PdfCarouselModal: React.FC<PdfCarouselModalProps> = ({
         >
           <ChevronRight className="h-8 w-8" />
         </Button>
-        
+
         {/* Mobile Page Indicator */}
         <div className="sm:hidden bg-background/10 backdrop-blur p-3 flex items-center justify-center gap-2">
           <Button
@@ -288,14 +303,17 @@ export const PdfCarouselModal: React.FC<PdfCarouselModalProps> = ({
         <div className="relative bg-background/10 backdrop-blur p-2 sm:p-4 hidden sm:block">
           <div className="overflow-hidden" ref={thumbEmblaRef}>
             <div className="flex gap-2">
-              {Array.from({ length: Math.min(totalPages, 50) }, (_, i) => i + 1).map(pageNum => (
+              {Array.from(
+                { length: Math.min(totalPages, 50) },
+                (_, i) => i + 1,
+              ).map((pageNum) => (
                 <button
                   key={pageNum}
                   className={cn(
                     "flex-[0_0_60px] sm:flex-[0_0_80px] aspect-[3/4] rounded border-2 overflow-hidden transition-all touch-manipulation",
-                    pageNum === currentPage 
-                      ? "border-primary ring-2 ring-primary/50" 
-                      : "border-white/20 hover:border-white/40 active:border-white/50"
+                    pageNum === currentPage
+                      ? "border-primary ring-2 ring-primary/50"
+                      : "border-white/20 hover:border-white/40 active:border-white/50",
                   )}
                   onClick={() => {
                     setCurrentPage(pageNum);

@@ -1,6 +1,6 @@
-import React from 'react';
-import { X, ArrowRight, TrendingUp, Clock } from 'lucide-react';
-import type { ToolOption } from '../lib/file-type-tools';
+import React from "react";
+import { X, ArrowRight, TrendingUp, Clock } from "lucide-react";
+import type { ToolOption } from "../lib/file-type-tools";
 
 interface ToolSuggestionModalProps {
   isOpen: boolean;
@@ -10,33 +10,33 @@ interface ToolSuggestionModalProps {
   onSelectTool: (toolId: string) => void;
 }
 
-export default function ToolSuggestionModal({ 
-  isOpen, 
-  onClose, 
-  file, 
+export default function ToolSuggestionModal({
+  isOpen,
+  onClose,
+  file,
   tools,
-  onSelectTool 
+  onSelectTool,
 }: ToolSuggestionModalProps) {
   if (!isOpen || !file) return null;
 
   const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
   };
 
   const getFileExtension = (filename: string) => {
-    return filename.split('.').pop()?.toUpperCase() || '';
+    return filename.split(".").pop()?.toUpperCase() || "";
   };
 
   return (
     <>
       {/* Backdrop */}
-      <div 
+      <div
         className="fixed inset-0 bg-black/50 z-50 ff-transition"
         onClick={onClose}
       />
-      
+
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div className="bg-card rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
@@ -65,7 +65,7 @@ export default function ToolSuggestionModal({
               </button>
             </div>
           </div>
-          
+
           {/* Tool Options */}
           <div className="p-6 space-y-3 max-h-[60vh] overflow-y-auto">
             {tools.length === 0 ? (
@@ -84,14 +84,16 @@ export default function ToolSuggestionModal({
                     className="w-full p-4 bg-secondary/50 hover:bg-secondary rounded-xl ff-transition group text-left"
                   >
                     <div className="flex items-center gap-4">
-                      <div className={`p-3 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground ff-transition`}>
+                      <div
+                        className={`p-3 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground ff-transition`}
+                      >
                         <Icon className="w-6 h-6" />
                       </div>
-                      
+
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-1">
                           <h3 className="font-semibold">{tool.name}</h3>
-                          {tool.popularity === 'high' && (
+                          {tool.popularity === "high" && (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-accent/10 text-accent rounded-full text-xs font-medium">
                               <TrendingUp className="w-3 h-3" />
                               Popular
@@ -102,7 +104,7 @@ export default function ToolSuggestionModal({
                           {tool.description}
                         </p>
                       </div>
-                      
+
                       <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-foreground ff-transition" />
                     </div>
                   </button>
@@ -110,7 +112,7 @@ export default function ToolSuggestionModal({
               })
             )}
           </div>
-          
+
           {/* Footer */}
           <div className="p-6 border-t border-border bg-secondary/30">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">

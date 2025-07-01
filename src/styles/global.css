@@ -1,4 +1,4 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -25,7 +25,7 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  
+
   /* Custom theme colors */
   --color-tool-pdf: var(--tool-pdf);
   --color-tool-jpg: var(--tool-jpg);
@@ -35,70 +35,70 @@
 
 :root {
   --radius: 1rem;
-  
+
   /* Light theme - Vibrant colors with good contrast */
-  --background: oklch(0.98 0.005 90);      /* Warm white background */
-  --foreground: oklch(0.2 0.02 285);       /* Rich dark purple-gray */
+  --background: oklch(0.98 0.005 90); /* Warm white background */
+  --foreground: oklch(0.2 0.02 285); /* Rich dark purple-gray */
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.2 0.02 285);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.2 0.02 285);
-  --primary: oklch(0.65 0.22 285);         /* Vibrant purple */
+  --primary: oklch(0.65 0.22 285); /* Vibrant purple */
   --primary-foreground: oklch(0.98 0.005 90);
-  --secondary: oklch(0.92 0.04 285);       /* Light purple tint */
+  --secondary: oklch(0.92 0.04 285); /* Light purple tint */
   --secondary-foreground: oklch(0.2 0.02 285);
   --muted: oklch(0.94 0.015 285);
   --muted-foreground: oklch(0.45 0.02 285);
-  --accent: oklch(0.72 0.18 152);          /* Vibrant mint green */
+  --accent: oklch(0.72 0.18 152); /* Vibrant mint green */
   --accent-foreground: oklch(0.2 0.02 285);
   --destructive: oklch(0.65 0.2 15);
   --border: oklch(0.89 0.02 285);
   --input: oklch(0.94 0.015 285);
   --ring: oklch(0.65 0.22 285);
-  
+
   /* Tool-specific colors - More vibrant */
-  --tool-pdf: oklch(0.72 0.18 15);        /* Vibrant coral */
-  --tool-jpg: oklch(0.75 0.16 73);        /* Vibrant peach */
-  --tool-png: oklch(0.7 0.18 285);        /* Vibrant purple */
-  --tool-doc: oklch(0.72 0.16 210);       /* Vibrant sky blue */
-  
+  --tool-pdf: oklch(0.72 0.18 15); /* Vibrant coral */
+  --tool-jpg: oklch(0.75 0.16 73); /* Vibrant peach */
+  --tool-png: oklch(0.7 0.18 285); /* Vibrant purple */
+  --tool-doc: oklch(0.72 0.16 210); /* Vibrant sky blue */
+
   /* Gradient colors - More saturated */
-  --gradient-1: oklch(0.8 0.15 285);      /* Purple gradient */
-  --gradient-2: oklch(0.8 0.12 152);      /* Mint gradient */
-  --gradient-3: oklch(0.8 0.12 73);       /* Peach gradient */
+  --gradient-1: oklch(0.8 0.15 285); /* Purple gradient */
+  --gradient-2: oklch(0.8 0.12 152); /* Mint gradient */
+  --gradient-3: oklch(0.8 0.12 73); /* Peach gradient */
 }
 
 .dark {
   /* Dark theme - Improved contrast for better readability */
-  --background: oklch(0.22 0.015 285);     /* Lighter purple-gray background */
-  --foreground: oklch(0.96 0.01 73);       /* Slightly brighter cream text */
-  --card: oklch(0.26 0.015 285);           /* Lighter card background */
+  --background: oklch(0.22 0.015 285); /* Lighter purple-gray background */
+  --foreground: oklch(0.96 0.01 73); /* Slightly brighter cream text */
+  --card: oklch(0.26 0.015 285); /* Lighter card background */
   --card-foreground: oklch(0.96 0.01 73);
   --popover: oklch(0.26 0.015 285);
   --popover-foreground: oklch(0.96 0.01 73);
-  --primary: oklch(0.75 0.15 285);         /* Brighter lavender for better visibility */
+  --primary: oklch(0.75 0.15 285); /* Brighter lavender for better visibility */
   --primary-foreground: oklch(0.15 0.02 285);
-  --secondary: oklch(0.30 0.02 285);       /* Lighter secondary background */
+  --secondary: oklch(0.3 0.02 285); /* Lighter secondary background */
   --secondary-foreground: oklch(0.96 0.01 73);
-  --muted: oklch(0.35 0.02 285);           /* Lighter muted background */
+  --muted: oklch(0.35 0.02 285); /* Lighter muted background */
   --muted-foreground: oklch(0.75 0.01 73); /* Brighter muted text */
-  --accent: oklch(0.80 0.12 152);          /* Brighter mint accent */
+  --accent: oklch(0.8 0.12 152); /* Brighter mint accent */
   --accent-foreground: oklch(0.15 0.02 285);
-  --destructive: oklch(0.68 0.18 15);      /* Slightly brighter red */
-  --border: oklch(0.32 0.02 285);          /* Lighter borders */
-  --input: oklch(0.28 0.02 285);           /* Lighter input background */
+  --destructive: oklch(0.68 0.18 15); /* Slightly brighter red */
+  --border: oklch(0.32 0.02 285); /* Lighter borders */
+  --input: oklch(0.28 0.02 285); /* Lighter input background */
   --ring: oklch(0.75 0.15 285);
-  
+
   /* Tool colors for dark */
-  --tool-pdf: oklch(0.78 0.10 15);        /* Brighter coral */
-  --tool-jpg: oklch(0.82 0.10 73);        /* Brighter peach */
-  --tool-png: oklch(0.78 0.10 285);       /* Brighter purple */
-  --tool-doc: oklch(0.78 0.10 210);       /* Brighter blue */
-  
+  --tool-pdf: oklch(0.78 0.1 15); /* Brighter coral */
+  --tool-jpg: oklch(0.82 0.1 73); /* Brighter peach */
+  --tool-png: oklch(0.78 0.1 285); /* Brighter purple */
+  --tool-doc: oklch(0.78 0.1 210); /* Brighter blue */
+
   /* Gradient colors dark */
-  --gradient-1: oklch(0.40 0.10 285);     /* Brighter purple gradient */
-  --gradient-2: oklch(0.40 0.08 152);     /* Brighter mint gradient */
-  --gradient-3: oklch(0.40 0.08 73);      /* Brighter peach gradient */
+  --gradient-1: oklch(0.4 0.1 285); /* Brighter purple gradient */
+  --gradient-2: oklch(0.4 0.08 152); /* Brighter mint gradient */
+  --gradient-3: oklch(0.4 0.08 73); /* Brighter peach gradient */
 }
 
 @layer base {
@@ -108,27 +108,32 @@
   body {
     @apply bg-background text-foreground;
   }
-  
+
   /* Performance-focused: no animations by default */
   * {
     animation: none;
   }
-  
+
   /* Minimal transitions for performance */
   .ff-transition {
-    transition: transform 150ms ease-out, opacity 150ms ease-out, background-color 150ms ease-out, border-color 150ms ease-out, box-shadow 150ms ease-out;
+    transition:
+      transform 150ms ease-out,
+      opacity 150ms ease-out,
+      background-color 150ms ease-out,
+      border-color 150ms ease-out,
+      box-shadow 150ms ease-out;
   }
-  
+
   /* Enhanced hover states for interactive elements */
   .hover-lift:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
-  
+
   .hover-scale:hover {
     transform: scale(1.02);
   }
-  
+
   /* Glass morphism effect */
   .glass {
     background: rgba(255, 255, 255, 0.03);
@@ -136,17 +141,18 @@
     -webkit-backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.05);
   }
-  
+
   .dark .glass {
     background: rgba(255, 255, 255, 0.03);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.08);
   }
-  
+
   /* Floating animation */
   @keyframes float {
-    0%, 100% {
+    0%,
+    100% {
       transform: translateY(0) translateX(0) scale(1);
     }
     33% {
@@ -156,11 +162,11 @@
       transform: translateY(10px) translateX(-10px) scale(0.95);
     }
   }
-  
+
   .animate-float {
     animation: float 20s ease-in-out infinite;
   }
-  
+
   /* Ensure all clickable elements have pointer cursor */
   button:not(:disabled),
   a,
@@ -172,14 +178,14 @@
   .cursor-pointer {
     cursor: pointer;
   }
-  
+
   /* Disabled state styling */
   button:disabled,
   [aria-disabled="true"],
   .opacity-50 {
     cursor: not-allowed;
   }
-  
+
   /* Touch-specific utilities */
   .touch-manipulation {
     touch-action: manipulation;
@@ -187,14 +193,14 @@
     -webkit-touch-callout: none;
     user-select: none;
   }
-  
+
   /* Prevent 300ms tap delay on mobile */
   @media (hover: none) and (pointer: coarse) {
     .touch-manipulation {
       cursor: pointer;
     }
   }
-  
+
   /* Shimmer animation for progress */
   @keyframes shimmer {
     0% {
@@ -204,16 +210,16 @@
       transform: translateX(200%);
     }
   }
-  
+
   .animate-shimmer {
     animation: shimmer 2s infinite;
   }
-  
+
   /* Custom focus styles */
   *:focus-visible {
     @apply outline-2 outline-offset-2 outline-primary rounded-sm;
   }
-  
+
   /* Slide animations */
   @keyframes slide-in-from-top {
     from {
@@ -225,12 +231,12 @@
       opacity: 1;
     }
   }
-  
+
   .animate-in {
     animation-duration: 300ms;
     animation-fill-mode: both;
   }
-  
+
   .slide-in-from-top-2 {
     animation-name: slide-in-from-top;
   }
@@ -241,30 +247,30 @@
   .pb-safe-bottom {
     padding-bottom: env(safe-area-inset-bottom);
   }
-  
+
   .pt-safe-top {
     padding-top: env(safe-area-inset-top);
   }
-  
+
   .pl-safe-left {
     padding-left: env(safe-area-inset-left);
   }
-  
+
   .pr-safe-right {
     padding-right: env(safe-area-inset-right);
   }
-  
+
   /* Minimum viewport height accounting for mobile browsers */
   .min-h-\[100dvh\] {
     min-height: 100dvh;
   }
-  
+
   /* Hide scrollbar but keep scrolling */
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-  
+
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
@@ -272,10 +278,21 @@
 
 /* Utility classes for organic design */
 .ff-grid {
-  background-image: 
-    radial-gradient(circle at 20% 50%, oklch(from var(--gradient-1) l c h / 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, oklch(from var(--gradient-2) l c h / 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 40% 20%, oklch(from var(--gradient-3) l c h / 0.1) 0%, transparent 50%);
+  background-image: radial-gradient(
+      circle at 20% 50%,
+      oklch(from var(--gradient-1) l c h / 0.1) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 80% 80%,
+      oklch(from var(--gradient-2) l c h / 0.1) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 40% 20%,
+      oklch(from var(--gradient-3) l c h / 0.1) 0%,
+      transparent 50%
+    );
 }
 
 /* Simple elevated card */
@@ -286,13 +303,13 @@
 
 /* Minimal shadows */
 .ff-shadow {
-  box-shadow: 
+  box-shadow:
     0 1px 3px 0 rgb(0 0 0 / 0.1),
     0 1px 2px -1px rgb(0 0 0 / 0.1);
 }
 
 .ff-shadow-md {
-  box-shadow: 
+  box-shadow:
     0 4px 6px -1px rgb(0 0 0 / 0.1),
     0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
@@ -349,7 +366,7 @@
 
 /* Monospace font for file names and sizes */
 .font-mono {
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
   font-feature-settings: "tnum", "zero", "ss01";
 }
 
@@ -375,7 +392,8 @@
 }
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0) rotate(-2deg);
   }
   50% {

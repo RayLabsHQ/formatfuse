@@ -1,16 +1,22 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { useVirtualizer } from '@tanstack/react-virtual';
-import { 
-  Image, X, Download, Loader2, Check, AlertCircle, Maximize2
-} from 'lucide-react';
-import { Button } from '../ui/button';
-import { Progress } from '../ui/progress';
-import { ImageCarouselModal } from './ImageCarouselModal';
-import type { ImageFormat } from '../../lib/image-converter-comlink';
+import React, { useRef, useEffect, useState } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import {
+  Image,
+  X,
+  Download,
+  Loader2,
+  Check,
+  AlertCircle,
+  Maximize2,
+} from "lucide-react";
+import { Button } from "../ui/button";
+import { Progress } from "../ui/progress";
+import { ImageCarouselModal } from "./ImageCarouselModal";
+import type { ImageFormat } from "../../lib/image-converter-comlink";
 
 interface FileInfo {
   file: File;
-  status: 'pending' | 'processing' | 'completed' | 'error';
+  status: "pending" | "processing" | "completed" | "error";
   progress: number;
   result?: Blob;
   error?: string;
@@ -40,17 +46,17 @@ interface ExtendedFileRowProps extends FileRowProps {
   onPreviewClick: (index: number) => void;
 }
 
-const FileRow: React.FC<ExtendedFileRowProps> = ({ 
-  fileInfo, 
+const FileRow: React.FC<ExtendedFileRowProps> = ({
+  fileInfo,
   index,
   onConvert,
   onDownload,
   onRemove,
   formatFileSize,
-  onPreviewClick
+  onPreviewClick,
 }) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const isImageFile = fileInfo.file.type.startsWith('image/');
+  const isImageFile = fileInfo.file.type.startsWith("image/");
 
   useEffect(() => {
     if (isImageFile) {
@@ -62,11 +68,11 @@ const FileRow: React.FC<ExtendedFileRowProps> = ({
 
   const getStatusIcon = () => {
     switch (fileInfo.status) {
-      case 'processing':
+      case "processing":
         return <Loader2 className="w-4 h-4 animate-spin text-primary" />;
-      case 'completed':
+      case "completed":
         return <Check className="w-4 h-4 text-green-500" />;
-      case 'error':
+      case "error":
         return <AlertCircle className="w-4 h-4 text-destructive" />;
       default:
         return null;
@@ -82,12 +88,12 @@ const FileRow: React.FC<ExtendedFileRowProps> = ({
             <div className="relative group">
               {isImageFile && previewUrl ? (
                 <>
-                  <div 
+                  <div
                     className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden cursor-pointer bg-muted/50 border border-border"
                     onClick={() => onPreviewClick(index)}
                   >
-                    <img 
-                      src={previewUrl} 
+                    <img
+                      src={previewUrl}
                       alt={fileInfo.file.name}
                       className="w-full h-full object-cover"
                     />
@@ -112,19 +118,23 @@ const FileRow: React.FC<ExtendedFileRowProps> = ({
                 </div>
               )}
             </div>
-            
+
             <div className="flex-1 min-w-0">
-              <p className="font-medium truncate text-xs sm:text-sm">{fileInfo.file.name}</p>
+              <p className="font-medium truncate text-xs sm:text-sm">
+                {fileInfo.file.name}
+              </p>
               <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-muted-foreground">
                 <span>{formatFileSize(fileInfo.file.size)}</span>
                 {fileInfo.isLarge && (
                   <>
                     <span className="text-amber-600">•</span>
-                    <span className="text-amber-600 hidden sm:inline">Large file</span>
+                    <span className="text-amber-600 hidden sm:inline">
+                      Large file
+                    </span>
                     <span className="text-amber-600 sm:hidden">Large</span>
                   </>
                 )}
-                {fileInfo.status === 'processing' && (
+                {fileInfo.status === "processing" && (
                   <>
                     <span>•</span>
                     <span>{Math.round(fileInfo.progress)}%</span>
@@ -136,7 +146,7 @@ const FileRow: React.FC<ExtendedFileRowProps> = ({
 
           {/* Actions - Mobile optimized */}
           <div className="flex items-center gap-1 sm:gap-2">
-            {fileInfo.status === 'pending' && (
+            {fileInfo.status === "pending" && (
               <Button
                 onClick={() => onConvert(index)}
                 size="sm"
@@ -147,8 +157,8 @@ const FileRow: React.FC<ExtendedFileRowProps> = ({
                 <span className="sm:hidden">Go</span>
               </Button>
             )}
-            
-            {fileInfo.status === 'completed' && fileInfo.result && (
+
+            {fileInfo.status === "completed" && fileInfo.result && (
               <Button
                 onClick={() => onDownload(index)}
                 size="sm"
@@ -159,12 +169,12 @@ const FileRow: React.FC<ExtendedFileRowProps> = ({
               </Button>
             )}
 
-            {fileInfo.status === 'error' && (
+            {fileInfo.status === "error" && (
               <span className="text-[10px] sm:text-xs text-destructive px-1 sm:px-2">
                 Failed
               </span>
             )}
-            
+
             <Button
               onClick={() => onRemove(index)}
               size="sm"
@@ -177,17 +187,15 @@ const FileRow: React.FC<ExtendedFileRowProps> = ({
         </div>
 
         {/* Progress Bar */}
-        {fileInfo.status === 'processing' && (
+        {fileInfo.status === "processing" && (
           <div className="mt-3">
             <Progress value={fileInfo.progress} className="h-1" />
           </div>
         )}
 
         {/* Error Message */}
-        {fileInfo.status === 'error' && fileInfo.error && (
-          <div className="mt-2 text-xs text-destructive">
-            {fileInfo.error}
-          </div>
+        {fileInfo.status === "error" && fileInfo.error && (
+          <div className="mt-2 text-xs text-destructive">{fileInfo.error}</div>
         )}
       </div>
 
@@ -202,7 +210,7 @@ export default function VirtualizedFileList({
   onConvert,
   onDownload,
   onRemove,
-  formatFileSize
+  formatFileSize,
 }: VirtualizedFileListProps) {
   const parentRef = useRef<HTMLDivElement>(null);
   const [showCarousel, setShowCarousel] = useState(false);
@@ -211,7 +219,7 @@ export default function VirtualizedFileList({
   const virtualizer = useVirtualizer({
     count: files.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => window.innerWidth < 640 ? 88 : 104, // Smaller height on mobile
+    estimateSize: () => (window.innerWidth < 640 ? 88 : 104), // Smaller height on mobile
     overscan: 5, // Render 5 items outside of the visible area
   });
 
@@ -231,7 +239,7 @@ export default function VirtualizedFileList({
           Showing {files.length} files (virtualized for performance)
         </div>
       )}
-      
+
       <div
         ref={parentRef}
         className="border border-border rounded-lg bg-background overflow-auto scrollbar-thin"
@@ -242,8 +250,8 @@ export default function VirtualizedFileList({
         <div
           style={{
             height: `${virtualizer.getTotalSize()}px`,
-            width: '100%',
-            position: 'relative',
+            width: "100%",
+            position: "relative",
           }}
         >
           {virtualizer.getVirtualItems().map((virtualItem) => {
@@ -252,10 +260,10 @@ export default function VirtualizedFileList({
               <div
                 key={virtualItem.key}
                 style={{
-                  position: 'absolute',
+                  position: "absolute",
                   top: 0,
                   left: 0,
-                  width: '100%',
+                  width: "100%",
                   height: `${virtualItem.size}px`,
                   transform: `translateY(${virtualItem.start}px)`,
                 }}
@@ -278,7 +286,7 @@ export default function VirtualizedFileList({
           })}
         </div>
       </div>
-      
+
       {/* Carousel Modal */}
       <ImageCarouselModal
         isOpen={showCarousel}

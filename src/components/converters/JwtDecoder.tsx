@@ -1,19 +1,39 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { 
-  Shield, Copy, Check, AlertTriangle, Clock, 
-  Key, User, Calendar, CheckCircle, XCircle,
-  Eye, FileJson, Code, Info, Lock,
-  Globe, Server, Package, Hash, Fingerprint
-} from 'lucide-react';
-import { Button } from '../ui/button';
-import { Label } from '../ui/label';
-import { Textarea } from '../ui/textarea';
-import { Card } from '../ui/card';
-import { Separator } from '../ui/separator';
-import { Badge } from '../ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
+import React, { useState, useCallback, useMemo } from "react";
+import {
+  Shield,
+  Copy,
+  Check,
+  AlertTriangle,
+  Clock,
+  Key,
+  User,
+  Calendar,
+  CheckCircle,
+  XCircle,
+  Eye,
+  FileJson,
+  Code,
+  Info,
+  Lock,
+  Globe,
+  Server,
+  Package,
+  Hash,
+  Fingerprint,
+} from "lucide-react";
+import { Button } from "../ui/button";
+import { Label } from "../ui/label";
+import { Textarea } from "../ui/textarea";
+import { Card } from "../ui/card";
+import { Separator } from "../ui/separator";
+import { Badge } from "../ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "../ui/collapsible";
 
 interface JWTHeader {
   alg?: string;
@@ -45,60 +65,102 @@ interface ClaimInfo {
   name: string;
   description: string;
   icon: React.ElementType;
-  type: 'standard' | 'custom';
+  type: "standard" | "custom";
 }
 
 const STANDARD_CLAIMS: Record<string, ClaimInfo> = {
-  iss: { name: 'Issuer', description: 'Token issuer', icon: Server, type: 'standard' },
-  sub: { name: 'Subject', description: 'Token subject (user)', icon: User, type: 'standard' },
-  aud: { name: 'Audience', description: 'Intended audience', icon: Globe, type: 'standard' },
-  exp: { name: 'Expiration', description: 'Token expiration time', icon: Clock, type: 'standard' },
-  nbf: { name: 'Not Before', description: 'Token not valid before', icon: Calendar, type: 'standard' },
-  iat: { name: 'Issued At', description: 'Token issue time', icon: Calendar, type: 'standard' },
-  jti: { name: 'JWT ID', description: 'Unique token identifier', icon: Fingerprint, type: 'standard' }
+  iss: {
+    name: "Issuer",
+    description: "Token issuer",
+    icon: Server,
+    type: "standard",
+  },
+  sub: {
+    name: "Subject",
+    description: "Token subject (user)",
+    icon: User,
+    type: "standard",
+  },
+  aud: {
+    name: "Audience",
+    description: "Intended audience",
+    icon: Globe,
+    type: "standard",
+  },
+  exp: {
+    name: "Expiration",
+    description: "Token expiration time",
+    icon: Clock,
+    type: "standard",
+  },
+  nbf: {
+    name: "Not Before",
+    description: "Token not valid before",
+    icon: Calendar,
+    type: "standard",
+  },
+  iat: {
+    name: "Issued At",
+    description: "Token issue time",
+    icon: Calendar,
+    type: "standard",
+  },
+  jti: {
+    name: "JWT ID",
+    description: "Unique token identifier",
+    icon: Fingerprint,
+    type: "standard",
+  },
 };
 
-const ALGORITHMS: Record<string, { name: string; type: string; secure: boolean }> = {
-  HS256: { name: 'HMAC SHA-256', type: 'Symmetric', secure: true },
-  HS384: { name: 'HMAC SHA-384', type: 'Symmetric', secure: true },
-  HS512: { name: 'HMAC SHA-512', type: 'Symmetric', secure: true },
-  RS256: { name: 'RSA SHA-256', type: 'Asymmetric', secure: true },
-  RS384: { name: 'RSA SHA-384', type: 'Asymmetric', secure: true },
-  RS512: { name: 'RSA SHA-512', type: 'Asymmetric', secure: true },
-  ES256: { name: 'ECDSA P-256 SHA-256', type: 'Asymmetric', secure: true },
-  ES384: { name: 'ECDSA P-384 SHA-384', type: 'Asymmetric', secure: true },
-  ES512: { name: 'ECDSA P-521 SHA-512', type: 'Asymmetric', secure: true },
-  PS256: { name: 'RSA-PSS SHA-256', type: 'Asymmetric', secure: true },
-  PS384: { name: 'RSA-PSS SHA-384', type: 'Asymmetric', secure: true },
-  PS512: { name: 'RSA-PSS SHA-512', type: 'Asymmetric', secure: true },
-  none: { name: 'No signature', type: 'None', secure: false }
+const ALGORITHMS: Record<
+  string,
+  { name: string; type: string; secure: boolean }
+> = {
+  HS256: { name: "HMAC SHA-256", type: "Symmetric", secure: true },
+  HS384: { name: "HMAC SHA-384", type: "Symmetric", secure: true },
+  HS512: { name: "HMAC SHA-512", type: "Symmetric", secure: true },
+  RS256: { name: "RSA SHA-256", type: "Asymmetric", secure: true },
+  RS384: { name: "RSA SHA-384", type: "Asymmetric", secure: true },
+  RS512: { name: "RSA SHA-512", type: "Asymmetric", secure: true },
+  ES256: { name: "ECDSA P-256 SHA-256", type: "Asymmetric", secure: true },
+  ES384: { name: "ECDSA P-384 SHA-384", type: "Asymmetric", secure: true },
+  ES512: { name: "ECDSA P-521 SHA-512", type: "Asymmetric", secure: true },
+  PS256: { name: "RSA-PSS SHA-256", type: "Asymmetric", secure: true },
+  PS384: { name: "RSA-PSS SHA-384", type: "Asymmetric", secure: true },
+  PS512: { name: "RSA-PSS SHA-512", type: "Asymmetric", secure: true },
+  none: { name: "No signature", type: "None", secure: false },
 };
 
 export function JwtDecoder() {
-  const [jwt, setJwt] = useState('');
+  const [jwt, setJwt] = useState("");
   const [decoded, setDecoded] = useState<DecodedJWT | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [showRaw, setShowRaw] = useState(false);
 
   const decodeJWT = useCallback((token: string): DecodedJWT | null => {
     try {
-      const parts = token.trim().split('.');
+      const parts = token.trim().split(".");
       if (parts.length !== 3) {
         return {
           header: {},
           payload: {},
-          signature: '',
+          signature: "",
           isValid: false,
-          error: 'Invalid JWT format. Expected 3 parts separated by dots.'
+          error: "Invalid JWT format. Expected 3 parts separated by dots.",
         };
       }
 
       // Decode header
-      const header = JSON.parse(atob(parts[0].replace(/-/g, '+').replace(/_/g, '/')));
-      
+      const header = JSON.parse(
+        atob(parts[0].replace(/-/g, "+").replace(/_/g, "/")),
+      );
+
       // Decode payload
-      const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
-      
+      const payload = JSON.parse(
+        atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")),
+      );
+
       // Signature (not decoded, just stored)
       const signature = parts[2];
 
@@ -106,15 +168,15 @@ export function JwtDecoder() {
         header,
         payload,
         signature,
-        isValid: true
+        isValid: true,
       };
     } catch (error) {
       return {
         header: {},
         payload: {},
-        signature: '',
+        signature: "",
         isValid: false,
-        error: error instanceof Error ? error.message : 'Failed to decode JWT'
+        error: error instanceof Error ? error.message : "Failed to decode JWT",
       };
     }
   }, []);
@@ -134,7 +196,7 @@ export function JwtDecoder() {
       setCopiedField(field);
       setTimeout(() => setCopiedField(null), 2000);
     } catch (err) {
-      console.error('Failed to copy:', err);
+      console.error("Failed to copy:", err);
     }
   }, []);
 
@@ -143,18 +205,27 @@ export function JwtDecoder() {
     return date.toLocaleString();
   }, []);
 
-  const checkExpiration = useCallback((exp?: number): { expired: boolean; message: string } => {
-    if (!exp) return { expired: false, message: 'No expiration' };
-    const now = Math.floor(Date.now() / 1000);
-    const expired = exp < now;
-    const diff = Math.abs(exp - now);
-    
-    if (expired) {
-      return { expired: true, message: `Expired ${formatRelativeTime(diff)} ago` };
-    } else {
-      return { expired: false, message: `Expires in ${formatRelativeTime(diff)}` };
-    }
-  }, []);
+  const checkExpiration = useCallback(
+    (exp?: number): { expired: boolean; message: string } => {
+      if (!exp) return { expired: false, message: "No expiration" };
+      const now = Math.floor(Date.now() / 1000);
+      const expired = exp < now;
+      const diff = Math.abs(exp - now);
+
+      if (expired) {
+        return {
+          expired: true,
+          message: `Expired ${formatRelativeTime(diff)} ago`,
+        };
+      } else {
+        return {
+          expired: false,
+          message: `Expires in ${formatRelativeTime(diff)}`,
+        };
+      }
+    },
+    [],
+  );
 
   const formatRelativeTime = (seconds: number): string => {
     if (seconds < 60) return `${seconds} seconds`;
@@ -175,7 +246,7 @@ export function JwtDecoder() {
         </div>
       );
     }
-    if (typeof value === 'object' && value !== null) {
+    if (typeof value === "object" && value !== null) {
       return (
         <pre className="text-xs bg-neutral-100 dark:bg-neutral-800 p-2 rounded overflow-x-auto">
           {JSON.stringify(value, null, 2)}
@@ -210,7 +281,10 @@ export function JwtDecoder() {
           <Card className="p-6">
             <div className="space-y-4">
               <div>
-                <Label htmlFor="jwt-input" className="text-sm font-medium mb-2 block">
+                <Label
+                  htmlFor="jwt-input"
+                  className="text-sm font-medium mb-2 block"
+                >
                   Paste JWT Token
                 </Label>
                 <Textarea
@@ -234,7 +308,7 @@ export function JwtDecoder() {
                 <Button
                   variant="outline"
                   onClick={() => {
-                    setJwt('');
+                    setJwt("");
                     setDecoded(null);
                   }}
                 >
@@ -253,16 +327,22 @@ export function JwtDecoder() {
               </h3>
               <div className="space-y-3">
                 <div>
-                  <div className="text-sm text-neutral-600 dark:text-neutral-400">Algorithm</div>
+                  <div className="text-sm text-neutral-600 dark:text-neutral-400">
+                    Algorithm
+                  </div>
                   <div className="flex items-center gap-2 mt-1">
-                    <Badge variant={algorithmInfo.secure ? "default" : "destructive"}>
+                    <Badge
+                      variant={algorithmInfo.secure ? "default" : "destructive"}
+                    >
                       {decoded.header.alg}
                     </Badge>
                     <span className="text-sm">{algorithmInfo.name}</span>
                   </div>
                 </div>
                 <div>
-                  <div className="text-sm text-neutral-600 dark:text-neutral-400">Type</div>
+                  <div className="text-sm text-neutral-600 dark:text-neutral-400">
+                    Type
+                  </div>
                   <div className="text-sm mt-1">{algorithmInfo.type}</div>
                 </div>
                 {!algorithmInfo.secure && (
@@ -270,7 +350,8 @@ export function JwtDecoder() {
                     <AlertTriangle className="h-4 w-4" />
                     <AlertTitle>Security Warning</AlertTitle>
                     <AlertDescription>
-                      This token uses an insecure algorithm. Do not trust this token for authentication.
+                      This token uses an insecure algorithm. Do not trust this
+                      token for authentication.
                     </AlertDescription>
                   </Alert>
                 )}
@@ -300,9 +381,14 @@ export function JwtDecoder() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleCopy(JSON.stringify(decoded.header, null, 2), 'header')}
+                        onClick={() =>
+                          handleCopy(
+                            JSON.stringify(decoded.header, null, 2),
+                            "header",
+                          )
+                        }
                       >
-                        {copiedField === 'header' ? (
+                        {copiedField === "header" ? (
                           <Check className="h-4 w-4" />
                         ) : (
                           <Copy className="h-4 w-4" />
@@ -311,11 +397,16 @@ export function JwtDecoder() {
                     </div>
                     <div className="space-y-2">
                       {Object.entries(decoded.header).map(([key, value]) => (
-                        <div key={key} className="flex justify-between items-start">
+                        <div
+                          key={key}
+                          className="flex justify-between items-start"
+                        >
                           <span className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
                             {key}
                           </span>
-                          <span className="text-sm font-mono">{String(value)}</span>
+                          <span className="text-sm font-mono">
+                            {String(value)}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -331,9 +422,14 @@ export function JwtDecoder() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleCopy(JSON.stringify(decoded.payload, null, 2), 'payload')}
+                        onClick={() =>
+                          handleCopy(
+                            JSON.stringify(decoded.payload, null, 2),
+                            "payload",
+                          )
+                        }
                       >
-                        {copiedField === 'payload' ? (
+                        {copiedField === "payload" ? (
                           <Check className="h-4 w-4" />
                         ) : (
                           <Copy className="h-4 w-4" />
@@ -343,10 +439,13 @@ export function JwtDecoder() {
 
                     {/* Expiration Status */}
                     {expirationStatus && (
-                      <Alert className={expirationStatus.expired ? 
-                        "mb-4 bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800" : 
-                        "mb-4 bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800"
-                      }>
+                      <Alert
+                        className={
+                          expirationStatus.expired
+                            ? "mb-4 bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800"
+                            : "mb-4 bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800"
+                        }
+                      >
                         {expirationStatus.expired ? (
                           <XCircle className="h-4 w-4" />
                         ) : (
@@ -362,7 +461,7 @@ export function JwtDecoder() {
                       {Object.entries(decoded.payload).map(([key, value]) => {
                         const claimInfo = STANDARD_CLAIMS[key];
                         const Icon = claimInfo?.icon || Hash;
-                        
+
                         return (
                           <div key={key} className="space-y-1">
                             <div className="flex items-center gap-2">
@@ -377,7 +476,8 @@ export function JwtDecoder() {
                               )}
                             </div>
                             <div className="ml-6 text-sm">
-                              {['exp', 'nbf', 'iat'].includes(key) && typeof value === 'number' ? (
+                              {["exp", "nbf", "iat"].includes(key) &&
+                              typeof value === "number" ? (
                                 <div className="space-y-1">
                                   <div className="font-mono">{value}</div>
                                   <div className="text-neutral-500 dark:text-neutral-400">
@@ -409,9 +509,11 @@ export function JwtDecoder() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleCopy(decoded.signature, 'signature')}
+                        onClick={() =>
+                          handleCopy(decoded.signature, "signature")
+                        }
                       >
-                        {copiedField === 'signature' ? (
+                        {copiedField === "signature" ? (
                           <Check className="h-4 w-4" />
                         ) : (
                           <Copy className="h-4 w-4" />
@@ -434,12 +536,21 @@ export function JwtDecoder() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleCopy(JSON.stringify({
-                          header: decoded.header,
-                          payload: decoded.payload
-                        }, null, 2), 'raw')}
+                        onClick={() =>
+                          handleCopy(
+                            JSON.stringify(
+                              {
+                                header: decoded.header,
+                                payload: decoded.payload,
+                              },
+                              null,
+                              2,
+                            ),
+                            "raw",
+                          )
+                        }
                       >
-                        {copiedField === 'raw' ? (
+                        {copiedField === "raw" ? (
                           <Check className="h-4 w-4" />
                         ) : (
                           <Copy className="h-4 w-4" />
@@ -447,10 +558,14 @@ export function JwtDecoder() {
                       </Button>
                     </div>
                     <pre className="text-xs bg-neutral-100 dark:bg-neutral-800 p-4 rounded overflow-x-auto">
-                      {JSON.stringify({
-                        header: decoded.header,
-                        payload: decoded.payload
-                      }, null, 2)}
+                      {JSON.stringify(
+                        {
+                          header: decoded.header,
+                          payload: decoded.payload,
+                        },
+                        null,
+                        2,
+                      )}
                     </pre>
                   </Card>
                 </TabsContent>
@@ -489,17 +604,27 @@ export function JwtDecoder() {
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-4 space-y-4 text-sm text-neutral-600 dark:text-neutral-400">
             <p>
-              JSON Web Tokens (JWT) are an open standard (RFC 7519) for securely transmitting information between parties as a JSON object.
+              JSON Web Tokens (JWT) are an open standard (RFC 7519) for securely
+              transmitting information between parties as a JSON object.
             </p>
             <div>
-              <h4 className="font-semibold text-neutral-900 dark:text-neutral-100 mb-2">Structure</h4>
-              <p>JWTs consist of three parts separated by dots (.): Header.Payload.Signature</p>
+              <h4 className="font-semibold text-neutral-900 dark:text-neutral-100 mb-2">
+                Structure
+              </h4>
+              <p>
+                JWTs consist of three parts separated by dots (.):
+                Header.Payload.Signature
+              </p>
             </div>
             <div>
-              <h4 className="font-semibold text-neutral-900 dark:text-neutral-100 mb-2">Security Note</h4>
+              <h4 className="font-semibold text-neutral-900 dark:text-neutral-100 mb-2">
+                Security Note
+              </h4>
               <p>
-                This tool decodes JWTs client-side without sending them to any server. However, JWTs are not encrypted - 
-                anyone can decode and read their contents. Never store sensitive information in JWT payloads.
+                This tool decodes JWTs client-side without sending them to any
+                server. However, JWTs are not encrypted - anyone can decode and
+                read their contents. Never store sensitive information in JWT
+                payloads.
               </p>
             </div>
           </CollapsibleContent>

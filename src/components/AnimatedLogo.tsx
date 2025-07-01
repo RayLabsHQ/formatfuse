@@ -1,5 +1,5 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React from "react";
+import { motion } from "framer-motion";
 
 type Props = { className?: string };
 
@@ -13,9 +13,9 @@ const AnimatedLogo: React.FC<Props> = ({ className }) => {
       transition: {
         delay: 0.6 + i * 0.03,
         duration: 0.3,
-        ease: 'backOut'
-      }
-    })
+        ease: "backOut",
+      },
+    }),
   };
 
   return (
@@ -30,7 +30,14 @@ const AnimatedLogo: React.FC<Props> = ({ className }) => {
       transition={{ duration: 0.3 }}
     >
       <defs>
-        <linearGradient id="paint0_linear_486_489" x1="516.081" y1="151" x2="516.081" y2="610.604" gradientUnits="userSpaceOnUse">
+        <linearGradient
+          id="paint0_linear_486_489"
+          x1="516.081"
+          y1="151"
+          x2="516.081"
+          y2="610.604"
+          gradientUnits="userSpaceOnUse"
+        >
           <stop stopColor="#942DE6" />
           <stop offset="1" stopColor="#4F27D8" />
         </linearGradient>
@@ -42,50 +49,258 @@ const AnimatedLogo: React.FC<Props> = ({ className }) => {
         fill="url(#paint0_linear_486_489)"
         variants={{
           hidden: { pathLength: 0, opacity: 0 },
-          visible: { 
-            pathLength: 1, 
+          visible: {
+            pathLength: 1,
             opacity: 1,
             transition: {
               pathLength: { duration: 1.5, ease: "easeInOut" },
-              opacity: { duration: 0.5 }
-            }
-          }
+              opacity: { duration: 0.5 },
+            },
+          },
         }}
       />
 
       {/* Pixel blocks - animated individually */}
       <motion.g>
         {/* Row 1 */}
-        <motion.rect x="432" y="541" width="35" height="35" fill="#5227D9" variants={pixelVariants} custom={0} />
-        <motion.rect x="397" y="576" width="35" height="35" fill="#5227D9" variants={pixelVariants} custom={1} />
-        <motion.rect x="432" y="576" width="35" height="35" fill="#7034E3" variants={pixelVariants} custom={2} />
-        <motion.rect x="397" y="541" width="35" height="35" fill="#7034E3" variants={pixelVariants} custom={3} />
-        <motion.rect x="362" y="541" width="35" height="35" fill="#5227D9" variants={pixelVariants} custom={4} />
-        <motion.rect x="327" y="576" width="35" height="35" fill="#5227D9" variants={pixelVariants} custom={5} />
-        <motion.rect x="362" y="576" width="35" height="35" fill="#7034E3" variants={pixelVariants} custom={6} />
-        <motion.rect x="327" y="541" width="35" height="35" fill="#7034E3" variants={pixelVariants} custom={7} />
-        <motion.rect x="292" y="576" width="35" height="35" fill="#7034E3" variants={pixelVariants} custom={8} />
-        
+        <motion.rect
+          x="432"
+          y="541"
+          width="35"
+          height="35"
+          fill="#5227D9"
+          variants={pixelVariants}
+          custom={0}
+        />
+        <motion.rect
+          x="397"
+          y="576"
+          width="35"
+          height="35"
+          fill="#5227D9"
+          variants={pixelVariants}
+          custom={1}
+        />
+        <motion.rect
+          x="432"
+          y="576"
+          width="35"
+          height="35"
+          fill="#7034E3"
+          variants={pixelVariants}
+          custom={2}
+        />
+        <motion.rect
+          x="397"
+          y="541"
+          width="35"
+          height="35"
+          fill="#7034E3"
+          variants={pixelVariants}
+          custom={3}
+        />
+        <motion.rect
+          x="362"
+          y="541"
+          width="35"
+          height="35"
+          fill="#5227D9"
+          variants={pixelVariants}
+          custom={4}
+        />
+        <motion.rect
+          x="327"
+          y="576"
+          width="35"
+          height="35"
+          fill="#5227D9"
+          variants={pixelVariants}
+          custom={5}
+        />
+        <motion.rect
+          x="362"
+          y="576"
+          width="35"
+          height="35"
+          fill="#7034E3"
+          variants={pixelVariants}
+          custom={6}
+        />
+        <motion.rect
+          x="327"
+          y="541"
+          width="35"
+          height="35"
+          fill="#7034E3"
+          variants={pixelVariants}
+          custom={7}
+        />
+        <motion.rect
+          x="292"
+          y="576"
+          width="35"
+          height="35"
+          fill="#7034E3"
+          variants={pixelVariants}
+          custom={8}
+        />
+
         {/* Row 2 */}
-        <motion.rect x="432" y="611" width="35" height="35" fill="#5227D9" variants={pixelVariants} custom={9} />
-        <motion.rect x="397" y="646" width="35" height="35" fill="#5227D9" variants={pixelVariants} custom={10} />
-        <motion.rect x="432" y="646" width="35" height="35" fill="#7034E3" variants={pixelVariants} custom={11} />
-        <motion.rect x="397" y="611" width="35" height="35" fill="#7034E3" variants={pixelVariants} custom={12} />
-        <motion.rect x="362" y="611" width="35" height="35" fill="#5227D9" variants={pixelVariants} custom={13} />
-        <motion.rect x="362" y="646" width="35" height="35" fill="#7034E3" variants={pixelVariants} custom={14} />
-        <motion.rect x="327" y="611" width="35" height="35" fill="#7034E3" variants={pixelVariants} custom={15} />
-        <motion.rect x="292" y="646" width="35" height="35" fill="#7034E3" variants={pixelVariants} custom={16} />
-        
+        <motion.rect
+          x="432"
+          y="611"
+          width="35"
+          height="35"
+          fill="#5227D9"
+          variants={pixelVariants}
+          custom={9}
+        />
+        <motion.rect
+          x="397"
+          y="646"
+          width="35"
+          height="35"
+          fill="#5227D9"
+          variants={pixelVariants}
+          custom={10}
+        />
+        <motion.rect
+          x="432"
+          y="646"
+          width="35"
+          height="35"
+          fill="#7034E3"
+          variants={pixelVariants}
+          custom={11}
+        />
+        <motion.rect
+          x="397"
+          y="611"
+          width="35"
+          height="35"
+          fill="#7034E3"
+          variants={pixelVariants}
+          custom={12}
+        />
+        <motion.rect
+          x="362"
+          y="611"
+          width="35"
+          height="35"
+          fill="#5227D9"
+          variants={pixelVariants}
+          custom={13}
+        />
+        <motion.rect
+          x="362"
+          y="646"
+          width="35"
+          height="35"
+          fill="#7034E3"
+          variants={pixelVariants}
+          custom={14}
+        />
+        <motion.rect
+          x="327"
+          y="611"
+          width="35"
+          height="35"
+          fill="#7034E3"
+          variants={pixelVariants}
+          custom={15}
+        />
+        <motion.rect
+          x="292"
+          y="646"
+          width="35"
+          height="35"
+          fill="#7034E3"
+          variants={pixelVariants}
+          custom={16}
+        />
+
         {/* Row 3 */}
-        <motion.rect x="432" y="681" width="35" height="35" fill="#5227D9" variants={pixelVariants} custom={17} />
-        <motion.rect x="432" y="716" width="35" height="35" fill="#7034E3" variants={pixelVariants} custom={18} />
-        <motion.rect x="397" y="681" width="35" height="35" fill="#7034E3" variants={pixelVariants} custom={19} />
-        <motion.rect x="327" y="716" width="35" height="35" fill="#5227D9" variants={pixelVariants} custom={20} />
-        <motion.rect x="467" y="750" width="35" height="35" fill="#5227D9" variants={pixelVariants} custom={21} />
-        <motion.rect x="502" y="681" width="35" height="35" fill="#7034E3" variants={pixelVariants} custom={22} />
-        <motion.rect x="397" y="750" width="35" height="35" fill="#7034E3" variants={pixelVariants} custom={23} />
-        <motion.rect x="432" y="820" width="35" height="35" fill="#5227D9" variants={pixelVariants} custom={24} />
-        <motion.rect x="327" y="785" width="35" height="35" fill="#5227D9" variants={pixelVariants} custom={25} />
+        <motion.rect
+          x="432"
+          y="681"
+          width="35"
+          height="35"
+          fill="#5227D9"
+          variants={pixelVariants}
+          custom={17}
+        />
+        <motion.rect
+          x="432"
+          y="716"
+          width="35"
+          height="35"
+          fill="#7034E3"
+          variants={pixelVariants}
+          custom={18}
+        />
+        <motion.rect
+          x="397"
+          y="681"
+          width="35"
+          height="35"
+          fill="#7034E3"
+          variants={pixelVariants}
+          custom={19}
+        />
+        <motion.rect
+          x="327"
+          y="716"
+          width="35"
+          height="35"
+          fill="#5227D9"
+          variants={pixelVariants}
+          custom={20}
+        />
+        <motion.rect
+          x="467"
+          y="750"
+          width="35"
+          height="35"
+          fill="#5227D9"
+          variants={pixelVariants}
+          custom={21}
+        />
+        <motion.rect
+          x="502"
+          y="681"
+          width="35"
+          height="35"
+          fill="#7034E3"
+          variants={pixelVariants}
+          custom={22}
+        />
+        <motion.rect
+          x="397"
+          y="750"
+          width="35"
+          height="35"
+          fill="#7034E3"
+          variants={pixelVariants}
+          custom={23}
+        />
+        <motion.rect
+          x="432"
+          y="820"
+          width="35"
+          height="35"
+          fill="#5227D9"
+          variants={pixelVariants}
+          custom={24}
+        />
+        <motion.rect
+          x="327"
+          y="785"
+          width="35"
+          height="35"
+          fill="#5227D9"
+          variants={pixelVariants}
+          custom={25}
+        />
       </motion.g>
     </motion.svg>
   );

@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import ReactDOM from 'react-dom';
-import { X } from 'lucide-react';
-import { Button } from '../ui/button';
+import React, { useEffect, useState, useCallback } from "react";
+import ReactDOM from "react-dom";
+import { X } from "lucide-react";
+import { Button } from "../ui/button";
 import {
   Carousel,
   CarouselContent,
@@ -9,11 +9,11 @@ import {
   CarouselPrevious,
   CarouselNext,
   type CarouselApi,
-} from '../ui/carousel';
+} from "../ui/carousel";
 
 interface FileInfo {
   file: File;
-  status: 'pending' | 'processing' | 'completed' | 'error';
+  status: "pending" | "processing" | "completed" | "error";
   progress: number;
   result?: Blob;
   error?: string;
@@ -33,20 +33,24 @@ export function ImageCarouselModal({
   onClose,
   files,
   currentIndex,
-  formatFileSize
+  formatFileSize,
 }: ImageCarouselModalProps) {
   const [mainApi, setMainApi] = useState<CarouselApi>();
   const [thumbsApi, setThumbsApi] = useState<CarouselApi>();
   const [selectedIndex, setSelectedIndex] = useState(currentIndex);
-  const [previewUrls, setPreviewUrls] = useState<Map<number, string>>(new Map());
+  const [previewUrls, setPreviewUrls] = useState<Map<number, string>>(
+    new Map(),
+  );
 
   // Filter only image files
   const imageFiles = files
     .map((fileInfo, index) => ({ fileInfo, originalIndex: index }))
-    .filter(({ fileInfo }) => fileInfo.file.type.startsWith('image/'));
+    .filter(({ fileInfo }) => fileInfo.file.type.startsWith("image/"));
 
   // Find the actual index in the filtered array
-  const initialIndex = imageFiles.findIndex(({ originalIndex }) => originalIndex === currentIndex);
+  const initialIndex = imageFiles.findIndex(
+    ({ originalIndex }) => originalIndex === currentIndex,
+  );
 
   useEffect(() => {
     // Generate preview URLs for all image files
@@ -58,29 +62,29 @@ export function ImageCarouselModal({
     setPreviewUrls(urls);
 
     return () => {
-      urls.forEach(url => URL.revokeObjectURL(url));
+      urls.forEach((url) => URL.revokeObjectURL(url));
     };
   }, [files]);
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === "Escape") {
         onClose();
-      } else if (e.key === 'ArrowLeft' && mainApi) {
+      } else if (e.key === "ArrowLeft" && mainApi) {
         mainApi.scrollPrev();
-      } else if (e.key === 'ArrowRight' && mainApi) {
+      } else if (e.key === "ArrowRight" && mainApi) {
         mainApi.scrollNext();
       }
     };
 
     if (isOpen) {
-      document.addEventListener('keydown', handleKeyPress);
-      document.body.style.overflow = 'hidden';
+      document.addEventListener("keydown", handleKeyPress);
+      document.body.style.overflow = "hidden";
     }
 
     return () => {
-      document.removeEventListener('keydown', handleKeyPress);
-      document.body.style.overflow = 'unset';
+      document.removeEventListener("keydown", handleKeyPress);
+      document.body.style.overflow = "unset";
     };
   }, [isOpen, onClose, mainApi]);
 
@@ -89,7 +93,7 @@ export function ImageCarouselModal({
       if (!mainApi || !thumbsApi) return;
       mainApi.scrollTo(index);
     },
-    [mainApi, thumbsApi]
+    [mainApi, thumbsApi],
   );
 
   const onSelect = useCallback(() => {
@@ -101,14 +105,14 @@ export function ImageCarouselModal({
 
   useEffect(() => {
     if (!mainApi) return;
-    
+
     // Scroll to initial index when API is ready
     if (initialIndex >= 0) {
       mainApi.scrollTo(initialIndex);
     }
-    
+
     onSelect();
-    mainApi.on('select', onSelect).on('reInit', onSelect);
+    mainApi.on("select", onSelect).on("reInit", onSelect);
   }, [mainApi, onSelect, initialIndex]);
 
   if (!isOpen || imageFiles.length === 0) return null;
@@ -116,7 +120,7 @@ export function ImageCarouselModal({
   return ReactDOM.createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center">
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-black/90 backdrop-blur-sm"
         onClick={onClose}
       />
@@ -132,11 +136,7 @@ export function ImageCarouselModal({
               </p>
             </div>
           )}
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={onClose}
-          >
+          <Button size="sm" variant="secondary" onClick={onClose}>
             <X className="w-4 h-4" />
           </Button>
         </div>
@@ -153,7 +153,10 @@ export function ImageCarouselModal({
           >
             <CarouselContent>
               {imageFiles.map(({ fileInfo, originalIndex }) => (
-                <CarouselItem key={originalIndex} className="flex items-center justify-center">
+                <CarouselItem
+                  key={originalIndex}
+                  className="flex items-center justify-center"
+                >
                   <div className="relative">
                     <img
                       src={previewUrls.get(originalIndex)}
@@ -161,8 +164,12 @@ export function ImageCarouselModal({
                       className="max-w-full max-h-[70vh] object-contain rounded-lg"
                     />
                     <div className="absolute bottom-4 left-4 bg-background/90 backdrop-blur-sm rounded-lg px-3 py-2">
-                      <p className="text-sm font-medium">{fileInfo.file.name}</p>
-                      <p className="text-xs text-muted-foreground">{formatFileSize(fileInfo.file.size)}</p>
+                      <p className="text-sm font-medium">
+                        {fileInfo.file.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatFileSize(fileInfo.file.size)}
+                      </p>
                     </div>
                   </div>
                 </CarouselItem>
@@ -183,7 +190,7 @@ export function ImageCarouselModal({
             <Carousel
               setApi={setThumbsApi}
               opts={{
-                containScroll: 'keepSnaps',
+                containScroll: "keepSnaps",
                 dragFree: true,
               }}
               className="w-full"
@@ -198,8 +205,8 @@ export function ImageCarouselModal({
                       onClick={() => onThumbClick(index)}
                       className={`relative w-full aspect-square rounded-md overflow-hidden border-2 transition-all ${
                         index === selectedIndex
-                          ? 'border-primary'
-                          : 'border-border hover:border-primary/50'
+                          ? "border-primary"
+                          : "border-border hover:border-primary/50"
                       }`}
                     >
                       <img
@@ -216,6 +223,6 @@ export function ImageCarouselModal({
         )}
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }

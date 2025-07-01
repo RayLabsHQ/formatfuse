@@ -1,6 +1,6 @@
-import React from 'react';
-import { ToolCase, ChevronRight } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+import React from "react";
+import { ToolCase, ChevronRight } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 export interface RelatedTool {
   id: string;
@@ -9,7 +9,7 @@ export interface RelatedTool {
   icon: LucideIcon | React.ComponentType<{ className?: string }>;
 }
 
-type Direction = 'vertical' | 'horizontal' | 'responsive';
+type Direction = "vertical" | "horizontal" | "responsive";
 
 interface RelatedToolsProps {
   tools: RelatedTool[];
@@ -18,17 +18,22 @@ interface RelatedToolsProps {
   direction?: Direction; // 'vertical' | 'horizontal' | 'responsive' (horizontal desktop, vertical mobile)
 }
 
-export function RelatedTools({ tools, title = "Related Tools", className = "", direction = "responsive" }: RelatedToolsProps) {
+export function RelatedTools({
+  tools,
+  title = "Related Tools",
+  className = "",
+  direction = "responsive",
+}: RelatedToolsProps) {
   // Determine grid classes based on direction prop
   const getGridClasses = () => {
     switch (direction) {
-      case 'vertical':
-        return 'space-y-3'; // Always vertical
-      case 'horizontal':
-        return 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'; // Always try to be horizontal
-      case 'responsive':
+      case "vertical":
+        return "space-y-3"; // Always vertical
+      case "horizontal":
+        return "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"; // Always try to be horizontal
+      case "responsive":
       default:
-        return 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'; // Horizontal on desktop, vertical on mobile
+        return "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"; // Horizontal on desktop, vertical on mobile
     }
   };
 
@@ -51,8 +56,12 @@ export function RelatedTools({ tools, title = "Related Tools", className = "", d
                 <Icon className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <p className="font-medium text-sm group-hover:text-primary transition-colors">{tool.name}</p>
-                <p className="text-xs text-muted-foreground">{tool.description}</p>
+                <p className="font-medium text-sm group-hover:text-primary transition-colors">
+                  {tool.name}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {tool.description}
+                </p>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto group-hover:text-primary transition-colors" />
             </a>

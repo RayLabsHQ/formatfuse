@@ -83,6 +83,7 @@ pnpm astro [command]
 ## Features Implemented
 
 ### Core Features
+
 - ✅ Modern, performant landing page
 - ✅ Soft, organic color palette with dark mode support
 - ✅ Fuzzy search across all tools
@@ -91,6 +92,7 @@ pnpm astro [command]
 - ✅ Category filtering system
 
 ### Tools Ready
+
 - ✅ PDF to Word converter (with WASM processing)
 - ⏳ JPG to PDF (UI ready, WASM pending)
 - ⏳ PDF Merge (UI ready, WASM pending)
@@ -108,14 +110,14 @@ The project uses oklch color space for better color consistency:
 
 ```css
 /* Light theme */
---background: oklch(0.98 0.01 73);      /* Soft cream */
---primary: oklch(0.72 0.12 285);        /* Soft lavender */
---accent: oklch(0.78 0.1 152);          /* Soft mint */
+--background: oklch(0.98 0.01 73); /* Soft cream */
+--primary: oklch(0.72 0.12 285); /* Soft lavender */
+--accent: oklch(0.78 0.1 152); /* Soft mint */
 
 /* Dark theme */
---background: oklch(0.15 0.02 285);     /* Deep purple-gray */
---primary: oklch(0.78 0.15 285);        /* Bright lavender */
---accent: oklch(0.72 0.12 152);         /* Bright mint */
+--background: oklch(0.15 0.02 285); /* Deep purple-gray */
+--primary: oklch(0.78 0.15 285); /* Bright lavender */
+--accent: oklch(0.72 0.12 152); /* Bright mint */
 ```
 
 ## Performance Targets

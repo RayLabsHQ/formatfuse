@@ -1,18 +1,19 @@
-import React from 'react';
-import { Download } from 'lucide-react';
-import { Button } from './button';
-import { cn } from '../../lib/utils';
+import React from "react";
+import { Download } from "lucide-react";
+import { Button } from "./button";
+import { cn } from "../../lib/utils";
 
-interface DownloadButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  size?: 'default' | 'large' | 'xl';
+interface DownloadButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  size?: "default" | "large" | "xl";
   children?: React.ReactNode;
   loading?: boolean;
   icon?: boolean;
 }
 
 export const DownloadButton: React.FC<DownloadButtonProps> = ({
-  size = 'default',
-  children = 'Download',
+  size = "default",
+  children = "Download",
   loading = false,
   icon = true,
   className,
@@ -20,15 +21,15 @@ export const DownloadButton: React.FC<DownloadButtonProps> = ({
   ...props
 }) => {
   const sizeClasses = {
-    default: 'h-11 px-6 text-base',
-    large: 'h-14 px-8 text-lg font-semibold',
-    xl: 'h-16 px-10 text-xl font-semibold'
+    default: "h-11 px-6 text-base",
+    large: "h-14 px-8 text-lg font-semibold",
+    xl: "h-16 px-10 text-xl font-semibold",
   };
 
   const iconSizes = {
-    default: 'w-5 h-5',
-    large: 'w-6 h-6',
-    xl: 'w-7 h-7'
+    default: "w-5 h-5",
+    large: "w-6 h-6",
+    xl: "w-7 h-7",
   };
 
   return (
@@ -37,15 +38,13 @@ export const DownloadButton: React.FC<DownloadButtonProps> = ({
       disabled={disabled || loading}
       className={cn(
         sizeClasses[size],
-        'bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all',
-        'hover:scale-[1.02] active:scale-[0.98]',
-        className
+        "bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all",
+        "hover:scale-[1.02] active:scale-[0.98]",
+        className,
       )}
       {...props}
     >
-      {icon && (
-        <Download className={cn(iconSizes[size], 'mr-2')} />
-      )}
+      {icon && <Download className={cn(iconSizes[size], "mr-2")} />}
       {children}
     </Button>
   );

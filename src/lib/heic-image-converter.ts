@@ -1,13 +1,19 @@
-import type { HeicConversionMessage, HeicConversionResult } from '../workers/heic-converter';
-import type { ImageFormat } from './image-converter-comlink';
-import { getImageConverterComlink } from './image-converter-comlink';
+import type {
+  HeicConversionMessage,
+  HeicConversionResult,
+} from "../workers/heic-converter";
+import type { ImageFormat } from "./image-converter-comlink";
+import { getImageConverterComlink } from "./image-converter-comlink";
 
 export class HeicImageConverter {
   private heicWorker: Worker | null = null;
-  private activeConversions = new Map<string, {
-    resolve: (value: any) => void;
-    reject: (error: Error) => void;
-  }>();
+  private activeConversions = new Map<
+    string,
+    {
+      resolve: (value: any) => void;
+      reject: (error: Error) => void;
+    }
+  >();
 
   constructor() {
     this.initWorker();
@@ -16,39 +22,42 @@ export class HeicImageConverter {
   private initWorker() {
     // Create HEIC decoder worker
     this.heicWorker = new Worker(
-      new URL('../workers/heic-converter.ts', import.meta.url),
-      { type: 'module' }
+      new URL("../workers/heic-converter.ts", import.meta.url),
+      { type: "module" },
     );
 
-    this.heicWorker.addEventListener('message', (event: MessageEvent<HeicConversionResult>) => {
-      const { type, id, imageData, error } = event.data;
-      const pending = this.activeConversions.get(id);
+    this.heicWorker.addEventListener(
+      "message",
+      (event: MessageEvent<HeicConversionResult>) => {
+        const { type, id, imageData, error } = event.data;
+        const pending = this.activeConversions.get(id);
 
-      if (!pending) return;
+        if (!pending) return;
 
-      switch (type) {
-        case 'success':
-          if (imageData) {
-            pending.resolve(imageData);
-          }
-          this.activeConversions.delete(id);
-          break;
+        switch (type) {
+          case "success":
+            if (imageData) {
+              pending.resolve(imageData);
+            }
+            this.activeConversions.delete(id);
+            break;
 
-        case 'error':
-          pending.reject(new Error(error || 'Unknown error'));
-          this.activeConversions.delete(id);
-          break;
+          case "error":
+            pending.reject(new Error(error || "Unknown error"));
+            this.activeConversions.delete(id);
+            break;
 
-        case 'progress':
-          // Handle progress if needed
-          break;
-      }
-    });
+          case "progress":
+            // Handle progress if needed
+            break;
+        }
+      },
+    );
 
-    this.heicWorker.addEventListener('error', (error) => {
-      console.error('HEIC Worker error:', error);
+    this.heicWorker.addEventListener("error", (error) => {
+      console.error("HEIC Worker error:", error);
       this.activeConversions.forEach((pending) => {
-        pending.reject(new Error('HEIC Worker error'));
+        pending.reject(new Error("HEIC Worker error"));
       });
       this.activeConversions.clear();
     });
@@ -66,18 +75,17 @@ export class HeicImageConverter {
     file: File | Blob | ArrayBuffer,
     targetFormat: ImageFormat,
     onProgress?: (progress: number) => void,
-    quality?: number
+    quality?: number,
   ): Promise<Blob> {
     if (!this.heicWorker) {
-      throw new Error('HEIC Worker not initialized');
+      throw new Error("HEIC Worker not initialized");
     }
 
     // Step 1: Decode HEIC to raw pixel data
     const id = this.generateId();
-    const fileBuffer = file instanceof ArrayBuffer 
-      ? file 
-      : await (file as Blob).arrayBuffer();
-    
+    const fileBuffer =
+      file instanceof ArrayBuffer ? file : await (file as Blob).arrayBuffer();
+
     const fileArray = new Uint8Array(fileBuffer);
 
     onProgress?.(10);
@@ -86,9 +94,9 @@ export class HeicImageConverter {
       this.activeConversions.set(id, { resolve, reject });
 
       const message: HeicConversionMessage = {
-        type: 'decode',
+        type: "decode",
         id,
-        file: fileArray
+        file: fileArray,
       };
 
       this.heicWorker!.postMessage(message);
@@ -98,19 +106,19 @@ export class HeicImageConverter {
 
     // Step 2: Convert ImageData to PNG blob
     const canvas = new OffscreenCanvas(imageData.width, imageData.height);
-    const ctx = canvas.getContext('2d');
-    
+    const ctx = canvas.getContext("2d");
+
     if (!ctx) {
-      throw new Error('Failed to create canvas context');
+      throw new Error("Failed to create canvas context");
     }
 
     ctx.putImageData(imageData, 0, 0);
-    const pngBlob = await canvas.convertToBlob({ type: 'image/png' });
+    const pngBlob = await canvas.convertToBlob({ type: "image/png" });
 
     onProgress?.(70);
 
     // Step 3: If target is PNG, we're done. Otherwise, convert PNG to target format
-    if (targetFormat.name === 'PNG') {
+    if (targetFormat.name === "PNG") {
       onProgress?.(100);
       return pngBlob;
     }
@@ -118,14 +126,14 @@ export class HeicImageConverter {
     // Use the regular image converter to convert PNG to target format
     const imageConverter = getImageConverterComlink();
     const finalBlob = await imageConverter.convert(
-      pngBlob, 
+      pngBlob,
       targetFormat,
       (progress) => {
         // Map progress from 70% to 100%
-        const mappedProgress = 70 + (progress * 0.3);
+        const mappedProgress = 70 + progress * 0.3;
         onProgress?.(mappedProgress);
       },
-      quality
+      quality,
     );
 
     return finalBlob;

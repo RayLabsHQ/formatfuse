@@ -1,15 +1,25 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { cn } from '../../lib/utils';
-import { Loader2, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, FileText, Check, Maximize2, RotateCcw } from 'lucide-react';
-import { Button } from './button';
-import { PdfCarouselModal } from './pdf-carousel-modal';
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { cn } from "../../lib/utils";
+import {
+  Loader2,
+  ZoomIn,
+  ZoomOut,
+  ChevronLeft,
+  ChevronRight,
+  FileText,
+  Check,
+  Maximize2,
+  RotateCcw,
+} from "lucide-react";
+import { Button } from "./button";
+import { PdfCarouselModal } from "./pdf-carousel-modal";
 
 interface PdfPreviewProps {
   pdfData: Uint8Array | ArrayBuffer;
   className?: string;
   onPageSelect?: (pages: number[]) => void;
   selectedPages?: number[];
-  mode?: 'single' | 'grid' | 'strip';
+  mode?: "single" | "grid" | "strip";
   showPageNumbers?: boolean;
   selectable?: boolean;
   maxHeight?: number;
@@ -26,10 +36,10 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
   className,
   onPageSelect,
   selectedPages = [],
-  mode = 'grid',
+  mode = "grid",
   showPageNumbers = true,
   selectable = false,
-  maxHeight = 600
+  maxHeight = 600,
 }) => {
   const [pdf, setPdf] = useState<any | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -64,33 +74,33 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
       }
 
       try {
-        console.log('Starting PDF load...');
+        console.log("Starting PDF load...");
         setLoading(true);
         setError(null);
         setThumbnails([]);
         setPdf(null);
-        
+
         // Dynamically import PDF.js only on client side
-        const pdfjsLib = await import('pdfjs-dist');
-        
+        const pdfjsLib = await import("pdfjs-dist");
+
         // Set up PDF.js worker
         pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-          'pdfjs-dist/build/pdf.worker.mjs',
-          import.meta.url
+          "pdfjs-dist/build/pdf.worker.mjs",
+          import.meta.url,
         ).toString();
-        
+
         // Create loading task with timeout
         const loadingTask = pdfjsLib.getDocument({ data: pdfData });
-        
+
         // Add timeout to prevent hanging
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('PDF loading timeout')), 30000)
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("PDF loading timeout")), 30000),
         );
-        
+
         pdfDoc = await Promise.race([loadingTask.promise, timeoutPromise]);
-        
+
         if (cancelled || !mountedRef.current) {
-          console.log('Component unmounted, cleaning up...');
+          console.log("Component unmounted, cleaning up...");
           if (pdfDoc) pdfDoc.destroy();
           return;
         }
@@ -98,49 +108,51 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
         console.log(`PDF loaded: ${pdfDoc.numPages} pages`);
         setPdf(pdfDoc);
         setTotalPages(pdfDoc.numPages);
-        
+
         // Generate thumbnails
         const thumbs: PageThumbnail[] = [];
         const maxThumbs = Math.min(pdfDoc.numPages, 50);
-        
+
         for (let i = 1; i <= maxThumbs; i++) {
           if (cancelled || !mountedRef.current) break;
-          
+
           try {
             const page = await pdfDoc.getPage(i);
             const viewport = page.getViewport({ scale: 0.3 });
-            
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
+
+            const canvas = document.createElement("canvas");
+            const context = canvas.getContext("2d");
             if (context) {
               canvas.width = viewport.width;
               canvas.height = viewport.height;
-              
+
               await page.render({
                 canvasContext: context,
                 viewport: viewport,
               }).promise;
-              
+
               thumbs.push({
                 pageNum: i,
                 canvas,
-                selected: selectedPages.includes(i)
+                selected: selectedPages.includes(i),
               });
             }
           } catch (pageError) {
             console.error(`Error rendering page ${i}:`, pageError);
           }
         }
-        
+
         if (!cancelled && mountedRef.current) {
           console.log(`Generated ${thumbs.length} thumbnails`);
           setThumbnails(thumbs);
           setLoading(false);
         }
       } catch (error) {
-        console.error('Error loading PDF:', error);
+        console.error("Error loading PDF:", error);
         if (!cancelled && mountedRef.current) {
-          setError(error instanceof Error ? error.message : 'Failed to load PDF');
+          setError(
+            error instanceof Error ? error.message : "Failed to load PDF",
+          );
           setThumbnails([]);
           setPdf(null);
           setLoading(false);
@@ -154,7 +166,7 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
     return () => {
       cancelled = true;
       if (pdfDoc) {
-        console.log('Destroying PDF document...');
+        console.log("Destroying PDF document...");
         pdfDoc.destroy();
       }
     };
@@ -165,23 +177,26 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
     setSelected(new Set(selectedPages));
   }, [selectedPages]);
 
-  const handlePageClick = useCallback((pageNum: number, event?: React.MouseEvent) => {
-    // Check if clicking on enlarge button
-    if (event && (event.target as HTMLElement).closest('.enlarge-button')) {
-      return;
-    }
-    
-    if (!selectable) return;
+  const handlePageClick = useCallback(
+    (pageNum: number, event?: React.MouseEvent) => {
+      // Check if clicking on enlarge button
+      if (event && (event.target as HTMLElement).closest(".enlarge-button")) {
+        return;
+      }
 
-    const newSelected = new Set(selected);
-    if (newSelected.has(pageNum)) {
-      newSelected.delete(pageNum);
-    } else {
-      newSelected.add(pageNum);
-    }
-    setSelected(newSelected);
-    onPageSelect?.(Array.from(newSelected).sort((a, b) => a - b));
-  }, [selected, selectable, onPageSelect]);
+      if (!selectable) return;
+
+      const newSelected = new Set(selected);
+      if (newSelected.has(pageNum)) {
+        newSelected.delete(pageNum);
+      } else {
+        newSelected.add(pageNum);
+      }
+      setSelected(newSelected);
+      onPageSelect?.(Array.from(newSelected).sort((a, b) => a - b));
+    },
+    [selected, selectable, onPageSelect],
+  );
 
   const handleEnlarge = useCallback((pageNum: number) => {
     setCarouselInitialPage(pageNum);
@@ -190,7 +205,7 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
 
   const handleSelectAll = useCallback(() => {
     if (!selectable) return;
-    
+
     const allPages = Array.from({ length: totalPages }, (_, i) => i + 1);
     setSelected(new Set(allPages));
     onPageSelect?.(allPages);
@@ -198,13 +213,13 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
 
   const handleSelectNone = useCallback(() => {
     if (!selectable) return;
-    
+
     setSelected(new Set());
     onPageSelect?.([]);
   }, [selectable, onPageSelect]);
 
-  const handleZoomIn = () => setScale(prev => Math.min(prev + 0.1, 2));
-  const handleZoomOut = () => setScale(prev => Math.max(prev - 0.1, 0.5));
+  const handleZoomIn = () => setScale((prev) => Math.min(prev + 0.1, 2));
+  const handleZoomOut = () => setScale((prev) => Math.max(prev - 0.1, 0.5));
 
   if (loading) {
     return (
@@ -216,7 +231,12 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
 
   if (error) {
     return (
-      <div className={cn("flex flex-col items-center justify-center h-48 text-muted-foreground", className)}>
+      <div
+        className={cn(
+          "flex flex-col items-center justify-center h-48 text-muted-foreground",
+          className,
+        )}
+      >
         <FileText className="w-8 h-8 mb-2" />
         <span>Error loading PDF</span>
         <span className="text-xs mt-1">{error}</span>
@@ -226,7 +246,12 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
 
   if (!pdf || thumbnails.length === 0) {
     return (
-      <div className={cn("flex items-center justify-center h-48 text-muted-foreground", className)}>
+      <div
+        className={cn(
+          "flex items-center justify-center h-48 text-muted-foreground",
+          className,
+        )}
+      >
         <FileText className="w-8 h-8 mr-2" />
         <span>No preview available</span>
       </div>
@@ -240,18 +265,10 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
         <div className="flex items-center gap-2">
           {selectable && (
             <>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSelectAll}
-              >
+              <Button variant="outline" size="sm" onClick={handleSelectAll}>
                 Select All
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSelectNone}
-              >
+              <Button variant="outline" size="sm" onClick={handleSelectNone}>
                 Select None
               </Button>
               <span className="text-sm text-muted-foreground">
@@ -260,7 +277,7 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
             </>
           )}
         </div>
-        
+
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
@@ -297,16 +314,16 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
       </div>
 
       {/* Preview Container */}
-      <div 
+      <div
         ref={containerRef}
         className={cn(
           "overflow-auto rounded-lg border bg-secondary/20",
-          mode === 'grid' && "p-4",
-          mode === 'strip' && "p-2"
+          mode === "grid" && "p-4",
+          mode === "strip" && "p-2",
         )}
         style={{ maxHeight }}
       >
-        {mode === 'grid' && (
+        {mode === "grid" && (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             {thumbnails.map((thumb) => (
               <div
@@ -314,21 +331,24 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
                 onClick={(e) => handlePageClick(thumb.pageNum, e)}
                 className={cn(
                   "relative group cursor-pointer rounded-lg overflow-hidden border-2 ff-transition touch-manipulation",
-                  selected.has(thumb.pageNum) 
-                    ? "border-primary ring-2 ring-primary/20" 
+                  selected.has(thumb.pageNum)
+                    ? "border-primary ring-2 ring-primary/20"
                     : "border-border hover:border-primary/50",
-                  selectable && "hover:shadow-lg"
+                  selectable && "hover:shadow-lg",
                 )}
-                style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}
+                style={{
+                  transform: `scale(${scale})`,
+                  transformOrigin: "top left",
+                }}
               >
                 <div className="aspect-[3/4] bg-white flex items-center justify-center">
-                  <img 
-                    src={thumb.canvas.toDataURL()} 
+                  <img
+                    src={thumb.canvas.toDataURL()}
                     alt={`Page ${thumb.pageNum}`}
                     className="max-w-full max-h-full object-contain"
                   />
                 </div>
-                
+
                 {/* Enlarge button */}
                 <button
                   onClick={() => handleEnlarge(thumb.pageNum)}
@@ -337,7 +357,7 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
                 >
                   <Maximize2 className="w-5 h-5 md:w-3 md:h-3" />
                 </button>
-                
+
                 {showPageNumbers && (
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
                     <span className="text-white text-xs font-medium">
@@ -345,7 +365,7 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
                     </span>
                   </div>
                 )}
-                
+
                 {selectable && selected.has(thumb.pageNum) && (
                   <div className="absolute top-2 right-2 bg-primary text-primary-foreground rounded-full p-1">
                     <Check className="w-3 h-3" />
@@ -356,7 +376,7 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
           </div>
         )}
 
-        {mode === 'strip' && (
+        {mode === "strip" && (
           <div className="flex gap-2 pb-2">
             {thumbnails.map((thumb) => (
               <div
@@ -364,22 +384,22 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
                 onClick={(e) => handlePageClick(thumb.pageNum, e)}
                 className={cn(
                   "relative group flex-shrink-0 cursor-pointer rounded overflow-hidden border-2 ff-transition",
-                  selected.has(thumb.pageNum) 
-                    ? "border-primary ring-2 ring-primary/20" 
+                  selected.has(thumb.pageNum)
+                    ? "border-primary ring-2 ring-primary/20"
                     : "border-border hover:border-primary/50",
-                  selectable && "hover:shadow-md"
+                  selectable && "hover:shadow-md",
                 )}
-                style={{ 
+                style={{
                   height: `${150 * scale}px`,
-                  width: `${106 * scale}px` // Maintain aspect ratio
+                  width: `${106 * scale}px`, // Maintain aspect ratio
                 }}
               >
-                <img 
-                  src={thumb.canvas.toDataURL()} 
+                <img
+                  src={thumb.canvas.toDataURL()}
                   alt={`Page ${thumb.pageNum}`}
                   className="w-full h-full object-cover"
                 />
-                
+
                 {/* Enlarge button */}
                 <button
                   onClick={() => handleEnlarge(thumb.pageNum)}
@@ -388,15 +408,13 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
                 >
                   <Maximize2 className="w-4 h-4 md:w-2.5 md:h-2.5" />
                 </button>
-                
+
                 {showPageNumbers && (
                   <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-1 py-0.5">
-                    <span className="text-white text-xs">
-                      {thumb.pageNum}
-                    </span>
+                    <span className="text-white text-xs">{thumb.pageNum}</span>
                   </div>
                 )}
-                
+
                 {selectable && selected.has(thumb.pageNum) && (
                   <div className="absolute top-1 right-1 bg-primary text-primary-foreground rounded-full p-0.5">
                     <Check className="w-3 h-3" />
@@ -407,22 +425,22 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
           </div>
         )}
 
-        {mode === 'single' && (
+        {mode === "single" && (
           <div className="relative">
             <div className="flex items-center justify-center">
-              <img 
-                src={thumbnails[currentPage - 1]?.canvas.toDataURL()} 
+              <img
+                src={thumbnails[currentPage - 1]?.canvas.toDataURL()}
                 alt={`Page ${currentPage}`}
                 className="max-w-full rounded-lg shadow-lg"
                 style={{ transform: `scale(${scale})` }}
               />
             </div>
-            
+
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-background/90 backdrop-blur rounded-lg p-2">
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -433,7 +451,9 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                }
                 disabled={currentPage === totalPages}
               >
                 <ChevronRight className="h-4 w-4" />
@@ -448,7 +468,7 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
           Showing first 50 pages of {totalPages} total pages
         </p>
       )}
-      
+
       {/* Full Screen Carousel Modal */}
       {pdf && (
         <PdfCarouselModal

@@ -1,5 +1,8 @@
-import * as Comlink from 'comlink';
-import type { ResizeOptions, ResizeResult } from '../workers/image-resize.worker';
+import * as Comlink from "comlink";
+import type {
+  ResizeOptions,
+  ResizeResult,
+} from "../workers/image-resize.worker";
 
 export class ImageResizer {
   private worker: Worker;
@@ -7,8 +10,8 @@ export class ImageResizer {
 
   constructor() {
     this.worker = new Worker(
-      new URL('../workers/image-resize.worker.ts', import.meta.url),
-      { type: 'module' }
+      new URL("../workers/image-resize.worker.ts", import.meta.url),
+      { type: "module" },
     );
   }
 
@@ -22,14 +25,18 @@ export class ImageResizer {
   async resize(
     file: File | Blob,
     options: ResizeOptions = {},
-    onProgress?: (progress: number) => void
+    onProgress?: (progress: number) => void,
   ): Promise<ResizeResult> {
     await this.ensureWorkerReady();
-    
+
     const progressProxy = onProgress ? Comlink.proxy(onProgress) : undefined;
-    
+
     try {
-      const result = await this.workerApi.resizeImage(file, options, progressProxy);
+      const result = await this.workerApi.resizeImage(
+        file,
+        options,
+        progressProxy,
+      );
       return result;
     } finally {
       if (progressProxy) {
@@ -41,14 +48,18 @@ export class ImageResizer {
   async resizeBatch(
     files: (File | Blob)[],
     options: ResizeOptions = {},
-    onProgress?: (index: number, progress: number) => void
+    onProgress?: (index: number, progress: number) => void,
   ): Promise<ResizeResult[]> {
     await this.ensureWorkerReady();
-    
+
     const progressProxy = onProgress ? Comlink.proxy(onProgress) : undefined;
-    
+
     try {
-      const results = await this.workerApi.resizeBatch(files, options, progressProxy);
+      const results = await this.workerApi.resizeBatch(
+        files,
+        options,
+        progressProxy,
+      );
       return results;
     } finally {
       if (progressProxy) {
@@ -66,4 +77,10 @@ export class ImageResizer {
   }
 }
 
-export type { ResizeOptions, ResizeResult, ResizeMethod, FitMethod, ImageFormat } from '../workers/image-resize.worker';
+export type {
+  ResizeOptions,
+  ResizeResult,
+  ResizeMethod,
+  FitMethod,
+  ImageFormat,
+} from "../workers/image-resize.worker";

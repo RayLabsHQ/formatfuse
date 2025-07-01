@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from "react";
 
 interface FileUploaderProps {
   onFilesSelect: (files: File[]) => void;
@@ -10,63 +10,77 @@ interface FileUploaderProps {
 
 export function FileUploader({
   onFilesSelect,
-  accept = '*',
+  accept = "*",
   multiple = false,
   maxSize = Infinity,
-  className = ''
+  className = "",
 }: FileUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const validateFiles = useCallback((files: File[]): File[] => {
-    setError(null);
-    const validFiles: File[] = [];
-    
-    for (const file of files) {
-      if (file.size > maxSize) {
-        setError(`File "${file.name}" exceeds maximum size of ${(maxSize / 1024 / 1024).toFixed(1)}MB`);
-        continue;
-      }
-      validFiles.push(file);
-    }
-    
-    return validFiles;
-  }, [maxSize]);
+  const validateFiles = useCallback(
+    (files: File[]): File[] => {
+      setError(null);
+      const validFiles: File[] = [];
 
-  const handleFiles = useCallback((files: FileList | null) => {
-    if (!files || files.length === 0) return;
-    
-    const fileArray = Array.from(files);
-    const validFiles = validateFiles(fileArray);
-    
-    if (validFiles.length > 0) {
-      onFilesSelect(validFiles);
-    }
-  }, [onFilesSelect, validateFiles]);
+      for (const file of files) {
+        if (file.size > maxSize) {
+          setError(
+            `File "${file.name}" exceeds maximum size of ${(maxSize / 1024 / 1024).toFixed(1)}MB`,
+          );
+          continue;
+        }
+        validFiles.push(file);
+      }
+
+      return validFiles;
+    },
+    [maxSize],
+  );
+
+  const handleFiles = useCallback(
+    (files: FileList | null) => {
+      if (!files || files.length === 0) return;
+
+      const fileArray = Array.from(files);
+      const validFiles = validateFiles(fileArray);
+
+      if (validFiles.length > 0) {
+        onFilesSelect(validFiles);
+      }
+    },
+    [onFilesSelect, validateFiles],
+  );
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    if (e.type === 'dragenter' || e.type === 'dragover') {
+
+    if (e.type === "dragenter" || e.type === "dragover") {
       setDragActive(true);
-    } else if (e.type === 'dragleave') {
+    } else if (e.type === "dragleave") {
       setDragActive(false);
     }
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    
-    handleFiles(e.dataTransfer.files);
-  }, [handleFiles]);
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setDragActive(false);
 
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    handleFiles(e.target.files);
-  }, [handleFiles]);
+      handleFiles(e.dataTransfer.files);
+    },
+    [handleFiles],
+  );
+
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      handleFiles(e.target.files);
+    },
+    [handleFiles],
+  );
 
   const handleClick = useCallback(() => {
     inputRef.current?.click();
@@ -83,7 +97,7 @@ export function FileUploader({
         className="hidden"
         aria-label="Select files to upload"
       />
-      
+
       <div
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
@@ -92,9 +106,10 @@ export function FileUploader({
         onClick={handleClick}
         className={`
           border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
-          ${dragActive 
-            ? 'border-blue-500 bg-blue-50' 
-            : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+          ${
+            dragActive
+              ? "border-blue-500 bg-blue-50"
+              : "border-gray-300 hover:border-gray-400 hover:bg-gray-50"
           }
         `}
       >
@@ -111,23 +126,21 @@ export function FileUploader({
             strokeLinejoin="round"
           />
         </svg>
-        
+
         <p className="text-gray-600 mb-2">
-          {dragActive 
-            ? 'Drop files here' 
-            : `Drag and drop ${multiple ? 'files' : 'a file'} here, or click to select`
-          }
+          {dragActive
+            ? "Drop files here"
+            : `Drag and drop ${multiple ? "files" : "a file"} here, or click to select`}
         </p>
-        
+
         <p className="text-sm text-gray-500">
-          {accept !== '*' && `Accepted formats: ${accept}`}
-          {maxSize !== Infinity && ` • Max size: ${(maxSize / 1024 / 1024).toFixed(1)}MB`}
+          {accept !== "*" && `Accepted formats: ${accept}`}
+          {maxSize !== Infinity &&
+            ` • Max size: ${(maxSize / 1024 / 1024).toFixed(1)}MB`}
         </p>
       </div>
-      
-      {error && (
-        <p className="mt-2 text-sm text-red-600">{error}</p>
-      )}
+
+      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
     </div>
   );
 }
