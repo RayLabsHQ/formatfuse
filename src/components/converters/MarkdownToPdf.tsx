@@ -5,21 +5,15 @@ import {
   Download,
   AlertCircle,
   Upload,
-  Copy,
   FileDown,
   Maximize2,
   Minimize2,
   Shield,
   Loader2,
-  Type,
   Zap,
-  Palette,
+  Type,
   Code,
-  Info,
-  ChevronRight,
-  CheckCircle2,
-  Hash,
-  ClipboardPaste,
+  Copy,
 } from "lucide-react";
 import {
   Select,
@@ -142,37 +136,8 @@ const faqs: FAQItem[] = [
   },
 ];
 
-interface MarkdownTheme {
-  name: string;
-  icon: React.ComponentType<{ className?: string }>;
-  fontFamily: "Helvetica" | "Times" | "Courier";
-  fontSize: "small" | "medium" | "large";
-  description: string;
-}
 
-const THEMES: MarkdownTheme[] = [
-  {
-    name: "Modern",
-    icon: Palette,
-    fontFamily: "Helvetica",
-    fontSize: "medium",
-    description: "Clean and contemporary",
-  },
-  {
-    name: "Classic",
-    icon: Type,
-    fontFamily: "Times",
-    fontSize: "medium",
-    description: "Traditional document style",
-  },
-  {
-    name: "Code",
-    icon: Code,
-    fontFamily: "Courier",
-    fontSize: "small",
-    description: "Monospace for technical docs",
-  },
-];
+// Theme presets removed - can be added back when implementing theme selection
 
 export const MarkdownToPdf: React.FC = () => {
   const [markdownContent, setMarkdownContent] =
@@ -186,13 +151,10 @@ export const MarkdownToPdf: React.FC = () => {
   const [fontFamily, setFontFamily] = useState<
     "Helvetica" | "Times" | "Courier"
   >("Helvetica");
-  const [showSettings, setShowSettings] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [activeTab, setActiveTab] = useState<"editor" | "preview">("editor");
   const [showLineNumbers, setShowLineNumbers] = useState(true);
-  const [isDragging, setIsDragging] = useState(false);
   const [activeFeature, setActiveFeature] = useState<number | null>(null);
-  const [selectedTheme, setSelectedTheme] = useState<number>(0);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -252,40 +214,6 @@ export const MarkdownToPdf: React.FC = () => {
     [handleFileSelect]
   );
 
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setIsDragging(false);
-      const droppedFile = e.dataTransfer.files[0];
-      if (droppedFile) {
-        handleFileSelect(droppedFile);
-      }
-    },
-    [handleFileSelect]
-  );
-
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  }, []);
-
-  const handleDragEnter = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX;
-    const y = e.clientY;
-    if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
-      setIsDragging(false);
-    }
-  }, []);
 
   const handlePaste = useCallback(async () => {
     try {
@@ -300,20 +228,8 @@ export const MarkdownToPdf: React.FC = () => {
     }
   }, []);
 
-  const handleCopy = useCallback(async () => {
-    if (markdownContent) {
-      try {
-        await navigator.clipboard.writeText(markdownContent);
-      } catch (err) {
-        console.error("Failed to copy:", err);
-      }
-    }
-  }, [markdownContent]);
 
-  const applyTheme = useCallback((theme: MarkdownTheme) => {
-    setFontFamily(theme.fontFamily);
-    setFontSize(theme.fontSize);
-  }, []);
+
 
   const getFontSize = () => {
     switch (fontSize) {
@@ -383,17 +299,12 @@ export const MarkdownToPdf: React.FC = () => {
       .replace(/(<\/h\d>|<\/ul>|<\/ol>|<\/pre>|<\/blockquote>|<hr[^>]*>)<\/p>/g, "$1");
   };
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return bytes + " B";
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
-    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
-  };
 
   return (
-    <div className="w-full">
-      <section className="w-full max-w-6xl mx-auto p-4 sm:p-6 lg:p-8">
-        {/* Header */}
-        <div className="text-center mb-8 sm:mb-12 space-y-4">
+    <div className="w-full flex flex-col flex-1 min-h-0 h-full">
+      <section className="flex-1 w-full max-w-7xl mx-auto sm:p-4 md:p-6 lg:p-8 flex flex-col h-full overflow-hidden lg:overflow-visible">
+        {/* Header - Hide on mobile to save space */}
+        <div className="hidden sm:block text-center mb-8 sm:mb-12 space-y-4">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold animate-fade-in flex items-center justify-center flex-wrap gap-3">
             <span>Markdown to</span>
             <span className="text-primary">PDF</span>
@@ -408,8 +319,8 @@ export const MarkdownToPdf: React.FC = () => {
           </p>
         </div>
 
-        {/* Features - Responsive */}
-        <div className="animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+        {/* Features - Hide on mobile to save space */}
+        <div className="hidden sm:block animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
           {/* Desktop view */}
           <div className="hidden sm:flex flex-wrap justify-center gap-6 mb-12">
             {features.map((feature, index) => {
@@ -469,7 +380,7 @@ export const MarkdownToPdf: React.FC = () => {
         </div>
 
       {/* Controls Bar - Mobile optimized */}
-      <div className="border-b px-3 sm:px-6 py-2 sm:py-3 bg-card/50">
+      <div className="hidden sm:block border-b px-3 sm:px-6 py-2 sm:py-3 bg-card/50">
         <div className="flex flex-col gap-3">
           {/* Mobile: Show convert button prominently */}
           <div className="lg:hidden flex justify-center">
@@ -597,8 +508,8 @@ export const MarkdownToPdf: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Tab Navigation */}
-      <div className="lg:hidden border-b">
+      {/* Mobile Tab Navigation - Moved to top on mobile */}
+      <div className="sm:hidden border-b sticky top-0 z-20 bg-background">
         <div className="flex">
           <button
             onClick={() => setActiveTab("editor")}
@@ -634,12 +545,34 @@ export const MarkdownToPdf: React.FC = () => {
         </div>
       </div>
 
+      {/* Mobile Convert Button - Show above tabs */}
+      <div className="sm:hidden px-4 py-3 bg-card/50 border-b">
+        <Button
+          onClick={handleConvert}
+          disabled={isProcessing || !markdownContent.trim()}
+          size="sm"
+          className="w-full touch-manipulation"
+        >
+          {isProcessing ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Converting...
+            </>
+          ) : (
+            <>
+              <FileDown className="w-4 h-4 mr-2" />
+              Convert to PDF
+            </>
+          )}
+        </Button>
+      </div>
+
       {/* Main Content - Split Screen for Desktop, Tabbed for Mobile */}
-      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+      <div className="flex-1 flex flex-col lg:flex-row lg:min-h-0">
         {/* Input Panel */}
         <div
-          className={`flex-1 flex flex-col lg:border-r ${
-            activeTab === "editor" ? "block" : "hidden lg:flex"
+          className={`flex-1 flex flex-col min-h-0 lg:border-r ${
+            activeTab === "editor" ? "flex" : "hidden lg:flex"
           }`}
         >
           <div className="border-b px-3 sm:px-4 py-2 flex items-center justify-between bg-card/30">
@@ -663,7 +596,7 @@ export const MarkdownToPdf: React.FC = () => {
                 onClick={handlePaste}
                 title="Paste from clipboard"
               >
-                <Copy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <Upload className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </Button>
               <Button
                 variant="ghost"
@@ -699,11 +632,11 @@ export const MarkdownToPdf: React.FC = () => {
             aria-label="Select Markdown files"
           />
 
-          <div className="flex-1 relative min-h-[200px] lg:min-h-0">
+          <div className="flex-1 relative min-h-0">
             {showLineNumbers && (
               <div className="absolute left-0 top-0 bottom-0 w-6 sm:w-12 bg-muted/30 border-r flex flex-col items-center pt-3 sm:pt-4 text-[9px] sm:text-xs text-muted-foreground select-none">
                 {markdownContent.split("\n").map((_, index) => (
-                  <div key={index} className="h-[1.5rem] flex items-center">
+                  <div key={index} className="h-6 flex items-center">
                     {index + 1}
                   </div>
                 ))}
@@ -717,7 +650,7 @@ export const MarkdownToPdf: React.FC = () => {
                 setPdfResult(null);
               }}
               placeholder="Paste your Markdown here..."
-              className={`w-full h-full ${showLineNumbers ? "pl-9 sm:pl-16" : "pl-3 sm:pl-4"} pr-3 sm:pr-4 py-3 sm:py-4 bg-transparent resize-none outline-none font-mono text-xs sm:text-sm leading-relaxed sm:leading-6 ${
+              className={`w-full h-full ${showLineNumbers ? "pl-9 sm:pl-16" : "pl-3 sm:pl-4"} pr-3 sm:pr-4 py-3 sm:py-4 bg-transparent resize-none outline-none font-mono text-xs sm:text-sm leading-6 sm:leading-6 overflow-auto ${
                 isFullscreen ? "fixed inset-0 z-50 bg-background" : ""
               }`}
               spellCheck={false}
@@ -727,8 +660,8 @@ export const MarkdownToPdf: React.FC = () => {
 
         {/* Output Panel */}
         <div
-          className={`flex-1 flex flex-col border-t lg:border-t-0 ${
-            activeTab === "preview" ? "block" : "hidden lg:flex"
+          className={`flex-1 flex flex-col min-h-0 border-t lg:border-t-0 ${
+            activeTab === "preview" ? "flex" : "hidden lg:flex"
           }`}
         >
           <div className="border-b px-3 sm:px-4 py-2 flex items-center justify-between bg-card/30">
@@ -748,7 +681,7 @@ export const MarkdownToPdf: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex-1 overflow-auto p-3 sm:p-6 bg-muted/10 min-h-[300px] lg:min-h-0">
+          <div className="flex-1 overflow-auto p-3 sm:p-6 bg-muted/10 lg:min-h-0">
             {error && (
               <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mb-4">
                 <div className="flex items-center gap-2 text-destructive">
@@ -804,21 +737,33 @@ export const MarkdownToPdf: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Related Tools */}
-      <div className="mt-12 pt-12 border-t">
-        <RelatedTools tools={relatedTools} direction="horizontal" />
+      </section>
+      
+      {/* Related Tools and FAQ - Outside main flex container */}
+      <div className="w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 lg:block hidden">
+        <div className="mt-12 pt-12 border-t">
+          <RelatedTools tools={relatedTools} direction="horizontal" />
+        </div>
+        <div className="mt-12">
+          <FAQ items={faqs} />
+        </div>
       </div>
 
-      {/* FAQ Section */}
-      <div className="mt-12">
-        <FAQ items={faqs} />
-      </div>
-    </section>
+      {/* Mobile Related Tools and FAQ - Always hidden on mobile for markdown editor */}
+      {false && (
+        <div className="w-full max-w-7xl mx-auto p-4 sm:p-6 lg:hidden">
+          <div className="mt-12 pt-12 border-t">
+            <RelatedTools tools={relatedTools} direction="horizontal" />
+          </div>
+          <div className="mt-12">
+            <FAQ items={faqs} />
+          </div>
+        </div>
+      )}
 
-    {/* Mobile Floating Action Button */}
-    {markdownContent.trim() && !pdfResult && activeTab === "editor" && (
-      <div className="lg:hidden fixed bottom-6 right-6 z-40">
+      {/* Mobile Floating Action Button */}
+      {markdownContent.trim() && !pdfResult && activeTab === "editor" && (
+        <div className="lg:hidden fixed bottom-6 right-6 z-40">
         <Button
           onClick={handleConvert}
           disabled={isProcessing}
@@ -845,7 +790,7 @@ export const MarkdownToPdf: React.FC = () => {
           <Download className="h-6 w-6" />
         </Button>
       </div>
-    )}
+      )}
     </div>
   );
 };

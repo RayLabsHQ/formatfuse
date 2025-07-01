@@ -79,7 +79,7 @@ const { title, component, description, toolType, sourceFormat, targetFormat } = 
 ---
 
 <Layout title={title} description={description} toolType={toolType} sourceFormat={sourceFormat} targetFormat={targetFormat}>
-  <main>
+  <main class={component === 'MarkdownToPdf' ? 'flex flex-col h-[calc(100vh-64px)] md:h-auto min-h-0 overflow-hidden' : ''}>
     {component === 'PdfSplit' && <PdfSplit client:load />}
     {component === 'PdfMerge' && <PdfMerge client:load />}
     {component === 'PdfRotate' && <PdfRotate client:load />}
