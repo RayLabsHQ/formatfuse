@@ -146,6 +146,9 @@ importers:
       jszip:
         specifier: ^3.10.1
         version: 3.10.1
+      libarchive-wasm:
+        specifier: ^1.2.0
+        version: 1.2.0
       libheif-js:
         specifier: ^1.19.8
         version: 1.19.8
@@ -2707,6 +2710,9 @@ packages:
   kleur@4.1.5:
     resolution: {integrity: sha512-o+NO+8WrRiQEE4/7nwRJhN1HWpVmJm511pBHUxPLtp0BUISzlBplORYSmTclCnJvQq2tKu/sgl3xVpkc7ZWuQQ==}
     engines: {node: '>=6'}
+
+  libarchive-wasm@1.2.0:
+    resolution: {integrity: sha512-aunFn8oL9VwGRj+brRvdOv8BRUD4Ea1WxJW45IdiuXE2Vp/m/X+M1UxSU+yPzXfc1mPPC8AARaflg/CtF11u8g==}
 
   libheif-js@1.19.8:
     resolution: {integrity: sha512-vQJWusIxO7wavpON1dusciL8Go9jsIQ+EUrckauFYAiSTjcmLAsuJh3SszLpvkwPci3JcL41ek2n+LUZGFpPIQ==}
@@ -6941,6 +6947,8 @@ snapshots:
   kleur@3.0.3: {}
 
   kleur@4.1.5: {}
+
+  libarchive-wasm@1.2.0: {}
 
   libheif-js@1.19.8: {}
 
