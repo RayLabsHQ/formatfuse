@@ -440,7 +440,6 @@ const documentToolsAll: Tool[] = [
 
 // Archive Tools (unfiltered - includes unimplemented for reference)
 const archiveToolsAll: Tool[] = [
-  // Creation Tools
   {
     id: "create-archive",
     name: "Create Archive",
@@ -452,6 +451,18 @@ const archiveToolsAll: Tool[] = [
     isImplemented: true,
     category: "archive",
     route: "/tools/create-archive",
+  },
+  {
+    id: "multi-extract",
+    name: "Universal Extractor",
+    description: "Extract any archive format: ZIP, 7Z, RAR, TAR, and more",
+    icon: FileArchive,
+    searches: "200k",
+    isNew: true,
+    isPopular: true,
+    isImplemented: true,
+    category: "archive",
+    route: "/tools/multi-extract",
   },
   {
     id: "create-zip",
@@ -473,19 +484,6 @@ const archiveToolsAll: Tool[] = [
     isImplemented: true,
     category: "archive",
     route: "/tools/tar-create",
-  },
-  // Extraction Tools
-  {
-    id: "multi-extract",
-    name: "Universal Extractor",
-    description: "Extract any archive format: ZIP, 7Z, RAR, TAR, and more",
-    icon: FileArchive,
-    searches: "200k",
-    isNew: true,
-    isPopular: true,
-    isImplemented: true,
-    category: "archive",
-    route: "/tools/multi-extract",
   },
   {
     id: "zip-extract",

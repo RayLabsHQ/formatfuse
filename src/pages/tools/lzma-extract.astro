@@ -1,6 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import GenericArchiveExtractor from '../../components/converters/GenericArchiveExtractor';
+import { FileArchive } from 'lucide-react';
 
 const title = 'Extract LZMA Files Online - LZMA Compressed File Extractor';
 const description = 'Free online LZMA extractor. Decompress LZMA files instantly in your browser. No uploads, 100% privacy, works offline.';
@@ -26,22 +27,22 @@ const faqs = [
 
 const relatedTools = [
   {
-    title: 'XZ Extract',
+    id: 'xz-extract',
+    name: 'XZ Extract',
     description: 'Extract XZ compressed files',
-    href: '/tools/xz-extract',
-    icon: 'FileArchive'
+    icon: FileArchive
   },
   {
-    title: '7-Zip Extract',
+    id: '7z-extract',
+    name: '7-Zip Extract',
     description: 'Extract 7Z archives',
-    href: '/tools/7z-extract',
-    icon: 'FileArchive'
+    icon: FileArchive
   },
   {
-    title: 'GZ Extract',
+    id: 'gz-extract',
+    name: 'GZ Extract',
     description: 'Extract GZIP compressed files',
-    href: '/tools/gz-extract',
-    icon: 'FileArchive'
+    icon: FileArchive
   }
 ];
 ---

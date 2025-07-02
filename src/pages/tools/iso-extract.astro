@@ -1,7 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import GenericArchiveExtractor from '../../components/converters/GenericArchiveExtractor';
-import { Package, Shield, Zap, Eye } from 'lucide-react';
+import { FileArchive } from 'lucide-react';
 
 const title = 'Extract ISO Files Online - ISO Archive Extractor';
 const description = 'Free online ISO extractor. Extract ISO disk images and archives instantly in your browser. No uploads, 100% privacy, works offline.';
@@ -27,22 +27,22 @@ const faqs = [
 
 const relatedTools = [
   {
-    title: '7-Zip Extract',
+    id: '7z-extract',
+    name: '7-Zip Extract',
     description: 'Extract 7Z compressed archives',
-    href: '/tools/7z-extract',
-    icon: 'FileArchive'
+    icon: FileArchive
   },
   {
-    title: 'ZIP Extract',
+    id: 'zip-extract',
+    name: 'ZIP Extract',
     description: 'Extract ZIP compressed files',
-    href: '/tools/zip-extract',
-    icon: 'FileArchive'
+    icon: FileArchive
   },
   {
-    title: 'RAR Extract',
+    id: 'rar-extract',
+    name: 'RAR Extract',
     description: 'Extract RAR archives online',
-    href: '/tools/rar-extract',
-    icon: 'FileArchive'
+    icon: FileArchive
   }
 ];
 ---
