@@ -19,6 +19,7 @@ import {
   Lock,
   Shield,
   GitBranch,
+  Package,
 } from "lucide-react";
 
 export interface Tool {
@@ -446,7 +447,7 @@ const archiveToolsAll: Tool[] = [
     icon: FileArchive,
     searches: "150k",
     isNew: true,
-    isImplemented: false, // TODO: Not implemented
+    isImplemented: true,
     category: "archive",
     route: "/tools/zip-extract",
   },
@@ -456,9 +457,43 @@ const archiveToolsAll: Tool[] = [
     description: "Compress files into ZIP archive",
     icon: FileArchive,
     searches: "120k",
-    isImplemented: false, // TODO: Not implemented
+    isImplemented: true,
     category: "archive",
     route: "/tools/create-zip",
+  },
+  {
+    id: "tar-extract",
+    name: "Extract TAR",
+    description: "Extract TAR, TAR.GZ, and TAR.BZ2 archives",
+    icon: Package,
+    searches: "80k",
+    isNew: true,
+    isImplemented: false, // TODO: Not implemented
+    category: "archive",
+    route: "/tools/tar-extract",
+  },
+  {
+    id: "tar-create",
+    name: "Create TAR",
+    description: "Create TAR archives with optional compression",
+    icon: Package,
+    searches: "60k",
+    isNew: true,
+    isImplemented: false, // TODO: Not implemented
+    category: "archive",
+    route: "/tools/tar-create",
+  },
+  {
+    id: "7z-viewer",
+    name: "7-Zip Viewer",
+    description: "View and extract 7Z, RAR, and other formats",
+    icon: FileArchive,
+    searches: "100k",
+    isNew: true,
+    isPopular: true,
+    isImplemented: false, // TODO: Not implemented
+    category: "archive",
+    route: "/tools/7z-viewer",
   },
 ];
 
@@ -548,7 +583,13 @@ export const categories = [
     color: "border-tool-doc text-tool-doc",
     bgColor: "bg-tool-doc/10",
   },
-  // Archive Tools category removed as no tools are implemented yet
+  {
+    id: "archive",
+    name: "Archive Tools",
+    tools: archiveTools,
+    color: "border-amber-500 text-amber-500",
+    bgColor: "bg-amber-500/10",
+  },
 ].filter((cat) => cat.tools.length > 0); // Only show categories with tools
 
 // Search function for tools
