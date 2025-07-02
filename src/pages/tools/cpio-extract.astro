@@ -1,0 +1,59 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import GenericArchiveExtractor from '../../components/converters/GenericArchiveExtractor';
+
+const title = 'Extract CPIO Files Online - CPIO Archive Extractor';
+const description = 'Free online CPIO extractor. Extract Unix CPIO archives and initramfs files instantly in your browser. No uploads, 100% privacy, works offline.';
+
+const faqs = [
+  {
+    question: 'What is a CPIO file?',
+    answer: 'CPIO (Copy In, Copy Out) is a Unix archive format used for creating archives of files and directories. It\'s commonly used in initramfs images, RPM packages, and backup systems.'
+  },
+  {
+    question: 'Where are CPIO archives used?',
+    answer: 'CPIO archives are used in Linux initial RAM filesystems (initramfs), RPM package internals, system backups and recovery, software distribution, and build systems. They\'re essential for Linux boot processes.'
+  },
+  {
+    question: 'What CPIO formats are supported?',
+    answer: 'Our extractor supports various CPIO formats including binary, old ASCII, new ASCII (SVR4), and CRC formats. It can handle both compressed and uncompressed CPIO archives.'
+  },
+  {
+    question: 'Can I extract initramfs files?',
+    answer: 'Yes! Initramfs files are typically CPIO archives, sometimes compressed with gzip. Our extractor can handle these files, allowing you to examine boot filesystem contents.'
+  }
+];
+
+const relatedTools = [
+  {
+    title: 'TAR Extract',
+    description: 'Extract TAR archives',
+    href: '/tools/tar-extract',
+    icon: 'FileArchive'
+  },
+  {
+    title: 'AR Extract',
+    description: 'Extract Unix AR archives',
+    href: '/tools/ar-extract',
+    icon: 'FileArchive'
+  },
+  {
+    title: 'GZ Extract',
+    description: 'Extract GZIP compressed files',
+    href: '/tools/gz-extract',
+    icon: 'FileArchive'
+  }
+];
+---
+
+<Layout title={title} description={description} toolType="archive">
+  <GenericArchiveExtractor
+    client:load
+    format="cpio"
+    formatName="CPIO"
+    formatDescription="Extract Unix CPIO archives without uploading. Fast, secure, and runs entirely in your browser."
+    acceptedExtensions=".cpio,.cpgz"
+    faqs={faqs}
+    relatedTools={relatedTools}
+  />
+</Layout>

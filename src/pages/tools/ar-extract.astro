@@ -1,0 +1,59 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import GenericArchiveExtractor from '../../components/converters/GenericArchiveExtractor';
+
+const title = 'Extract AR Files Online - Unix Archive Extractor';
+const description = 'Free online AR extractor. Extract Unix AR archives and Debian packages instantly in your browser. No uploads, 100% privacy, works offline.';
+
+const faqs = [
+  {
+    question: 'What is an AR file?',
+    answer: 'AR (Archive) is a Unix archive format primarily used for creating static libraries (.a files) and Debian packages (.deb files). It combines multiple files into a single archive without compression.'
+  },
+  {
+    question: 'What are AR files used for?',
+    answer: 'AR files are commonly used for static libraries in C/C++ development, Debian package distribution (.deb files), BSD package files, and archiving object files for linking. They\'re essential in Unix/Linux software development.'
+  },
+  {
+    question: 'How is AR different from TAR?',
+    answer: 'While both are Unix archive formats, AR is simpler and primarily used for libraries and packages, while TAR is more versatile and commonly used for general file archiving. AR doesn\'t support compression natively.'
+  },
+  {
+    question: 'Can I extract .deb files?',
+    answer: 'Yes! Debian packages (.deb) use the AR format. Our extractor can open .deb files, allowing you to access the control files and data archives inside.'
+  }
+];
+
+const relatedTools = [
+  {
+    title: 'TAR Extract',
+    description: 'Extract TAR archives',
+    href: '/tools/tar-extract',
+    icon: 'FileArchive'
+  },
+  {
+    title: 'GZ Extract',
+    description: 'Extract GZIP compressed files',
+    href: '/tools/gz-extract',
+    icon: 'FileArchive'
+  },
+  {
+    title: 'ZIP Extract',
+    description: 'Extract ZIP compressed files',
+    href: '/tools/zip-extract',
+    icon: 'FileArchive'
+  }
+];
+---
+
+<Layout title={title} description={description} toolType="archive">
+  <GenericArchiveExtractor
+    client:load
+    format="ar"
+    formatName="AR"
+    formatDescription="Extract Unix AR archives and Debian packages without uploading. Fast, secure, and runs entirely in your browser."
+    acceptedExtensions=".ar,.a,.deb"
+    faqs={faqs}
+    relatedTools={relatedTools}
+  />
+</Layout>

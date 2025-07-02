@@ -1,0 +1,59 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import GenericArchiveExtractor from '../../components/converters/GenericArchiveExtractor';
+
+const title = 'Extract LZMA Files Online - LZMA Compressed File Extractor';
+const description = 'Free online LZMA extractor. Decompress LZMA files instantly in your browser. No uploads, 100% privacy, works offline.';
+
+const faqs = [
+  {
+    question: 'What is an LZMA file?',
+    answer: 'LZMA (Lempel-Ziv-Markov chain Algorithm) is a lossless compression algorithm known for high compression ratios and relatively fast decompression. It\'s the predecessor to LZMA2 used in XZ format.'
+  },
+  {
+    question: 'How is LZMA different from XZ?',
+    answer: 'LZMA is the original format using the LZMA algorithm, while XZ is a newer container format that typically uses LZMA2 (an improved version). XZ provides better streaming support and integrity checking.'
+  },
+  {
+    question: 'What software creates LZMA files?',
+    answer: 'LZMA files can be created by 7-Zip, XZ Utils, and various other compression tools. The format is often used in embedded systems and software installers due to its excellent compression ratio.'
+  },
+  {
+    question: 'Why use LZMA compression?',
+    answer: 'LZMA offers one of the best compression ratios available, making it ideal for software distribution, firmware updates, and situations where minimizing file size is critical, even if compression takes longer.'
+  }
+];
+
+const relatedTools = [
+  {
+    title: 'XZ Extract',
+    description: 'Extract XZ compressed files',
+    href: '/tools/xz-extract',
+    icon: 'FileArchive'
+  },
+  {
+    title: '7-Zip Extract',
+    description: 'Extract 7Z archives',
+    href: '/tools/7z-extract',
+    icon: 'FileArchive'
+  },
+  {
+    title: 'GZ Extract',
+    description: 'Extract GZIP compressed files',
+    href: '/tools/gz-extract',
+    icon: 'FileArchive'
+  }
+];
+---
+
+<Layout title={title} description={description} toolType="archive">
+  <GenericArchiveExtractor
+    client:load
+    format="lzma"
+    formatName="LZMA"
+    formatDescription="Decompress LZMA files with excellent compression ratios without uploading. Fast, secure, and runs entirely in your browser."
+    acceptedExtensions=".lzma,.tlz"
+    faqs={faqs}
+    relatedTools={relatedTools}
+  />
+</Layout>

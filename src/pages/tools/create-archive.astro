@@ -1,0 +1,11 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import CreateArchive from '../../components/converters/CreateArchive';
+
+const title = 'Create Archive Online - ZIP, TAR, TAR.GZ Archive Creator';
+const description = 'Free online archive creator. Create ZIP, TAR, or TAR.GZ archives from multiple files right in your browser. No uploads required, 100% privacy.';
+---
+
+<Layout title={title} description={description} toolType="archive">
+  <CreateArchive client:load />
+</Layout>
