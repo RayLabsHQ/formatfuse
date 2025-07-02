@@ -1,0 +1,11 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import TarCreate from '../../components/converters/TarCreate';
+
+const title = 'Create TAR Files Online - TAR & TAR.GZ Archive Creator';
+const description = 'Free online TAR creator. Create TAR archives with optional GZIP compression right in your browser. Perfect for Unix/Linux environments, no uploads required.';
+---
+
+<Layout title={title} description={description} toolType="archive">
+  <TarCreate client:load />
+</Layout>

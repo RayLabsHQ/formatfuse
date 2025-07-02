@@ -468,7 +468,7 @@ const archiveToolsAll: Tool[] = [
     icon: Package,
     searches: "80k",
     isNew: true,
-    isImplemented: false, // TODO: Not implemented
+    isImplemented: true,
     category: "archive",
     route: "/tools/tar-extract",
   },
@@ -479,7 +479,7 @@ const archiveToolsAll: Tool[] = [
     icon: Package,
     searches: "60k",
     isNew: true,
-    isImplemented: false, // TODO: Not implemented
+    isImplemented: true,
     category: "archive",
     route: "/tools/tar-create",
   },
