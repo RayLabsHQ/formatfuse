@@ -1,0 +1,60 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import GenericArchiveExtractor from '../../components/converters/GenericArchiveExtractor';
+import { FileArchive } from 'lucide-react';
+
+const title = 'Extract XZ Files Online - XZ Compressed File Extractor';
+const description = 'Free online XZ extractor. Decompress XZ files instantly in your browser. No uploads, 100% privacy, works offline. Supports .xz and .txz files.';
+
+const faqs = [
+  {
+    question: 'What is an XZ file?',
+    answer: 'XZ is a lossless compression format that uses the LZMA2 compression algorithm. It provides high compression ratios, often better than gzip or bzip2, making it popular for distributing source code and software packages.'
+  },
+  {
+    question: 'How does XZ compare to other compression formats?',
+    answer: 'XZ typically achieves 30% better compression than gzip and 15% better than bzip2, but with slower compression speed. It\'s ideal when file size is more important than compression time.'
+  },
+  {
+    question: 'What is a .txz file?',
+    answer: 'A .txz file is a TAR archive compressed with XZ. It combines the archiving capabilities of TAR with XZ compression. Our tool can extract these files to give you access to the contained files.'
+  },
+  {
+    question: 'Where are XZ files commonly used?',
+    answer: 'XZ compression is widely used in Linux distributions for package management, source code distribution, kernel archives, and software releases where maximum compression is desired.'
+  }
+];
+
+const relatedTools = [
+  {
+    id: 'gz-extract',
+    name: 'GZ Extract',
+    description: 'Extract GZIP compressed files',
+    icon: FileArchive
+  },
+  {
+    id: 'bz2-extract',
+    name: 'BZ2 Extract',
+    description: 'Extract BZIP2 compressed files',
+    icon: FileArchive
+  },
+  {
+    id: 'tar-extract',
+    name: 'TAR Extract',
+    description: 'Extract TAR archives',
+    icon: FileArchive
+  }
+];
+---
+
+<Layout title={title} description={description} toolType="archive">
+  <GenericArchiveExtractor
+    client:load
+    format="xz"
+    formatName="XZ"
+    formatDescription="Decompress XZ files with high compression ratios without uploading. Fast, secure, and runs entirely in your browser."
+    acceptedExtensions=".xz,.txz"
+    faqs={faqs}
+    relatedTools={relatedTools}
+  />
+</Layout>

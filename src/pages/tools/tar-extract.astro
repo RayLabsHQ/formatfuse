@@ -1,0 +1,11 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import TarExtractComponent from '../../components/converters/TarExtract';
+
+const title = 'Extract TAR Files Online - TAR, TAR.GZ, TAR.BZ2 Extractor';
+const description = 'Free online TAR extractor. Extract TAR, TAR.GZ, and TAR.BZ2 archives instantly in your browser. No uploads, 100% privacy, works offline.';
+---
+
+<Layout title={title} description={description} toolType="archive">
+  <TarExtractComponent client:load />
+</Layout>

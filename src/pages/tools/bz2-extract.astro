@@ -1,0 +1,60 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import GenericArchiveExtractor from '../../components/converters/GenericArchiveExtractor';
+import { FileArchive } from 'lucide-react';
+
+const title = 'Extract BZ2 Files Online - BZIP2 File Decompressor';
+const description = 'Free online BZ2 extractor. Decompress BZIP2 files instantly in your browser. No uploads, 100% privacy, works offline. Supports .bz2 and .tbz2 files.';
+
+const faqs = [
+  {
+    question: 'What is a BZ2 file?',
+    answer: 'BZ2 files use BZIP2 compression, which provides better compression than GZIP but with slower compression speed. It uses the Burrows-Wheeler transform and Huffman coding to achieve high compression ratios.'
+  },
+  {
+    question: 'How does BZIP2 compare to other formats?',
+    answer: 'BZIP2 typically compresses 20-30% better than GZIP but is slower. It\'s faster than XZ/LZMA but doesn\'t compress as well. It\'s a good middle ground when you need better compression than GZIP.'
+  },
+  {
+    question: 'What is a .tbz2 file?',
+    answer: 'A .tbz2 (or .tar.bz2) file is a TAR archive compressed with BZIP2. It combines TAR\'s ability to bundle multiple files with BZIP2\'s compression. Our tool can extract these to access all contained files.'
+  },
+  {
+    question: 'When should I use BZIP2?',
+    answer: 'BZIP2 is ideal for archiving data where compression ratio is important but you also need reasonable decompression speed. It\'s commonly used for source code archives, backups, and large text files.'
+  }
+];
+
+const relatedTools = [
+  {
+    id: 'gz-extract',
+    name: 'GZ Extract',
+    description: 'Extract GZIP compressed files',
+    icon: FileArchive
+  },
+  {
+    id: 'xz-extract',
+    name: 'XZ Extract',
+    description: 'Extract XZ compressed files',
+    icon: FileArchive
+  },
+  {
+    id: 'tar-extract',
+    name: 'TAR Extract',
+    description: 'Extract TAR archives',
+    icon: FileArchive
+  }
+];
+---
+
+<Layout title={title} description={description} toolType="archive">
+  <GenericArchiveExtractor
+    client:load
+    format="bz2"
+    formatName="BZ2"
+    formatDescription="Decompress BZIP2 files with high compression ratios without uploading. Fast, secure, and runs entirely in your browser."
+    acceptedExtensions=".bz2,.tbz2,.tbz"
+    faqs={faqs}
+    relatedTools={relatedTools}
+  />
+</Layout>

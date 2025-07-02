@@ -1,0 +1,60 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import GenericArchiveExtractor from '../../components/converters/GenericArchiveExtractor';
+import { FileArchive } from 'lucide-react';
+
+const title = 'Extract ISO Files Online - ISO Archive Extractor';
+const description = 'Free online ISO extractor. Extract ISO disk images and archives instantly in your browser. No uploads, 100% privacy, works offline.';
+
+const faqs = [
+  {
+    question: 'What is an ISO file?',
+    answer: 'ISO files are disk image archives that contain an exact copy of a CD, DVD, or other optical disc. They preserve the complete file system structure and are commonly used for software distribution, operating system installers, and backup purposes.'
+  },
+  {
+    question: 'Is it safe to extract ISO files online?',
+    answer: 'Yes, our ISO extractor is completely safe. All processing happens locally in your browser - your files never leave your device. We use WebAssembly technology to ensure privacy and security.'
+  },
+  {
+    question: 'What file types can be inside ISO archives?',
+    answer: 'ISO archives can contain any type of file - executables, documents, images, videos, and more. They preserve the complete directory structure of the original disc.'
+  },
+  {
+    question: 'How large can ISO files be?',
+    answer: 'ISO files can range from a few megabytes to several gigabytes. Common sizes include 700MB (CD), 4.7GB (single-layer DVD), and 8.5GB (dual-layer DVD). Our extractor handles files up to your browser\'s memory limits.'
+  }
+];
+
+const relatedTools = [
+  {
+    id: '7z-extract',
+    name: '7-Zip Extract',
+    description: 'Extract 7Z compressed archives',
+    icon: FileArchive
+  },
+  {
+    id: 'zip-extract',
+    name: 'ZIP Extract',
+    description: 'Extract ZIP compressed files',
+    icon: FileArchive
+  },
+  {
+    id: 'rar-extract',
+    name: 'RAR Extract',
+    description: 'Extract RAR archives online',
+    icon: FileArchive
+  }
+];
+---
+
+<Layout title={title} description={description} toolType="archive">
+  <GenericArchiveExtractor
+    client:load
+    format="iso"
+    formatName="ISO"
+    formatDescription="Extract disk image archives without uploading. Fast, secure, and runs entirely in your browser."
+    acceptedExtensions=".iso"
+    faqs={faqs}
+    relatedTools={relatedTools}
+  />
+</Layout>

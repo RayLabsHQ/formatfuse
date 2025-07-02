@@ -1,0 +1,11 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import ZipExtract from '../../components/converters/ZipExtract';
+
+const title = 'Extract ZIP Files Online - Unzip Archives in Browser';
+const description = 'Free online ZIP extractor. Extract and download files from ZIP archives instantly in your browser. No uploads, 100% privacy, works offline.';
+---
+
+<Layout title={title} description={description} toolType="archive">
+  <ZipExtract client:load />
+</Layout>

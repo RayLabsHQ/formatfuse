@@ -1,0 +1,60 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import GenericArchiveExtractor from '../../components/converters/GenericArchiveExtractor';
+import { FileArchive, Package } from 'lucide-react';
+
+const title = 'Extract CAB Files Online - Cabinet Archive Extractor';
+const description = 'Free online CAB extractor. Extract Microsoft Cabinet files instantly in your browser. No uploads, 100% privacy, works offline.';
+
+const faqs = [
+  {
+    question: 'What is a CAB file?',
+    answer: 'CAB (Cabinet) files are compressed archive files developed by Microsoft. They are commonly used for Windows software installations, driver packages, and system updates. CAB files support compression and can span multiple files.'
+  },
+  {
+    question: 'Why do I need to extract CAB files?',
+    answer: 'You may need to extract CAB files to access individual components from Windows installers, extract driver files, retrieve specific DLLs or system files, or examine the contents of Windows updates and patches.'
+  },
+  {
+    question: 'Can I extract CAB files on Mac or Linux?',
+    answer: 'Yes! Our online CAB extractor works on any operating system with a modern web browser - Windows, Mac, Linux, or mobile devices. Everything runs in your browser.'
+  },
+  {
+    question: 'Are CAB files virus-free?',
+    answer: 'CAB files themselves are just archives, but they can contain any type of file including executables. Always scan extracted files with antivirus software if you\'re unsure of their source.'
+  }
+];
+
+const relatedTools = [
+  {
+    id: 'zip-extract',
+    name: 'ZIP Extract',
+    description: 'Extract ZIP compressed files',
+    icon: FileArchive
+  },
+  {
+    id: 'iso-extract',
+    name: 'ISO Extract',
+    description: 'Extract ISO disk images',
+    icon: Package
+  },
+  {
+    id: '7z-extract',
+    name: '7-Zip Extract',
+    description: 'Extract 7Z compressed archives',
+    icon: FileArchive
+  }
+];
+---
+
+<Layout title={title} description={description} toolType="archive">
+  <GenericArchiveExtractor
+    client:load
+    format="cab"
+    formatName="CAB"
+    formatDescription="Extract Microsoft Cabinet archives without uploading. Fast, secure, and runs entirely in your browser."
+    acceptedExtensions=".cab"
+    faqs={faqs}
+    relatedTools={relatedTools}
+  />
+</Layout>

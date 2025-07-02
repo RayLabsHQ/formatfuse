@@ -1,0 +1,60 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import GenericArchiveExtractor from '../../components/converters/GenericArchiveExtractor';
+import { FileArchive } from 'lucide-react';
+
+const title = 'Extract GZ Files Online - GZIP File Decompressor';
+const description = 'Free online GZ extractor. Decompress GZIP files instantly in your browser. No uploads, 100% privacy, works offline. Supports .gz and .tgz files.';
+
+const faqs = [
+  {
+    question: 'What is a GZ file?',
+    answer: 'GZ files use GZIP compression, a popular format on Unix and Linux systems. GZIP provides good compression with fast decompression, making it ideal for web content, log files, and software distribution.'
+  },
+  {
+    question: 'What is the difference between .gz and .tgz?',
+    answer: 'A .gz file is typically a single compressed file, while .tgz (or .tar.gz) is a TAR archive that has been compressed with GZIP. TGZ files can contain multiple files and directories.'
+  },
+  {
+    question: 'Can I extract .tar.gz files?',
+    answer: 'Yes! Our extractor handles both .gz files (single compressed files) and .tgz/.tar.gz files (compressed TAR archives containing multiple files).'
+  },
+  {
+    question: 'Why are GZ files so common?',
+    answer: 'GZIP is widely used because it provides a good balance of compression ratio and speed. It\'s the standard for web compression (used by browsers), log file compression, and is built into most Unix/Linux systems.'
+  }
+];
+
+const relatedTools = [
+  {
+    id: 'tar-extract',
+    name: 'TAR Extract',
+    description: 'Extract TAR archives',
+    icon: FileArchive
+  },
+  {
+    id: 'bz2-extract',
+    name: 'BZ2 Extract',
+    description: 'Extract BZIP2 compressed files',
+    icon: FileArchive
+  },
+  {
+    id: 'xz-extract',
+    name: 'XZ Extract',
+    description: 'Extract XZ compressed files',
+    icon: FileArchive
+  }
+];
+---
+
+<Layout title={title} description={description} toolType="archive">
+  <GenericArchiveExtractor
+    client:load
+    format="gz"
+    formatName="GZ"
+    formatDescription="Decompress GZIP files without uploading. Fast, secure, and runs entirely in your browser."
+    acceptedExtensions=".gz,.tgz"
+    faqs={faqs}
+    relatedTools={relatedTools}
+  />
+</Layout>

@@ -1,0 +1,11 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import CreateZip from '../../components/converters/CreateZip';
+
+const title = 'Create ZIP Files Online - Compress Files in Browser';
+const description = 'Free online ZIP creator. Compress multiple files into ZIP archives right in your browser. Choose compression level, organize folders, no uploads required.';
+---
+
+<Layout title={title} description={description} toolType="archive">
+  <CreateZip client:load />
+</Layout>

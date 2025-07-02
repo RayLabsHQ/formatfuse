@@ -221,7 +221,7 @@ export default function Hero() {
               className="text-sm text-muted-foreground animate-fade-in"
               style={{ animationDelay: "0.3s" }}
             >
-              Supports 90+ formats including PDF, JPG, PNG, DOC, HEIC, and more
+              Supports 90+ formats including PDF, JPG, PNG, HEIC, and more
             </p>
           </div>
 
