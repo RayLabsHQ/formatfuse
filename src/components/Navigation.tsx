@@ -203,7 +203,7 @@ export default function Navigation() {
                           <a
                             key={tool.id}
                             href={tool.route || `/convert/${tool.id}`}
-                            className="group/item flex items-center gap-3 p-3 rounded-md hover:bg-secondary ff-transition"
+                            className="group/item flex items-center gap-3 p-3 rounded-md hover:bg-secondary/70 dark:hover:bg-secondary ff-transition"
                           >
                             <div
                               className={`p-1.5 rounded ${category.bgColor} ${category.color}`}
@@ -280,8 +280,8 @@ export default function Navigation() {
                             href={tool.route || `/convert/${tool.id}`}
                             className={`flex items-center gap-3 p-2 rounded-md ff-transition ${
                               selectedIndex === index
-                                ? "bg-secondary"
-                                : "hover:bg-secondary"
+                                ? "bg-secondary/70 dark:bg-secondary"
+                                : "hover:bg-secondary/70 dark:hover:bg-secondary"
                             }`}
                             onMouseEnter={() => setSelectedIndex(index)}
                           >
@@ -332,8 +332,8 @@ export default function Navigation() {
                                 href={tool.route || `/convert/${tool.id}`}
                                 className={`flex items-center gap-3 p-2 rounded-md ff-transition ${
                                   selectedIndex === index
-                                    ? "bg-secondary"
-                                    : "hover:bg-secondary"
+                                    ? "bg-secondary/70 dark:bg-secondary"
+                                    : "hover:bg-secondary/70 dark:hover:bg-secondary"
                                 }`}
                                 onMouseEnter={() => setSelectedIndex(index)}
                               >
@@ -418,7 +418,7 @@ export default function Navigation() {
                   <a
                     key={`${tool.id}-${index}`}
                     href={tool.route || `/convert/${tool.id}`}
-                    className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-secondary active:bg-secondary/80 ff-transition touch-manipulation min-h-[48px]"
+                    className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-secondary/70 active:bg-secondary/50 dark:hover:bg-secondary dark:active:bg-secondary/80 ff-transition touch-manipulation min-h-[48px]"
                     onClick={() => setIsOpen(false)}
                   >
                     <tool.icon className={`w-4 h-4 ${category.color}`} />
@@ -445,7 +445,7 @@ export default function Navigation() {
                         mobileCategory === category.name ? null : category.name,
                       )
                     }
-                    className="w-full flex items-center justify-between px-4 py-3 rounded-md hover:bg-secondary active:bg-secondary/80 ff-transition touch-manipulation min-h-[48px]"
+                    className="w-full flex items-center justify-between px-4 py-3 rounded-md hover:bg-secondary/70 active:bg-secondary/50 dark:hover:bg-secondary dark:active:bg-secondary/80 ff-transition touch-manipulation min-h-[48px]"
                   >
                     <span className="text-sm font-medium">{category.name}</span>
                     <ChevronDown
@@ -464,7 +464,7 @@ export default function Navigation() {
                         <a
                           key={tool.id}
                           href={tool.route || `/convert/${tool.id}`}
-                          className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-secondary active:bg-secondary/80 ff-transition touch-manipulation min-h-[48px]"
+                          className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-secondary/70 active:bg-secondary/50 dark:hover:bg-secondary dark:active:bg-secondary/80 ff-transition touch-manipulation min-h-[48px]"
                           onClick={() => setIsOpen(false)}
                         >
                           <tool.icon className={`w-4 h-4 ${category.color}`} />
