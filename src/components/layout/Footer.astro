@@ -3,16 +3,30 @@ import { Shield, Sparkles, ExternalLink } from 'lucide-react';
 
 const currentYear = new Date().getFullYear();
 
-const footerLinks = {
-  popularTools: [
-    { name: 'PDF Tools', href: '#all-tools' },
-    { name: 'Image Converters', href: '#all-tools' },
-    { name: 'Developer Tools', href: '#all-tools' },
-    { name: 'Document Tools', href: '#all-tools' },
+const footerTools = {
+  pdf: [
+    { name: 'Merge PDF', href: '/convert/pdf-merge' },
+    { name: 'Split PDF', href: '/convert/pdf-split' },
+    { name: 'Compress PDF', href: '/convert/pdf-compress' },
+    { name: 'JPG to PDF', href: '/convert/jpg-to-pdf' },
   ],
-  legal: [
-    { name: 'Privacy Policy', href: '/privacy' },
-    { name: 'Terms of Service', href: '/terms' },
+  image: [
+    { name: 'Image Converter', href: '/tools/image-converter' },
+    { name: 'Image Compressor', href: '/tools/image-compressor' },
+    { name: 'Image Resizer', href: '/tools/image-resizer' },
+    { name: 'PNG to JPG', href: '/convert/png-to-jpg' },
+  ],
+  developer: [
+    { name: 'JSON Formatter', href: '/tools/json-formatter' },
+    { name: 'Base64 Encoder', href: '/tools/base64-encoder' },
+    { name: 'QR Generator', href: '/tools/qr-generator' },
+    { name: 'UUID Generator', href: '/tools/uuid-generator' },
+  ],
+  archive: [
+    { name: 'Extract ZIP', href: '/tools/zip-extract' },
+    { name: 'Create ZIP', href: '/tools/create-zip' },
+    { name: 'Extract 7Z', href: '/tools/7z-extract' },
+    { name: 'Extract RAR', href: '/tools/rar-extract' },
   ],
 };
 
@@ -23,17 +37,16 @@ const features = [
 ---
 
 <footer class="relative overflow-hidden">
-  {/* Subtle gradient background */}
   <div class="absolute inset-0 bg-gradient-to-b from-transparent via-primary/[0.02] to-primary/[0.05]" />
   
   <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     {/* Main footer content */}
     <div class="py-12 border-t border-border/50">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+      <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-8 lg:gap-12">
         {/* Brand section */}
-        <div class="lg:col-span-1">
+        <div class="md:col-span-3 lg:col-span-2">
           <h3 class="font-bold text-2xl mb-4">FormatFuse</h3>
-          <p class="text-sm text-muted-foreground mb-6 leading-relaxed">
+          <p class="text-sm text-muted-foreground mb-6 leading-relaxed max-w-sm">
             Professional file conversion tools that work instantly in your browser. 
             No uploads, no servers, no limits. Everything stays on your device.
           </p>
@@ -52,42 +65,62 @@ const features = [
           </div>
         </div>
 
-        {/* Popular Tools */}
+        {/* PDF Tools */}
         <div>
-          <h4 class="font-semibold mb-6">Popular Tools</h4>
-          <ul class="space-y-3">
-            {footerLinks.popularTools.map((link) => (
-              <li class="group">
+          <h4 class="font-semibold mb-4 text-sm">PDF Tools</h4>
+          <ul class="space-y-2">
+            {footerTools.pdf.map((link) => (
+              <li>
                 <a 
                   href={link.href} 
-                  class="text-sm text-muted-foreground hover:text-primary transition-all duration-300 inline-block relative"
+                  class="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
-                  <span class="relative">
-                    {link.name}
-                    <span class="absolute -bottom-0.5 left-0 w-0 h-px bg-primary transition-all duration-300 group-hover:w-full"></span>
-                  </span>
+                  {link.name}
                 </a>
               </li>
             ))}
           </ul>
         </div>
 
-        {/* Company & Legal */}
+        {/* Image Tools */}
         <div>
-          <h4 class="font-semibold mb-6">Company</h4>
-          <ul class="space-y-3">
-            <li>
-              <a 
-                href="https://raylabs.io" 
-                target="_blank"
-                rel="noopener noreferrer"
-                class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-primary transition-colors"
-              >
-                About RayLabs
-                <ExternalLink className="w-3 h-3" />
-              </a>
-            </li>
-            {footerLinks.legal.map((link) => (
+          <h4 class="font-semibold mb-4 text-sm">Image Tools</h4>
+          <ul class="space-y-2">
+            {footerTools.image.map((link) => (
+              <li>
+                <a 
+                  href={link.href} 
+                  class="text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  {link.name}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Developer Tools */}
+        <div>
+          <h4 class="font-semibold mb-4 text-sm">Developer Tools</h4>
+          <ul class="space-y-2">
+            {footerTools.developer.map((link) => (
+              <li>
+                <a 
+                  href={link.href} 
+                  class="text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  {link.name}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Archive Tools */}
+        <div>
+          <h4 class="font-semibold mb-4 text-sm">Archive Tools</h4>
+          <ul class="space-y-2">
+            {footerTools.archive.map((link) => (
               <li>
                 <a 
                   href={link.href} 
@@ -112,6 +145,18 @@ const features = [
             rel="noopener noreferrer" 
             class="hover:text-primary transition-colors"
           >RayLabs</a> Company
+        </div>
+        
+        <div class="flex items-center gap-6">
+          <a href="https://raylabs.io" target="_blank" rel="noopener noreferrer" class="text-sm text-muted-foreground hover:text-primary transition-colors">
+            About
+          </a>
+          <a href="/privacy" class="text-sm text-muted-foreground hover:text-primary transition-colors">
+            Privacy
+          </a>
+          <a href="/terms" class="text-sm text-muted-foreground hover:text-primary transition-colors">
+            Terms
+          </a>
         </div>
         
         <div class="flex items-center gap-2 text-xs text-muted-foreground">
