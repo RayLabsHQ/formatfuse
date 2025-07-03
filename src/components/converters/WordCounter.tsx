@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
+import { ToolHeader } from "../ui/ToolHeader";
 import { CodeEditor } from "../ui/code-editor";
 
 interface TextStats {
@@ -400,19 +401,11 @@ ${text}`;
     <div className="w-full flex flex-col flex-1 min-h-0">
       <section className="flex-1 w-full max-w-7xl mx-auto p-0 sm:p-4 md:p-6 lg:p-8 flex flex-col h-full">
         {/* Header */}
-        <div className="text-center mb-4 sm:mb-8 md:mb-12 space-y-2 sm:space-y-4 px-4 sm:px-0 pt-4 sm:pt-0">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold animate-fade-in flex items-center justify-center flex-wrap gap-2 sm:gap-3">
-            <span>Word</span>
-            <span className="text-primary">Counter</span>
-          </h1>
-
-          <p
-            className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in-up"
-            style={{ animationDelay: "0.1s" }}
-          >
-            Count words, characters, and analyze text with reading time estimates
-          </p>
-        </div>
+        <ToolHeader
+          title={{ highlight: "Word", main: "Counter" }}
+          subtitle="Free online word counter - Count words, characters, sentences with reading time"
+          badge={{ text: "Text Analysis", icon: Type }}
+        />
 
         {/* Features - Desktop */}
         <div className="hidden sm:block animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
