@@ -605,7 +605,7 @@ export default function QrCodeGenerator() {
         <ToolHeader
           title={{ highlight: "QR Code", main: "Generator" }}
           subtitle="Create customizable QR codes instantly. Perfect for URLs, WiFi, contacts, and more."
-          badge={{ text: "Fast QR Generation", icon: Zap }}
+          badge={{ text: "Free QR Code Maker Online", icon: Zap }}
         />
 
         {/* Features - Desktop */}

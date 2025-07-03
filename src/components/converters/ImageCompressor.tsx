@@ -29,6 +29,7 @@ import { Button } from "../ui/button";
 import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
+import { ToolHeader } from "../ui/ToolHeader";
 import { cn } from "../../lib/utils";
 import { ImageCarouselModal } from "./ImageCarouselModal";
 import JSZip from "jszip";
@@ -372,22 +373,12 @@ export default function ImageCompressor() {
   return (
     <div className="min-h-screen w-full">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        {/* Hero Section - Same as ImageConverter */}
-        <div className="text-center mb-8 sm:mb-12">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 tracking-tight text-gradient animate-fade-in-up">
-            <span className="text-foreground">Image </span>
-            <span className="text-primary">Compressor</span>
-          </h1>
-
-          <p
-            className="text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in-up"
-            style={{ animationDelay: "0.1s" }}
-          >
-            Reduce image file sizes by up to 90% while maintaining visual
-            quality. Compress JPG, PNG, WebP, and AVIF images instantly in your
-            browser.
-          </p>
-        </div>
+        {/* Hero Section */}
+        <ToolHeader
+          title={{ highlight: "Image", main: "Compressor" }}
+          subtitle="Reduce image file sizes by up to 90% while maintaining visual quality. Compress JPG, PNG, WebP, and AVIF images instantly in your browser."
+          badge={{ text: "Compress Images Online Free", icon: Minimize2 }}
+        />
 
         {/* Features - Responsive (Same as ImageConverter) */}
         <div className="animate-fade-in-up" style={{ animationDelay: "0.2s" }}>

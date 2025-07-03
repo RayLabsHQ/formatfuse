@@ -669,7 +669,7 @@ export function ColorConverter({ initialColor = '#3B82F6', hideHeader = false }:
           <ToolHeader
             title={{ highlight: "Color", main: "Converter" }}
             subtitle="Paste any color format and instantly get all conversions"
-            badge={{ text: "Professional Color Tools", icon: Zap }}
+            badge={{ text: "HEX RGB HSL Color Code Converter", icon: Zap }}
           />
         )}
 

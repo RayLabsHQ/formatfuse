@@ -23,6 +23,7 @@ import { TbFileTypePdf } from "react-icons/tb";
 import { Button } from "../ui/button";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
+import { ToolHeader } from "../ui/ToolHeader";
 import { cn } from "../../lib/utils";
 import { usePdfOperations } from "../../hooks/usePdfOperations";
 import { PdfPreview } from "../ui/pdf-preview";
@@ -293,20 +294,11 @@ export default function PdfMerge() {
     <div className="w-full">
       <section className="w-full max-w-6xl mx-auto p-4 sm:p-6 lg:p-8">
         {/* Header */}
-        <div className="text-center mb-8 sm:mb-12 space-y-4">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold animate-fade-in flex items-center justify-center flex-wrap gap-3">
-            <span>PDF</span>
-            <span className="text-primary">Merge</span>
-          </h1>
-
-          <p
-            className="text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in-up"
-            style={{ animationDelay: "0.1s" }}
-          >
-            Combine multiple PDFs into a single document. Drag to reorder,
-            preview contents, and create the perfect merged PDF.
-          </p>
-        </div>
+        <ToolHeader
+          title={{ main: "PDF", highlight: "Merge" }}
+          subtitle="Combine multiple PDFs into a single document. Drag to reorder, preview contents, and create the perfect merged PDF."
+          badge={{ text: "Combine PDF Files Online", icon: Layers }}
+        />
 
         {/* Features - Responsive */}
         <div className="animate-fade-in-up" style={{ animationDelay: "0.2s" }}>

@@ -532,7 +532,7 @@ export default function ImageConverter({
               </span>
             }
             subtitle="Fast, secure image conversion right in your browser. No uploads, no servers, no limits."
-            badge={{ text: "WebAssembly Powered Conversion", icon: Zap }}
+            badge={{ text: "Convert Images Online Free", icon: Zap }}
           />
 
           {/* Features - Responsive */}

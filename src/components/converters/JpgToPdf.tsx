@@ -20,10 +20,12 @@ import {
   Layers,
   Package,
   CheckCircle2,
+  TrendingUp,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
+import { ToolHeader } from "../ui/ToolHeader";
 import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 import { cn } from "../../lib/utils";
 import { Slider } from "../ui/slider";
@@ -344,20 +346,11 @@ export default function JpgToPdf() {
     <div className="w-full">
       <section className="w-full max-w-6xl mx-auto p-4 sm:p-6 lg:p-8">
         {/* Header */}
-        <div className="text-center mb-8 sm:mb-12 space-y-4">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold animate-fade-in flex items-center justify-center flex-wrap gap-3">
-            <span>JPG to</span>
-            <span className="text-primary">PDF</span>
-          </h1>
-
-          <p
-            className="text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in-up"
-            style={{ animationDelay: "0.1s" }}
-          >
-            Convert images to PDF with custom page sizes and quality settings.
-            Arrange pages with drag-and-drop for the perfect document.
-          </p>
-        </div>
+        <ToolHeader
+          title={{ main: "JPG to", highlight: "PDF" }}
+          subtitle="Convert images to PDF with custom page sizes and quality settings. Arrange pages with drag-and-drop for the perfect document."
+          badge={{ text: "Images to PDF Converter", icon: TrendingUp }}
+        />
 
         {/* Features - Responsive */}
         <div className="animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
