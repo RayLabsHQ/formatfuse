@@ -7,10 +7,15 @@ export interface OGImageProps extends RenderFunctionInput {
   targetFormat?: string;
 }
 
-function getToolTheme(toolType: string): {
+function getToolTheme(toolType: string, title?: string): {
   primary: string;
   secondary: string;
 } {
+  // Special theme for color converter
+  if (title && (title.includes("Color Converter") || title.includes("HEX, RGB, HSL"))) {
+    return { primary: "#a78bfa", secondary: "#8b5cf6" };
+  }
+  
   const themes: Record<string, { primary: string; secondary: string }> = {
     pdf: { primary: "#ef4444", secondary: "#dc2626" },
     image: { primary: "#10b981", secondary: "#059669" },
@@ -24,6 +29,10 @@ function getToolTheme(toolType: string): {
 
 function getToolFeatures(title: string, toolType: string): string[] {
   const titleLower = title.toLowerCase();
+  
+  if (titleLower.includes("color converter") || titleLower.includes("hex, rgb, hsl")) {
+    return ["Instant Conversion", "All Color Formats", "Real-time Preview"];
+  }
 
   if (titleLower.includes("base64")) {
     return ["Auto-detect Format", "File Support", "Data URI Generator"];
@@ -83,7 +92,7 @@ export async function toolOGImage({
   sourceFormat,
   targetFormat,
 }: OGImageProps): Promise<React.ReactNode> {
-  const theme = getToolTheme(toolType);
+  const theme = getToolTheme(toolType, title);
 
   // Check if this is the homepage
   const isHomepage = title === "FormatFuse - Free Online File Converters - FormatFuse";
@@ -98,7 +107,7 @@ export async function toolOGImage({
           width: "100%",
           position: "relative",
           overflow: "hidden",
-          background: "#38383d",
+          background: "#1a1a21",
         }}
       >
         {/* Top Status Bar */}
@@ -566,6 +575,12 @@ export async function toolOGImage({
   // Extract main title and subtitle
   let mainTitle = displayTitle;
   let subtitle = "";
+  
+  // Special handling for Color Converter
+  if (title.includes("Color Converter") || title.includes("HEX, RGB, HSL")) {
+    mainTitle = "Color Converter";
+    subtitle = "Professional Color Tools";
+  }
 
   // Check for specific tools and patterns
   if (displayTitle.includes("Base64")) {
@@ -719,7 +734,7 @@ export async function toolOGImage({
         width: "100%",
         position: "relative",
         overflow: "hidden",
-        background: "#0f172a",
+        background: "#1a1a21",
       }}
     >
       {/* Main Content */}
@@ -881,6 +896,8 @@ export async function toolOGImage({
                 alignItems: "center",
                 justifyContent: "center",
                 gap: 24,
+                position: "relative",
+                overflow: "hidden",
               }}
             >
               {/* Tool Icon based on type */}
@@ -945,8 +962,69 @@ export async function toolOGImage({
                 </svg>
               </div>
 
-              {/* File Format Display for converters */}
-              {sourceFormat && targetFormat ? (
+              {/* Special display for Color Converter */}
+              {(title.includes("Color Converter") || title.includes("HEX, RGB, HSL")) ? (
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: 24,
+                    width: "100%",
+                  }}
+                >
+                  {/* Color Palette Display */}
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 16,
+                      marginBottom: 16,
+                    }}
+                  >
+                    {["#FF6B6B", "#4ECDC4", "#45B7D1", "#FFA07A", "#98D8C8"].map((color, i) => (
+                      <div
+                        key={i}
+                        style={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: 12,
+                          background: color,
+                          boxShadow: `0 4px 12px ${color}40`,
+                          transform: `rotate(${i * 15 - 30}deg)`,
+                        }}
+                      />
+                    ))}
+                  </div>
+                  
+                  {/* Format Labels */}
+                  <div
+                    style={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: 12,
+                      justifyContent: "center",
+                      maxWidth: 320,
+                    }}
+                  >
+                    {["HEX", "RGB", "HSL", "HSV", "LAB", "CMYK"].map((format) => (
+                      <div
+                        key={format}
+                        style={{
+                          padding: "8px 16px",
+                          borderRadius: 8,
+                          background: "rgba(139, 92, 246, 0.1)",
+                          border: "1px solid rgba(139, 92, 246, 0.3)",
+                          color: "#a78bfa",
+                          fontSize: 14,
+                          fontWeight: 600,
+                        }}
+                      >
+                        {format}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : sourceFormat && targetFormat ? (
                 <div
                   style={{
                     display: "flex",
