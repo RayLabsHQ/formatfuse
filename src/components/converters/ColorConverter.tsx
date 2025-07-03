@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Copy, Palette, Check, Zap, Shield, Sparkles, ArrowRight } from 'lucide-react';
+import { Copy, Palette, Check, Zap, Shield, Sparkles, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import Color from 'colorjs.io';
 import { FAQ, type FAQItem } from '../ui/FAQ';
@@ -94,14 +94,35 @@ interface ColorValues {
   xyzD50: string;
 }
 
+// Custom debounce hook
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
 export function ColorConverter() {
-  const [inputFormat, setInputFormat] = useState<ColorFormat>('hex');
   const [inputValue, setInputValue] = useState('#3B82F6');
   const [colorValues, setColorValues] = useState<ColorValues | null>(null);
   const [previewColor, setPreviewColor] = useState('#3B82F6');
   const [activeFeature, setActiveFeature] = useState<number | null>(null);
   const [copiedFormat, setCopiedFormat] = useState<string | null>(null);
-  const [autoDetect, setAutoDetect] = useState(true);
+  const [detectedFormat, setDetectedFormat] = useState<ColorFormat | null>('hex');
+  const [isValidColor, setIsValidColor] = useState(true);
+  const [isConverting, setIsConverting] = useState(false);
+  
+  // Debounce the input value for auto-conversion
+  const debouncedInputValue = useDebounce(inputValue, 300);
 
   const parseInput = (value: string, format: ColorFormat): Color | null => {
     try {
@@ -457,20 +478,30 @@ export function ColorConverter() {
     }
   };
 
-  const handleConvert = () => {
-    let formatToUse = inputFormat;
-    
-    // Auto-detect format if enabled
-    if (autoDetect) {
-      const detectedFormat = detectColorFormat(inputValue);
-      if (detectedFormat) {
-        formatToUse = detectedFormat;
-        setInputFormat(detectedFormat);
-      }
+  const handleConvert = useCallback((value: string) => {
+    if (!value.trim()) {
+      setIsValidColor(false);
+      setColorValues(null);
+      return;
     }
     
-    const color = parseInput(inputValue, formatToUse);
+    setIsConverting(true);
+    
+    // Auto-detect format
+    const format = detectColorFormat(value);
+    if (!format) {
+      setIsValidColor(false);
+      setColorValues(null);
+      setDetectedFormat(null);
+      setIsConverting(false);
+      return;
+    }
+    
+    setDetectedFormat(format);
+    
+    const color = parseInput(value, format);
     if (color) {
+      setIsValidColor(true);
       const values: ColorValues = {
         hex: formatColorValue(color, 'hex'),
         rgb: formatColorValue(color, 'rgb'),
@@ -492,9 +523,12 @@ export function ColorConverter() {
       setColorValues(values);
       setPreviewColor(values.hex);
     } else {
-      toast.error('Invalid color format. Please check your input.');
+      setIsValidColor(false);
+      setColorValues(null);
     }
-  };
+    
+    setIsConverting(false);
+  }, []);
 
   const handleCopy = (text: string, format?: string) => {
     navigator.clipboard.writeText(text);
@@ -505,9 +539,10 @@ export function ColorConverter() {
     }
   };
 
+  // Auto-convert when input changes (debounced)
   useEffect(() => {
-    handleConvert();
-  }, []);
+    handleConvert(debouncedInputValue);
+  }, [debouncedInputValue, handleConvert]);
 
   const detectColorFormat = (value: string): ColorFormat | null => {
     value = value.trim();
@@ -522,9 +557,24 @@ export function ColorConverter() {
       return 'rgb';
     }
     
-    // HSL format
-    if (/^hsl\s*\(/.test(value) || /^\d{1,3}\s*,\s*\d{1,3}%?\s*,\s*\d{1,3}%?$/.test(value)) {
+    // HSL format - be more lenient with detection
+    if (/^hsl\s*\(/.test(value)) {
       return 'hsl';
+    }
+    // Check for h,s,l pattern but avoid conflicting with RGB
+    if (/^\d{1,3}\s*,\s*\d{1,3}%?\s*,\s*\d{1,3}%?$/.test(value)) {
+      // If percentages are present, it's definitely HSL
+      if (value.includes('%')) {
+        return 'hsl';
+      }
+      // If all values are <= 100, it could be HSL (saturation and lightness are percentages)
+      const parts = value.split(',').map(s => parseInt(s.trim()));
+      if (parts.length === 3 && parts[1] <= 100 && parts[2] <= 100) {
+        // If first value > 255, it's likely HSL (hue can be 0-360)
+        if (parts[0] > 255) {
+          return 'hsl';
+        }
+      }
     }
     
     // HSV format
@@ -636,7 +686,7 @@ export function ColorConverter() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-primary/10 rounded-full blur-3xl animate-blob animation-delay-4000" />
       </div>
 
-      <section className="flex-1 w-full max-w-7xl mx-auto p-0 sm:p-4 md:p-6 lg:p-8 flex flex-col h-full relative z-10">
+      <section className="flex-1 w-full max-w-5xl mx-auto p-0 sm:p-4 md:p-6 lg:p-8 flex flex-col h-full relative z-10">
         {/* Header */}
         <div className="text-center mb-4 sm:mb-6 md:mb-8 space-y-2 sm:space-y-3 px-4 sm:px-0 pt-4 sm:pt-0">
           <Badge
@@ -653,7 +703,7 @@ export function ColorConverter() {
             className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in-up"
             style={{ animationDelay: "0.1s" }}
           >
-            Convert between HEX, RGB, HSL, LAB, and 15+ color formats instantly
+            Paste any color format and instantly get all conversions
           </p>
         </div>
 
@@ -708,279 +758,120 @@ export function ColorConverter() {
           )}
         </div>
 
-        {/* Main Content - Side by Side on Desktop */}
-        <div className="flex-1 flex flex-col lg:flex-row gap-4 sm:gap-6 px-4 sm:px-0 min-h-0">
-          {/* Left Side - Input */}
-          <div className="flex-1 lg:max-w-md flex flex-col">
-            <Card className="flex-1 shadow-lg hover:shadow-xl transition-shadow duration-300 border-muted/50 bg-background/95 backdrop-blur-sm overflow-hidden">
-              <CardContent className="p-4 sm:p-6 h-full overflow-y-auto">
-                {/* Format Selection */}
-                <div className="mb-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <Label className="text-base font-semibold">Input Format</Label>
-                    <button
-                      onClick={() => setAutoDetect(!autoDetect)}
+        {/* Main Content - Streamlined Single Panel */}
+        <div className="flex-1 px-4 sm:px-0">
+          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-muted/50 bg-background/95 backdrop-blur-sm overflow-hidden">
+            <CardContent className="p-4 sm:p-6 md:p-8">
+              {/* Input Section */}
+              <div className="mb-8">
+                <div className="relative">
+                  <Input
+                    id="color-input"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    placeholder="Paste any color: #3B82F6, rgb(59, 130, 246), hsl(217, 91%, 60%)..."
+                    className={cn(
+                      "h-14 text-lg pr-32 transition-all",
+                      !isValidColor && inputValue && !isConverting && "border-destructive/50 focus:border-destructive"
+                    )}
+                  />
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                    {isConverting && (
+                      <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                    )}
+                    {detectedFormat && isValidColor && !isConverting && (
+                      <Badge variant="secondary" className="text-xs">
+                        {getFormatLabel(detectedFormat)}
+                      </Badge>
+                    )}
+                    <div
                       className={cn(
-                        "text-sm px-3 py-1 rounded-lg transition-all",
-                        autoDetect
-                          ? "bg-primary/10 text-primary border border-primary/20"
-                          : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                        "w-10 h-10 rounded-lg border-2 transition-all",
+                        isValidColor ? "border-border" : "border-muted bg-muted"
                       )}
-                    >
-                      {autoDetect ? "Auto-detect ON" : "Auto-detect OFF"}
-                    </button>
-                  </div>
-                  <div className={cn(
-                    "space-y-3 transition-opacity duration-200",
-                    autoDetect && "opacity-50"
-                  )}>
-                    {/* Common Formats */}
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-2">Common</p>
-                      <div className="grid grid-cols-4 gap-2">
-                        {formatGroups.common.map((format) => (
-                          <button
-                            key={format}
-                            onClick={() => {
-                              setInputFormat(format as ColorFormat);
-                              setAutoDetect(false);
-                            }}
-                            disabled={autoDetect}
-                            className={cn(
-                              "py-2 px-3 rounded-lg text-sm font-medium transition-all",
-                              inputFormat === format
-                                ? "bg-primary text-primary-foreground shadow-sm"
-                                : "bg-secondary hover:bg-secondary/80"
-                            )}
-                          >
-                            {getFormatLabel(format as ColorFormat)}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Perceptual Formats */}
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-2">Perceptual</p>
-                      <div className="grid grid-cols-4 gap-2">
-                        {formatGroups.perceptual.map((format) => (
-                          <button
-                            key={format}
-                            onClick={() => {
-                              setInputFormat(format as ColorFormat);
-                              setAutoDetect(false);
-                            }}
-                            disabled={autoDetect}
-                            className={cn(
-                              "py-2 px-3 rounded-lg text-sm font-medium transition-all",
-                              inputFormat === format
-                                ? "bg-primary text-primary-foreground shadow-sm"
-                                : "bg-secondary hover:bg-secondary/80"
-                            )}
-                          >
-                            {getFormatLabel(format as ColorFormat)}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Wide Gamut Formats */}
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-2">Wide Gamut</p>
-                      <div className="grid grid-cols-4 gap-2">
-                        {formatGroups.wideGamut.map((format) => (
-                          <button
-                            key={format}
-                            onClick={() => {
-                              setInputFormat(format as ColorFormat);
-                              setAutoDetect(false);
-                            }}
-                            disabled={autoDetect}
-                            className={cn(
-                              "py-2 px-3 rounded-lg text-sm font-medium transition-all",
-                              inputFormat === format
-                                ? "bg-primary text-primary-foreground shadow-sm"
-                                : "bg-secondary hover:bg-secondary/80"
-                            )}
-                          >
-                            {getFormatLabel(format as ColorFormat)}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Technical Formats */}
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-2">Technical</p>
-                      <div className="grid grid-cols-3 gap-2">
-                        {formatGroups.technical.map((format) => (
-                          <button
-                            key={format}
-                            onClick={() => {
-                              setInputFormat(format as ColorFormat);
-                              setAutoDetect(false);
-                            }}
-                            disabled={autoDetect}
-                            className={cn(
-                              "py-2 px-3 rounded-lg text-sm font-medium transition-all",
-                              inputFormat === format
-                                ? "bg-primary text-primary-foreground shadow-sm"
-                                : "bg-secondary hover:bg-secondary/80"
-                            )}
-                          >
-                            {getFormatLabel(format as ColorFormat)}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                      style={{ backgroundColor: isValidColor ? previewColor : undefined }}
+                    />
                   </div>
                 </div>
+                {!isValidColor && inputValue && !isConverting && (
+                  <p className="text-sm text-destructive mt-2">
+                    Invalid color format. Try HEX, RGB, HSL, or other supported formats.
+                  </p>
+                )}
+              </div>
 
-                {/* Color Input */}
-                <div className="mb-6">
-                  <Label htmlFor="color-input" className="mb-2 block">
-                    Color Value
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="color-input"
-                      value={inputValue}
-                      onChange={(e) => setInputValue(e.target.value)}
-                      placeholder={autoDetect ? "Enter any color format (auto-detect enabled)" : getPlaceholder(inputFormat)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleConvert()}
-                      className="pr-12"
-                    />
+              {/* Output Section */}
+              {colorValues ? (
+                <div className="space-y-6 animate-fade-in">
+                  {/* Color Preview */}
+                  <div className="mb-8">
                     <div
-                      className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded border"
+                      className="w-full h-24 sm:h-32 rounded-xl shadow-inner transition-all duration-300"
                       style={{ backgroundColor: previewColor }}
                     />
                   </div>
-                </div>
 
-                <Button onClick={handleConvert} className="w-full" size="lg">
-                  <ArrowRight className="w-4 h-4 mr-2" />
-                  Convert Color
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Right Side - Output */}
-          <div className="flex-1 flex flex-col">
-            <Card className="flex-1 shadow-lg hover:shadow-xl transition-shadow duration-300 border-muted/50 bg-background/95 backdrop-blur-sm overflow-hidden">
-              <CardContent className="p-4 sm:p-6 h-full overflow-y-auto">
-                {!colorValues ? (
-                  <div className="h-full flex items-center justify-center">
-                    <div className="text-center">
-                      <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mx-auto mb-4">
-                        <Palette className="w-10 h-10 text-primary/60" />
-                      </div>
-                      <p className="text-muted-foreground">
-                        Enter a color to see conversions
-                      </p>
-                      <p className="text-sm text-muted-foreground/60 mt-1">
-                        All formats will appear here
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    {/* Color Preview */}
-                    <div>
-                      <Label className="mb-3 block">Color Preview</Label>
-                      <div
-                        className="w-full h-32 rounded-xl shadow-inner transition-colors duration-300"
-                        style={{ backgroundColor: previewColor }}
-                      />
-                    </div>
-
-                    {/* Quick Copy - Primary Format */}
-                    <div>
-                      <Label className="mb-3 block">Quick Copy</Label>
-                      <div className="grid grid-cols-2 gap-3">
-                        {formatGroups.common.map((format) => {
-                          const value = colorValues[format === 'xyz-d50' ? 'xyzD50' : format as keyof ColorValues];
-                          return (
-                            <button
-                              key={format}
-                              onClick={() => handleCopy(value, format)}
-                              className={cn(
-                                "p-3 rounded-lg border text-left transition-all group hover:border-primary/50",
-                                copiedFormat === format && "border-primary bg-primary/5"
-                              )}
-                            >
-                              <div className="flex items-center justify-between">
-                                <div className="min-w-0">
-                                  <p className="text-xs text-muted-foreground">{getFormatLabel(format as ColorFormat)}</p>
-                                  <p className="text-sm font-mono truncate">{value}</p>
-                                </div>
-                                {copiedFormat === format ? (
-                                  <Check className="w-4 h-4 text-primary flex-shrink-0 ml-2" />
-                                ) : (
-                                  <Copy className="w-4 h-4 text-muted-foreground group-hover:text-primary flex-shrink-0 ml-2" />
-                                )}
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* All Formats */}
-                    <div>
-                      <Label className="mb-3 block">All Formats</Label>
-                      <div className="grid grid-cols-1 xl:grid-cols-2 gap-2">
-                        {Object.entries({
-                          hex: 'HEX',
-                          rgb: 'RGB',
-                          hsl: 'HSL',
-                          hsv: 'HSV',
-                          hwb: 'HWB',
-                          lab: 'LAB',
-                          lch: 'LCH',
-                          oklab: 'OKLab',
-                          oklch: 'OKLCH',
-                          p3: 'Display P3',
-                          rec2020: 'Rec. 2020',
-                          prophoto: 'ProPhoto RGB',
-                          a98rgb: 'Adobe RGB',
-                          xyz: 'XYZ (D65)',
-                          xyzD50: 'XYZ (D50)'
-                        }).map(([key, label]) => (
-                          <div
-                            key={key}
-                            className={cn(
-                              "flex items-center justify-between p-3 bg-muted/50 rounded-lg transition-all hover:bg-muted/70 group",
-                              copiedFormat === key && "bg-primary/10"
-                            )}
-                          >
-                            <div className="flex-1 min-w-0">
-                              <div className="text-xs text-muted-foreground">{label}</div>
-                              <code className="text-sm font-mono block truncate pr-2">
-                                {colorValues[key as keyof ColorValues]}
-                              </code>
-                            </div>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleCopy(colorValues[key as keyof ColorValues], key)}
-                              className="opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                              {copiedFormat === key ? (
-                                <Check className="w-4 h-4" />
-                              ) : (
-                                <Copy className="w-4 h-4" />
-                              )}
-                            </Button>
+                  {/* All Formats Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {Object.entries({
+                      hex: 'HEX',
+                      rgb: 'RGB',
+                      hsl: 'HSL',
+                      hsv: 'HSV',
+                      hwb: 'HWB',
+                      lab: 'LAB',
+                      lch: 'LCH',
+                      oklab: 'OKLab',
+                      oklch: 'OKLCH',
+                      p3: 'Display P3',
+                      rec2020: 'Rec. 2020',
+                      prophoto: 'ProPhoto RGB',
+                      a98rgb: 'Adobe RGB',
+                      xyz: 'XYZ (D65)',
+                      xyzD50: 'XYZ (D50)'
+                    }).map(([key, label]) => (
+                      <button
+                        key={key}
+                        onClick={() => handleCopy(colorValues[key as keyof ColorValues], key)}
+                        className={cn(
+                          "p-4 rounded-lg border text-left transition-all group hover:border-primary/50 hover:bg-muted/50",
+                          copiedFormat === key && "border-primary bg-primary/5"
+                        )}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs text-muted-foreground mb-1">{label}</p>
+                            <p className="text-sm font-mono truncate pr-2">
+                              {colorValues[key as keyof ColorValues]}
+                            </p>
                           </div>
-                        ))}
-                      </div>
-                    </div>
+                          {copiedFormat === key ? (
+                            <Check className="w-4 h-4 text-primary flex-shrink-0" />
+                          ) : (
+                            <Copy className="w-4 h-4 text-muted-foreground group-hover:text-primary flex-shrink-0 transition-colors" />
+                          )}
+                        </div>
+                      </button>
+                    ))}
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center py-12">
+                  <div className="text-center">
+                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mx-auto mb-4">
+                      <Palette className="w-10 h-10 text-primary/60" />
+                    </div>
+                    <p className="text-muted-foreground">
+                      Start typing or paste a color value
+                    </p>
+                    <p className="text-sm text-muted-foreground/60 mt-1">
+                      Auto-detects all supported formats
+                    </p>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         {/* FAQ and Related Tools */}
