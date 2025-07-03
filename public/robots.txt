@@ -3,6 +3,7 @@ Allow: /
 
 # Sitemap
 Sitemap: https://formatfuse.com/sitemap-index.xml
+Sitemap: https://formatfuse.com/sitemap-colors.xml
 
 # Disallow development/test files
 Disallow: /api/

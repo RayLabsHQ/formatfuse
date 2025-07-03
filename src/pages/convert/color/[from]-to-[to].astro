@@ -1,0 +1,283 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import { ColorConverter } from '../../../components/converters/ColorConverter.tsx';
+import '../../../styles/global.css';
+
+// Pre-render all dynamic routes at build time for SEO
+export const prerender = true;
+
+export async function getStaticPaths() {
+  // All supported color formats
+  const formats = [
+    { key: 'hex', name: 'HEX', description: 'Hexadecimal color values' },
+    { key: 'rgb', name: 'RGB', description: 'Red, Green, Blue color model' },
+    { key: 'hsl', name: 'HSL', description: 'Hue, Saturation, Lightness' },
+    { key: 'hsv', name: 'HSV', description: 'Hue, Saturation, Value' },
+    { key: 'hwb', name: 'HWB', description: 'Hue, Whiteness, Blackness' },
+    { key: 'lab', name: 'LAB', description: 'CIE LAB color space' },
+    { key: 'lch', name: 'LCH', description: 'Lightness, Chroma, Hue' },
+    { key: 'oklab', name: 'OKLab', description: 'Perceptually uniform LAB' },
+    { key: 'oklch', name: 'OKLCH', description: 'Perceptually uniform LCH' },
+    { key: 'p3', name: 'Display P3', description: 'Wide gamut RGB color space' },
+    { key: 'rec2020', name: 'Rec. 2020', description: 'Ultra-wide gamut color space' },
+    { key: 'prophoto', name: 'ProPhoto RGB', description: 'Professional photography color space' },
+    { key: 'a98rgb', name: 'Adobe RGB', description: 'Adobe RGB (1998) color space' },
+    { key: 'xyz', name: 'XYZ', description: 'CIE XYZ color space (D65)' },
+    { key: 'xyz-d50', name: 'XYZ D50', description: 'CIE XYZ color space (D50)' }
+  ];
+
+  // Generate all possible combinations (excluding same-to-same)
+  const paths = [];
+  
+  for (const from of formats) {
+    for (const to of formats) {
+      // Skip same format conversions
+      if (from.key === to.key) continue;
+      
+      paths.push({
+        params: { from: from.key, to: to.key },
+        props: { 
+          fromFormat: from, 
+          toFormat: to 
+        }
+      });
+    }
+  }
+  
+  return paths;
+}
+
+// Get props from getStaticPaths
+const { fromFormat, toFormat } = Astro.props;
+const fromKey = Astro.params.from;
+const toKey = Astro.params.to;
+
+// Generate title and description
+const title = `${toFormat.name} Converter - Convert from ${fromFormat.name}`;
+const description = `Convert ${fromFormat.name} (${fromFormat.description}) colors to ${toFormat.name} (${toFormat.description}) format instantly. Professional color space conversion with high accuracy. No uploads required, works in your browser.`;
+
+// Generate example conversions for better SEO
+const getExampleConversion = (from: string, to: string): { input: string; output: string } => {
+  const examples: Record<string, Record<string, { input: string; output: string }>> = {
+    hex: {
+      rgb: { input: '#3B82F6', output: 'rgb(59, 130, 246)' },
+      hsl: { input: '#3B82F6', output: 'hsl(217, 91%, 60%)' },
+      lab: { input: '#3B82F6', output: 'lab(54.3 48.6 -36.5)' },
+      oklch: { input: '#3B82F6', output: 'oklch(0.623 0.138 303.5)' },
+    },
+    rgb: {
+      hex: { input: 'rgb(59, 130, 246)', output: '#3B82F6' },
+      hsl: { input: 'rgb(59, 130, 246)', output: 'hsl(217, 91%, 60%)' },
+      hsv: { input: 'rgb(59, 130, 246)', output: 'hsv(217, 76%, 96%)' },
+      lab: { input: 'rgb(59, 130, 246)', output: 'lab(54.3 48.6 -36.5)' },
+    },
+    hsl: {
+      hex: { input: 'hsl(217, 91%, 60%)', output: '#3B82F6' },
+      rgb: { input: 'hsl(217, 91%, 60%)', output: 'rgb(59, 130, 246)' },
+      oklab: { input: 'hsl(217, 91%, 60%)', output: 'oklab(0.623 0.076 -0.115)' },
+      p3: { input: 'hsl(217, 91%, 60%)', output: 'color(display-p3 0.329 0.510 0.965)' },
+    },
+  };
+  
+  // Return specific example if available, otherwise generic
+  return examples[from]?.[to] || {
+    input: `Enter ${fromFormat.name} color`,
+    output: `Get ${toFormat.name} result`
+  };
+};
+
+const example = getExampleConversion(fromKey!, toKey!);
+
+// Default placeholder colors for each format
+const getDefaultColor = (format: string): string => {
+  const defaults: Record<string, string> = {
+    'hex': '#3B82F6',
+    'rgb': 'rgb(59, 130, 246)',
+    'hsl': 'hsl(217, 91%, 60%)',
+    'hsv': 'hsv(217, 76%, 96%)',
+    'hwb': 'hwb(217 23% 4%)',
+    'lab': 'lab(64.9 -12.9 -46.2)',
+    'lch': 'lch(64.9 47.9 254.4)',
+    'oklab': 'oklab(0.700 -0.066 -0.128)',
+    'oklch': 'oklch(0.700 0.144 242.8)',
+    'p3': 'color(display-p3 0.357 0.6 0.835)',
+    'rec2020': 'color(rec2020 0.424 0.602 0.819)',
+    'prophoto': 'color(prophoto-rgb 0.486 0.589 0.754)',
+    'a98rgb': 'color(a98-rgb 0.411 0.649 0.840)',
+    'xyz': 'color(xyz 0.3135 0.3486 0.8341)',
+    'xyz-d50': 'color(xyz-d50 0.2926 0.3393 0.6360)'
+  };
+  
+  return defaults[format] || defaults['hex'];
+};
+
+const defaultInputColor = getDefaultColor(fromKey!);
+
+// Schema.org structured data for SEO
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": title,
+  "description": description,
+  "url": `https://formatfuse.com/convert/color/${fromKey}-to-${toKey}`,
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Any",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "featureList": [
+    "Instant color conversion",
+    "Professional color spaces",
+    "High accuracy calculations",
+    "Browser-based processing",
+    "No data uploads",
+    "Wide gamut support",
+    "Perceptual color spaces",
+    "Copy-paste results"
+  ],
+  "howTo": {
+    "@type": "HowTo",
+    "name": `How to convert ${fromFormat.name} to ${toFormat.name}`,
+    "step": [
+      {
+        "@type": "HowToStep",
+        "text": `Enter your ${fromFormat.name} color value`,
+        "name": "Input color"
+      },
+      {
+        "@type": "HowToStep", 
+        "text": `The tool automatically converts to ${toFormat.name} format`,
+        "name": "Automatic conversion"
+      },
+      {
+        "@type": "HowToStep",
+        "text": "Click to copy the converted value",
+        "name": "Copy result"
+      }
+    ]
+  }
+};
+
+// Generate FAQ items specific to this conversion
+const generateFAQ = () => {
+  const baseFAQ = [
+    {
+      "@type": "Question",
+      "name": `How do I convert ${fromFormat.name} to ${toFormat.name}?`,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": `Simply paste your ${fromFormat.name} color value (e.g., ${example.input}) into the input field. The tool will instantly convert it to ${toFormat.name} format (e.g., ${example.output}). Click on the result to copy it to your clipboard.`
+      }
+    },
+    {
+      "@type": "Question",
+      "name": `What is the difference between ${fromFormat.name} and ${toFormat.name}?`,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": `${fromFormat.name} (${fromFormat.description}) and ${toFormat.name} (${toFormat.description}) are different color representation systems. Each has its own advantages for specific use cases in design, web development, and color science.`
+      }
+    }
+  ];
+
+  // Add format-specific FAQ items
+  if ((fromKey === 'rgb' || fromKey === 'hex') && (toKey === 'lab' || toKey === 'oklab')) {
+    baseFAQ.push({
+      "@type": "Question",
+      "name": "Why convert to perceptually uniform color spaces?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Perceptually uniform color spaces like LAB and OKLab better represent how humans perceive color differences. This makes them ideal for color manipulation, gradients, and ensuring consistent visual appearance across different colors."
+      }
+    });
+  }
+
+  if (toKey === 'p3' || toKey === 'rec2020' || toKey === 'prophoto') {
+    baseFAQ.push({
+      "@type": "Question",
+      "name": `Can all devices display ${toFormat.name} colors?`,
+      "acceptedAnswer": {
+        "@type": "Answer", 
+        "text": `${toFormat.name} is a wide gamut color space that can represent colors beyond standard sRGB. While not all devices can display the full range, modern displays increasingly support wider color gamuts. The tool shows you the exact values for color-managed workflows.`
+      }
+    });
+  }
+
+  return {
+    "@type": "FAQPage",
+    "mainEntity": baseFAQ
+  };
+};
+
+const faqData = generateFAQ();
+---
+
+<Layout 
+  title={title} 
+  description={description}
+  keywords={`${fromFormat.name} to ${toFormat.name}, color converter, ${fromKey} to ${toKey}, color space conversion, ${fromFormat.description}, ${toFormat.description}, online color tool, web colors, design colors`}
+>
+  <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqData)} />
+  
+  <main>
+    <div class="container mx-auto px-4 py-8">
+      <!-- Custom header for SEO pages -->
+      <div class="text-center mb-8">
+        <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
+          <span class="text-primary">{toFormat.name}</span> Converter
+        </h1>
+        <p class="text-lg text-muted-foreground">
+          Convert {fromFormat.name} to {toFormat.name} instantly - or paste any color format
+        </p>
+      </div>
+      
+      <!-- Main converter component -->
+      <ColorConverter client:load initialColor={defaultInputColor} hideHeader={true} />
+      
+      <!-- SEO Content Section -->
+      <section class="mt-16 prose prose-neutral dark:prose-invert max-w-4xl mx-auto">
+        <h2>Converting {fromFormat.name} to {toFormat.name} Colors</h2>
+        
+        <p>
+          This tool converts colors from {fromFormat.name} ({fromFormat.description}) 
+          to {toFormat.name} ({toFormat.description}). The conversion is performed using 
+          industry-standard color science algorithms to ensure accurate results.
+        </p>
+        
+        <h3>Example Conversion</h3>
+        <p>
+          <strong>Input ({fromFormat.name}):</strong> <code>{example.input}</code><br/>
+          <strong>Output ({toFormat.name}):</strong> <code>{example.output}</code>
+        </p>
+        
+        <h3>About {fromFormat.name}</h3>
+        <p>{fromFormat.description}. This color format is commonly used in {
+          fromKey === 'hex' || fromKey === 'rgb' ? 'web development and digital design' :
+          fromKey === 'hsl' || fromKey === 'hsv' ? 'color selection and manipulation' :
+          fromKey === 'lab' || fromKey === 'oklab' ? 'perceptually uniform color operations' :
+          fromKey === 'p3' || fromKey === 'rec2020' ? 'professional video and photography' :
+          'specialized color workflows'
+        }.</p>
+        
+        <h3>About {toFormat.name}</h3>
+        <p>{toFormat.description}. Converting to this format is useful for {
+          toKey === 'hex' || toKey === 'rgb' ? 'web and screen display' :
+          toKey === 'hsl' || toKey === 'hsv' ? 'intuitive color adjustments' :
+          toKey === 'lab' || toKey === 'oklab' ? 'color science and consistent gradients' :
+          toKey === 'p3' || toKey === 'rec2020' ? 'wide gamut displays and HDR content' :
+          'specialized applications'
+        }.</p>
+        
+        <h3>Use Cases</h3>
+        <ul>
+          <li>Web developers converting between CSS color formats</li>
+          <li>Designers working with different color spaces</li>
+          <li>Color scientists performing accurate color calculations</li>
+          <li>Content creators optimizing for different display technologies</li>
+        </ul>
+      </section>
+    </div>
+  </main>
+</Layout>

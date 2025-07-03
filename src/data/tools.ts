@@ -356,6 +356,45 @@ const devToolsAll: Tool[] = [
   },
 ];
 
+// Color format conversions (for search only, not displayed in tool lists)
+const colorFormats = [
+  { key: 'hex', name: 'HEX' },
+  { key: 'rgb', name: 'RGB' },
+  { key: 'hsl', name: 'HSL' },
+  { key: 'hsv', name: 'HSV' },
+  { key: 'hwb', name: 'HWB' },
+  { key: 'lab', name: 'LAB' },
+  { key: 'lch', name: 'LCH' },
+  { key: 'oklab', name: 'OKLab' },
+  { key: 'oklch', name: 'OKLCH' },
+  { key: 'p3', name: 'Display P3' },
+  { key: 'rec2020', name: 'Rec. 2020' },
+  { key: 'prophoto', name: 'ProPhoto RGB' },
+  { key: 'a98rgb', name: 'Adobe RGB' },
+  { key: 'xyz', name: 'XYZ' },
+  { key: 'xyz-d50', name: 'XYZ D50' }
+];
+
+const colorConversions: Tool[] = [];
+
+// Generate all color conversion combinations
+for (const from of colorFormats) {
+  for (const to of colorFormats) {
+    // Skip same format conversions
+    if (from.key === to.key) continue;
+    
+    colorConversions.push({
+      id: `color-${from.key}-to-${to.key}`,
+      name: `${from.name} to ${to.name}`,
+      description: `Convert ${from.name} colors to ${to.name} format`,
+      icon: Palette,
+      isImplemented: true,
+      category: "dev", // Color converter is under dev tools
+      route: `/convert/color/${from.key}-to-${to.key}`,
+    });
+  }
+}
+
 // Document Tools (unfiltered - includes unimplemented for reference)
 const documentToolsAll: Tool[] = [
   {
@@ -662,7 +701,10 @@ export function searchTools(query: string): Tool[] {
 
   const lowerQuery = query.toLowerCase();
 
-  return allTools.filter((tool) => {
+  // Combine regular tools with color conversions for search
+  const searchableTools = [...allTools, ...colorConversions];
+
+  return searchableTools.filter((tool) => {
     // Check tool name
     if (tool.name.toLowerCase().includes(lowerQuery)) return true;
 
@@ -690,6 +732,16 @@ export function searchTools(query: string): Tool[] {
         )
       )
         return true;
+    }
+
+    // Special handling for color format searches
+    if (tool.id.startsWith("color-")) {
+      // Allow searching by color format names
+      const colorTerms = ["hex", "rgb", "hsl", "hsv", "hwb", "lab", "lch", "oklab", "oklch", "p3", "rec2020", "prophoto", "a98rgb", "xyz"];
+      if (colorTerms.some(term => lowerQuery.includes(term))) return true;
+      
+      // Allow searching for "color" or "color converter"
+      if (lowerQuery.includes("color")) return true;
     }
 
     return false;

@@ -111,10 +111,15 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
-export function ColorConverter() {
-  const [inputValue, setInputValue] = useState('#3B82F6');
+interface ColorConverterProps {
+  initialColor?: string;
+  hideHeader?: boolean;
+}
+
+export function ColorConverter({ initialColor = '#3B82F6', hideHeader = false }: ColorConverterProps) {
+  const [inputValue, setInputValue] = useState(initialColor);
   const [colorValues, setColorValues] = useState<ColorValues | null>(null);
-  const [previewColor, setPreviewColor] = useState('#3B82F6');
+  const [previewColor, setPreviewColor] = useState(initialColor);
   const [activeFeature, setActiveFeature] = useState<number | null>(null);
   const [copiedFormat, setCopiedFormat] = useState<string | null>(null);
   const [detectedFormat, setDetectedFormat] = useState<ColorFormat | null>('hex');
@@ -688,75 +693,81 @@ export function ColorConverter() {
 
       <section className="flex-1 w-full max-w-5xl mx-auto p-0 sm:p-4 md:p-6 lg:p-8 flex flex-col h-full relative z-10">
         {/* Header */}
-        <div className="text-center mb-4 sm:mb-6 md:mb-8 space-y-2 sm:space-y-3 px-4 sm:px-0 pt-4 sm:pt-0">
-          <Badge
-            className="mb-2 bg-primary/10 text-primary border-primary/20 hover:bg-primary/15"
-            variant="secondary"
-          >
-            <Zap className="w-3 h-3 mr-1" />
-            Professional Color Tools
-          </Badge>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold animate-fade-in">
-            <span className="text-primary">Color</span> Converter
-          </h1>
-          <p
-            className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in-up"
-            style={{ animationDelay: "0.1s" }}
-          >
-            Paste any color format and instantly get all conversions
-          </p>
-        </div>
+        {!hideHeader && (
+          <div className="text-center mb-4 sm:mb-6 md:mb-8 space-y-2 sm:space-y-3 px-4 sm:px-0 pt-4 sm:pt-0">
+            <Badge
+              className="mb-2 bg-primary/10 text-primary border-primary/20 hover:bg-primary/15"
+              variant="secondary"
+            >
+              <Zap className="w-3 h-3 mr-1" />
+              Professional Color Tools
+            </Badge>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold animate-fade-in">
+              <span className="text-primary">Color</span> Converter
+            </h1>
+            <p
+              className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in-up"
+              style={{ animationDelay: "0.1s" }}
+            >
+              Paste any color format and instantly get all conversions
+            </p>
+          </div>
+        )}
 
         {/* Features - Desktop */}
-        <div className="hidden sm:flex justify-center gap-8 mb-12 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
-          {features.map((feature, index) => {
-            const Icon = feature.icon;
-            return (
-              <div key={index} className="flex items-center gap-3 group">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  <Icon className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <p className="font-medium">{feature.text}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {feature.description}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Features - Mobile */}
-        <div className="sm:hidden space-y-3 mb-6 px-4" style={{ animationDelay: "0.2s" }}>
-          <div className="flex justify-center gap-4 mb-4">
+        {!hideHeader && (
+          <div className="hidden sm:flex justify-center gap-8 mb-12 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
             {features.map((feature, index) => {
               const Icon = feature.icon;
               return (
-                <button
-                  key={index}
-                  onClick={() => setActiveFeature(activeFeature === index ? null : index)}
-                  className={cn(
-                    "w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300",
-                    activeFeature === index
-                      ? "bg-primary text-primary-foreground scale-110"
-                      : "bg-primary/10 text-primary hover:scale-105"
-                  )}
-                >
-                  <Icon className="w-6 h-6" />
-                </button>
+                <div key={index} className="flex items-center gap-3 group">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Icon className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-medium">{feature.text}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {feature.description}
+                    </p>
+                  </div>
+                </div>
               );
             })}
           </div>
-          {activeFeature !== null && (
-            <div className="bg-muted/50 rounded-lg p-4 animate-fade-in">
-              <p className="font-medium mb-1">{features[activeFeature].text}</p>
-              <p className="text-sm text-muted-foreground">
-                {features[activeFeature].description}
-              </p>
+        )}
+
+        {/* Features - Mobile */}
+        {!hideHeader && (
+          <div className="sm:hidden space-y-3 mb-6 px-4" style={{ animationDelay: "0.2s" }}>
+            <div className="flex justify-center gap-4 mb-4">
+              {features.map((feature, index) => {
+                const Icon = feature.icon;
+                return (
+                  <button
+                    key={index}
+                    onClick={() => setActiveFeature(activeFeature === index ? null : index)}
+                    className={cn(
+                      "w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300",
+                      activeFeature === index
+                        ? "bg-primary text-primary-foreground scale-110"
+                        : "bg-primary/10 text-primary hover:scale-105"
+                    )}
+                  >
+                    <Icon className="w-6 h-6" />
+                  </button>
+                );
+              })}
             </div>
-          )}
-        </div>
+            {activeFeature !== null && (
+              <div className="bg-muted/50 rounded-lg p-4 animate-fade-in">
+                <p className="font-medium mb-1">{features[activeFeature].text}</p>
+                <p className="text-sm text-muted-foreground">
+                  {features[activeFeature].description}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Main Content - Streamlined Single Panel */}
         <div className="flex-1 px-4 sm:px-0">

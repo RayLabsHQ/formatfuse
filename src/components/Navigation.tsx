@@ -119,24 +119,7 @@ export default function Navigation() {
         } else if (e.key === "Enter" && selectedIndex >= 0) {
           e.preventDefault();
           const { tool } = searchResults[selectedIndex];
-          const url =
-            tool.id === "image-resizer"
-              ? "/tools/image-resizer"
-              : tool.id === "image-compressor"
-                ? "/tools/image-compressor"
-                : tool.id === "json-formatter"
-                  ? "/tools/json-formatter"
-                  : tool.id === "word-counter"
-                    ? "/tools/word-counter"
-                    : tool.id === "base64-encoder"
-                      ? "/tools/base64-encoder"
-                      : tool.id === "case-converter"
-                        ? "/tools/case-converter"
-                        : tool.id === "hash-generator"
-                          ? "/tools/hash-generator"
-                          : tool.id === "qr-generator"
-                            ? "/tools/qr-generator"
-                            : `/convert/${tool.id}`;
+          const url = tool.route || `/convert/${tool.id}`;
           window.location.href = url;
         }
       }
@@ -294,25 +277,7 @@ export default function Navigation() {
                         {searchResults.map(({ tool, category }, index) => (
                           <a
                             key={`${tool.id}-${index}`}
-                            href={
-                              tool.id === "image-resizer"
-                                ? "/tools/image-resizer"
-                                : tool.id === "image-compressor"
-                                  ? "/tools/image-compressor"
-                                  : tool.id === "json-formatter"
-                                    ? "/tools/json-formatter"
-                                    : tool.id === "word-counter"
-                                      ? "/tools/word-counter"
-                                      : tool.id === "base64-encoder"
-                                        ? "/tools/base64-encoder"
-                                        : tool.id === "case-converter"
-                                          ? "/tools/case-converter"
-                                          : tool.id === "hash-generator"
-                                            ? "/tools/hash-generator"
-                                            : tool.id === "qr-generator"
-                                              ? "/tools/qr-generator"
-                                              : `/convert/${tool.id}`
-                            }
+                            href={tool.route || `/convert/${tool.id}`}
                             className={`flex items-center gap-3 p-2 rounded-md ff-transition ${
                               selectedIndex === index
                                 ? "bg-secondary"
@@ -364,25 +329,7 @@ export default function Navigation() {
                             return (
                               <a
                                 key={tool.id}
-                                href={
-                                  tool.id === "image-resizer"
-                                    ? "/tools/image-resizer"
-                                    : tool.id === "image-compressor"
-                                      ? "/tools/image-compressor"
-                                      : tool.id === "json-formatter"
-                                        ? "/tools/json-formatter"
-                                        : tool.id === "word-counter"
-                                          ? "/tools/word-counter"
-                                          : tool.id === "base64-encoder"
-                                            ? "/tools/base64-encoder"
-                                            : tool.id === "case-converter"
-                                              ? "/tools/case-converter"
-                                              : tool.id === "hash-generator"
-                                                ? "/tools/hash-generator"
-                                                : tool.id === "qr-generator"
-                                                  ? "/tools/qr-generator"
-                                                  : `/convert/${tool.id}`
-                                }
+                                href={tool.route || `/convert/${tool.id}`}
                                 className={`flex items-center gap-3 p-2 rounded-md ff-transition ${
                                   selectedIndex === index
                                     ? "bg-secondary"
@@ -470,21 +417,7 @@ export default function Navigation() {
                 {searchResults.map(({ tool, category }, index) => (
                   <a
                     key={`${tool.id}-${index}`}
-                    href={
-                      tool.id === "image-resizer"
-                        ? "/tools/image-resizer"
-                        : tool.id === "image-compressor"
-                          ? "/tools/image-compressor"
-                          : tool.id === "json-formatter"
-                            ? "/tools/json-formatter"
-                            : tool.id === "word-counter"
-                              ? "/tools/word-counter"
-                              : tool.id === "base64-encoder"
-                                ? "/tools/base64-encoder"
-                                : tool.id === "case-converter"
-                                  ? "/tools/case-converter"
-                                  : `/convert/${tool.id}`
-                    }
+                    href={tool.route || `/convert/${tool.id}`}
                     className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-secondary active:bg-secondary/80 ff-transition touch-manipulation min-h-[48px]"
                     onClick={() => setIsOpen(false)}
                   >
