@@ -15,7 +15,7 @@ describe("Image Converter - Simple Tests", () => {
     const wasmBuffer = readFileSync(
       "node_modules/@refilelabs/image/refilelabs_image_bg.wasm",
     );
-    await init(wasmBuffer);
+    await init({ module_or_path: wasmBuffer });
 
     // Load test images
     testPng = new Uint8Array(
@@ -62,8 +62,8 @@ describe("Image Converter - Simple Tests", () => {
       const metadata = loadMetadata(testPng, "image/png", () => {});
 
       expect(metadata).toBeDefined();
-      expect(metadata.width).toBe(1);
-      expect(metadata.height).toBe(1);
+      expect(metadata.width).toBe(200); // test.png is 200x200
+      expect(metadata.height).toBe(200);
     });
 
     it("should extract JPEG metadata", () => {

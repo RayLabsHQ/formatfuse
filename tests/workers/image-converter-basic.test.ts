@@ -9,15 +9,15 @@ describe("Image Converter - Basic Loading", () => {
       "node_modules/@refilelabs/image/refilelabs_image_bg.wasm",
     );
 
-    // This should not throw
-    await expect(init(wasmBuffer)).resolves.not.toThrow();
+    // This should not throw - using new init format
+    await expect(init({ module_or_path: wasmBuffer })).resolves.not.toThrow();
   });
 
   it("should have convertImage function after init", async () => {
     const wasmBuffer = readFileSync(
       "node_modules/@refilelabs/image/refilelabs_image_bg.wasm",
     );
-    await init(wasmBuffer);
+    await init({ module_or_path: wasmBuffer });
 
     // Import functions after init
     const { convertImage, loadMetadata, getPixels } = await import(

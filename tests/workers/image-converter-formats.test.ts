@@ -12,7 +12,7 @@ describe("Image Converter - Format Tests", () => {
     const wasmBuffer = readFileSync(
       "node_modules/@refilelabs/image/refilelabs_image_bg.wasm",
     );
-    await init(wasmBuffer);
+    await init({ module_or_path: wasmBuffer });
   });
 
   describe("PNG conversions", () => {

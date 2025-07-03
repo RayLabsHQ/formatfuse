@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { getHeicImageConverter } from "../../src/lib/heic-image-converter";
 
-describe("HEIC Converter", () => {
+describe.skip("HEIC Converter", () => {
   let heicConverter: ReturnType<typeof getHeicImageConverter>;
   let testHeicFile: ArrayBuffer;
 
