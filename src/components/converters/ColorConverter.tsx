@@ -729,7 +729,7 @@ export function ColorConverter({
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-primary/10 rounded-full blur-3xl animate-blob animation-delay-4000" />
       </div>
 
-      <section className="flex-1 w-full max-w-5xl mx-auto p-0 sm:p-4 md:p-6 lg:px-8 lg:py-6 flex flex-col h-full relative z-10">
+      <section className="flex-1 w-full max-w-5xl mx-auto px-0 py-4 sm:p-4 md:p-6 lg:px-8 lg:py-6 flex flex-col h-full relative z-10">
         {/* Header with Features */}
         {!hideHeader && (
           <ToolHeader

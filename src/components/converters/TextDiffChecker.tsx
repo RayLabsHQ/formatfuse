@@ -547,7 +547,7 @@ export function TextDiffChecker() {
         <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-accent/5 rounded-full blur-3xl animate-blob animation-delay-2000" />
       </div>
 
-      <section className="flex-1 w-full max-w-7xl mx-auto p-0 sm:p-4 md:p-6 lg:px-8 lg:py-6 flex flex-col h-full relative z-10">
+      <section className="flex-1 w-full max-w-7xl mx-auto px-0 py-4 sm:p-4 md:p-6 lg:px-8 lg:py-6 flex flex-col h-full relative z-10">
         {/* Header */}
         <ToolHeader
           title={{ highlight: "Text Diff", main: "Checker" }}

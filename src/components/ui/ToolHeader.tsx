@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Badge } from "./badge";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -27,7 +27,6 @@ export function ToolHeader({
   features,
   className,
 }: ToolHeaderProps) {
-  const [activeFeature, setActiveFeature] = useState<number | null>(null);
 
   // Parse title - can be string, object with highlight, or React node
   const renderTitle = () => {
