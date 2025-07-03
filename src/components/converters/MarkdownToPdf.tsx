@@ -340,7 +340,14 @@ export const MarkdownToPdf: React.FC = () => {
 
   return (
     <div className="w-full flex flex-col flex-1 min-h-0">
-      <section className="flex-1 w-full max-w-7xl mx-auto p-0 sm:p-4 md:p-6 lg:px-8 lg:py-6 flex flex-col h-full">
+      {/* Document Creation-themed Gradient Effects - Hidden on mobile */}
+      <div className="hidden sm:block fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.01] via-transparent to-accent/[0.01]" />
+        <div className="absolute top-1/4 left-20 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/3 right-1/4 w-96 h-96 bg-accent/8 rounded-full blur-3xl animate-blob animation-delay-2000" />
+      </div>
+
+      <section className="flex-1 w-full max-w-7xl mx-auto p-0 sm:p-4 md:p-6 lg:px-8 lg:py-6 flex flex-col h-full relative z-10">
         {/* Header */}
         <ToolHeader
           title={{ main: "PDF", highlight: "Markdown to" }}

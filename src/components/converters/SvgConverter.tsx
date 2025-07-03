@@ -183,7 +183,14 @@ export function SvgConverter() {
 
   return (
     <div className="w-full max-w-4xl mx-auto p-4">
-      <div className="text-center mb-8">
+      {/* Vector Graphics-themed Gradient Effects - Hidden on mobile */}
+      <div className="hidden sm:block fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.01] via-transparent to-accent/[0.01]" />
+        <div className="absolute top-32 right-1/4 w-80 h-80 bg-primary/5 rounded-full blur-3xl animate-blob" />
+        <div className="absolute bottom-20 left-1/3 w-72 h-72 bg-accent/10 rounded-full blur-3xl" />
+      </div>
+
+      <div className="text-center mb-8 relative z-10">
         <h1 className="text-3xl font-bold mb-4">SVG Converter</h1>
         <p className="text-gray-600 dark:text-gray-400">
           Convert SVG files to PNG, JPEG, WebP, or AVIF formats with custom
