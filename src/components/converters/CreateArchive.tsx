@@ -21,6 +21,7 @@ import JSZip from "jszip";
 import * as pako from "pako";
 import Tar from "tar-js";
 import { Button } from "../ui/button";
+import { ToolHeader } from "../ui/ToolHeader";
 import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
@@ -309,20 +310,14 @@ export default function CreateArchive() {
     <div className="min-h-screen w-full">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* Hero Section */}
-        <div className="text-center mb-8 sm:mb-12">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 tracking-tight animate-fade-in-up">
-            <span className="text-foreground">Create </span>
-            <span className="text-primary">Archive Files</span>
-          </h1>
-
-          <p
-            className="text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in-up"
-            style={{ animationDelay: "0.1s" }}
-          >
-            Create ZIP, TAR, or TAR.GZ archives from multiple files right in your
-            browser. No uploads required, 100% private.
-          </p>
-        </div>
+        <ToolHeader
+          title={{ highlight: "Create", main: "Archive Files" }}
+          subtitle="Create ZIP, TAR, or TAR.GZ archives from multiple files right in your browser. No uploads required, 100% private."
+          badge={{
+            text: "Online Archive Creator • Free • No Upload",
+            icon: FileArchive
+          }}
+        />
 
         {/* Features */}
         <div className="animate-fade-in-up" style={{ animationDelay: "0.2s" }}>

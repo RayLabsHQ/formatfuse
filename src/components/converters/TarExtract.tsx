@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import * as pako from "pako";
 import { Button } from "../ui/button";
+import { ToolHeader } from "../ui/ToolHeader";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { cn } from "../../lib/utils";
@@ -535,20 +536,14 @@ export default function TarExtract() {
     <div className="min-h-screen w-full">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* Hero Section */}
-        <div className="text-center mb-8 sm:mb-12">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 tracking-tight animate-fade-in-up">
-            <span className="text-foreground">Extract </span>
-            <span className="text-primary">TAR Files</span>
-          </h1>
-
-          <p
-            className="text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in-up"
-            style={{ animationDelay: "0.1s" }}
-          >
-            Extract TAR, TAR.GZ, and TAR.BZ2 archives instantly in your browser.
-            No uploads, no installations - 100% client-side processing.
-          </p>
-        </div>
+        <ToolHeader
+          title={{ highlight: "Extract", main: "TAR Files" }}
+          subtitle="Extract TAR, TAR.GZ, and TAR.BZ2 archives instantly in your browser. No uploads, no installations - 100% client-side processing."
+          badge={{
+            text: "TAR Extractor • Online • Free • Untar",
+            icon: Package
+          }}
+        />
 
         {/* Features */}
         <div className="animate-fade-in-up" style={{ animationDelay: "0.2s" }}>

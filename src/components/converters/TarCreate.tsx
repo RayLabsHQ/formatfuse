@@ -20,6 +20,7 @@ import {
 import * as pako from "pako";
 import Tar from "tar-js";
 import { Button } from "../ui/button";
+import { ToolHeader } from "../ui/ToolHeader";
 import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
@@ -250,20 +251,14 @@ export default function TarCreate() {
     <div className="min-h-screen w-full">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* Hero Section */}
-        <div className="text-center mb-8 sm:mb-12">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 tracking-tight animate-fade-in-up">
-            <span className="text-foreground">Create </span>
-            <span className="text-primary">TAR Archive</span>
-          </h1>
-
-          <p
-            className="text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in-up"
-            style={{ animationDelay: "0.1s" }}
-          >
-            Create TAR archives with optional GZIP compression right in your
-            browser. Perfect for Unix/Linux environments - no uploads required.
-          </p>
-        </div>
+        <ToolHeader
+          title={{ highlight: "Create", main: "TAR Archive" }}
+          subtitle="Create TAR archives with optional GZIP compression right in your browser. Perfect for Unix/Linux environments - no uploads required."
+          badge={{
+            text: "TAR Creator • Online • Free • GZIP",
+            icon: Package
+          }}
+        />
 
         {/* Features */}
         <div className="animate-fade-in-up" style={{ animationDelay: "0.2s" }}>

@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import type { ArchiveReader as ArchiveReaderType } from "libarchive-wasm";
 import { Button } from "../ui/button";
+import { ToolHeader } from "../ui/ToolHeader";
 import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
@@ -429,20 +430,14 @@ export default function SevenZipExtractor() {
     <div className="min-h-screen w-full">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* Hero Section */}
-        <div className="text-center mb-8 sm:mb-12">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 tracking-tight animate-fade-in-up">
-            <span className="text-foreground">Extract </span>
-            <span className="text-primary">7-Zip Archives</span>
-          </h1>
-
-          <p
-            className="text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in-up"
-            style={{ animationDelay: "0.1s" }}
-          >
-            Extract 7Z archives with high compression support
-            instantly in your browser. No uploads, 100% privacy guaranteed.
-          </p>
-        </div>
+        <ToolHeader
+          title={{ highlight: "Extract", main: "7-Zip Archives" }}
+          subtitle="Extract 7Z archives with high compression support instantly in your browser. No uploads, 100% privacy guaranteed."
+          badge={{
+            text: "7Z Extractor • Online • Free • LZMA",
+            icon: FileArchive
+          }}
+        />
 
         {/* Features */}
         <div className="animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
