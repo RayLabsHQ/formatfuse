@@ -1,7 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import GenericArchiveExtractor from '../../components/converters/GenericArchiveExtractor';
-import { FileArchive, Package } from 'lucide-react';
 
 const title = 'Extract CAB Files Online - Cabinet Archive Extractor';
 const description = 'Free online CAB extractor. Extract Microsoft Cabinet files instantly in your browser. No uploads, 100% privacy, works offline.';
@@ -24,27 +23,6 @@ const faqs = [
     answer: 'CAB files themselves are just archives, but they can contain any type of file including executables. Always scan extracted files with antivirus software if you\'re unsure of their source.'
   }
 ];
-
-const relatedTools = [
-  {
-    id: 'zip-extract',
-    name: 'ZIP Extract',
-    description: 'Extract ZIP compressed files',
-    icon: FileArchive
-  },
-  {
-    id: 'iso-extract',
-    name: 'ISO Extract',
-    description: 'Extract ISO disk images',
-    icon: Package
-  },
-  {
-    id: '7z-extract',
-    name: '7-Zip Extract',
-    description: 'Extract 7Z compressed archives',
-    icon: FileArchive
-  }
-];
 ---
 
 <Layout title={title} description={description} toolType="archive">
@@ -55,6 +33,5 @@ const relatedTools = [
     formatDescription="Extract Microsoft Cabinet archives without uploading. Fast, secure, and runs entirely in your browser."
     acceptedExtensions=".cab"
     faqs={faqs}
-    relatedTools={relatedTools}
   />
 </Layout>

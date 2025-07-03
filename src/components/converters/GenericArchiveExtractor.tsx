@@ -58,6 +58,27 @@ const defaultFeatures = [
   },
 ];
 
+const defaultRelatedTools: RelatedTool[] = [
+  {
+    id: 'zip-extract',
+    name: 'ZIP Extract',
+    description: 'Extract ZIP compressed files',
+    icon: FileArchive
+  },
+  {
+    id: 'iso-extract',
+    name: 'ISO Extract',
+    description: 'Extract ISO disk images',
+    icon: Package
+  },
+  {
+    id: '7z-extract',
+    name: '7-Zip Extract',
+    description: 'Extract 7Z compressed archives',
+    icon: FileArchive
+  }
+];
+
 export default function GenericArchiveExtractor({
   format,
   formatName,
@@ -409,7 +430,7 @@ export default function GenericArchiveExtractor({
           subtitle={formatDescription}
           badge={{
             text: `${formatName} Extractor • Online • Free`,
-            icon: icon || FileArchive
+            icon: Icon || FileArchive
           }}
         />
 
@@ -618,11 +639,9 @@ export default function GenericArchiveExtractor({
         </div>
 
         {/* Related Tools */}
-        {relatedTools && relatedTools.length > 0 && (
-          <div className="mt-12 space-y-6">
-            <RelatedTools tools={relatedTools} direction="responsive" />
-          </div>
-        )}
+        <div className="mt-12 space-y-6">
+          <RelatedTools tools={relatedTools || defaultRelatedTools} direction="responsive" />
+        </div>
 
         {/* FAQ Section */}
         {faqs && faqs.length > 0 && (
