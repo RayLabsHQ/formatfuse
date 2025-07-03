@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
-import { ToolHeaderWithFeatures } from "../ui/ToolHeaderWithFeatures";
+import { ToolHeader } from '../ui/ToolHeader';
 import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 
 interface PasswordOptions {
@@ -346,7 +346,7 @@ export default function PasswordGenerator() {
     <div className="w-full flex flex-col flex-1 min-h-0">
       <section className="flex-1 w-full max-w-7xl mx-auto p-0 sm:p-4 md:p-6 lg:px-8 lg:py-6 flex flex-col h-full">
         {/* Header */}
-        <ToolHeaderWithFeatures
+        <ToolHeader
           title={{ highlight: "Password", main: "Generator" }}
           subtitle="Free online secure password generator with entropy calculation and strength meter"
           badge={{ text: "Security Tool", icon: Shield }}

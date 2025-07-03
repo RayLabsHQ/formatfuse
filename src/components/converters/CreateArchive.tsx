@@ -20,7 +20,7 @@ import JSZip from "jszip";
 import * as pako from "pako";
 import Tar from "tar-js";
 import { Button } from "../ui/button";
-import { ToolHeaderWithFeatures } from "../ui/ToolHeaderWithFeatures";
+import { ToolHeader } from '../ui/ToolHeader';
 import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
@@ -308,7 +308,7 @@ export default function CreateArchive() {
     <div className="min-h-screen w-full">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 lg:py-6 py-8 sm:py-12">
         {/* Hero Section with Features */}
-        <ToolHeaderWithFeatures
+        <ToolHeader
           title={{ highlight: "Create", main: "Archive Files" }}
           subtitle="Create ZIP, TAR, or TAR.GZ archives from multiple files right in your browser. No uploads required, 100% private."
           badge={{

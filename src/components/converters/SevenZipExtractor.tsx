@@ -13,12 +13,9 @@ import {
   Eye,
   ChevronRight,
   ChevronDown,
-  Package,
 } from "lucide-react";
-import type { ArchiveReader as ArchiveReaderType } from "libarchive-wasm";
 import { Button } from "../ui/button";
-import { ToolHeaderWithFeatures } from "../ui/ToolHeaderWithFeatures";
-import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
+import { ToolHeader } from '../ui/ToolHeader';
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { cn } from "../../lib/utils";
@@ -192,7 +189,7 @@ export default function SevenZipExtractor() {
       let currentLevel = root;
       let currentPath = "";
 
-      parts.forEach((part, index) => {
+      parts.forEach((part: string, index: number) => {
         currentPath = currentPath ? `${currentPath}/${part}` : part;
         const isLastPart = index === parts.length - 1;
         const isDirectory = entry.path.endsWith("/") || !isLastPart;
@@ -429,7 +426,7 @@ export default function SevenZipExtractor() {
     <div className="min-h-screen w-full">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* Hero Section with Features */}
-        <ToolHeaderWithFeatures
+        <ToolHeader
           title={{ highlight: "Extract", main: "7-Zip Archives" }}
           subtitle="Extract 7Z archives with high compression support instantly in your browser. No uploads, 100% privacy guaranteed."
           badge={{

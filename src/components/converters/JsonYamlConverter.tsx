@@ -23,7 +23,7 @@ import { Label } from "../ui/label";
 import { CodeEditor } from "../ui/code-editor";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
-import { ToolHeaderWithFeatures } from "../ui/ToolHeaderWithFeatures";
+import { ToolHeader } from '../ui/ToolHeader';
 import { cn } from "@/lib/utils";
 import {
   Select,
@@ -349,7 +349,7 @@ export default function JsonYamlConverter() {
     <div className="w-full flex flex-col flex-1 min-h-0">
       <section className="flex-1 w-full max-w-7xl mx-auto p-0 sm:p-4 md:p-6 lg:px-8 lg:py-6 flex flex-col h-full">
         {/* Header */}
-        <ToolHeaderWithFeatures
+        <ToolHeader
           title={{ highlight: "JSON ↔ YAML", main: "Converter" }}
           subtitle="Free online JSON to YAML converter with syntax validation and formatting"
           badge={{ text: "Data Format Tool", icon: Code }}

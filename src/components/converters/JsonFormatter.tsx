@@ -28,7 +28,7 @@ import {
 } from "../ui/select";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
-import { ToolHeaderWithFeatures } from "../ui/ToolHeaderWithFeatures";
+import { ToolHeader } from '../ui/ToolHeader';
 import { CodeEditor } from "../ui/code-editor";
 
 interface JsonError {
@@ -318,7 +318,7 @@ export default function JsonFormatter() {
     <div className="w-full flex flex-col flex-1 min-h-0">
       <section className="flex-1 w-full max-w-7xl mx-auto p-0 sm:p-4 md:p-6 lg:px-8 lg:py-6 flex flex-col h-full">
         {/* Header with Features */}
-        <ToolHeaderWithFeatures
+        <ToolHeader
           title={{ highlight: "JSON", main: "Formatter" }}
           subtitle="Free online JSON formatter and validator with syntax highlighting and auto-fix"
           badge={{ text: "JSON Tool", icon: Code }}

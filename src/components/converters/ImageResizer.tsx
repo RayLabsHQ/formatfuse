@@ -27,7 +27,7 @@ import { SimplifiedFileList } from "./SimplifiedFileList";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
-import { ToolHeaderWithFeatures } from "../ui/ToolHeaderWithFeatures";
+import { ToolHeader } from '../ui/ToolHeader';
 import { cn } from "../../lib/utils";
 import { Slider } from "../ui/slider";
 import { Button } from "../ui/button";
@@ -395,7 +395,7 @@ export default function ImageResizer() {
     <div className="w-full">
       <section className="w-full max-w-6xl mx-auto p-4 sm:p-6 lg:px-8 lg:py-6">
         {/* Header */}
-        <ToolHeaderWithFeatures
+        <ToolHeader
           title={{ highlight: "Image", main: "Resizer" }}
           subtitle="Resize images to exact dimensions with batch processing support. Choose from presets or set custom sizes with advanced resampling methods."
           badge={{ text: "Resize Images Online Free", icon: Maximize2 }}

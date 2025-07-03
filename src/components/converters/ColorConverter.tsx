@@ -7,9 +7,8 @@ import { toast } from 'sonner';
 import Color from 'colorjs.io';
 import { FAQ, type FAQItem } from '../ui/FAQ';
 import { RelatedTools, type RelatedTool } from '../ui/RelatedTools';
-import { ToolHeader } from '../ui/ToolHeader';
 import { cn } from '@/lib/utils';
-import { ToolHeaderWithFeatures } from '../ui/ToolHeaderWithFeatures';
+import { ToolHeader } from '../ui/ToolHeader';
 
 type ColorFormat = 'hex' | 'rgb' | 'hsl' | 'hsv' | 'hwb' | 'lab' | 'lch' | 'oklab' | 'oklch' | 'p3' | 'rec2020' | 'prophoto' | 'a98rgb' | 'xyz' | 'xyz-d50';
 
@@ -666,7 +665,7 @@ export function ColorConverter({ initialColor = '#3B82F6', hideHeader = false }:
       <section className="flex-1 w-full max-w-5xl mx-auto p-0 sm:p-4 md:p-6 lg:px-8 lg:py-6 flex flex-col h-full relative z-10">
         {/* Header with Features */}
         {!hideHeader && (
-          <ToolHeaderWithFeatures
+          <ToolHeader
             title={{ highlight: "Color", main: "Converter" }}
             subtitle="Paste any color format and instantly get all conversions"
             badge={{ text: "HEX RGB HSL Color Code Converter", icon: Zap }}

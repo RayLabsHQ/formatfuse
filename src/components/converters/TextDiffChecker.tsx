@@ -33,7 +33,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
-import { ToolHeaderWithFeatures } from "../ui/ToolHeaderWithFeatures";
+import { ToolHeader } from '../ui/ToolHeader';
 import {
   Select,
   SelectContent,
@@ -541,7 +541,7 @@ export function TextDiffChecker() {
     <div className="w-full flex flex-col flex-1 min-h-0">
       <section className="flex-1 w-full max-w-7xl mx-auto p-0 sm:p-4 md:p-6 lg:px-8 lg:py-6 flex flex-col h-full">
         {/* Header */}
-        <ToolHeaderWithFeatures
+        <ToolHeader
           title={{ highlight: "Text Diff", main: "Checker" }}
           subtitle="Free online text diff tool - Compare files and find differences instantly"
           badge={{ text: "Code Comparison", icon: GitBranch }}

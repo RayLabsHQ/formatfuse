@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import type { ArchiveReader as ArchiveReaderType } from "libarchive-wasm";
 import { Button } from "../ui/button";
-import { ToolHeaderWithFeatures } from "../ui/ToolHeaderWithFeatures";
+import { ToolHeader } from '../ui/ToolHeader';
 import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
@@ -425,7 +425,7 @@ export default function GenericArchiveExtractor({
     <div className="min-h-screen w-full">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 lg:py-6 py-8 sm:py-12">
         {/* Hero Section */}
-        <ToolHeaderWithFeatures
+        <ToolHeader
           title={{ highlight: "Extract", main: `${formatName} Archives` }}
           subtitle={formatDescription}
           badge={{

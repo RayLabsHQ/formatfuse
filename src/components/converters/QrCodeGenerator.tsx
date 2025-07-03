@@ -31,7 +31,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
-import { ToolHeaderWithFeatures } from "../ui/ToolHeaderWithFeatures";
+import { ToolHeader } from '../ui/ToolHeader';
 
 interface QrTemplate {
   id: string;
@@ -601,7 +601,7 @@ export default function QrCodeGenerator() {
 
       <section className="flex-1 w-full max-w-7xl mx-auto p-0 sm:p-4 md:p-6 lg:px-8 lg:py-6 flex flex-col h-full relative z-10">
         {/* Header */}
-        <ToolHeaderWithFeatures
+        <ToolHeader
           title={{ highlight: "QR Code", main: "Generator" }}
           subtitle="Create customizable QR codes instantly. Perfect for URLs, WiFi, contacts, and more."
           badge={{ text: "Free QR Code Maker Online", icon: Zap }}

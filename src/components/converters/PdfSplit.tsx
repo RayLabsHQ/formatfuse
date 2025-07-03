@@ -20,7 +20,7 @@ import {
 import { Button } from "../ui/button";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
-import { ToolHeaderWithFeatures } from "../ui/ToolHeaderWithFeatures";
+import { ToolHeader } from '../ui/ToolHeader';
 import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 import { cn } from "../../lib/utils";
 import { usePdfOperations } from "../../hooks/usePdfOperations";
@@ -312,7 +312,7 @@ export default function PdfSplit() {
     <div className="w-full">
       <section className="w-full max-w-6xl mx-auto p-4 sm:p-6 lg:px-8 lg:py-6">
         {/* Header */}
-        <ToolHeaderWithFeatures
+        <ToolHeader
           title={{ main: "PDF", highlight: "Split" }}
           subtitle="Split PDFs into multiple files by pages. Extract specific sections or divide documents with flexible splitting options."
           badge={{ text: "Extract PDF Pages Online", icon: Scissors }}

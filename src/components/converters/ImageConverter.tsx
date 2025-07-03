@@ -28,7 +28,7 @@ import { Button } from "../ui/button";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { FormatSelect } from "../ui/format-select";
-import { ToolHeaderWithFeatures } from "../ui/ToolHeaderWithFeatures";
+import { ToolHeader } from '../ui/ToolHeader';
 import { cn } from "../../lib/utils";
 import { ImageCarouselModal } from "./ImageCarouselModal";
 import JSZip from "jszip";
@@ -516,7 +516,7 @@ export default function ImageConverter({
 
         <div className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8 lg:py-6">
           {/* Header with Badge */}
-          <ToolHeaderWithFeatures
+          <ToolHeader
             title={
               <span>
                 Convert{" "}

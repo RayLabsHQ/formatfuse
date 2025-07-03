@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import JSZip from "jszip";
 import { Button } from "../ui/button";
-import { ToolHeaderWithFeatures } from "../ui/ToolHeaderWithFeatures";
+import { ToolHeader } from '../ui/ToolHeader';
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { cn } from "../../lib/utils";
@@ -469,7 +469,7 @@ export default function ZipExtract() {
     <div className="min-h-screen w-full">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 lg:py-6 py-8 sm:py-12">
         {/* Hero Section with Features */}
-        <ToolHeaderWithFeatures
+        <ToolHeader
           title={{ highlight: "Extract", main: "ZIP Files" }}
           subtitle="Extract and download files from ZIP archives instantly in your browser. No uploads, no installations - 100% client-side processing."
           badge={{

@@ -25,7 +25,7 @@ import {
 import { Button } from "../ui/button";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
-import { ToolHeaderWithFeatures } from "../ui/ToolHeaderWithFeatures";
+import { ToolHeader } from '../ui/ToolHeader';
 import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 import { cn } from "../../lib/utils";
 import { Slider } from "../ui/slider";
@@ -345,7 +345,7 @@ export default function JpgToPdf() {
     <div className="w-full">
       <section className="w-full max-w-6xl mx-auto p-4 sm:p-6 lg:px-8 lg:py-6">
         {/* Header */}
-        <ToolHeaderWithFeatures
+        <ToolHeader
           title={{ main: "JPG to", highlight: "PDF" }}
           subtitle="Convert images to PDF with custom page sizes and quality settings. Arrange pages with drag-and-drop for the perfect document."
           badge={{ text: "Images to PDF Converter", icon: TrendingUp }}

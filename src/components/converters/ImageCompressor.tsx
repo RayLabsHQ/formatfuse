@@ -29,7 +29,7 @@ import { Button } from "../ui/button";
 import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
-import { ToolHeaderWithFeatures } from "../ui/ToolHeaderWithFeatures";
+import { ToolHeader } from '../ui/ToolHeader';
 import { cn } from "../../lib/utils";
 import { ImageCarouselModal } from "./ImageCarouselModal";
 import JSZip from "jszip";
@@ -373,7 +373,7 @@ export default function ImageCompressor() {
     <div className="min-h-screen w-full">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 lg:py-6 py-6 sm:py-12">
         {/* Hero Section */}
-        <ToolHeaderWithFeatures
+        <ToolHeader
           title={{ highlight: "Image", main: "Compressor" }}
           subtitle="Reduce image file sizes by up to 90% while maintaining visual quality. Compress JPG, PNG, WebP, and AVIF images instantly in your browser."
           badge={{ text: "Compress Images Online Free", icon: Minimize2 }}
