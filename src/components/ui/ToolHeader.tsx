@@ -58,7 +58,7 @@ export function ToolHeader({
   return (
     <div className={cn("space-y-4 sm:space-y-6", className)}>
       {/* Header */}
-      <div className="text-center mb-4 sm:mb-6 md:mb-8 space-y-2 sm:space-y-3 px-4 sm:px-0 pt-4 sm:pt-0">
+      <div className="text-center mb-2 sm:mb-6 md:mb-8 space-y-2 sm:space-y-3 px-4 sm:px-0">
         {badge && (
           <Badge
             className="mb-4 bg-primary/10 text-primary border-primary/20 hover:bg-primary/15"
@@ -114,43 +114,6 @@ export function ToolHeader({
             })}
           </div>
 
-          {/* Mobile Features */}
-          <div
-            className="sm:hidden space-y-3 mb-6 px-4"
-            style={{ animationDelay: "0.2s" }}
-          >
-            <div className="flex justify-center gap-4 mb-4">
-              {features.map((feature, index) => {
-                const Icon = feature.icon;
-                return (
-                  <button
-                    key={index}
-                    onClick={() =>
-                      setActiveFeature(activeFeature === index ? null : index)
-                    }
-                    className={cn(
-                      "w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-300",
-                      activeFeature === index
-                        ? "bg-primary text-primary-foreground scale-110"
-                        : "bg-primary/10 text-primary hover:scale-105",
-                    )}
-                  >
-                    <Icon className="w-6 h-6" />
-                  </button>
-                );
-              })}
-            </div>
-            {activeFeature !== null && (
-              <div className="bg-muted/50 rounded-lg p-4 animate-fade-in">
-                <p className="font-medium text-sm mb-1">
-                  {features[activeFeature].text}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {features[activeFeature].description}
-                </p>
-              </div>
-            )}
-          </div>
         </>
       )}
     </div>
