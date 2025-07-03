@@ -24,7 +24,7 @@ export function ToolHeader({ title, subtitle, badge, className }: ToolHeaderProp
       return title;
     }
     
-    if (typeof title === 'object' && 'main' in title) {
+    if (typeof title === 'object' && title && 'main' in title) {
       return (
         <>
           {title.highlight && <span className="text-primary">{title.highlight}</span>}
