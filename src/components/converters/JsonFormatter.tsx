@@ -28,7 +28,7 @@ import {
 } from "../ui/select";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
-import { ToolHeader } from '../ui/ToolHeader';
+import { ToolHeader } from "../ui/ToolHeader";
 import { CodeEditor } from "../ui/code-editor";
 
 interface JsonError {
@@ -125,27 +125,29 @@ export default function JsonFormatter() {
   const [input, setInput] = useState(SAMPLE_JSON);
   const [indentSize, setIndentSize] = useState("2");
   const [error, setError] = useState<JsonError | null>(null);
-  const [viewMode, setViewMode] = useState<"formatted" | "minified">("formatted");
+  const [viewMode, setViewMode] = useState<"formatted" | "minified">(
+    "formatted",
+  );
   const [activeTab, setActiveTab] = useState<"input" | "output">("input");
-  
+
   const fileInputRef = React.useRef<HTMLInputElement>(null);
-  
+
   // Theme detection for CodeEditor
   const [theme, setTheme] = useState("github-dark");
   useEffect(() => {
     const checkTheme = () => {
-      const isDark = document.documentElement.classList.contains('dark');
-      setTheme(isDark ? 'github-dark' : 'github-light');
+      const isDark = document.documentElement.classList.contains("dark");
+      setTheme(isDark ? "github-dark" : "github-light");
     };
     checkTheme();
-    
+
     // Listen for theme changes
     const observer = new MutationObserver(checkTheme);
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['class']
+      attributeFilter: ["class"],
     });
-    
+
     return () => observer.disconnect();
   }, []);
 
@@ -230,22 +232,25 @@ export default function JsonFormatter() {
     toast.success("JSON downloaded");
   }, [displayValue, viewMode]);
 
-  const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleFileUpload = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const content = e.target?.result as string;
-      setInput(content);
-      setActiveTab("input");
-      toast.success(`Loaded ${file.name}`);
-    };
-    reader.onerror = () => {
-      toast.error("Failed to read file");
-    };
-    reader.readAsText(file);
-  }, []);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const content = e.target?.result as string;
+        setInput(content);
+        setActiveTab("input");
+        toast.success(`Loaded ${file.name}`);
+      };
+      reader.onerror = () => {
+        toast.error("Failed to read file");
+      };
+      reader.readAsText(file);
+    },
+    [],
+  );
 
   const handleAutoFix = useCallback(() => {
     if (!input.trim()) return;
@@ -285,7 +290,10 @@ export default function JsonFormatter() {
         }
         return (
           Object.keys(obj).length +
-          Object.values(obj).reduce((sum: number, val) => sum + countKeys(val), 0)
+          Object.values(obj).reduce(
+            (sum: number, val) => sum + countKeys(val),
+            0,
+          )
         );
       };
 
@@ -392,7 +400,9 @@ export default function JsonFormatter() {
         <div className="sm:hidden px-4 pb-3">
           <div className="bg-card/50 rounded-lg border p-3 space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground font-medium">Settings</span>
+              <span className="text-xs text-muted-foreground font-medium">
+                Settings
+              </span>
               <div className="flex gap-2">
                 <Button
                   variant={viewMode === "formatted" ? "default" : "outline"}
@@ -594,7 +604,9 @@ export default function JsonFormatter() {
               <CodeEditor
                 value={displayValue}
                 readOnly
-                placeholder={error ? "Invalid JSON" : "Output will appear here..."}
+                placeholder={
+                  error ? "Invalid JSON" : "Output will appear here..."
+                }
                 className="h-full"
                 language="json"
                 theme={theme}
@@ -607,7 +619,9 @@ export default function JsonFormatter() {
                 <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 sm:gap-6 text-xs sm:text-sm">
                   <div>
                     <span className="text-muted-foreground">Keys:</span>
-                    <span className="ml-1 sm:ml-2 font-medium">{stats.keys}</span>
+                    <span className="ml-1 sm:ml-2 font-medium">
+                      {stats.keys}
+                    </span>
                   </div>
                   <div>
                     <span className="text-muted-foreground">Formatted:</span>

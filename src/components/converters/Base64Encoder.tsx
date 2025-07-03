@@ -21,7 +21,7 @@ import { Switch } from "../ui/switch";
 import { CodeEditor } from "../ui/code-editor";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
-import { ToolHeader } from '../ui/ToolHeader';
+import { ToolHeader } from "../ui/ToolHeader";
 
 type Mode = "encode" | "decode";
 type InputType = "text" | "file";
@@ -95,7 +95,8 @@ const faqs: FAQItem[] = [
   },
 ];
 
-const SAMPLE_TEXT = "Hello, World! 👋\nThis is a sample text for Base64 encoding.";
+const SAMPLE_TEXT =
+  "Hello, World! 👋\nThis is a sample text for Base64 encoding.";
 
 export default function Base64Encoder() {
   const [mode, setMode] = useState<Mode>("encode");
@@ -106,24 +107,24 @@ export default function Base64Encoder() {
   const [error, setError] = useState<string | null>(null);
   const [urlSafe, setUrlSafe] = useState(false);
   const [activeTab, setActiveTab] = useState<"input" | "output">("input");
-  
+
   const fileInputRef = React.useRef<HTMLInputElement>(null);
-  
+
   // Theme detection for CodeEditor
   const [theme, setTheme] = useState("github-dark");
   useEffect(() => {
     const checkTheme = () => {
-      const isDark = document.documentElement.classList.contains('dark');
-      setTheme(isDark ? 'github-dark' : 'github-light');
+      const isDark = document.documentElement.classList.contains("dark");
+      setTheme(isDark ? "github-dark" : "github-light");
     };
     checkTheme();
-    
+
     const observer = new MutationObserver(checkTheme);
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['class']
+      attributeFilter: ["class"],
     });
-    
+
     return () => observer.disconnect();
   }, []);
 
@@ -159,12 +160,15 @@ export default function Base64Encoder() {
     }
   };
 
-  const encodeText = useCallback((text: string): string => {
-    const encoded = btoa(unescape(encodeURIComponent(text)));
-    return urlSafe
-      ? encoded.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "")
-      : encoded;
-  }, [urlSafe]);
+  const encodeText = useCallback(
+    (text: string): string => {
+      const encoded = btoa(unescape(encodeURIComponent(text)));
+      return urlSafe
+        ? encoded.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "")
+        : encoded;
+    },
+    [urlSafe],
+  );
 
   const decodeBase64 = useCallback((base64: string): string => {
     try {
@@ -203,7 +207,15 @@ export default function Base64Encoder() {
     }
 
     return "";
-  }, [mode, inputType, textInput, base64Input, fileData, encodeText, decodeBase64]);
+  }, [
+    mode,
+    inputType,
+    textInput,
+    base64Input,
+    fileData,
+    encodeText,
+    decodeBase64,
+  ]);
 
   // Auto-switch to output tab when valid result
   useEffect(() => {
@@ -212,35 +224,38 @@ export default function Base64Encoder() {
     }
   }, [result]);
 
-  const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleFileUpload = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
 
-    setError(null);
-    const reader = new FileReader();
+      setError(null);
+      const reader = new FileReader();
 
-    reader.onload = (e) => {
-      const dataUrl = e.target?.result as string;
-      const base64 = dataUrl.split(",")[1];
+      reader.onload = (e) => {
+        const dataUrl = e.target?.result as string;
+        const base64 = dataUrl.split(",")[1];
 
-      setFileData({
-        name: file.name,
-        type: file.type,
-        size: file.size,
-        data: urlSafe
-          ? base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "")
-          : base64,
-      });
-      toast.success(`Loaded ${file.name}`);
-    };
+        setFileData({
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          data: urlSafe
+            ? base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "")
+            : base64,
+        });
+        toast.success(`Loaded ${file.name}`);
+      };
 
-    reader.onerror = () => {
-      setError("Failed to read file");
-      toast.error("Failed to read file");
-    };
+      reader.onerror = () => {
+        setError("Failed to read file");
+        toast.error("Failed to read file");
+      };
 
-    reader.readAsDataURL(file);
-  }, [urlSafe]);
+      reader.readAsDataURL(file);
+    },
+    [urlSafe],
+  );
 
   const handleCopy = useCallback(async () => {
     if (!result) return;
@@ -292,9 +307,14 @@ export default function Base64Encoder() {
       toast.success("Downloaded Base64 file");
     } else {
       // Download decoded content
-      if (fileData?.type.startsWith("image/") || fileData?.type === "application/pdf") {
+      if (
+        fileData?.type.startsWith("image/") ||
+        fileData?.type === "application/pdf"
+      ) {
         // For binary files, convert back to blob
-        const binaryString = atob(base64Input.replace(/-/g, "+").replace(/_/g, "/"));
+        const binaryString = atob(
+          base64Input.replace(/-/g, "+").replace(/_/g, "/"),
+        );
         const bytes = new Uint8Array(binaryString.length);
         for (let i = 0; i < binaryString.length; i++) {
           bytes[i] = binaryString.charCodeAt(i);
@@ -328,7 +348,7 @@ export default function Base64Encoder() {
   const handleCopyDataUri = useCallback(async () => {
     const dataUri = getDataUri();
     if (!dataUri) return;
-    
+
     try {
       await navigator.clipboard.writeText(dataUri);
       toast.success("Copied Data URI");
@@ -365,7 +385,6 @@ export default function Base64Encoder() {
           badge={{ text: "Developer Tool", icon: Binary }}
           features={features}
         />
-
 
         {/* Settings Card - Desktop only */}
         <div className="hidden sm:block mb-6">
@@ -428,7 +447,7 @@ export default function Base64Encoder() {
                     </div>
                   </div>
                 )}
-                
+
                 <div className="flex items-center gap-2">
                   <Switch
                     id="url-safe"
@@ -448,7 +467,9 @@ export default function Base64Encoder() {
         <div className="sm:hidden px-4 pb-3">
           <div className="bg-card/50 rounded-lg border p-3 space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground font-medium">Mode</span>
+              <span className="text-xs text-muted-foreground font-medium">
+                Mode
+              </span>
               <div className="flex gap-2">
                 <Button
                   variant={mode === "encode" ? "default" : "outline"}
@@ -477,7 +498,9 @@ export default function Base64Encoder() {
             </div>
             {mode === "encode" && (
               <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground font-medium">Input</span>
+                <span className="text-xs text-muted-foreground font-medium">
+                  Input
+                </span>
                 <div className="flex gap-2">
                   <Button
                     variant={inputType === "text" ? "secondary" : "outline"}
@@ -507,7 +530,10 @@ export default function Base64Encoder() {
                 onCheckedChange={setUrlSafe}
                 className="h-4 w-8"
               />
-              <Label htmlFor="url-safe-mobile" className="text-xs cursor-pointer">
+              <Label
+                htmlFor="url-safe-mobile"
+                className="text-xs cursor-pointer"
+              >
                 URL-safe
               </Label>
             </div>

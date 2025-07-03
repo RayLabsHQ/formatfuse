@@ -25,7 +25,7 @@ import {
 import { Button } from "../ui/button";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
-import { ToolHeader } from '../ui/ToolHeader';
+import { ToolHeader } from "../ui/ToolHeader";
 import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 import { cn } from "../../lib/utils";
 import { Slider } from "../ui/slider";
@@ -141,7 +141,7 @@ export default function JpgToPdf() {
   React.useEffect(() => {
     workerRef.current = new Worker(
       new URL("../../workers/jpg-to-pdf.worker.ts", import.meta.url),
-      { type: "module" }
+      { type: "module" },
     );
 
     workerRef.current.addEventListener(
@@ -160,7 +160,7 @@ export default function JpgToPdf() {
           setIsProcessing(false);
           setProgress(0);
         }
-      }
+      },
     );
 
     return () => {
@@ -170,7 +170,7 @@ export default function JpgToPdf() {
 
   const handleFiles = useCallback((selectedFiles: File[]) => {
     const imageFiles = selectedFiles.filter((file) =>
-      file.type.startsWith("image/")
+      file.type.startsWith("image/"),
     );
     const newImages: ImageWithPreview[] = imageFiles.map((file, index) => ({
       file,
@@ -187,7 +187,7 @@ export default function JpgToPdf() {
       const selectedFiles = Array.from(e.target.files || []);
       handleFiles(selectedFiles);
     },
-    [handleFiles]
+    [handleFiles],
   );
 
   const handleDrop = useCallback(
@@ -198,7 +198,7 @@ export default function JpgToPdf() {
       const droppedFiles = Array.from(e.dataTransfer.files);
       handleFiles(droppedFiles);
     },
-    [handleFiles]
+    [handleFiles],
   );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -235,7 +235,7 @@ export default function JpgToPdf() {
       e.dataTransfer.dropEffect = "move";
       setDragOverIndex(index);
     },
-    []
+    [],
   );
 
   const handleDropImage = useCallback(
@@ -257,7 +257,7 @@ export default function JpgToPdf() {
       setDragOverIndex(null);
       setPdfResult(null);
     },
-    [images, draggedImage]
+    [images, draggedImage],
   );
 
   const moveImage = useCallback(
@@ -273,7 +273,7 @@ export default function JpgToPdf() {
       setImages(newImages);
       setPdfResult(null);
     },
-    [images]
+    [images],
   );
 
   const removeImage = useCallback((id: string) => {
@@ -299,7 +299,7 @@ export default function JpgToPdf() {
         images.map(async (img) => ({
           data: await img.file.arrayBuffer(),
           name: img.file.name,
-        }))
+        })),
       );
 
       const message: WorkerMessage = {
@@ -351,7 +351,6 @@ export default function JpgToPdf() {
           badge={{ text: "Images to PDF Converter", icon: TrendingUp }}
           features={features}
         />
-
 
         {/* Main Interface */}
         <div className="space-y-6">
@@ -406,7 +405,7 @@ export default function JpgToPdf() {
                         "px-3 py-2 rounded-lg border-2 transition-all duration-200 text-sm",
                         options.pageSize === size
                           ? "border-primary bg-primary/10"
-                          : "border-border/50 hover:border-primary/50 bg-card/50"
+                          : "border-border/50 hover:border-primary/50 bg-card/50",
                       )}
                     >
                       {size.charAt(0).toUpperCase() + size.slice(1)}
@@ -432,7 +431,7 @@ export default function JpgToPdf() {
                         "px-3 py-2 rounded-lg border-2 transition-all duration-200 text-sm",
                         options.orientation === orientation
                           ? "border-primary bg-primary/10"
-                          : "border-border/50 hover:border-primary/50 bg-card/50"
+                          : "border-border/50 hover:border-primary/50 bg-card/50",
                       )}
                     >
                       {orientation.charAt(0).toUpperCase() +
@@ -499,7 +498,7 @@ export default function JpgToPdf() {
                   <ChevronRight
                     className={cn(
                       "w-4 h-4 ml-auto transition-transform",
-                      showAdvanced && "rotate-90"
+                      showAdvanced && "rotate-90",
                     )}
                   />
                 </button>
@@ -542,7 +541,7 @@ export default function JpgToPdf() {
                   "relative p-12 sm:p-16 md:p-20 rounded-2xl border-2 border-dashed transition-all duration-300",
                   isDragging
                     ? "border-primary bg-primary/10 scale-[1.02]"
-                    : "border-border bg-card/50 hover:border-primary hover:bg-card group-hover:scale-[1.01]"
+                    : "border-border bg-card/50 hover:border-primary hover:bg-card group-hover:scale-[1.01]",
                 )}
               >
                 <div className="text-center">
@@ -551,7 +550,7 @@ export default function JpgToPdf() {
                       "w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 transition-all duration-300",
                       isDragging
                         ? "text-primary scale-110"
-                        : "text-muted-foreground group-hover:text-primary"
+                        : "text-muted-foreground group-hover:text-primary",
                     )}
                   />
                   <p className="text-lg sm:text-xl font-medium mb-2">
@@ -608,7 +607,7 @@ export default function JpgToPdf() {
                       className={cn(
                         "relative group transition-all duration-200",
                         dragOverIndex === index && "ring-2 ring-primary",
-                        draggedImage === imageInfo.id && "opacity-50"
+                        draggedImage === imageInfo.id && "opacity-50",
                       )}
                     >
                       <div className="aspect-square bg-secondary/[0.3] rounded-lg overflow-hidden">

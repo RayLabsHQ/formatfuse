@@ -33,7 +33,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
-import { ToolHeader } from '../ui/ToolHeader';
+import { ToolHeader } from "../ui/ToolHeader";
 
 interface JWTHeader {
   alg?: string;
@@ -195,7 +195,8 @@ const faqs: FAQItem[] = [
 ];
 
 // Sample JWT for demo purposes
-const SAMPLE_JWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMiwiZXhwIjoxOTUxNjIzOTAyMn0.4Adcj3UFYzPUVaVF43FmMab3EguRlv9zZJPjSyVHG4I";
+const SAMPLE_JWT =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMiwiZXhwIjoxOTUxNjIzOTAyMn0.4Adcj3UFYzPUVaVF43FmMab3EguRlv9zZJPjSyVHG4I";
 
 export function JwtDecoder() {
   const [jwt, setJwt] = useState(SAMPLE_JWT);
@@ -207,17 +208,17 @@ export function JwtDecoder() {
   // Theme detection for CodeEditor
   useEffect(() => {
     const checkTheme = () => {
-      const isDark = document.documentElement.classList.contains('dark');
-      setTheme(isDark ? 'github-dark' : 'github-light');
+      const isDark = document.documentElement.classList.contains("dark");
+      setTheme(isDark ? "github-dark" : "github-light");
     };
     checkTheme();
-    
+
     const observer = new MutationObserver(checkTheme);
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['class']
+      attributeFilter: ["class"],
     });
-    
+
     return () => observer.disconnect();
   }, []);
 
@@ -404,7 +405,7 @@ export function JwtDecoder() {
                 "py-2 px-3 rounded-md text-sm font-medium transition-all duration-300",
                 activeTab === "input"
                   ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               <Settings className="w-4 h-4 inline mr-1" />
@@ -416,7 +417,7 @@ export function JwtDecoder() {
                 "py-2 px-3 rounded-md text-sm font-medium transition-all duration-300 relative",
                 activeTab === "output"
                   ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               <FileJson className="w-4 h-4 inline mr-1" />
@@ -431,10 +432,12 @@ export function JwtDecoder() {
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col sm:grid sm:grid-cols-[1fr,1fr] gap-4 sm:gap-6 px-4 sm:px-0 min-h-0">
           {/* Input Panel */}
-          <div className={cn(
-            "flex flex-col min-h-0",
-            activeTab !== "input" && "hidden sm:flex"
-          )}>
+          <div
+            className={cn(
+              "flex flex-col min-h-0",
+              activeTab !== "input" && "hidden sm:flex",
+            )}
+          >
             <Card className="flex-1 flex flex-col shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent pb-4">
                 <CardTitle className="flex items-center gap-2">
@@ -445,29 +448,24 @@ export function JwtDecoder() {
               <CardContent className="flex-1 flex flex-col p-4 sm:p-6 overflow-hidden">
                 <div className="flex-1 flex flex-col min-h-0">
                   <div className="mb-4">
-                    <Label htmlFor="jwt-input" className="text-sm font-medium mb-2 block">
+                    <Label
+                      htmlFor="jwt-input"
+                      className="text-sm font-medium mb-2 block"
+                    >
                       Paste JWT Token
                     </Label>
                     <div className="flex gap-2 mb-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handlePaste}
-                      >
+                      <Button variant="outline" size="sm" onClick={handlePaste}>
                         <ClipboardPaste className="w-4 h-4 mr-2" />
                         Paste
                       </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleClear}
-                      >
+                      <Button variant="outline" size="sm" onClick={handleClear}>
                         <Trash2 className="w-4 h-4 mr-2" />
                         Clear
                       </Button>
                     </div>
                   </div>
-                  
+
                   <div className="flex-1 min-h-0">
                     <CodeEditor
                       value={jwt}
@@ -503,10 +501,12 @@ export function JwtDecoder() {
           </div>
 
           {/* Output Panel */}
-          <div className={cn(
-            "flex flex-col min-h-0",
-            activeTab !== "output" && "hidden sm:flex"
-          )}>
+          <div
+            className={cn(
+              "flex flex-col min-h-0",
+              activeTab !== "output" && "hidden sm:flex",
+            )}
+          >
             <Card className="flex-1 flex flex-col shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent pb-4">
                 <CardTitle className="flex items-center gap-2">
@@ -525,7 +525,7 @@ export function JwtDecoder() {
                             "p-3 rounded-lg flex items-center gap-2",
                             expirationStatus.expired
                               ? "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
-                              : "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800"
+                              : "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800",
                           )}
                         >
                           {expirationStatus.expired ? (
@@ -533,12 +533,14 @@ export function JwtDecoder() {
                           ) : (
                             <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
                           )}
-                          <span className={cn(
-                            "text-sm font-medium",
-                            expirationStatus.expired
-                              ? "text-red-700 dark:text-red-300"
-                              : "text-green-700 dark:text-green-300"
-                          )}>
+                          <span
+                            className={cn(
+                              "text-sm font-medium",
+                              expirationStatus.expired
+                                ? "text-red-700 dark:text-red-300"
+                                : "text-green-700 dark:text-green-300",
+                            )}
+                          >
                             {expirationStatus.message}
                           </span>
                         </div>
@@ -553,19 +555,31 @@ export function JwtDecoder() {
                           </h3>
                           <div className="space-y-2">
                             <div className="flex items-center justify-between">
-                              <span className="text-sm text-muted-foreground">Algorithm</span>
+                              <span className="text-sm text-muted-foreground">
+                                Algorithm
+                              </span>
                               <div className="flex items-center gap-2">
                                 <Badge
-                                  variant={algorithmInfo.secure ? "default" : "destructive"}
+                                  variant={
+                                    algorithmInfo.secure
+                                      ? "default"
+                                      : "destructive"
+                                  }
                                 >
                                   {decoded.header.alg}
                                 </Badge>
-                                <span className="text-sm">{algorithmInfo.name}</span>
+                                <span className="text-sm">
+                                  {algorithmInfo.name}
+                                </span>
                               </div>
                             </div>
                             <div className="flex items-center justify-between">
-                              <span className="text-sm text-muted-foreground">Type</span>
-                              <span className="text-sm">{algorithmInfo.type}</span>
+                              <span className="text-sm text-muted-foreground">
+                                Type
+                              </span>
+                              <span className="text-sm">
+                                {algorithmInfo.type}
+                              </span>
                             </div>
                             {!algorithmInfo.secure && (
                               <div className="mt-2 p-2 rounded bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
@@ -576,8 +590,8 @@ export function JwtDecoder() {
                                       Security Warning
                                     </p>
                                     <p className="text-xs text-red-600 dark:text-red-400 mt-1">
-                                      This token uses an insecure algorithm. Do not trust this
-                                      token for authentication.
+                                      This token uses an insecure algorithm. Do
+                                      not trust this token for authentication.
                                     </p>
                                   </div>
                                 </div>
@@ -643,46 +657,58 @@ export function JwtDecoder() {
                           </Button>
                         </div>
                         <div className="space-y-3">
-                          {Object.entries(decoded.payload).map(([key, value]) => {
-                            const claimInfo = STANDARD_CLAIMS[key];
-                            const Icon = claimInfo?.icon || Hash;
+                          {Object.entries(decoded.payload).map(
+                            ([key, value]) => {
+                              const claimInfo = STANDARD_CLAIMS[key];
+                              const Icon = claimInfo?.icon || Hash;
 
-                            return (
-                              <div key={key} className="bg-muted/30 rounded-lg p-3">
-                                <div className="flex items-start justify-between mb-2">
-                                  <div className="flex items-center gap-2">
-                                    <Icon className="w-4 h-4 text-muted-foreground" />
-                                    <span className="font-medium">
-                                      {claimInfo?.name || key}
-                                    </span>
-                                    {claimInfo && (
-                                      <Badge variant="outline" className="text-xs">
-                                        Standard
-                                      </Badge>
+                              return (
+                                <div
+                                  key={key}
+                                  className="bg-muted/30 rounded-lg p-3"
+                                >
+                                  <div className="flex items-start justify-between mb-2">
+                                    <div className="flex items-center gap-2">
+                                      <Icon className="w-4 h-4 text-muted-foreground" />
+                                      <span className="font-medium">
+                                        {claimInfo?.name || key}
+                                      </span>
+                                      {claimInfo && (
+                                        <Badge
+                                          variant="outline"
+                                          className="text-xs"
+                                        >
+                                          Standard
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="ml-6">
+                                    {["exp", "nbf", "iat"].includes(key) &&
+                                    typeof value === "number" ? (
+                                      <div className="space-y-1">
+                                        <div className="font-mono text-sm">
+                                          {value}
+                                        </div>
+                                        <div className="text-xs text-muted-foreground">
+                                          {formatDate(value)}
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <div className="text-sm">
+                                        {renderClaimValue(value)}
+                                      </div>
                                     )}
                                   </div>
-                                </div>
-                                <div className="ml-6">
-                                  {["exp", "nbf", "iat"].includes(key) &&
-                                  typeof value === "number" ? (
-                                    <div className="space-y-1">
-                                      <div className="font-mono text-sm">{value}</div>
-                                      <div className="text-xs text-muted-foreground">
-                                        {formatDate(value)}
-                                      </div>
+                                  {claimInfo && (
+                                    <div className="ml-6 text-xs text-muted-foreground mt-1">
+                                      {claimInfo.description}
                                     </div>
-                                  ) : (
-                                    <div className="text-sm">{renderClaimValue(value)}</div>
                                   )}
                                 </div>
-                                {claimInfo && (
-                                  <div className="ml-6 text-xs text-muted-foreground mt-1">
-                                    {claimInfo.description}
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
+                              );
+                            },
+                          )}
                         </div>
                       </div>
 
@@ -723,8 +749,12 @@ export function JwtDecoder() {
                         <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center mx-auto mb-4">
                           <AlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400" />
                         </div>
-                        <h3 className="font-semibold text-lg mb-2">Invalid JWT</h3>
-                        <p className="text-sm text-muted-foreground">{decoded.error}</p>
+                        <h3 className="font-semibold text-lg mb-2">
+                          Invalid JWT
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          {decoded.error}
+                        </p>
                       </div>
                     </div>
                   )

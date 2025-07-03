@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import * as pako from "pako";
 import { Button } from "../ui/button";
-import { ToolHeader } from '../ui/ToolHeader';
+import { ToolHeader } from "../ui/ToolHeader";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { cn } from "../../lib/utils";
@@ -158,10 +158,13 @@ export default function TarExtract() {
     }
   }, []);
 
-  const parseTarHeader = (buffer: ArrayBuffer, offset: number): TarHeader | null => {
+  const parseTarHeader = (
+    buffer: ArrayBuffer,
+    offset: number,
+  ): TarHeader | null => {
     const view = new DataView(buffer);
     const decoder = new TextDecoder();
-    
+
     // Check if this is the end of the archive (all zeros)
     let isEnd = true;
     for (let i = 0; i < 512; i++) {
@@ -234,12 +237,12 @@ export default function TarExtract() {
         if (header.name) {
           const path = header.name;
           const parts = path.split("/").filter(Boolean);
-          
+
           // Create directory structure
           let currentPath = "";
           parts.forEach((part, index) => {
             currentPath = currentPath ? `${currentPath}/${part}` : part;
-            
+
             if (index < parts.length - 1 || header.type === "5") {
               // This is a directory
               if (!directories.has(currentPath)) {
@@ -259,7 +262,7 @@ export default function TarExtract() {
           if (header.type !== "5" && header.size > 0) {
             const fileContent = new Uint8Array(data, offset, header.size);
             const fileName = parts[parts.length - 1];
-            
+
             const fileEntry: ExtractedFile = {
               name: fileName,
               path: path,
@@ -293,7 +296,7 @@ export default function TarExtract() {
         } else {
           const parentPath = parts.slice(0, -1).join("/");
           const parent = directories.get(parentPath);
-          if (parent && !parent.children!.find(c => c.path === path)) {
+          if (parent && !parent.children!.find((c) => c.path === path)) {
             parent.children!.push(dir);
           }
         }
@@ -312,7 +315,7 @@ export default function TarExtract() {
           }
         });
       };
-      
+
       sortEntries(files);
       setExtractedFiles(files);
     } catch (err) {
@@ -338,7 +341,7 @@ export default function TarExtract() {
 
   const toggleSelect = useCallback((path: string, isDirectory: boolean) => {
     if (isDirectory) return;
-    
+
     setSelectedFiles((prev) => {
       const newSelection = new Set(prev);
       if (newSelection.has(path)) {
@@ -388,7 +391,7 @@ export default function TarExtract() {
       // For multiple files, we'll use JSZip to create a zip
       const JSZip = (await import("jszip")).default;
       const zip = new JSZip();
-      
+
       selectedFiles.forEach((path) => {
         const file = findFile(extractedFiles, path);
         if (file && file.content) {
@@ -540,7 +543,7 @@ export default function TarExtract() {
           subtitle="Extract TAR, TAR.GZ, and TAR.BZ2 archives instantly in your browser. No uploads, no installations - 100% client-side processing."
           badge={{
             text: "TAR Extractor • Online • Free • Untar",
-            icon: Package
+            icon: Package,
           }}
           features={features}
         />
@@ -660,7 +663,8 @@ export default function TarExtract() {
                       Extracted Files
                     </h3>
                     <p className="text-sm text-muted-foreground mt-1">
-                      {stats.totalFiles} files • {formatFileSize(stats.totalSize)}
+                      {stats.totalFiles} files •{" "}
+                      {formatFileSize(stats.totalSize)}
                     </p>
                   </div>
                   <div className="flex gap-2">

@@ -33,7 +33,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
-import { ToolHeader } from '../ui/ToolHeader';
+import { ToolHeader } from "../ui/ToolHeader";
 import {
   Select,
   SelectContent,
@@ -155,17 +155,17 @@ export function TextDiffChecker() {
   // Theme detection for CodeEditor
   useEffect(() => {
     const checkTheme = () => {
-      const isDark = document.documentElement.classList.contains('dark');
-      setTheme(isDark ? 'github-dark' : 'github-light');
+      const isDark = document.documentElement.classList.contains("dark");
+      setTheme(isDark ? "github-dark" : "github-light");
     };
     checkTheme();
-    
+
     const observer = new MutationObserver(checkTheme);
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['class']
+      attributeFilter: ["class"],
     });
-    
+
     return () => observer.disconnect();
   }, []);
 
@@ -405,11 +405,12 @@ export function TextDiffChecker() {
   const handleCopyDiff = useCallback(async () => {
     const diffText = diffResults
       .map((r) => {
-        const prefix = r.type === "added" ? "+ " : r.type === "removed" ? "- " : "  ";
+        const prefix =
+          r.type === "added" ? "+ " : r.type === "removed" ? "- " : "  ";
         return prefix + r.content;
       })
       .join("\n");
-    
+
     try {
       await navigator.clipboard.writeText(diffText);
       toast.success("Diff copied to clipboard");
@@ -557,7 +558,7 @@ export function TextDiffChecker() {
                 "py-2 px-3 rounded-md text-sm font-medium transition-all duration-300",
                 activeTab === "input"
                   ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               <Settings className="w-4 h-4 inline mr-1" />
@@ -569,7 +570,7 @@ export function TextDiffChecker() {
                 "py-2 px-3 rounded-md text-sm font-medium transition-all duration-300 relative",
                 activeTab === "output"
                   ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               <GitBranch className="w-4 h-4 inline mr-1" />
@@ -584,10 +585,12 @@ export function TextDiffChecker() {
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col gap-4 sm:gap-6 px-4 sm:px-0 min-h-0">
           {/* Input Section */}
-          <div className={cn(
-            "grid grid-cols-1 lg:grid-cols-2 gap-4",
-            activeTab !== "input" && "hidden sm:grid"
-          )}>
+          <div
+            className={cn(
+              "grid grid-cols-1 lg:grid-cols-2 gap-4",
+              activeTab !== "input" && "hidden sm:grid",
+            )}
+          >
             {/* Original Text */}
             <Card className="flex flex-col shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent pb-4">
@@ -597,17 +600,15 @@ export function TextDiffChecker() {
                     Original Text
                   </span>
                   <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handlePaste1}
-                    >
+                    <Button variant="ghost" size="sm" onClick={handlePaste1}>
                       <ClipboardPaste className="w-4 h-4" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => document.getElementById("file-input-1")?.click()}
+                      onClick={() =>
+                        document.getElementById("file-input-1")?.click()
+                      }
                     >
                       <Upload className="w-4 h-4" />
                     </Button>
@@ -653,17 +654,15 @@ export function TextDiffChecker() {
                     Modified Text
                   </span>
                   <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handlePaste2}
-                    >
+                    <Button variant="ghost" size="sm" onClick={handlePaste2}>
                       <ClipboardPaste className="w-4 h-4" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => document.getElementById("file-input-2")?.click()}
+                      onClick={() =>
+                        document.getElementById("file-input-2")?.click()
+                      }
                     >
                       <Upload className="w-4 h-4" />
                     </Button>
@@ -702,10 +701,12 @@ export function TextDiffChecker() {
           </div>
 
           {/* Controls */}
-          <Card className={cn(
-            "shadow-lg",
-            activeTab !== "input" && "hidden sm:block"
-          )}>
+          <Card
+            className={cn(
+              "shadow-lg",
+              activeTab !== "input" && "hidden sm:block",
+            )}
+          >
             <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent pb-4">
               <CardTitle className="flex items-center gap-2">
                 <Settings className="w-5 h-5 text-primary" />
@@ -724,7 +725,10 @@ export function TextDiffChecker() {
                   Clear All
                 </Button>
 
-                <Separator orientation="vertical" className="h-8 hidden sm:block" />
+                <Separator
+                  orientation="vertical"
+                  className="h-8 hidden sm:block"
+                />
 
                 <div className="flex items-center gap-2">
                   <Label htmlFor="view-mode" className="text-sm">
@@ -774,10 +778,16 @@ export function TextDiffChecker() {
 
                 {/* Advanced Options - Mobile */}
                 <div className="sm:hidden w-full">
-                  <CollapsibleSection title="Advanced Options" defaultOpen={false}>
+                  <CollapsibleSection
+                    title="Advanced Options"
+                    defaultOpen={false}
+                  >
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <Label htmlFor="line-numbers" className="text-sm cursor-pointer">
+                        <Label
+                          htmlFor="line-numbers"
+                          className="text-sm cursor-pointer"
+                        >
                           Show Line Numbers
                         </Label>
                         <Switch
@@ -787,7 +797,10 @@ export function TextDiffChecker() {
                         />
                       </div>
                       <div className="flex items-center justify-between">
-                        <Label htmlFor="ignore-case" className="text-sm cursor-pointer">
+                        <Label
+                          htmlFor="ignore-case"
+                          className="text-sm cursor-pointer"
+                        >
                           Ignore Case
                         </Label>
                         <Switch
@@ -797,7 +810,10 @@ export function TextDiffChecker() {
                         />
                       </div>
                       <div className="flex items-center justify-between">
-                        <Label htmlFor="ignore-whitespace" className="text-sm cursor-pointer">
+                        <Label
+                          htmlFor="ignore-whitespace"
+                          className="text-sm cursor-pointer"
+                        >
                           Ignore Whitespace
                         </Label>
                         <Switch
@@ -820,7 +836,10 @@ export function TextDiffChecker() {
                       checked={showLineNumbers}
                       onCheckedChange={setShowLineNumbers}
                     />
-                    <Label htmlFor="line-numbers-desktop" className="text-sm cursor-pointer">
+                    <Label
+                      htmlFor="line-numbers-desktop"
+                      className="text-sm cursor-pointer"
+                    >
                       Line Numbers
                     </Label>
                   </div>
@@ -831,7 +850,10 @@ export function TextDiffChecker() {
                       checked={ignoreCase}
                       onCheckedChange={setIgnoreCase}
                     />
-                    <Label htmlFor="ignore-case-desktop" className="text-sm cursor-pointer">
+                    <Label
+                      htmlFor="ignore-case-desktop"
+                      className="text-sm cursor-pointer"
+                    >
                       Ignore Case
                     </Label>
                   </div>
@@ -855,10 +877,12 @@ export function TextDiffChecker() {
           </Card>
 
           {/* Diff Output */}
-          <div className={cn(
-            "flex-1 flex flex-col min-h-0",
-            activeTab !== "output" && "hidden sm:flex"
-          )}>
+          <div
+            className={cn(
+              "flex-1 flex flex-col min-h-0",
+              activeTab !== "output" && "hidden sm:flex",
+            )}
+          >
             <Card className="flex-1 flex flex-col shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent pb-4">
                 <CardTitle className="flex items-center justify-between">
@@ -892,12 +916,14 @@ export function TextDiffChecker() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="flex-1 overflow-y-auto p-4 sm:p-6">
-                {(text1 || text2) ? (
+                {text1 || text2 ? (
                   <div>
                     {diffMode === "lines" &&
                       viewMode === "side-by-side" &&
                       renderSideBySide()}
-                    {diffMode === "lines" && viewMode === "unified" && renderUnified()}
+                    {diffMode === "lines" &&
+                      viewMode === "unified" &&
+                      renderUnified()}
                     {diffMode === "words" && renderWordDiff()}
                   </div>
                 ) : (

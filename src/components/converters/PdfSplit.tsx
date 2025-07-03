@@ -20,7 +20,7 @@ import {
 import { Button } from "../ui/button";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
-import { ToolHeader } from '../ui/ToolHeader';
+import { ToolHeader } from "../ui/ToolHeader";
 import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 import { cn } from "../../lib/utils";
 import { usePdfOperations } from "../../hooks/usePdfOperations";
@@ -131,7 +131,7 @@ const SPLIT_PRESETS = {
         { start: 1, end: third },
         { start: third + 1, end: Math.min(third * 2, pageCount) },
         { start: third * 2 + 1, end: pageCount },
-      ].filter(range => range.start <= pageCount);
+      ].filter((range) => range.start <= pageCount);
     },
   },
   quarters: {
@@ -144,7 +144,7 @@ const SPLIT_PRESETS = {
         { start: quarter + 1, end: Math.min(quarter * 2, pageCount) },
         { start: quarter * 2 + 1, end: Math.min(quarter * 3, pageCount) },
         { start: quarter * 3 + 1, end: pageCount },
-      ].filter(range => range.start <= pageCount);
+      ].filter((range) => range.start <= pageCount);
     },
   },
 };
@@ -174,7 +174,7 @@ export default function PdfSplit() {
 
       setFile(selectedFile);
       setResults([]);
-      
+
       try {
         const data = new Uint8Array(await selectedFile.arrayBuffer());
         setFileData(data);
@@ -188,7 +188,7 @@ export default function PdfSplit() {
         console.error("Error reading PDF:", err);
       }
     },
-    [getPageCount]
+    [getPageCount],
   );
 
   const handleFileChange = useCallback(
@@ -198,7 +198,7 @@ export default function PdfSplit() {
         handleFileSelect(selectedFile);
       }
     },
-    [handleFileSelect]
+    [handleFileSelect],
   );
 
   const handleDrop = useCallback(
@@ -211,7 +211,7 @@ export default function PdfSplit() {
         handleFileSelect(droppedFile);
       }
     },
-    [handleFileSelect]
+    [handleFileSelect],
   );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -254,17 +254,18 @@ export default function PdfSplit() {
     }
 
     setResults([]);
-    
+
     try {
       const splitResults = await split(fileData, { pageRanges: ranges });
-      
+
       const resultsWithMetadata = splitResults.map((data, index) => {
         const range = ranges[index];
         const baseName = file.name.replace(/\.pdf$/i, "");
-        const filename = range.start === range.end
-          ? `${baseName}_page_${range.start}.pdf`
-          : `${baseName}_pages_${range.start}-${range.end}.pdf`;
-        
+        const filename =
+          range.start === range.end
+            ? `${baseName}_page_${range.start}.pdf`
+            : `${baseName}_pages_${range.start}-${range.end}.pdf`;
+
         return {
           data,
           pageRange: range,
@@ -290,7 +291,7 @@ export default function PdfSplit() {
     }
 
     const zip = new JSZip();
-    
+
     results.forEach((result) => {
       zip.file(result.filename, result.data);
     });
@@ -333,7 +334,9 @@ export default function PdfSplit() {
           {error && (
             <div className="mb-4 px-4 py-3 bg-destructive/10 text-destructive rounded-lg flex items-center gap-2">
               <AlertCircle className="w-4 h-4" />
-              <span className="text-sm">{error.message || 'An error occurred'}</span>
+              <span className="text-sm">
+                {error.message || "An error occurred"}
+              </span>
             </div>
           )}
 
@@ -363,7 +366,7 @@ export default function PdfSplit() {
                       "px-3 py-2 rounded-lg border-2 transition-all duration-200 text-sm",
                       options.mode === "preset"
                         ? "border-primary bg-primary/10"
-                        : "border-border/50 hover:border-primary/50 bg-card/50"
+                        : "border-border/50 hover:border-primary/50 bg-card/50",
                     )}
                   >
                     Presets
@@ -376,7 +379,7 @@ export default function PdfSplit() {
                       "px-3 py-2 rounded-lg border-2 transition-all duration-200 text-sm",
                       options.mode === "custom"
                         ? "border-primary bg-primary/10"
-                        : "border-border/50 hover:border-primary/50 bg-card/50"
+                        : "border-border/50 hover:border-primary/50 bg-card/50",
                     )}
                   >
                     Custom Ranges
@@ -389,7 +392,11 @@ export default function PdfSplit() {
                 <div className="space-y-4">
                   <label className="text-sm font-medium">Select Preset</label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {(Object.keys(SPLIT_PRESETS) as Array<keyof typeof SPLIT_PRESETS>).map((preset) => (
+                    {(
+                      Object.keys(SPLIT_PRESETS) as Array<
+                        keyof typeof SPLIT_PRESETS
+                      >
+                    ).map((preset) => (
                       <button
                         key={preset}
                         onClick={() =>
@@ -399,7 +406,7 @@ export default function PdfSplit() {
                           "p-3 rounded-lg border-2 transition-all duration-200 text-left",
                           options.preset === preset
                             ? "border-primary bg-primary/10"
-                            : "border-border/50 hover:border-primary/50 bg-card/50"
+                            : "border-border/50 hover:border-primary/50 bg-card/50",
                         )}
                       >
                         <div className="font-medium text-sm">
@@ -431,7 +438,8 @@ export default function PdfSplit() {
                     className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary text-sm"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Enter comma-separated ranges. Each range creates a separate PDF.
+                    Enter comma-separated ranges. Each range creates a separate
+                    PDF.
                   </p>
                 </div>
               )}
@@ -440,7 +448,8 @@ export default function PdfSplit() {
               {pageCount > 0 && previewRanges.length > 0 && (
                 <div className="space-y-2">
                   <label className="text-sm font-medium">
-                    Preview: {previewRanges.length} file{previewRanges.length !== 1 ? 's' : ''} will be created
+                    Preview: {previewRanges.length} file
+                    {previewRanges.length !== 1 ? "s" : ""} will be created
                   </label>
                   <div className="space-y-1 text-xs text-muted-foreground max-h-32 overflow-y-auto">
                     {previewRanges.map((range, index) => (
@@ -469,7 +478,7 @@ export default function PdfSplit() {
                   "relative p-12 sm:p-16 md:p-20 rounded-2xl border-2 border-dashed transition-all duration-300",
                   isDragging
                     ? "border-primary bg-primary/10 scale-[1.02]"
-                    : "border-border bg-card/50 hover:border-primary hover:bg-card group-hover:scale-[1.01]"
+                    : "border-border bg-card/50 hover:border-primary hover:bg-card group-hover:scale-[1.01]",
                 )}
               >
                 <div className="text-center">
@@ -478,7 +487,7 @@ export default function PdfSplit() {
                       "w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 transition-all duration-300",
                       isDragging
                         ? "text-primary scale-110"
-                        : "text-muted-foreground group-hover:text-primary"
+                        : "text-muted-foreground group-hover:text-primary",
                     )}
                   />
                   <p className="text-lg sm:text-xl font-medium mb-2">
@@ -505,7 +514,8 @@ export default function PdfSplit() {
                   <div className="flex-1">
                     <p className="font-medium">{file.name}</p>
                     <p className="text-sm text-muted-foreground">
-                      {formatFileSize(file.size)} • {pageCount} page{pageCount !== 1 ? 's' : ''}
+                      {formatFileSize(file.size)} • {pageCount} page
+                      {pageCount !== 1 ? "s" : ""}
                     </p>
                   </div>
                   <Button
@@ -513,7 +523,11 @@ export default function PdfSplit() {
                     size="icon"
                     onClick={() => setShowPreview(!showPreview)}
                   >
-                    {showPreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPreview ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
                   </Button>
                   <Button
                     variant="ghost"
@@ -555,7 +569,8 @@ export default function PdfSplit() {
                 ) : (
                   <>
                     <Scissors className="w-4 h-4 mr-2" />
-                    Split into {previewRanges.length} file{previewRanges.length !== 1 ? 's' : ''}
+                    Split into {previewRanges.length} file
+                    {previewRanges.length !== 1 ? "s" : ""}
                   </>
                 )}
               </Button>
@@ -570,7 +585,8 @@ export default function PdfSplit() {
                         Split complete!
                       </p>
                       <p className="text-sm text-green-700 dark:text-green-300">
-                        {results.length} file{results.length !== 1 ? 's' : ''} created
+                        {results.length} file{results.length !== 1 ? "s" : ""}{" "}
+                        created
                       </p>
                     </div>
                   </div>
@@ -590,7 +606,9 @@ export default function PdfSplit() {
                       >
                         <FileText className="w-6 h-6 text-muted-foreground" />
                         <div className="flex-1">
-                          <p className="font-medium text-sm">{result.filename}</p>
+                          <p className="font-medium text-sm">
+                            {result.filename}
+                          </p>
                           <p className="text-xs text-muted-foreground">
                             Pages {formatPageRanges([result.pageRange])} •{" "}
                             {formatFileSize(result.data.byteLength)}

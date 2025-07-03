@@ -1,4 +1,10 @@
-import React, { useState, useCallback, useMemo, useEffect, useRef } from "react";
+import React, {
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+  useRef,
+} from "react";
 import { Button } from "../ui/button";
 import { toast } from "sonner";
 import {
@@ -23,7 +29,7 @@ import { Switch } from "../ui/switch";
 import { CodeEditor } from "../ui/code-editor";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
-import { ToolHeader } from '../ui/ToolHeader';
+import { ToolHeader } from "../ui/ToolHeader";
 import { cn } from "@/lib/utils";
 import {
   Select,
@@ -153,7 +159,8 @@ const faqs: FAQItem[] = [
   },
 ];
 
-const SAMPLE_TEXT = "Hello, World! 👋\nThis is a sample text for hash generation.";
+const SAMPLE_TEXT =
+  "Hello, World! 👋\nThis is a sample text for hash generation.";
 
 type InputType = "text" | "file";
 
@@ -161,31 +168,33 @@ export default function HashGenerator() {
   const [inputType, setInputType] = useState<InputType>("text");
   const [textInput, setTextInput] = useState(SAMPLE_TEXT);
   const [file, setFile] = useState<File | null>(null);
-  const [selectedAlgorithms, setSelectedAlgorithms] = useState<string[]>(["sha256"]);
+  const [selectedAlgorithms, setSelectedAlgorithms] = useState<string[]>([
+    "sha256",
+  ]);
   const [hmacKey, setHmacKey] = useState("");
   const [useHmac, setUseHmac] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [results, setResults] = useState<HashResult[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"input" | "output">("input");
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   // Theme detection for CodeEditor
   const [theme, setTheme] = useState("github-dark");
   useEffect(() => {
     const checkTheme = () => {
-      const isDark = document.documentElement.classList.contains('dark');
-      setTheme(isDark ? 'github-dark' : 'github-light');
+      const isDark = document.documentElement.classList.contains("dark");
+      setTheme(isDark ? "github-dark" : "github-light");
     };
     checkTheme();
-    
+
     const observer = new MutationObserver(checkTheme);
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['class']
+      attributeFilter: ["class"],
     });
-    
+
     return () => observer.disconnect();
   }, []);
 
@@ -256,9 +265,9 @@ export default function HashGenerator() {
 
       const newResults: HashResult[] = [];
       for (const algorithmId of selectedAlgorithms) {
-        const hashType = hashTypes.find(h => h.id === algorithmId);
+        const hashType = hashTypes.find((h) => h.id === algorithmId);
         if (!hashType) continue;
-        
+
         const startTime = performance.now();
         let hashValue = "";
         try {
@@ -270,7 +279,8 @@ export default function HashGenerator() {
             );
           } else if (hashType.id === "md5") {
             hashValue = "MD5 not supported via Web Crypto API";
-            if (useHmac) hashValue = "MD5-HMAC not supported via Web Crypto API";
+            if (useHmac)
+              hashValue = "MD5-HMAC not supported via Web Crypto API";
           }
         } catch (err) {
           console.error(`Error generating ${hashType.name} hash:`, err);
@@ -290,17 +300,23 @@ export default function HashGenerator() {
     }
   }, [textInput, file, inputType, useHmac, hmacKey, selectedAlgorithms]);
 
-  const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (!selectedFile) return;
+  const handleFileUpload = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const selectedFile = e.target.files?.[0];
+      if (!selectedFile) return;
 
-    setError(null);
-    setFile(selectedFile);
-    toast.success(`Loaded ${selectedFile.name}`);
-  }, []);
+      setError(null);
+      setFile(selectedFile);
+      toast.success(`Loaded ${selectedFile.name}`);
+    },
+    [],
+  );
 
   const handleCopy = useCallback(async (hash: string, typeName: string) => {
-    if (hash.toLowerCase().includes("error") || hash.toLowerCase().includes("not supported")) {
+    if (
+      hash.toLowerCase().includes("error") ||
+      hash.toLowerCase().includes("not supported")
+    ) {
       return;
     }
 
@@ -341,10 +357,12 @@ export default function HashGenerator() {
   const handleDownloadResults = useCallback(() => {
     if (results.length === 0) return;
 
-    const content = results.map(result => {
-      const hashType = hashTypes.find(h => h.id === result.typeId);
-      return `${hashType?.name}: ${result.hash}`;
-    }).join('\n');
+    const content = results
+      .map((result) => {
+        const hashType = hashTypes.find((h) => h.id === result.typeId);
+        return `${hashType?.name}: ${result.hash}`;
+      })
+      .join("\n");
 
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
@@ -381,7 +399,6 @@ export default function HashGenerator() {
           badge={{ text: "Cryptography Tool", icon: Hash }}
           features={features}
         />
-
 
         {/* Settings Card - Desktop only */}
         <div className="hidden sm:block mb-6">
@@ -428,7 +445,7 @@ export default function HashGenerator() {
                     value={selectedAlgorithms.join(",")}
                     onValueChange={(value) => {
                       if (value === "all") {
-                        setSelectedAlgorithms(hashTypes.map(h => h.id));
+                        setSelectedAlgorithms(hashTypes.map((h) => h.id));
                       } else {
                         setSelectedAlgorithms([value]);
                       }
@@ -439,7 +456,7 @@ export default function HashGenerator() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Algorithms</SelectItem>
-                      {hashTypes.map(hashType => (
+                      {hashTypes.map((hashType) => (
                         <SelectItem key={hashType.id} value={hashType.id}>
                           {hashType.name}
                         </SelectItem>
@@ -447,7 +464,7 @@ export default function HashGenerator() {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="flex items-center gap-2">
                   <Switch
                     id="use-hmac"
@@ -475,7 +492,11 @@ export default function HashGenerator() {
                   variant="secondary"
                   size="sm"
                   onClick={processInput}
-                  disabled={isProcessing || (inputType === "text" && !textInput) || (inputType === "file" && !file)}
+                  disabled={
+                    isProcessing ||
+                    (inputType === "text" && !textInput) ||
+                    (inputType === "file" && !file)
+                  }
                 >
                   <Hash className="w-4 h-4 mr-2" />
                   Generate Hashes
@@ -489,7 +510,9 @@ export default function HashGenerator() {
         <div className="sm:hidden px-4 pb-3">
           <div className="bg-card/50 rounded-lg border p-3 space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground font-medium">Input</span>
+              <span className="text-xs text-muted-foreground font-medium">
+                Input
+              </span>
               <div className="flex gap-2">
                 <Button
                   variant={inputType === "text" ? "default" : "outline"}
@@ -512,12 +535,18 @@ export default function HashGenerator() {
               </div>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground font-medium">Algorithms</span>
+              <span className="text-xs text-muted-foreground font-medium">
+                Algorithms
+              </span>
               <Select
-                value={selectedAlgorithms.length === hashTypes.length ? "all" : selectedAlgorithms[0]}
+                value={
+                  selectedAlgorithms.length === hashTypes.length
+                    ? "all"
+                    : selectedAlgorithms[0]
+                }
                 onValueChange={(value) => {
                   if (value === "all") {
-                    setSelectedAlgorithms(hashTypes.map(h => h.id));
+                    setSelectedAlgorithms(hashTypes.map((h) => h.id));
                   } else {
                     setSelectedAlgorithms([value]);
                   }
@@ -528,7 +557,7 @@ export default function HashGenerator() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All</SelectItem>
-                  {hashTypes.map(hashType => (
+                  {hashTypes.map((hashType) => (
                     <SelectItem key={hashType.id} value={hashType.id}>
                       {hashType.name}
                     </SelectItem>
@@ -543,7 +572,10 @@ export default function HashGenerator() {
                 onCheckedChange={setUseHmac}
                 className="h-4 w-8"
               />
-              <Label htmlFor="use-hmac-mobile" className="text-xs cursor-pointer">
+              <Label
+                htmlFor="use-hmac-mobile"
+                className="text-xs cursor-pointer"
+              >
                 HMAC
               </Label>
               {useHmac && (
@@ -714,7 +746,9 @@ export default function HashGenerator() {
             }`}
           >
             <div className="border-b px-3 sm:px-4 py-2 flex items-center justify-between bg-card">
-              <span className="text-xs sm:text-sm font-medium">Hash Results</span>
+              <span className="text-xs sm:text-sm font-medium">
+                Hash Results
+              </span>
               <div className="flex items-center gap-1 sm:gap-2">
                 <Button
                   variant="ghost"
@@ -733,7 +767,9 @@ export default function HashGenerator() {
               {results.length > 0 ? (
                 <div className="space-y-3">
                   {results.map((result) => {
-                    const hashType = hashTypes.find((h) => h.id === result.typeId);
+                    const hashType = hashTypes.find(
+                      (h) => h.id === result.typeId,
+                    );
                     if (!hashType) return null;
                     const canCopy = !(
                       result.hash.toLowerCase().includes("error") ||
@@ -763,7 +799,9 @@ export default function HashGenerator() {
                             variant="ghost"
                             size="icon"
                             className="h-6 w-6 sm:h-7 sm:w-7"
-                            onClick={() => handleCopy(result.hash, hashType.name)}
+                            onClick={() =>
+                              handleCopy(result.hash, hashType.name)
+                            }
                             disabled={!canCopy}
                             title="Copy hash"
                           >
@@ -781,7 +819,8 @@ export default function HashGenerator() {
                           {result.hash}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {hashType.description} • Generated in {result.timeMs.toFixed(2)}ms
+                          {hashType.description} • Generated in{" "}
+                          {result.timeMs.toFixed(2)}ms
                         </p>
                       </div>
                     );
@@ -792,7 +831,9 @@ export default function HashGenerator() {
                   <div className="text-center space-y-2">
                     <Hash className="w-12 h-12 mx-auto text-muted-foreground/30" />
                     <p className="text-sm text-muted-foreground">
-                      {isProcessing ? "Generating hashes..." : "No hashes generated yet"}
+                      {isProcessing
+                        ? "Generating hashes..."
+                        : "No hashes generated yet"}
                     </p>
                   </div>
                 </div>
@@ -807,7 +848,11 @@ export default function HashGenerator() {
             onClick={processInput}
             size="icon"
             className="h-14 w-14 rounded-full shadow-lg bg-primary hover:bg-primary/90 touch-manipulation"
-            disabled={isProcessing || (inputType === "text" && !textInput) || (inputType === "file" && !file)}
+            disabled={
+              isProcessing ||
+              (inputType === "text" && !textInput) ||
+              (inputType === "file" && !file)
+            }
           >
             <Hash className="h-6 w-6" />
           </Button>

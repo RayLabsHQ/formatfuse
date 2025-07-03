@@ -129,7 +129,7 @@ pnpm astro [command]
 
 1. **Clean and Minimal**: Uncluttered interfaces focused on functionality
 2. **No Search Metrics**: Clean tool cards without search volume indicators
-3. **Responsive Features**: 
+3. **Responsive Features**:
    - Desktop: Full feature display with hover states
    - Mobile: Compact icon view with tap-to-reveal details
 4. **Consistent Patterns**:

@@ -19,7 +19,7 @@ import {
 import { Button } from "../ui/button";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
-import { ToolHeader } from '../ui/ToolHeader';
+import { ToolHeader } from "../ui/ToolHeader";
 import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 import { cn } from "../../lib/utils";
 import { Slider } from "../ui/slider";
@@ -110,13 +110,8 @@ export default function PdfToJpg() {
   const [pageCount, setPageCount] = useState<number>(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const {
-    pdfToImages,
-    getPageCount,
-    isProcessing,
-    progress,
-    error,
-  } = usePdfOperations();
+  const { pdfToImages, getPageCount, isProcessing, progress, error } =
+    usePdfOperations();
 
   const [options, setOptions] = useState<ConversionOptions>({
     format: "jpeg",
@@ -132,7 +127,7 @@ export default function PdfToJpg() {
 
       setFile(selectedFile);
       setResults([]);
-      
+
       try {
         const fileData = new Uint8Array(await selectedFile.arrayBuffer());
         const count = await getPageCount(fileData);
@@ -145,7 +140,7 @@ export default function PdfToJpg() {
         console.error("Error reading PDF:", err);
       }
     },
-    [getPageCount]
+    [getPageCount],
   );
 
   const handleFileChange = useCallback(
@@ -155,7 +150,7 @@ export default function PdfToJpg() {
         handleFileSelect(selectedFile);
       }
     },
-    [handleFileSelect]
+    [handleFileSelect],
   );
 
   const handleDrop = useCallback(
@@ -168,7 +163,7 @@ export default function PdfToJpg() {
         handleFileSelect(droppedFile);
       }
     },
-    [handleFileSelect]
+    [handleFileSelect],
   );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -220,12 +215,13 @@ export default function PdfToJpg() {
     if (!file) return;
 
     setResults([]);
-    
+
     try {
       const fileData = new Uint8Array(await file.arrayBuffer());
-      const pagesToConvert = options.pages === "all" 
-        ? undefined 
-        : parsePageRanges(options.specificPages);
+      const pagesToConvert =
+        options.pages === "all"
+          ? undefined
+          : parsePageRanges(options.specificPages);
 
       const conversionResults = await pdfToImages(fileData, {
         pages: pagesToConvert,
@@ -237,7 +233,9 @@ export default function PdfToJpg() {
       // Create object URLs for preview
       const resultsWithUrls = conversionResults.map((result) => ({
         ...result,
-        url: URL.createObjectURL(new Blob([result.data], { type: result.mimeType })),
+        url: URL.createObjectURL(
+          new Blob([result.data], { type: result.mimeType }),
+        ),
       }));
 
       setResults(resultsWithUrls);
@@ -250,7 +248,7 @@ export default function PdfToJpg() {
     const ext = options.format === "png" ? "png" : "jpg";
     const baseName = file!.name.replace(/\.pdf$/i, "");
     const fileName = `${baseName}_page_${result.page}.${ext}`;
-    
+
     const blob = new Blob([result.data], { type: result.mimeType });
     saveAs(blob, fileName);
   };
@@ -314,7 +312,9 @@ export default function PdfToJpg() {
           {error && (
             <div className="mb-4 px-4 py-3 bg-destructive/10 text-destructive rounded-lg flex items-center gap-2">
               <AlertCircle className="w-4 h-4" />
-              <span className="text-sm">{error.message || 'An error occurred'}</span>
+              <span className="text-sm">
+                {error.message || "An error occurred"}
+              </span>
             </div>
           )}
 
@@ -352,7 +352,7 @@ export default function PdfToJpg() {
                         "px-3 py-2 rounded-lg border-2 transition-all duration-200 text-sm uppercase",
                         options.format === format
                           ? "border-primary bg-primary/10"
-                          : "border-border/50 hover:border-primary/50 bg-card/50"
+                          : "border-border/50 hover:border-primary/50 bg-card/50",
                       )}
                     >
                       {format}
@@ -395,7 +395,7 @@ export default function PdfToJpg() {
                       "px-3 py-2 rounded-lg border-2 transition-all duration-200 text-sm",
                       options.pages === "all"
                         ? "border-primary bg-primary/10"
-                        : "border-border/50 hover:border-primary/50 bg-card/50"
+                        : "border-border/50 hover:border-primary/50 bg-card/50",
                     )}
                   >
                     All Pages
@@ -408,7 +408,7 @@ export default function PdfToJpg() {
                       "px-3 py-2 rounded-lg border-2 transition-all duration-200 text-sm",
                       options.pages === "specific"
                         ? "border-primary bg-primary/10"
-                        : "border-border/50 hover:border-primary/50 bg-card/50"
+                        : "border-border/50 hover:border-primary/50 bg-card/50",
                     )}
                   >
                     Specific Pages
@@ -477,7 +477,7 @@ export default function PdfToJpg() {
                   <ChevronRight
                     className={cn(
                       "w-4 h-4 ml-auto transition-transform",
-                      showAdvanced && "rotate-90"
+                      showAdvanced && "rotate-90",
                     )}
                   />
                 </button>
@@ -523,7 +523,7 @@ export default function PdfToJpg() {
                   "relative p-12 sm:p-16 md:p-20 rounded-2xl border-2 border-dashed transition-all duration-300",
                   isDragging
                     ? "border-primary bg-primary/10 scale-[1.02]"
-                    : "border-border bg-card/50 hover:border-primary hover:bg-card group-hover:scale-[1.01]"
+                    : "border-border bg-card/50 hover:border-primary hover:bg-card group-hover:scale-[1.01]",
                 )}
               >
                 <div className="text-center">
@@ -532,7 +532,7 @@ export default function PdfToJpg() {
                       "w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 transition-all duration-300",
                       isDragging
                         ? "text-primary scale-110"
-                        : "text-muted-foreground group-hover:text-primary"
+                        : "text-muted-foreground group-hover:text-primary",
                     )}
                   />
                   <p className="text-lg sm:text-xl font-medium mb-2">
@@ -559,7 +559,8 @@ export default function PdfToJpg() {
                   <div className="flex-1">
                     <p className="font-medium">{file.name}</p>
                     <p className="text-sm text-muted-foreground">
-                      {formatFileSize(file.size)} • {pageCount} page{pageCount !== 1 ? 's' : ''}
+                      {formatFileSize(file.size)} • {pageCount} page
+                      {pageCount !== 1 ? "s" : ""}
                     </p>
                   </div>
                   <Button
@@ -605,7 +606,8 @@ export default function PdfToJpg() {
                         Conversion complete!
                       </p>
                       <p className="text-sm text-green-700 dark:text-green-300">
-                        {results.length} image{results.length !== 1 ? 's' : ''} created
+                        {results.length} image{results.length !== 1 ? "s" : ""}{" "}
+                        created
                       </p>
                     </div>
                   </div>
@@ -642,7 +644,9 @@ export default function PdfToJpg() {
                           </Button>
                         </div>
                         <div className="p-3">
-                          <p className="text-sm font-medium">Page {result.page}</p>
+                          <p className="text-sm font-medium">
+                            Page {result.page}
+                          </p>
                           <p className="text-xs text-muted-foreground">
                             {formatFileSize(result.data.byteLength)}
                           </p>

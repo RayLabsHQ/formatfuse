@@ -31,7 +31,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
-import { ToolHeader } from '../ui/ToolHeader';
+import { ToolHeader } from "../ui/ToolHeader";
 
 interface QrTemplate {
   id: string;
@@ -608,267 +608,292 @@ export default function QrCodeGenerator() {
           features={features}
         />
 
-
         {/* Main Content - Side by Side on Desktop */}
         <div className="flex-1 flex flex-col lg:flex-row gap-4 sm:gap-6 px-4 sm:px-0 min-h-0">
           {/* Left Side - Input */}
           <div className="flex-1 lg:max-w-md flex flex-col">
             <Card className="flex-1 shadow-lg hover:shadow-xl transition-shadow duration-300 border-muted/50 bg-background/95 backdrop-blur-sm overflow-hidden">
               <CardContent className="p-4 sm:p-6 h-full overflow-y-auto">
-              {/* Template Selection */}
-              <div className="mb-6">
-                <Label className="text-base font-semibold mb-4 block">Choose Type</Label>
-                <div className="grid grid-cols-3 gap-2">
-                  {qrTemplates.map((template) => (
-                    <button
-                      key={template.id}
-                      onClick={() => setSelectedTemplate(template)}
-                      className={cn(
-                        "p-3 rounded-lg border text-center transition-all hover:scale-105 group",
-                        selectedTemplate.id === template.id
-                          ? "border-primary bg-primary/10 shadow-sm"
-                          : "border-border hover:border-primary/50 bg-background",
+                {/* Template Selection */}
+                <div className="mb-6">
+                  <Label className="text-base font-semibold mb-4 block">
+                    Choose Type
+                  </Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {qrTemplates.map((template) => (
+                      <button
+                        key={template.id}
+                        onClick={() => setSelectedTemplate(template)}
+                        className={cn(
+                          "p-3 rounded-lg border text-center transition-all hover:scale-105 group",
+                          selectedTemplate.id === template.id
+                            ? "border-primary bg-primary/10 shadow-sm"
+                            : "border-border hover:border-primary/50 bg-background",
+                        )}
+                      >
+                        <template.icon
+                          className={cn(
+                            "w-5 h-5 mx-auto mb-2 transition-colors",
+                            selectedTemplate.id === template.id
+                              ? "text-primary"
+                              : "text-muted-foreground group-hover:text-primary",
+                          )}
+                        />
+                        <div className="text-xs font-medium">
+                          {template.name}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Form Fields */}
+                <div className="space-y-4 mb-6">
+                  <h3 className="text-sm font-semibold text-muted-foreground">
+                    {selectedTemplate.name} Details
+                  </h3>
+                  {selectedTemplate.fields.map((field) => (
+                    <div key={field.name}>
+                      <Label
+                        htmlFor={field.name}
+                        className="mb-2 block text-sm"
+                      >
+                        {field.label}
+                        {field.required && (
+                          <span className="text-destructive ml-1">*</span>
+                        )}
+                      </Label>
+                      {field.type === "textarea" ? (
+                        <Textarea
+                          id={field.name}
+                          value={formData[field.name] || ""}
+                          onChange={(e) =>
+                            handleFieldChange(field.name, e.target.value)
+                          }
+                          placeholder={field.placeholder}
+                          className="resize-none"
+                          rows={3}
+                        />
+                      ) : (
+                        <Input
+                          id={field.name}
+                          type={field.type}
+                          value={formData[field.name] || ""}
+                          onChange={(e) =>
+                            handleFieldChange(field.name, e.target.value)
+                          }
+                          placeholder={field.placeholder}
+                        />
                       )}
-                    >
-                      <template.icon className={cn(
-                        "w-5 h-5 mx-auto mb-2 transition-colors",
-                        selectedTemplate.id === template.id
-                          ? "text-primary"
-                          : "text-muted-foreground group-hover:text-primary"
-                      )} />
-                      <div className="text-xs font-medium">{template.name}</div>
-                    </button>
+                    </div>
                   ))}
                 </div>
-              </div>
 
-              {/* Form Fields */}
-              <div className="space-y-4 mb-6">
-                <h3 className="text-sm font-semibold text-muted-foreground">
-                  {selectedTemplate.name} Details
-                </h3>
-                {selectedTemplate.fields.map((field) => (
-                  <div key={field.name}>
-                    <Label htmlFor={field.name} className="mb-2 block text-sm">
-                      {field.label}
-                      {field.required && (
-                        <span className="text-destructive ml-1">*</span>
-                      )}
-                    </Label>
-                    {field.type === "textarea" ? (
-                      <Textarea
-                        id={field.name}
-                        value={formData[field.name] || ""}
-                        onChange={(e) =>
-                          handleFieldChange(field.name, e.target.value)
-                        }
-                        placeholder={field.placeholder}
-                        className="resize-none"
-                        rows={3}
-                      />
-                    ) : (
-                      <Input
-                        id={field.name}
-                        type={field.type}
-                        value={formData[field.name] || ""}
-                        onChange={(e) =>
-                          handleFieldChange(field.name, e.target.value)
-                        }
-                        placeholder={field.placeholder}
-                      />
-                    )}
+                {/* Styling Options */}
+                <div className="space-y-4 mb-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-semibold text-muted-foreground">
+                      Styling
+                    </h3>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowAdvanced(!showAdvanced)}
+                      className="text-xs"
+                    >
+                      {showAdvanced ? "Hide" : "Show"} Advanced
+                    </Button>
                   </div>
-                ))}
-              </div>
 
-              {/* Styling Options */}
-              <div className="space-y-4 mb-6">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-muted-foreground">Styling</h3>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowAdvanced(!showAdvanced)}
-                    className="text-xs"
-                  >
-                    {showAdvanced ? "Hide" : "Show"} Advanced
-                  </Button>
-                </div>
-
-                {/* Basic Styling */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label htmlFor="dark-color" className="mb-2 block text-sm">
-                      Foreground
-                    </Label>
-                    <div className="flex gap-2">
-                      <Input
-                        id="dark-color"
-                        type="color"
-                        value={style.darkColor}
-                        onChange={(e) =>
-                          setStyle((prev) => ({
-                            ...prev,
-                            darkColor: e.target.value,
-                          }))
-                        }
-                        className="w-12 h-9 p-1 cursor-pointer"
-                      />
-                      <Input
-                        type="text"
-                        value={style.darkColor}
-                        onChange={(e) =>
-                          setStyle((prev) => ({
-                            ...prev,
-                            darkColor: e.target.value,
-                          }))
-                        }
-                        className="flex-1 font-mono text-xs"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <Label htmlFor="light-color" className="mb-2 block text-sm">
-                      Background
-                    </Label>
-                    <div className="flex gap-2">
-                      <Input
-                        id="light-color"
-                        type="color"
-                        value={style.lightColor}
-                        onChange={(e) =>
-                          setStyle((prev) => ({
-                            ...prev,
-                            lightColor: e.target.value,
-                          }))
-                        }
-                        className="w-12 h-9 p-1 cursor-pointer"
-                      />
-                      <Input
-                        type="text"
-                        value={style.lightColor}
-                        onChange={(e) =>
-                          setStyle((prev) => ({
-                            ...prev,
-                            lightColor: e.target.value,
-                          }))
-                        }
-                        className="flex-1 font-mono text-xs"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Advanced Options */}
-                {showAdvanced && (
-                  <div className="space-y-4 pt-2 animate-fade-in">
-                    {/* Size and Margin */}
+                  {/* Basic Styling */}
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <Label className="mb-2 block text-sm">Size: {style.size}px</Label>
-                      <div className="flex gap-3 items-center">
-                        <Slider
-                          value={[style.size]}
-                          onValueChange={([value]) =>
-                            setStyle((prev) => ({ ...prev, size: value }))
+                      <Label
+                        htmlFor="dark-color"
+                        className="mb-2 block text-sm"
+                      >
+                        Foreground
+                      </Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="dark-color"
+                          type="color"
+                          value={style.darkColor}
+                          onChange={(e) =>
+                            setStyle((prev) => ({
+                              ...prev,
+                              darkColor: e.target.value,
+                            }))
                           }
-                          min={100}
-                          max={500}
-                          step={10}
-                          className="flex-1"
+                          className="w-12 h-9 p-1 cursor-pointer"
                         />
                         <Input
-                          type="number"
-                          value={style.size}
-                          onChange={(e) => {
-                            const value = parseInt(e.target.value) || 100;
-                            setStyle((prev) => ({ ...prev, size: Math.min(Math.max(value, 100), 500) }));
-                          }}
-                          className="w-20 text-xs"
-                          min={100}
-                          max={500}
+                          type="text"
+                          value={style.darkColor}
+                          onChange={(e) =>
+                            setStyle((prev) => ({
+                              ...prev,
+                              darkColor: e.target.value,
+                            }))
+                          }
+                          className="flex-1 font-mono text-xs"
                         />
                       </div>
                     </div>
-
-                    {/* Error Correction */}
                     <div>
-                      <Label className="mb-3 block text-sm">Error Correction</Label>
-                      <div className="grid grid-cols-4 gap-2">
-                        {(["L", "M", "Q", "H"] as const).map((level) => (
-                          <button
-                            key={level}
-                            onClick={() =>
-                              setStyle((prev) => ({
-                                ...prev,
-                                errorCorrectionLevel: level,
-                              }))
-                            }
-                            className={cn(
-                              "py-1.5 px-2 rounded-md text-xs font-medium transition-all",
-                              style.errorCorrectionLevel === level
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-secondary hover:bg-secondary/80",
-                            )}
-                          >
-                            {level}
-                          </button>
-                        ))}
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-2">
-                        L: 7%, M: 15%, Q: 25%, H: 30% damage recovery
-                      </p>
-                    </div>
-
-                    {/* Logo Upload */}
-                    <div>
-                      <Label className="mb-2 block text-sm">Logo (Optional)</Label>
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            const reader = new FileReader();
-                            reader.onload = (e) => {
-                              setStyle((prev) => ({
-                                ...prev,
-                                logo: e.target?.result as string,
-                              }));
-                            };
-                            reader.readAsDataURL(file);
+                      <Label
+                        htmlFor="light-color"
+                        className="mb-2 block text-sm"
+                      >
+                        Background
+                      </Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="light-color"
+                          type="color"
+                          value={style.lightColor}
+                          onChange={(e) =>
+                            setStyle((prev) => ({
+                              ...prev,
+                              lightColor: e.target.value,
+                            }))
                           }
-                        }}
-                        className="cursor-pointer text-xs"
-                      />
-                      {style.logo && (
-                        <div className="flex items-center gap-3 mt-2">
-                          <img
-                            src={style.logo}
-                            alt="Logo"
-                            className="w-10 h-10 rounded object-contain bg-muted"
-                          />
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() =>
-                              setStyle((prev) => ({
-                                ...prev,
-                                logo: undefined,
-                                logoSize: undefined,
-                              }))
-                            }
-                            className="text-xs"
-                          >
-                            Remove
-                          </Button>
-                        </div>
-                      )}
+                          className="w-12 h-9 p-1 cursor-pointer"
+                        />
+                        <Input
+                          type="text"
+                          value={style.lightColor}
+                          onChange={(e) =>
+                            setStyle((prev) => ({
+                              ...prev,
+                              lightColor: e.target.value,
+                            }))
+                          }
+                          className="flex-1 font-mono text-xs"
+                        />
+                      </div>
                     </div>
                   </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+
+                  {/* Advanced Options */}
+                  {showAdvanced && (
+                    <div className="space-y-4 pt-2 animate-fade-in">
+                      {/* Size and Margin */}
+                      <div>
+                        <Label className="mb-2 block text-sm">
+                          Size: {style.size}px
+                        </Label>
+                        <div className="flex gap-3 items-center">
+                          <Slider
+                            value={[style.size]}
+                            onValueChange={([value]) =>
+                              setStyle((prev) => ({ ...prev, size: value }))
+                            }
+                            min={100}
+                            max={500}
+                            step={10}
+                            className="flex-1"
+                          />
+                          <Input
+                            type="number"
+                            value={style.size}
+                            onChange={(e) => {
+                              const value = parseInt(e.target.value) || 100;
+                              setStyle((prev) => ({
+                                ...prev,
+                                size: Math.min(Math.max(value, 100), 500),
+                              }));
+                            }}
+                            className="w-20 text-xs"
+                            min={100}
+                            max={500}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Error Correction */}
+                      <div>
+                        <Label className="mb-3 block text-sm">
+                          Error Correction
+                        </Label>
+                        <div className="grid grid-cols-4 gap-2">
+                          {(["L", "M", "Q", "H"] as const).map((level) => (
+                            <button
+                              key={level}
+                              onClick={() =>
+                                setStyle((prev) => ({
+                                  ...prev,
+                                  errorCorrectionLevel: level,
+                                }))
+                              }
+                              className={cn(
+                                "py-1.5 px-2 rounded-md text-xs font-medium transition-all",
+                                style.errorCorrectionLevel === level
+                                  ? "bg-primary text-primary-foreground"
+                                  : "bg-secondary hover:bg-secondary/80",
+                              )}
+                            >
+                              {level}
+                            </button>
+                          ))}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          L: 7%, M: 15%, Q: 25%, H: 30% damage recovery
+                        </p>
+                      </div>
+
+                      {/* Logo Upload */}
+                      <div>
+                        <Label className="mb-2 block text-sm">
+                          Logo (Optional)
+                        </Label>
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onload = (e) => {
+                                setStyle((prev) => ({
+                                  ...prev,
+                                  logo: e.target?.result as string,
+                                }));
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                          className="cursor-pointer text-xs"
+                        />
+                        {style.logo && (
+                          <div className="flex items-center gap-3 mt-2">
+                            <img
+                              src={style.logo}
+                              alt="Logo"
+                              className="w-10 h-10 rounded object-contain bg-muted"
+                            />
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() =>
+                                setStyle((prev) => ({
+                                  ...prev,
+                                  logo: undefined,
+                                  logoSize: undefined,
+                                }))
+                              }
+                              className="text-xs"
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Right Side - Output (Desktop) / Second Card (Mobile) */}
@@ -889,9 +914,7 @@ export default function QrCodeGenerator() {
                   </div>
                 ) : (
                   <div className="space-y-4 w-full flex flex-col items-center">
-                    <div 
-                      className="qr-output-container p-4 sm:p-6 rounded-2xl border bg-white dark:bg-muted/30 w-full sm:w-auto"
-                    >
+                    <div className="qr-output-container p-4 sm:p-6 rounded-2xl border bg-white dark:bg-muted/30 w-full sm:w-auto">
                       <div className="relative overflow-auto max-h-full">
                         <canvas
                           ref={canvasRef}
@@ -899,17 +922,17 @@ export default function QrCodeGenerator() {
                           height={style.size}
                           className={cn(
                             "transition-opacity block mx-auto",
-                            isGenerating ? "opacity-50" : "opacity-100"
+                            isGenerating ? "opacity-50" : "opacity-100",
                           )}
-                          style={{ 
-                            maxWidth: "100%", 
+                          style={{
+                            maxWidth: "100%",
                             height: "auto",
-                            aspectRatio: "1"
+                            aspectRatio: "1",
                           }}
                         />
                       </div>
                     </div>
-                    
+
                     {/* Download Actions */}
                     <div className="flex gap-2 justify-center">
                       <Button
@@ -947,7 +970,8 @@ export default function QrCodeGenerator() {
                   </div>
                 )}
               </CardContent>
-            </Card>          </div>
+            </Card>{" "}
+          </div>
         </div>
 
         {/* FAQ and Related Tools */}

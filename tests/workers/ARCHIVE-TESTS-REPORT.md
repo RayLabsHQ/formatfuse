@@ -5,7 +5,9 @@
 ### ✅ Passing Tests (38 total)
 
 #### ZIP Operations (24 tests)
+
 - **ZIP Extract** (11 tests) - All passing
+
   - Basic extraction with file content verification
   - Nested directory structure handling
   - Binary file extraction with format validation
@@ -27,6 +29,7 @@
   - Performance with 100+ files
 
 #### Universal Archive Extraction (14 tests)
+
 - **LibArchive-WASM** (mocked) - All passing
   - Format detection (ZIP, 7Z, RAR, ISO)
   - Text and binary file extraction
@@ -38,6 +41,7 @@
 ### ⚠️ Known Issues
 
 #### TAR Operations
+
 - tar-js library has inconsistent API documentation
 - Manual TAR parsing is implemented in components
 - Tests created but need API clarification
@@ -45,6 +49,7 @@
 ## Test Fixtures
 
 Created comprehensive test archives in `/tests/fixtures/archives/`:
+
 - `test.zip` - Standard ZIP with mixed content
 - `test.tar` - Uncompressed TAR archive
 - `test.tar.gz` - GZIP compressed TAR
@@ -55,6 +60,7 @@ Created comprehensive test archives in `/tests/fixtures/archives/`:
 ## Performance Benchmarks
 
 All operations complete within acceptable time limits:
+
 - ZIP extraction (1MB): <100ms
 - ZIP creation (100 files): <5s
 - TAR creation (100 files): <1s

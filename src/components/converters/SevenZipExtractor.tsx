@@ -15,7 +15,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { Button } from "../ui/button";
-import { ToolHeader } from '../ui/ToolHeader';
+import { ToolHeader } from "../ui/ToolHeader";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { cn } from "../../lib/utils";
@@ -107,7 +107,7 @@ export default function SevenZipExtractor() {
 
       await loadArchive(file);
     },
-    []
+    [],
   );
 
   const handleDrop = useCallback(async (e: React.DragEvent<HTMLDivElement>) => {
@@ -130,7 +130,7 @@ export default function SevenZipExtractor() {
     try {
       // Read file data
       const data = await file.arrayBuffer();
-      
+
       // Initialize libarchive if not already done
       let mod = libarchiveMod;
       if (!mod) {
@@ -142,14 +142,14 @@ export default function SevenZipExtractor() {
       // Create archive reader
       const { ArchiveReader } = await import("libarchive-wasm");
       const reader = new ArchiveReader(mod, new Int8Array(data));
-      
+
       // Extract all entries and build file tree
       const entries: any[] = [];
       for (const entry of reader.entries()) {
         const pathname = entry.getPathname();
         const size = entry.getSize();
         const data = entry.readData();
-        
+
         entries.push({
           path: pathname,
           size,
@@ -158,10 +158,10 @@ export default function SevenZipExtractor() {
           data,
         });
       }
-      
+
       // Free the reader
       reader.free();
-      
+
       // Build file tree
       const fileTree = buildFileTree(entries);
       setFiles(fileTree);
@@ -170,7 +170,7 @@ export default function SevenZipExtractor() {
       setError(
         err instanceof Error
           ? err.message
-          : "Failed to read archive. Make sure it's a valid archive file."
+          : "Failed to read archive. Make sure it's a valid archive file.",
       );
     } finally {
       setIsLoading(false);
@@ -201,7 +201,8 @@ export default function SevenZipExtractor() {
             isDirectory,
             children: [],
             size: isLastPart && !isDirectory ? entry.size : 0,
-            compressedSize: isLastPart && !isDirectory ? entry.compressed_size || 0 : 0,
+            compressedSize:
+              isLastPart && !isDirectory ? entry.compressed_size || 0 : 0,
             lastModified: new Date(entry.last_modified || Date.now()),
             fileData: isLastPart && !isDirectory ? entry.data : undefined,
           };
@@ -270,15 +271,13 @@ export default function SevenZipExtractor() {
       link.click();
       URL.revokeObjectURL(link.href);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to download file"
-      );
+      setError(err instanceof Error ? err.message : "Failed to download file");
     }
   };
 
   const downloadSelected = async () => {
     const filesToDownload: FileNode[] = [];
-    
+
     const collectFiles = (nodes: FileNode[]) => {
       nodes.forEach((node) => {
         if (selectedFiles.has(node.path) && !node.isDirectory) {
@@ -289,7 +288,7 @@ export default function SevenZipExtractor() {
         }
       });
     };
-    
+
     collectFiles(files);
 
     for (const file of filesToDownload) {
@@ -326,7 +325,7 @@ export default function SevenZipExtractor() {
           <div
             className={cn(
               "flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-secondary/50 cursor-pointer transition-colors",
-              isSelected && !node.isDirectory && "bg-primary/10"
+              isSelected && !node.isDirectory && "bg-primary/10",
             )}
             style={{ paddingLeft: `${level * 20 + 12}px` }}
           >
@@ -431,7 +430,7 @@ export default function SevenZipExtractor() {
           subtitle="Extract 7Z archives with high compression support instantly in your browser. No uploads, 100% privacy guaranteed."
           badge={{
             text: "7Z Extractor • Online • Free • LZMA",
-            icon: FileArchive
+            icon: FileArchive,
           }}
           features={features}
         />

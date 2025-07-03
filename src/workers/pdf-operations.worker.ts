@@ -280,7 +280,7 @@ class PDFOperationsWorker {
 
     // Load the PDF document
     const pdfDoc = await this.loadPdfDocument(pdfData);
-    
+
     // Create a new PDF document for compressed output
     const compressedPdf = await PDFDocument.create();
 
@@ -302,18 +302,18 @@ class PDFOperationsWorker {
     }
 
     const totalPages = pdfDoc.getPageCount();
-    
+
     // Process each page
     for (let i = 0; i < totalPages; i++) {
       const [page] = await compressedPdf.copyPages(pdfDoc, [i]);
-      
+
       // Apply grayscale if requested
       if (options.grayscale) {
         // Note: pdf-lib doesn't have direct grayscale conversion
         // This would require more complex image processing
         // For now, we'll just copy the page as-is
       }
-      
+
       compressedPdf.addPage(page);
       onProgress?.(((i + 1) / totalPages) * 90);
     }
@@ -332,7 +332,7 @@ class PDFOperationsWorker {
     // Note: Real image compression would require parsing and re-encoding images
     // This basic implementation provides structure compression but not image recompression
     // For full image compression, we'd need to integrate image processing libraries
-    
+
     return Comlink.transfer(new Uint8Array(pdfBytes), [pdfBytes.buffer]);
   }
 }

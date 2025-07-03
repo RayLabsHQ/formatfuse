@@ -1,25 +1,25 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-  <title>Color Converter Test</title>
-  <script type="module">
-    import Color from 'https://colorjs.io/dist/color.js';
-    
-    // Test color conversion
-    const color = new Color('#3B82F6');
-    console.log('Input:', '#3B82F6');
-    console.log('RGB:', color.to('srgb').toString());
-    console.log('HSL:', color.to('hsl').toString());
-    console.log('LAB:', color.to('lab').toString());
-    console.log('LCH:', color.to('lch').toString());
-    console.log('OKLab:', color.to('oklab').toString());
-    console.log('OKLCH:', color.to('oklch').toString());
-    console.log('Display P3:', color.to('p3').toString());
-    console.log('Rec. 2020:', color.to('rec2020').toString());
-  </script>
-</head>
-<body>
-  <h1>Color Converter Test</h1>
-  <p>Check the console for conversion results</p>
-</body>
+  <head>
+    <title>Color Converter Test</title>
+    <script type="module">
+      import Color from "https://colorjs.io/dist/color.js";
+
+      // Test color conversion
+      const color = new Color("#3B82F6");
+      console.log("Input:", "#3B82F6");
+      console.log("RGB:", color.to("srgb").toString());
+      console.log("HSL:", color.to("hsl").toString());
+      console.log("LAB:", color.to("lab").toString());
+      console.log("LCH:", color.to("lch").toString());
+      console.log("OKLab:", color.to("oklab").toString());
+      console.log("OKLCH:", color.to("oklch").toString());
+      console.log("Display P3:", color.to("p3").toString());
+      console.log("Rec. 2020:", color.to("rec2020").toString());
+    </script>
+  </head>
+  <body>
+    <h1>Color Converter Test</h1>
+    <p>Check the console for conversion results</p>
+  </body>
 </html>

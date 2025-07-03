@@ -23,7 +23,7 @@ import { Label } from "../ui/label";
 import { CodeEditor } from "../ui/code-editor";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
-import { ToolHeader } from '../ui/ToolHeader';
+import { ToolHeader } from "../ui/ToolHeader";
 import { cn } from "@/lib/utils";
 import {
   Select,
@@ -129,24 +129,24 @@ export default function JsonYamlConverter() {
   const [error, setError] = useState<ConversionError | null>(null);
   const [indentSize, setIndentSize] = useState("2");
   const [activeTab, setActiveTab] = useState<"input" | "output">("input");
-  
+
   const fileInputRef = React.useRef<HTMLInputElement>(null);
-  
+
   // Theme detection for CodeEditor
   const [theme, setTheme] = useState("github-dark");
   useEffect(() => {
     const checkTheme = () => {
-      const isDark = document.documentElement.classList.contains('dark');
-      setTheme(isDark ? 'github-dark' : 'github-light');
+      const isDark = document.documentElement.classList.contains("dark");
+      setTheme(isDark ? "github-dark" : "github-light");
     };
     checkTheme();
-    
+
     const observer = new MutationObserver(checkTheme);
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['class']
+      attributeFilter: ["class"],
     });
-    
+
     return () => observer.disconnect();
   }, []);
 
@@ -300,22 +300,25 @@ export default function JsonYamlConverter() {
     }
   }, [input, mode, indentSize]);
 
-  const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleFileUpload = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const content = e.target?.result as string;
-      setInput(content);
-      setActiveTab("input");
-      toast.success(`Loaded ${file.name}`);
-    };
-    reader.onerror = () => {
-      toast.error("Failed to read file");
-    };
-    reader.readAsText(file);
-  }, []);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const content = e.target?.result as string;
+        setInput(content);
+        setActiveTab("input");
+        toast.success(`Loaded ${file.name}`);
+      };
+      reader.onerror = () => {
+        toast.error("Failed to read file");
+      };
+      reader.readAsText(file);
+    },
+    [],
+  );
 
   const stats = useMemo(() => {
     if (!output || error) return null;
@@ -411,7 +414,9 @@ export default function JsonYamlConverter() {
         <div className="sm:hidden px-4 pb-3">
           <div className="bg-card/50 rounded-lg border p-3 space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground font-medium">Mode</span>
+              <span className="text-xs text-muted-foreground font-medium">
+                Mode
+              </span>
               <Button
                 variant="outline"
                 size="sm"
@@ -423,7 +428,9 @@ export default function JsonYamlConverter() {
               </Button>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground font-medium">Format</span>
+              <span className="text-xs text-muted-foreground font-medium">
+                Format
+              </span>
               <div className="flex gap-2">
                 <Select value={indentSize} onValueChange={setIndentSize}>
                   <SelectTrigger className="w-[80px] h-7 text-xs">
@@ -462,7 +469,11 @@ export default function JsonYamlConverter() {
               }`}
             >
               <div className="flex items-center justify-center gap-2">
-                {mode === "json-to-yaml" ? <FileJson className="h-4 w-4" /> : <FileCode className="h-4 w-4" />}
+                {mode === "json-to-yaml" ? (
+                  <FileJson className="h-4 w-4" />
+                ) : (
+                  <FileCode className="h-4 w-4" />
+                )}
                 Input
                 {error && (
                   <span className="ml-1 px-1.5 py-0.5 text-xs bg-destructive text-white rounded-full">
@@ -480,7 +491,11 @@ export default function JsonYamlConverter() {
               }`}
             >
               <div className="flex items-center justify-center gap-2">
-                {mode === "json-to-yaml" ? <FileCode className="h-4 w-4" /> : <FileJson className="h-4 w-4" />}
+                {mode === "json-to-yaml" ? (
+                  <FileCode className="h-4 w-4" />
+                ) : (
+                  <FileJson className="h-4 w-4" />
+                )}
                 Output
                 {output && (
                   <span className="ml-1 px-1.5 py-0.5 text-xs bg-green-500 text-white rounded-full">
@@ -502,7 +517,11 @@ export default function JsonYamlConverter() {
           >
             <div className="border-b px-3 sm:px-4 py-2 flex items-center justify-between bg-card">
               <span className="text-xs sm:text-sm font-medium flex items-center gap-2">
-                {mode === "json-to-yaml" ? <FileJson className="h-4 w-4" /> : <FileCode className="h-4 w-4" />}
+                {mode === "json-to-yaml" ? (
+                  <FileJson className="h-4 w-4" />
+                ) : (
+                  <FileCode className="h-4 w-4" />
+                )}
                 {mode === "json-to-yaml" ? "JSON Input" : "YAML Input"}
               </span>
               <div className="flex items-center gap-1 sm:gap-2">
@@ -584,7 +603,11 @@ export default function JsonYamlConverter() {
           >
             <div className="border-b px-3 sm:px-4 py-2 flex items-center justify-between bg-card">
               <span className="text-xs sm:text-sm font-medium flex items-center gap-2">
-                {mode === "json-to-yaml" ? <FileCode className="h-4 w-4" /> : <FileJson className="h-4 w-4" />}
+                {mode === "json-to-yaml" ? (
+                  <FileCode className="h-4 w-4" />
+                ) : (
+                  <FileJson className="h-4 w-4" />
+                )}
                 {mode === "json-to-yaml" ? "YAML Output" : "JSON Output"}
               </span>
               <div className="flex items-center gap-1 sm:gap-2">
@@ -615,7 +638,9 @@ export default function JsonYamlConverter() {
               <CodeEditor
                 value={output}
                 readOnly
-                placeholder={error ? "Invalid input" : "Output will appear here..."}
+                placeholder={
+                  error ? "Invalid input" : "Output will appear here..."
+                }
                 className="h-full"
                 language={mode === "json-to-yaml" ? "yaml" : "json"}
                 theme={theme}
@@ -645,7 +670,7 @@ export default function JsonYamlConverter() {
                         "ml-1 sm:ml-2 font-medium",
                         stats.ratio > 0
                           ? "text-orange-600 dark:text-orange-400"
-                          : "text-green-600 dark:text-green-400"
+                          : "text-green-600 dark:text-green-400",
                       )}
                     >
                       {stats.ratio > 0 ? "+" : ""}

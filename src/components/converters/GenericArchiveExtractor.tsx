@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import type { ArchiveReader as ArchiveReaderType } from "libarchive-wasm";
 import { Button } from "../ui/button";
-import { ToolHeader } from '../ui/ToolHeader';
+import { ToolHeader } from "../ui/ToolHeader";
 import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
@@ -61,23 +61,23 @@ const defaultFeatures = [
 
 const defaultRelatedTools: RelatedTool[] = [
   {
-    id: 'zip-extract',
-    name: 'ZIP Extract',
-    description: 'Extract ZIP compressed files',
-    icon: FileArchive
+    id: "zip-extract",
+    name: "ZIP Extract",
+    description: "Extract ZIP compressed files",
+    icon: FileArchive,
   },
   {
-    id: 'iso-extract',
-    name: 'ISO Extract',
-    description: 'Extract ISO disk images',
-    icon: Package
+    id: "iso-extract",
+    name: "ISO Extract",
+    description: "Extract ISO disk images",
+    icon: Package,
   },
   {
-    id: '7z-extract',
-    name: '7-Zip Extract',
-    description: 'Extract 7Z compressed archives',
-    icon: FileArchive
-  }
+    id: "7z-extract",
+    name: "7-Zip Extract",
+    description: "Extract 7Z compressed archives",
+    icon: FileArchive,
+  },
 ];
 
 export default function GenericArchiveExtractor({
@@ -106,7 +106,7 @@ export default function GenericArchiveExtractor({
 
       await loadArchive(file);
     },
-    []
+    [],
   );
 
   const handleDrop = useCallback(async (e: React.DragEvent<HTMLDivElement>) => {
@@ -129,7 +129,7 @@ export default function GenericArchiveExtractor({
     try {
       // Read file data
       const data = await file.arrayBuffer();
-      
+
       // Initialize libarchive if not already done
       let mod = libarchiveMod;
       if (!mod) {
@@ -141,14 +141,14 @@ export default function GenericArchiveExtractor({
       // Create archive reader
       const { ArchiveReader } = await import("libarchive-wasm");
       const reader = new ArchiveReader(mod, new Int8Array(data));
-      
+
       // Extract all entries and build file tree
       const entries: any[] = [];
       for (const entry of reader.entries()) {
         const pathname = entry.getPathname();
         const size = entry.getSize();
         const data = entry.readData();
-        
+
         entries.push({
           path: pathname,
           size,
@@ -157,10 +157,10 @@ export default function GenericArchiveExtractor({
           data,
         });
       }
-      
+
       // Free the reader
       reader.free();
-      
+
       // Build file tree
       const fileTree = buildFileTree(entries);
       setFiles(fileTree);
@@ -169,7 +169,7 @@ export default function GenericArchiveExtractor({
       setError(
         err instanceof Error
           ? err.message
-          : `Failed to read ${formatName} archive. Make sure it's a valid ${formatName} file.`
+          : `Failed to read ${formatName} archive. Make sure it's a valid ${formatName} file.`,
       );
     } finally {
       setIsLoading(false);
@@ -200,7 +200,8 @@ export default function GenericArchiveExtractor({
             isDirectory,
             children: [],
             size: isLastPart && !isDirectory ? entry.size : 0,
-            compressedSize: isLastPart && !isDirectory ? entry.compressed_size || 0 : 0,
+            compressedSize:
+              isLastPart && !isDirectory ? entry.compressed_size || 0 : 0,
             lastModified: new Date(entry.last_modified || Date.now()),
             fileData: isLastPart && !isDirectory ? entry.data : undefined,
           };
@@ -269,15 +270,13 @@ export default function GenericArchiveExtractor({
       link.click();
       URL.revokeObjectURL(link.href);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to download file"
-      );
+      setError(err instanceof Error ? err.message : "Failed to download file");
     }
   };
 
   const downloadSelected = async () => {
     const filesToDownload: FileNode[] = [];
-    
+
     const collectFiles = (nodes: FileNode[]) => {
       nodes.forEach((node) => {
         if (selectedFiles.has(node.path) && !node.isDirectory) {
@@ -288,7 +287,7 @@ export default function GenericArchiveExtractor({
         }
       });
     };
-    
+
     collectFiles(files);
 
     for (const file of filesToDownload) {
@@ -325,7 +324,7 @@ export default function GenericArchiveExtractor({
           <div
             className={cn(
               "flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-secondary/50 cursor-pointer transition-colors",
-              isSelected && !node.isDirectory && "bg-primary/10"
+              isSelected && !node.isDirectory && "bg-primary/10",
             )}
             style={{ paddingLeft: `${level * 20 + 12}px` }}
           >
@@ -430,7 +429,7 @@ export default function GenericArchiveExtractor({
           subtitle={formatDescription}
           badge={{
             text: `${formatName} Extractor • Online • Free`,
-            icon: (Icon || FileArchive) as LucideIcon
+            icon: (Icon || FileArchive) as LucideIcon,
           }}
           features={defaultFeatures}
         />
@@ -575,14 +574,19 @@ export default function GenericArchiveExtractor({
           <h2 className="text-2xl font-semibold">About {formatName} Format</h2>
           <div className="bg-card/50 backdrop-blur-sm rounded-xl p-6 border border-border/50">
             <p className="text-sm text-muted-foreground">
-              {formatName} is supported by libarchive-wasm, allowing you to extract these archives directly in your browser without any server uploads.
+              {formatName} is supported by libarchive-wasm, allowing you to
+              extract these archives directly in your browser without any server
+              uploads.
             </p>
           </div>
         </div>
 
         {/* Related Tools */}
         <div className="mt-12 space-y-6">
-          <RelatedTools tools={relatedTools || defaultRelatedTools} direction="responsive" />
+          <RelatedTools
+            tools={relatedTools || defaultRelatedTools}
+            direction="responsive"
+          />
         </div>
 
         {/* FAQ Section */}

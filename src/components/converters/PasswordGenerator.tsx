@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
-import { ToolHeader } from '../ui/ToolHeader';
+import { ToolHeader } from "../ui/ToolHeader";
 import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 
 interface PasswordOptions {
@@ -362,7 +362,7 @@ export default function PasswordGenerator() {
                 "py-2 px-3 rounded-md text-sm font-medium transition-all duration-300",
                 activeTab === "settings"
                   ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               <Settings className="w-4 h-4 inline mr-1" />
@@ -374,7 +374,7 @@ export default function PasswordGenerator() {
                 "py-2 px-3 rounded-md text-sm font-medium transition-all duration-300 relative",
                 activeTab === "output"
                   ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               <Key className="w-4 h-4 inline mr-1" />
@@ -389,10 +389,12 @@ export default function PasswordGenerator() {
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col sm:grid sm:grid-cols-[1fr,1fr] gap-4 sm:gap-6 px-4 sm:px-0 min-h-0">
           {/* Settings Panel */}
-          <div className={cn(
-            "flex flex-col min-h-0",
-            activeTab !== "settings" && "hidden sm:flex"
-          )}>
+          <div
+            className={cn(
+              "flex flex-col min-h-0",
+              activeTab !== "settings" && "hidden sm:flex",
+            )}
+          >
             <Card className="flex-1 flex flex-col shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent pb-4">
                 <CardTitle className="flex items-center gap-2">
@@ -410,7 +412,7 @@ export default function PasswordGenerator() {
                         "py-2 px-3 rounded-md text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2",
                         mode === "random"
                           ? "bg-background text-foreground shadow-sm"
-                          : "text-muted-foreground hover:text-foreground"
+                          : "text-muted-foreground hover:text-foreground",
                       )}
                     >
                       <Lock className="w-4 h-4" />
@@ -422,7 +424,7 @@ export default function PasswordGenerator() {
                         "py-2 px-3 rounded-md text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2",
                         mode === "memorable"
                           ? "bg-background text-foreground shadow-sm"
-                          : "text-muted-foreground hover:text-foreground"
+                          : "text-muted-foreground hover:text-foreground",
                       )}
                     >
                       <Sparkles className="w-4 h-4" />
@@ -446,7 +448,10 @@ export default function PasswordGenerator() {
                           id="length-slider"
                           value={[randomOptions.length]}
                           onValueChange={([value]) =>
-                            setRandomOptions((prev) => ({ ...prev, length: value }))
+                            setRandomOptions((prev) => ({
+                              ...prev,
+                              length: value,
+                            }))
                           }
                           min={12}
                           max={32}
@@ -613,7 +618,10 @@ export default function PasswordGenerator() {
 
                       {/* Advanced Options - Mobile */}
                       <div className="sm:hidden">
-                        <CollapsibleSection title="Advanced Options" defaultOpen={false}>
+                        <CollapsibleSection
+                          title="Advanced Options"
+                          defaultOpen={false}
+                        >
                           <button
                             onClick={() =>
                               setRandomOptions((prev) => ({
@@ -703,7 +711,9 @@ export default function PasswordGenerator() {
                       {/* Word Count */}
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <Label htmlFor="word-count-slider">Number of Words</Label>
+                          <Label htmlFor="word-count-slider">
+                            Number of Words
+                          </Label>
                           <span className="text-sm font-medium bg-muted px-2 py-1 rounded">
                             {memorableOptions.wordCount} words
                           </span>
@@ -854,7 +864,9 @@ export default function PasswordGenerator() {
                                   : "border-muted-foreground/25 hover:border-muted-foreground/40",
                               )}
                             >
-                              <div className="font-mono text-sm">Title Case</div>
+                              <div className="font-mono text-sm">
+                                Title Case
+                              </div>
                               <div className="text-xs text-muted-foreground mt-1">
                                 Title
                               </div>
@@ -894,7 +906,9 @@ export default function PasswordGenerator() {
                                   : "border-muted-foreground/25 hover:border-muted-foreground/40",
                               )}
                             >
-                              <div className="font-mono text-sm">PascalCase</div>
+                              <div className="font-mono text-sm">
+                                PascalCase
+                              </div>
                               <div className="text-xs text-muted-foreground mt-1">
                                 Pascal
                               </div>
@@ -983,7 +997,8 @@ export default function PasswordGenerator() {
 
                       <div className="p-3 rounded-md bg-blue-50 border border-blue-200 dark:bg-blue-900/30 dark:border-blue-700/50">
                         <p className="text-sm text-blue-700 dark:text-blue-300">
-                          Uses EFF's long wordlist (7,776 words) for high security.
+                          Uses EFF's long wordlist (7,776 words) for high
+                          security.
                           <a
                             href="https://www.eff.org/dice"
                             target="_blank"
@@ -1002,10 +1017,12 @@ export default function PasswordGenerator() {
           </div>
 
           {/* Output Panel */}
-          <div className={cn(
-            "flex flex-col min-h-0",
-            activeTab !== "output" && "hidden sm:flex"
-          )}>
+          <div
+            className={cn(
+              "flex flex-col min-h-0",
+              activeTab !== "output" && "hidden sm:flex",
+            )}
+          >
             <Card className="flex-1 flex flex-col shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent pb-4">
                 <CardTitle className="flex items-center gap-2">

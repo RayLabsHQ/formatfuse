@@ -20,7 +20,7 @@ import {
 import JSZip from "jszip";
 import { Button } from "../ui/button";
 import { Slider } from "../ui/slider";
-import { ToolHeader } from '../ui/ToolHeader';
+import { ToolHeader } from "../ui/ToolHeader";
 import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
@@ -183,7 +183,7 @@ export default function CreateZip() {
       // Add files to zip with progress tracking
       for (let i = 0; i < files.length; i++) {
         const fileItem = files[i];
-        
+
         // Update status to processing
         setFiles((prev) =>
           prev.map((f, idx) =>
@@ -193,7 +193,7 @@ export default function CreateZip() {
 
         // Read file content
         const content = await fileItem.file.arrayBuffer();
-        
+
         // Add to zip with selected compression
         const options: JSZip.JSZipFileOptions = {
           compression: compressionLevel.level,
@@ -201,7 +201,7 @@ export default function CreateZip() {
             ? { level: compressionLevel.compressionLevel }
             : undefined,
         };
-        
+
         zip.file(fileItem.path, content, options);
 
         // Update progress
@@ -267,7 +267,7 @@ export default function CreateZip() {
           subtitle="Compress multiple files into a ZIP archive right in your browser. Organize, compress, and download - no uploads required."
           badge={{
             text: "ZIP Compressor • Online • Free",
-            icon: FileArchive
+            icon: FileArchive,
           }}
           features={features}
         />
@@ -501,14 +501,16 @@ export default function CreateZip() {
                     >
                       <div className="flex items-center gap-4">
                         <File className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                        
+
                         {/* File Info */}
                         <div className="flex-1 min-w-0">
                           {editingPath === `${index}` ? (
                             <input
                               type="text"
                               value={fileItem.path}
-                              onChange={(e) => updatePath(index, e.target.value)}
+                              onChange={(e) =>
+                                updatePath(index, e.target.value)
+                              }
                               onBlur={() => setEditingPath(null)}
                               onKeyDown={(e) => {
                                 if (e.key === "Enter") setEditingPath(null);

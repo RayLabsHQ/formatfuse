@@ -1,9 +1,22 @@
 import React, { useState, useEffect } from "react";
-import { FileText, Image, Code, Archive, Wrench, TrendingUp, ArrowUpRight } from "lucide-react";
+import {
+  FileText,
+  Image,
+  Code,
+  Archive,
+  Wrench,
+  TrendingUp,
+  ArrowUpRight,
+} from "lucide-react";
 import { allTools as tools } from "../data/tools";
 
 const categories = [
-  { id: "popular", name: "Most Used", icon: TrendingUp, color: "var(--primary)" },
+  {
+    id: "popular",
+    name: "Most Used",
+    icon: TrendingUp,
+    color: "var(--primary)",
+  },
   { id: "pdf", name: "PDF Tools", icon: FileText, color: "var(--tool-pdf)" },
   { id: "image", name: "Image Tools", icon: Image, color: "var(--tool-jpg)" },
   { id: "document", name: "Documents", icon: Code, color: "var(--tool-doc)" },
@@ -12,7 +25,9 @@ const categories = [
 ];
 
 export default function ToolGridNew() {
-  const [selectedCategory, setSelectedCategory] = useState<string | null>("popular");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(
+    "popular",
+  );
   const [hoveredPopularTool, setHoveredPopularTool] = useState<string | null>(
     null,
   );
@@ -25,7 +40,8 @@ export default function ToolGridNew() {
       const element = document.getElementById("all-tools");
       if (element) {
         const rect = element.getBoundingClientRect();
-        const windowHeight = window.innerHeight || document.documentElement.clientHeight;
+        const windowHeight =
+          window.innerHeight || document.documentElement.clientHeight;
         // Check if element is already visible
         if (rect.top < windowHeight && rect.bottom > 0) {
           setIsVisible(true);
@@ -43,9 +59,9 @@ export default function ToolGridNew() {
           setIsVisible(true);
         }
       },
-      { 
+      {
         threshold: 0.01, // Lower threshold for better mobile detection
-        rootMargin: '50px' // Trigger animation 50px before element enters viewport
+        rootMargin: "50px", // Trigger animation 50px before element enters viewport
       },
     );
 
@@ -61,21 +77,22 @@ export default function ToolGridNew() {
       }
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener("scroll", handleScroll, { passive: true });
 
     return () => {
       if (element) {
         observer.unobserve(element);
       }
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener("scroll", handleScroll);
     };
   }, [isVisible]);
 
-  const filteredTools = selectedCategory === "popular"
-    ? tools.filter((tool) => tool.popular || tool.isPopular)
-    : selectedCategory
-    ? tools.filter((tool) => tool.category === selectedCategory)
-    : tools;
+  const filteredTools =
+    selectedCategory === "popular"
+      ? tools.filter((tool) => tool.popular || tool.isPopular)
+      : selectedCategory
+        ? tools.filter((tool) => tool.category === selectedCategory)
+        : tools;
 
   const popularTools = tools
     .filter((tool) => tool.popular || tool.isPopular)
@@ -242,71 +259,73 @@ export default function ToolGridNew() {
         {selectedCategory !== "popular" && (
           <div
             className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 transition-all duration-700 delay-300 ${
-              isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+              isVisible
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 translate-y-10"
             }`}
           >
-          {filteredTools.map((tool, index) => {
-            const Icon = tool.icon;
-            const category = categories.find((c) => c.id === tool.category);
-            const isHovered = hoveredGridTool === tool.id;
+            {filteredTools.map((tool, index) => {
+              const Icon = tool.icon;
+              const category = categories.find((c) => c.id === tool.category);
+              const isHovered = hoveredGridTool === tool.id;
 
-            return (
-              <a
-                key={tool.id}
-                href={tool.href || tool.route || `/convert/${tool.id}`}
-                className="group"
-                onMouseEnter={() => setHoveredGridTool(tool.id)}
-                onMouseLeave={() => setHoveredGridTool(null)}
-                style={{ animationDelay: `${index * 30}ms` }}
-              >
-                <div
-                  className={`relative h-full p-5 rounded-xl bg-card/30 backdrop-blur-sm border border-border/30 transition-all duration-300 ${
-                    isHovered
-                      ? "transform -translate-y-1 shadow-md border-primary/30 bg-card/50"
-                      : ""
-                  }`}
+              return (
+                <a
+                  key={tool.id}
+                  href={tool.href || tool.route || `/convert/${tool.id}`}
+                  className="group"
+                  onMouseEnter={() => setHoveredGridTool(tool.id)}
+                  onMouseLeave={() => setHoveredGridTool(null)}
+                  style={{ animationDelay: `${index * 30}ms` }}
                 >
-                  <div className="relative">
-                    <div className="flex items-center gap-3 mb-3">
+                  <div
+                    className={`relative h-full p-5 rounded-xl bg-card/30 backdrop-blur-sm border border-border/30 transition-all duration-300 ${
+                      isHovered
+                        ? "transform -translate-y-1 shadow-md border-primary/30 bg-card/50"
+                        : ""
+                    }`}
+                  >
+                    <div className="relative">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div
+                          className="w-10 h-10 rounded-lg flex items-center justify-center transition-transform duration-300"
+                          style={{
+                            backgroundColor: `${category?.color}15`,
+                            transform: isHovered ? "scale(1.1)" : "scale(1)",
+                          }}
+                        >
+                          <Icon
+                            className="w-5 h-5"
+                            style={{ color: category?.color }}
+                          />
+                        </div>
+                        <h4 className="font-medium group-hover:text-primary transition-colors">
+                          {tool.title || tool.name}
+                        </h4>
+                      </div>
+
+                      <p className="text-xs text-muted-foreground line-clamp-2">
+                        {tool.description}
+                      </p>
+
+                      {/* Hover indicator */}
                       <div
-                        className="w-10 h-10 rounded-lg flex items-center justify-center transition-transform duration-300"
-                        style={{
-                          backgroundColor: `${category?.color}15`,
-                          transform: isHovered ? "scale(1.1)" : "scale(1)",
-                        }}
+                        className={`absolute -right-1 -top-1 transition-all duration-300 ${
+                          isHovered
+                            ? "opacity-100 scale-100"
+                            : "opacity-0 scale-0"
+                        }`}
                       >
-                        <Icon
-                          className="w-5 h-5"
+                        <ArrowUpRight
+                          className="w-4 h-4"
                           style={{ color: category?.color }}
                         />
                       </div>
-                      <h4 className="font-medium group-hover:text-primary transition-colors">
-                        {tool.title || tool.name}
-                      </h4>
-                    </div>
-
-                    <p className="text-xs text-muted-foreground line-clamp-2">
-                      {tool.description}
-                    </p>
-
-                    {/* Hover indicator */}
-                    <div
-                      className={`absolute -right-1 -top-1 transition-all duration-300 ${
-                        isHovered
-                          ? "opacity-100 scale-100"
-                          : "opacity-0 scale-0"
-                      }`}
-                    >
-                      <ArrowUpRight
-                        className="w-4 h-4"
-                        style={{ color: category?.color }}
-                      />
                     </div>
                   </div>
-                </div>
-              </a>
-            );
-          })}
+                </a>
+              );
+            })}
           </div>
         )}
       </div>

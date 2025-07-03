@@ -23,7 +23,7 @@ import { TbFileTypePdf } from "react-icons/tb";
 import { Button } from "../ui/button";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
-import { ToolHeader } from '../ui/ToolHeader';
+import { ToolHeader } from "../ui/ToolHeader";
 import { cn } from "../../lib/utils";
 import { usePdfOperations } from "../../hooks/usePdfOperations";
 import { PdfPreview } from "../ui/pdf-preview";
@@ -112,7 +112,7 @@ export default function PdfMerge() {
   const handleFiles = useCallback(
     async (selectedFiles: File[]) => {
       const pdfFiles = selectedFiles.filter(
-        (file) => file.type === "application/pdf"
+        (file) => file.type === "application/pdf",
       );
       const newFiles: FileWithPreview[] = [];
 
@@ -143,7 +143,7 @@ export default function PdfMerge() {
       setFiles((prev) => [...prev, ...newFiles]);
       setMergedResult(null);
     },
-    [getPageCount]
+    [getPageCount],
   );
 
   const handleFileSelect = useCallback(
@@ -151,7 +151,7 @@ export default function PdfMerge() {
       const selectedFiles = Array.from(e.target.files || []);
       handleFiles(selectedFiles);
     },
-    [handleFiles]
+    [handleFiles],
   );
 
   const handleDrop = useCallback(
@@ -162,7 +162,7 @@ export default function PdfMerge() {
       const droppedFiles = Array.from(e.dataTransfer.files);
       handleFiles(droppedFiles);
     },
-    [handleFiles]
+    [handleFiles],
   );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -199,7 +199,7 @@ export default function PdfMerge() {
       e.dataTransfer.dropEffect = "move";
       setDragOverIndex(index);
     },
-    []
+    [],
   );
 
   const handleDropFile = useCallback(
@@ -221,7 +221,7 @@ export default function PdfMerge() {
       setDragOverIndex(null);
       setMergedResult(null);
     },
-    [files, draggedFile]
+    [files, draggedFile],
   );
 
   const moveFile = useCallback(
@@ -237,7 +237,7 @@ export default function PdfMerge() {
       setFiles(newFiles);
       setMergedResult(null);
     },
-    [files]
+    [files],
   );
 
   const removeFile = useCallback((id: string) => {
@@ -249,9 +249,13 @@ export default function PdfMerge() {
     setFiles((prev) =>
       prev.map((f) =>
         f.id === id
-          ? { ...f, showPreview: !f.showPreview, previewKey: (f.previewKey || 0) + 1 }
-          : f
-      )
+          ? {
+              ...f,
+              showPreview: !f.showPreview,
+              previewKey: (f.previewKey || 0) + 1,
+            }
+          : f,
+      ),
     );
   }, []);
 
@@ -315,7 +319,9 @@ export default function PdfMerge() {
           {error && (
             <div className="mb-4 px-4 py-3 bg-destructive/10 text-destructive rounded-lg flex items-center gap-2">
               <AlertCircle className="w-4 h-4" />
-              <span className="text-sm">{error.message || 'An error occurred'}</span>
+              <span className="text-sm">
+                {error.message || "An error occurred"}
+              </span>
             </div>
           )}
 
@@ -334,7 +340,7 @@ export default function PdfMerge() {
                   "relative p-12 sm:p-16 md:p-20 rounded-2xl border-2 border-dashed transition-all duration-300",
                   isDragging
                     ? "border-primary bg-primary/10 scale-[1.02]"
-                    : "border-border bg-card/50 hover:border-primary hover:bg-card group-hover:scale-[1.01]"
+                    : "border-border bg-card/50 hover:border-primary hover:bg-card group-hover:scale-[1.01]",
                 )}
               >
                 <div className="text-center">
@@ -343,7 +349,7 @@ export default function PdfMerge() {
                       "w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 transition-all duration-300",
                       isDragging
                         ? "text-primary scale-110"
-                        : "text-muted-foreground group-hover:text-primary"
+                        : "text-muted-foreground group-hover:text-primary",
                     )}
                   />
                   <p className="text-lg sm:text-xl font-medium mb-2">
@@ -400,7 +406,7 @@ export default function PdfMerge() {
                       className={cn(
                         "group relative bg-background rounded-lg border p-4 transition-all duration-200",
                         dragOverIndex === index && "ring-2 ring-primary",
-                        draggedFile === fileInfo.id && "opacity-50"
+                        draggedFile === fileInfo.id && "opacity-50",
                       )}
                     >
                       <div className="flex items-center gap-3">

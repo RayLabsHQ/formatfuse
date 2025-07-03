@@ -20,7 +20,7 @@ import {
 import * as pako from "pako";
 import Tar from "tar-js";
 import { Button } from "../ui/button";
-import { ToolHeader } from '../ui/ToolHeader';
+import { ToolHeader } from "../ui/ToolHeader";
 import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
@@ -178,7 +178,7 @@ export default function TarCreate() {
       // Add files to tar
       for (let i = 0; i < files.length; i++) {
         const fileItem = files[i];
-        
+
         // Update status to processing
         setFiles((prev) =>
           prev.map((f, idx) =>
@@ -189,7 +189,7 @@ export default function TarCreate() {
         // Read file content
         const content = await fileItem.file.arrayBuffer();
         const uint8Array = new Uint8Array(content);
-        
+
         // Add to tar
         tar.append(fileItem.path, uint8Array);
 
@@ -255,7 +255,7 @@ export default function TarCreate() {
           subtitle="Create TAR archives with optional GZIP compression right in your browser. Perfect for Unix/Linux environments - no uploads required."
           badge={{
             text: "TAR Creator • Online • Free • GZIP",
-            icon: Package
+            icon: Package,
           }}
           features={features}
         />
@@ -487,14 +487,16 @@ export default function TarCreate() {
                     >
                       <div className="flex items-center gap-4">
                         <File className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                        
+
                         {/* File Info */}
                         <div className="flex-1 min-w-0">
                           {editingPath === `${index}` ? (
                             <input
                               type="text"
                               value={fileItem.path}
-                              onChange={(e) => updatePath(index, e.target.value)}
+                              onChange={(e) =>
+                                updatePath(index, e.target.value)
+                              }
                               onBlur={() => setEditingPath(null)}
                               onKeyDown={(e) => {
                                 if (e.key === "Enter") setEditingPath(null);

@@ -7,15 +7,21 @@ export interface OGImageProps extends RenderFunctionInput {
   targetFormat?: string;
 }
 
-function getToolTheme(toolType: string, title?: string): {
+function getToolTheme(
+  toolType: string,
+  title?: string,
+): {
   primary: string;
   secondary: string;
 } {
   // Special theme for color converter
-  if (title && (title.includes("Color Converter") || title.includes("HEX, RGB, HSL"))) {
+  if (
+    title &&
+    (title.includes("Color Converter") || title.includes("HEX, RGB, HSL"))
+  ) {
     return { primary: "#a78bfa", secondary: "#8b5cf6" };
   }
-  
+
   const themes: Record<string, { primary: string; secondary: string }> = {
     pdf: { primary: "#ef4444", secondary: "#dc2626" },
     image: { primary: "#10b981", secondary: "#059669" },
@@ -29,8 +35,11 @@ function getToolTheme(toolType: string, title?: string): {
 
 function getToolFeatures(title: string, toolType: string): string[] {
   const titleLower = title.toLowerCase();
-  
-  if (titleLower.includes("color converter") || titleLower.includes("hex, rgb, hsl")) {
+
+  if (
+    titleLower.includes("color converter") ||
+    titleLower.includes("hex, rgb, hsl")
+  ) {
     return ["Instant Conversion", "All Color Formats", "Real-time Preview"];
   }
 
@@ -95,7 +104,8 @@ export async function toolOGImage({
   const theme = getToolTheme(toolType, title);
 
   // Check if this is the homepage
-  const isHomepage = title === "FormatFuse - Free Online File Converters - FormatFuse";
+  const isHomepage =
+    title === "FormatFuse - Free Online File Converters - FormatFuse";
 
   // For homepage, use the new design
   if (isHomepage) {
@@ -508,12 +518,7 @@ export async function toolOGImage({
             gap: 12,
           }}
         >
-          <svg
-            width="32"
-            height="32"
-            viewBox="0 0 1000 1000"
-            fill="none"
-          >
+          <svg width="32" height="32" viewBox="0 0 1000 1000" fill="none">
             <path
               d="M299 148.883C314.6 147.283 486.833 148.217 571 148.883C575.5 148.883 585.2 149.983 588 154.383C590.8 158.783 672.5 239.55 713 279.383C716 282.717 722.3 290.983 723.5 297.383C724.7 303.783 724 364.717 723.5 394.383C722.167 399.55 716.5 410.083 704.5 410.883C692.5 411.683 513.833 411.217 426 410.883L425.938 410.891C422.08 411.394 413.981 412.45 410.5 424.883V477.383H653C657.167 478.717 665.9 483.683 667.5 492.883C669.1 502.083 668.167 561.717 667.5 590.383C666 595.883 661 606.983 653 607.383C645 607.783 516.667 607.55 453.5 607.383H276V573H311V538H276V172.883C277.167 165.55 283.4 150.483 299 148.883ZM356 322C350.477 322 346 326.477 346 332C346 337.522 350.477 342 356 342H526C531.523 342 536 337.522 536 332C536 326.477 531.523 322 526 322H356ZM579 276.383C581.4 295.583 597 300.383 604.5 300.383H698.5L579 180.883V276.383ZM356 258C350.477 258 346 262.477 346 268C346 273.523 350.477 278 356 278H504C509.523 278 514 273.523 514 268C514 262.477 509.523 258 504 258H356Z"
               fill="#8b5cf6"
@@ -575,7 +580,7 @@ export async function toolOGImage({
   // Extract main title and subtitle
   let mainTitle = displayTitle;
   let subtitle = "";
-  
+
   // Special handling for Color Converter
   if (title.includes("Color Converter") || title.includes("HEX, RGB, HSL")) {
     mainTitle = "Color Converter";
@@ -586,7 +591,10 @@ export async function toolOGImage({
   if (displayTitle.includes("Base64")) {
     mainTitle = "Base64";
     subtitle = "Encoder/Decoder";
-  } else if (displayTitle.includes("Extract") && displayTitle.includes("Files")) {
+  } else if (
+    displayTitle.includes("Extract") &&
+    displayTitle.includes("Files")
+  ) {
     // Handle extraction tools like "Extract ZIP Files Online - Unzip Archives in Browser"
     const match = displayTitle.match(/Extract\s+(\w+)\s+Files/i);
     if (match) {
@@ -601,31 +609,58 @@ export async function toolOGImage({
     if (parts[1] && parts[1].length < 30) {
       subtitle = parts[1].trim();
     }
-  } else if (displayTitle.includes("JSON") && displayTitle.includes("Formatter")) {
+  } else if (
+    displayTitle.includes("JSON") &&
+    displayTitle.includes("Formatter")
+  ) {
     mainTitle = "JSON";
     subtitle = "Formatter";
-  } else if (displayTitle.includes("QR") && displayTitle.includes("Generator")) {
+  } else if (
+    displayTitle.includes("QR") &&
+    displayTitle.includes("Generator")
+  ) {
     mainTitle = "QR Code";
     subtitle = "Generator";
-  } else if (displayTitle.includes("UUID") && displayTitle.includes("Generator")) {
+  } else if (
+    displayTitle.includes("UUID") &&
+    displayTitle.includes("Generator")
+  ) {
     mainTitle = "UUID";
     subtitle = "Generator";
-  } else if (displayTitle.includes("Password") && displayTitle.includes("Generator")) {
+  } else if (
+    displayTitle.includes("Password") &&
+    displayTitle.includes("Generator")
+  ) {
     mainTitle = "Password";
     subtitle = "Generator";
-  } else if (displayTitle.includes("Hash") && displayTitle.includes("Generator")) {
+  } else if (
+    displayTitle.includes("Hash") &&
+    displayTitle.includes("Generator")
+  ) {
     mainTitle = "Hash";
     subtitle = "Generator";
-  } else if (displayTitle.includes("Word") && displayTitle.includes("Counter")) {
+  } else if (
+    displayTitle.includes("Word") &&
+    displayTitle.includes("Counter")
+  ) {
     mainTitle = "Word Counter";
     subtitle = "Text Analysis";
-  } else if (displayTitle.includes("Case") && displayTitle.includes("Converter")) {
+  } else if (
+    displayTitle.includes("Case") &&
+    displayTitle.includes("Converter")
+  ) {
     mainTitle = "Case";
     subtitle = "Converter";
-  } else if (displayTitle.includes("Image") && displayTitle.includes("Compressor")) {
+  } else if (
+    displayTitle.includes("Image") &&
+    displayTitle.includes("Compressor")
+  ) {
     mainTitle = "Image";
     subtitle = "Compressor";
-  } else if (displayTitle.includes("Image") && displayTitle.includes("Resizer")) {
+  } else if (
+    displayTitle.includes("Image") &&
+    displayTitle.includes("Resizer")
+  ) {
     mainTitle = "Image";
     subtitle = "Resizer";
   } else if (displayTitle.includes("Text") && displayTitle.includes("Diff")) {
@@ -637,10 +672,16 @@ export async function toolOGImage({
   } else if (displayTitle.includes("JSON") && displayTitle.includes("YAML")) {
     mainTitle = "JSON/YAML";
     subtitle = "Converter";
-  } else if (displayTitle.includes("URL") && displayTitle.includes("Shortener")) {
+  } else if (
+    displayTitle.includes("URL") &&
+    displayTitle.includes("Shortener")
+  ) {
     mainTitle = "URL";
     subtitle = "Shortener";
-  } else if (displayTitle.includes("Markdown") && displayTitle.includes("HTML")) {
+  } else if (
+    displayTitle.includes("Markdown") &&
+    displayTitle.includes("HTML")
+  ) {
     mainTitle = "Markdown";
     subtitle = "to HTML";
   } else if (displayTitle.includes("SVG") && displayTitle.includes("PNG")) {
@@ -661,31 +702,55 @@ export async function toolOGImage({
   } else if (displayTitle.includes("Timestamp")) {
     mainTitle = "Timestamp";
     subtitle = "Converter";
-  } else if (displayTitle.includes("Color") && displayTitle.includes("Picker")) {
+  } else if (
+    displayTitle.includes("Color") &&
+    displayTitle.includes("Picker")
+  ) {
     mainTitle = "Color";
     subtitle = "Picker";
   } else if (displayTitle.includes("Lorem") && displayTitle.includes("Ipsum")) {
     mainTitle = "Lorem Ipsum";
     subtitle = "Generator";
-  } else if (displayTitle.includes("Regex") && displayTitle.includes("Tester")) {
+  } else if (
+    displayTitle.includes("Regex") &&
+    displayTitle.includes("Tester")
+  ) {
     mainTitle = "Regex";
     subtitle = "Tester";
-  } else if (displayTitle.includes("SQL") && displayTitle.includes("Formatter")) {
+  } else if (
+    displayTitle.includes("SQL") &&
+    displayTitle.includes("Formatter")
+  ) {
     mainTitle = "SQL";
     subtitle = "Formatter";
-  } else if (displayTitle.includes("CSS") && displayTitle.includes("Minifier")) {
+  } else if (
+    displayTitle.includes("CSS") &&
+    displayTitle.includes("Minifier")
+  ) {
     mainTitle = "CSS";
     subtitle = "Minifier";
-  } else if (displayTitle.includes("JavaScript") && displayTitle.includes("Minifier")) {
+  } else if (
+    displayTitle.includes("JavaScript") &&
+    displayTitle.includes("Minifier")
+  ) {
     mainTitle = "JavaScript";
     subtitle = "Minifier";
-  } else if (displayTitle.includes("HTML") && displayTitle.includes("Minifier")) {
+  } else if (
+    displayTitle.includes("HTML") &&
+    displayTitle.includes("Minifier")
+  ) {
     mainTitle = "HTML";
     subtitle = "Minifier";
-  } else if (displayTitle.includes("XML") && displayTitle.includes("Formatter")) {
+  } else if (
+    displayTitle.includes("XML") &&
+    displayTitle.includes("Formatter")
+  ) {
     mainTitle = "XML";
     subtitle = "Formatter";
-  } else if (displayTitle.includes("Create") && displayTitle.includes("Archive")) {
+  } else if (
+    displayTitle.includes("Create") &&
+    displayTitle.includes("Archive")
+  ) {
     mainTitle = "Archive";
     subtitle = "Creator";
   } else if (displayTitle.includes("Create") && displayTitle.includes("ZIP")) {
@@ -705,7 +770,7 @@ export async function toolOGImage({
       subtitle = displayTitle.substring(mainTitle.length).trim();
     }
   }
-  
+
   // Additional subtitle assignment based on tool type if no subtitle yet
   if (!subtitle && toolType && toolType !== "default") {
     const typeSubtitles: Record<string, string> = {
@@ -713,11 +778,11 @@ export async function toolOGImage({
       image: "Image Tool",
       developer: "Developer Tool",
       text: "Text Tool",
-      archive: "Archive Tool"
+      archive: "Archive Tool",
     };
     subtitle = typeSubtitles[toolType] || "";
   }
-  
+
   // If mainTitle is too long, don't use subtitle
   if (mainTitle.length > 25) {
     subtitle = "";
@@ -963,7 +1028,8 @@ export async function toolOGImage({
               </div>
 
               {/* Special display for Color Converter */}
-              {(title.includes("Color Converter") || title.includes("HEX, RGB, HSL")) ? (
+              {title.includes("Color Converter") ||
+              title.includes("HEX, RGB, HSL") ? (
                 <div
                   style={{
                     display: "flex",
@@ -981,7 +1047,13 @@ export async function toolOGImage({
                       marginBottom: 16,
                     }}
                   >
-                    {["#FF6B6B", "#4ECDC4", "#45B7D1", "#FFA07A", "#98D8C8"].map((color, i) => (
+                    {[
+                      "#FF6B6B",
+                      "#4ECDC4",
+                      "#45B7D1",
+                      "#FFA07A",
+                      "#98D8C8",
+                    ].map((color, i) => (
                       <div
                         key={i}
                         style={{
@@ -995,7 +1067,7 @@ export async function toolOGImage({
                       />
                     ))}
                   </div>
-                  
+
                   {/* Format Labels */}
                   <div
                     style={{
@@ -1006,22 +1078,24 @@ export async function toolOGImage({
                       maxWidth: 320,
                     }}
                   >
-                    {["HEX", "RGB", "HSL", "HSV", "LAB", "CMYK"].map((format) => (
-                      <div
-                        key={format}
-                        style={{
-                          padding: "8px 16px",
-                          borderRadius: 8,
-                          background: "rgba(139, 92, 246, 0.1)",
-                          border: "1px solid rgba(139, 92, 246, 0.3)",
-                          color: "#a78bfa",
-                          fontSize: 14,
-                          fontWeight: 600,
-                        }}
-                      >
-                        {format}
-                      </div>
-                    ))}
+                    {["HEX", "RGB", "HSL", "HSV", "LAB", "CMYK"].map(
+                      (format) => (
+                        <div
+                          key={format}
+                          style={{
+                            padding: "8px 16px",
+                            borderRadius: 8,
+                            background: "rgba(139, 92, 246, 0.1)",
+                            border: "1px solid rgba(139, 92, 246, 0.3)",
+                            color: "#a78bfa",
+                            fontSize: 14,
+                            fontWeight: 600,
+                          }}
+                        >
+                          {format}
+                        </div>
+                      ),
+                    )}
                   </div>
                 </div>
               ) : sourceFormat && targetFormat ? (
@@ -1165,7 +1239,9 @@ export async function toolOGImage({
                   fontSize: 16,
                 }}
               >
-                {sourceFormat && targetFormat ? "Instant conversion" : "No limits"}
+                {sourceFormat && targetFormat
+                  ? "Instant conversion"
+                  : "No limits"}
               </span>
             </div>
           </div>
@@ -1183,12 +1259,7 @@ export async function toolOGImage({
           gap: 12,
         }}
       >
-        <svg
-          width="32"
-          height="32"
-          viewBox="0 0 1000 1000"
-          fill="none"
-        >
+        <svg width="32" height="32" viewBox="0 0 1000 1000" fill="none">
           <path
             d="M299 148.883C314.6 147.283 486.833 148.217 571 148.883C575.5 148.883 585.2 149.983 588 154.383C590.8 158.783 672.5 239.55 713 279.383C716 282.717 722.3 290.983 723.5 297.383C724.7 303.783 724 364.717 723.5 394.383C722.167 399.55 716.5 410.083 704.5 410.883C692.5 411.683 513.833 411.217 426 410.883L425.938 410.891C422.08 411.394 413.981 412.45 410.5 424.883V477.383H653C657.167 478.717 665.9 483.683 667.5 492.883C669.1 502.083 668.167 561.717 667.5 590.383C666 595.883 661 606.983 653 607.383C645 607.783 516.667 607.55 453.5 607.383H276V573H311V538H276V172.883C277.167 165.55 283.4 150.483 299 148.883ZM356 322C350.477 322 346 326.477 346 332C346 337.522 350.477 342 356 342H526C531.523 342 536 337.522 536 332C536 326.477 531.523 322 526 322H356ZM579 276.383C581.4 295.583 597 300.383 604.5 300.383H698.5L579 180.883V276.383ZM356 258C350.477 258 346 262.477 346 268C346 273.523 350.477 278 356 278H504C509.523 278 514 273.523 514 268C514 262.477 509.523 258 504 258H356Z"
             fill={theme.primary}

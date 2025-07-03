@@ -13,9 +13,15 @@ describe("TAR Extract", () => {
 
   beforeAll(() => {
     // Load test fixtures
-    testTar = new Uint8Array(readFileSync(join(__dirname, "../fixtures/archives/test.tar")));
-    testTarGz = new Uint8Array(readFileSync(join(__dirname, "../fixtures/archives/test.tar.gz")));
-    testTarBz2 = new Uint8Array(readFileSync(join(__dirname, "../fixtures/archives/test.tar.bz2")));
+    testTar = new Uint8Array(
+      readFileSync(join(__dirname, "../fixtures/archives/test.tar")),
+    );
+    testTarGz = new Uint8Array(
+      readFileSync(join(__dirname, "../fixtures/archives/test.tar.gz")),
+    );
+    testTarBz2 = new Uint8Array(
+      readFileSync(join(__dirname, "../fixtures/archives/test.tar.bz2")),
+    );
   });
 
   describe("Basic TAR extraction", () => {
@@ -23,10 +29,10 @@ describe("TAR Extract", () => {
       const tape = new Tar();
       tape.read(testTar);
       const files = tape.extract();
-      
+
       expect(files.length).toBeGreaterThan(0);
-      
-      const fileNames = files.map(f => f.name);
+
+      const fileNames = files.map((f) => f.name);
       expect(fileNames).toContain("test.txt");
       expect(fileNames).toContain("readme.md");
       expect(fileNames).toContain("data.json");
@@ -36,15 +42,15 @@ describe("TAR Extract", () => {
       const tape = new Tar();
       tape.read(testTar);
       const files = tape.extract();
-      
+
       // Find and check test.txt
-      const testFile = files.find(f => f.name === "test.txt");
+      const testFile = files.find((f) => f.name === "test.txt");
       expect(testFile).toBeDefined();
       const textContent = new TextDecoder().decode(testFile!.data);
       expect(textContent).toBe("Hello, World!\n");
-      
+
       // Find and check data.json
-      const jsonFile = files.find(f => f.name === "data.json");
+      const jsonFile = files.find((f) => f.name === "data.json");
       expect(jsonFile).toBeDefined();
       const jsonContent = new TextDecoder().decode(jsonFile!.data);
       const jsonData = JSON.parse(jsonContent);
@@ -55,10 +61,10 @@ describe("TAR Extract", () => {
       const tape = new Tar();
       tape.read(testTar);
       const files = tape.extract();
-      
-      const nestedFile = files.find(f => f.name.includes("nested.txt"));
+
+      const nestedFile = files.find((f) => f.name.includes("nested.txt"));
       expect(nestedFile).toBeDefined();
-      
+
       const content = new TextDecoder().decode(nestedFile!.data);
       expect(content).toBe("This is a nested file.\n");
     });
@@ -68,15 +74,15 @@ describe("TAR Extract", () => {
     it("should extract GZIP compressed TAR", () => {
       // Decompress first
       const decompressed = pako.ungzip(testTarGz);
-      
+
       // Then extract TAR
       const tape = new Tar();
       tape.read(decompressed);
       const files = tape.extract();
-      
+
       expect(files.length).toBeGreaterThan(0);
-      
-      const fileNames = files.map(f => f.name);
+
+      const fileNames = files.map((f) => f.name);
       expect(fileNames).toContain("test.txt");
       expect(fileNames).toContain("readme.md");
     });
@@ -99,8 +105,8 @@ describe("TAR Extract", () => {
       const tape = new Tar();
       tape.read(testTar);
       const files = tape.extract();
-      
-      files.forEach(file => {
+
+      files.forEach((file) => {
         expect(file).toHaveProperty("mode");
         expect(typeof file.mode).toBe("number");
       });
@@ -110,8 +116,8 @@ describe("TAR Extract", () => {
       const tape = new Tar();
       tape.read(testTar);
       const files = tape.extract();
-      
-      files.forEach(file => {
+
+      files.forEach((file) => {
         expect(file).toHaveProperty("size");
         expect(file.size).toBe(file.data.length);
       });
@@ -121,11 +127,11 @@ describe("TAR Extract", () => {
       const tape = new Tar();
       tape.read(testTar);
       const files = tape.extract();
-      
-      files.forEach(file => {
+
+      files.forEach((file) => {
         expect(file).toHaveProperty("type");
         // Type 0 or '0' is regular file, 5 is directory
-        expect(['0', '5', 0, 5]).toContain(file.type);
+        expect(["0", "5", 0, 5]).toContain(file.type);
       });
     });
   });
@@ -137,13 +143,13 @@ describe("TAR Extract", () => {
       const tape = new Tar();
       tape.read(emptyTar);
       const files = tape.extract();
-      
+
       expect(files.length).toBe(0);
     });
 
     it("should handle corrupted TAR data gracefully", () => {
-      const corruptedTar = new Uint8Array([0xFF, 0xFF, 0xFF, 0xFF]);
-      
+      const corruptedTar = new Uint8Array([0xff, 0xff, 0xff, 0xff]);
+
       expect(() => {
         const tape = new Tar();
         tape.read(corruptedTar);
@@ -152,12 +158,12 @@ describe("TAR Extract", () => {
     });
 
     it("should detect non-TAR files", () => {
-      const notATar = new Uint8Array([0x50, 0x4B, 0x03, 0x04]); // ZIP header
-      
+      const notATar = new Uint8Array([0x50, 0x4b, 0x03, 0x04]); // ZIP header
+
       const tape = new Tar();
       tape.read(notATar);
       const files = tape.extract();
-      
+
       // Should either return empty array or malformed data
       expect(files.length).toBe(0);
     });
@@ -170,7 +176,7 @@ describe("TAR Extract", () => {
       tape.read(testTar);
       const files = tape.extract();
       const duration = performance.now() - start;
-      
+
       expect(duration).toBeLessThan(1000); // Should extract within 1 second
       expect(files.length).toBeGreaterThan(0);
     });

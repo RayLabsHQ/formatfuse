@@ -20,7 +20,7 @@ import {
 import { Button } from "../ui/button";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
-import { ToolHeader } from '../ui/ToolHeader';
+import { ToolHeader } from "../ui/ToolHeader";
 import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 import { cn } from "../../lib/utils";
 import { usePdfOperations } from "../../hooks/usePdfOperations";
@@ -126,7 +126,7 @@ export default function PdfRotate() {
 
       setFile(selectedFile);
       setRotatedResult(null);
-      
+
       try {
         const data = new Uint8Array(await selectedFile.arrayBuffer());
         setFileData(data);
@@ -141,7 +141,7 @@ export default function PdfRotate() {
         console.error("Error reading PDF:", err);
       }
     },
-    [getPageCount]
+    [getPageCount],
   );
 
   const handleFileChange = useCallback(
@@ -151,7 +151,7 @@ export default function PdfRotate() {
         handleFileSelect(selectedFile);
       }
     },
-    [handleFileSelect]
+    [handleFileSelect],
   );
 
   const handleDrop = useCallback(
@@ -164,7 +164,7 @@ export default function PdfRotate() {
         handleFileSelect(droppedFile);
       }
     },
-    [handleFileSelect]
+    [handleFileSelect],
   );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -214,7 +214,7 @@ export default function PdfRotate() {
     if (!file || !fileData) return;
 
     setRotatedResult(null);
-    
+
     try {
       const pageNumbers = getPageNumbers();
       const rotated = await rotate(fileData, {
@@ -229,7 +229,7 @@ export default function PdfRotate() {
 
   const handleDownload = () => {
     if (!rotatedResult || !file) return;
-    
+
     const blob = new Blob([rotatedResult], { type: "application/pdf" });
     const baseName = file.name.replace(/\.pdf$/i, "");
     saveAs(blob, `${baseName}_rotated_${options.angle}deg.pdf`);
@@ -266,7 +266,9 @@ export default function PdfRotate() {
           {error && (
             <div className="mb-4 px-4 py-3 bg-destructive/10 text-destructive rounded-lg flex items-center gap-2">
               <AlertCircle className="w-4 h-4" />
-              <span className="text-sm">{error.message || 'An error occurred'}</span>
+              <span className="text-sm">
+                {error.message || "An error occurred"}
+              </span>
             </div>
           )}
 
@@ -291,14 +293,12 @@ export default function PdfRotate() {
                   {ROTATION_OPTIONS.map(({ angle, label, icon: Icon }) => (
                     <button
                       key={angle}
-                      onClick={() =>
-                        setOptions((prev) => ({ ...prev, angle }))
-                      }
+                      onClick={() => setOptions((prev) => ({ ...prev, angle }))}
                       className={cn(
                         "relative p-4 rounded-xl border-2 transition-all duration-200",
                         options.angle === angle
                           ? "border-primary bg-primary/10"
-                          : "border-border/50 hover:border-primary/50 bg-card/50"
+                          : "border-border/50 hover:border-primary/50 bg-card/50",
                       )}
                     >
                       <div className="flex flex-col items-center gap-3">
@@ -321,7 +321,9 @@ export default function PdfRotate() {
                         <div className="text-center">
                           <div className="flex items-center gap-1 justify-center">
                             <Icon className="w-4 h-4" />
-                            <span className="font-medium text-sm">{angle}°</span>
+                            <span className="font-medium text-sm">
+                              {angle}°
+                            </span>
                           </div>
                           <span className="text-xs text-muted-foreground">
                             {label}
@@ -350,7 +352,7 @@ export default function PdfRotate() {
                       "p-3 rounded-lg border-2 transition-all duration-200 text-left",
                       options.mode === "all"
                         ? "border-primary bg-primary/10"
-                        : "border-border/50 hover:border-primary/50 bg-card/50"
+                        : "border-border/50 hover:border-primary/50 bg-card/50",
                     )}
                   >
                     <FileOutput className="w-5 h-5 text-primary mb-2" />
@@ -368,7 +370,7 @@ export default function PdfRotate() {
                       "p-3 rounded-lg border-2 transition-all duration-200 text-left",
                       options.mode === "visual"
                         ? "border-primary bg-primary/10"
-                        : "border-border/50 hover:border-primary/50 bg-card/50"
+                        : "border-border/50 hover:border-primary/50 bg-card/50",
                     )}
                   >
                     <Eye className="w-5 h-5 text-primary mb-2" />
@@ -386,7 +388,7 @@ export default function PdfRotate() {
                       "p-3 rounded-lg border-2 transition-all duration-200 text-left",
                       options.mode === "manual"
                         ? "border-primary bg-primary/10"
-                        : "border-border/50 hover:border-primary/50 bg-card/50"
+                        : "border-border/50 hover:border-primary/50 bg-card/50",
                     )}
                   >
                     <FileText className="w-5 h-5 text-primary mb-2" />
@@ -405,7 +407,8 @@ export default function PdfRotate() {
                     <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
                     <div className="text-xs sm:text-sm text-blue-700 dark:text-blue-300">
                       Click on pages below to select them for rotation. Selected
-                      pages will be highlighted and rotated by your chosen angle.
+                      pages will be highlighted and rotated by your chosen
+                      angle.
                     </div>
                   </div>
                 </div>
@@ -436,15 +439,25 @@ export default function PdfRotate() {
               {options.mode !== "all" && pageCount > 0 && (
                 <div className="space-y-2">
                   <label className="text-sm font-medium">
-                    Preview: {options.mode === "visual" 
-                      ? options.selectedPages.length 
-                      : getPageNumbers().length} page{(options.mode === "visual" ? options.selectedPages.length : getPageNumbers().length) !== 1 ? 's' : ''} will be rotated
+                    Preview:{" "}
+                    {options.mode === "visual"
+                      ? options.selectedPages.length
+                      : getPageNumbers().length}{" "}
+                    page
+                    {(options.mode === "visual"
+                      ? options.selectedPages.length
+                      : getPageNumbers().length) !== 1
+                      ? "s"
+                      : ""}{" "}
+                    will be rotated
                   </label>
-                  {options.mode === "visual" && options.selectedPages.length > 0 && (
-                    <p className="text-xs text-muted-foreground">
-                      Pages: {options.selectedPages.sort((a, b) => a - b).join(", ")}
-                    </p>
-                  )}
+                  {options.mode === "visual" &&
+                    options.selectedPages.length > 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        Pages:{" "}
+                        {options.selectedPages.sort((a, b) => a - b).join(", ")}
+                      </p>
+                    )}
                 </div>
               )}
             </div>
@@ -465,7 +478,7 @@ export default function PdfRotate() {
                   "relative p-12 sm:p-16 md:p-20 rounded-2xl border-2 border-dashed transition-all duration-300",
                   isDragging
                     ? "border-primary bg-primary/10 scale-[1.02]"
-                    : "border-border bg-card/50 hover:border-primary hover:bg-card group-hover:scale-[1.01]"
+                    : "border-border bg-card/50 hover:border-primary hover:bg-card group-hover:scale-[1.01]",
                 )}
               >
                 <div className="text-center">
@@ -474,7 +487,7 @@ export default function PdfRotate() {
                       "w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 transition-all duration-300",
                       isDragging
                         ? "text-primary scale-110"
-                        : "text-muted-foreground group-hover:text-primary"
+                        : "text-muted-foreground group-hover:text-primary",
                     )}
                   />
                   <p className="text-lg sm:text-xl font-medium mb-2">
@@ -501,7 +514,8 @@ export default function PdfRotate() {
                   <div className="flex-1">
                     <p className="font-medium">{file.name}</p>
                     <p className="text-sm text-muted-foreground">
-                      {formatFileSize(file.size)} • {pageCount} page{pageCount !== 1 ? 's' : ''}
+                      {formatFileSize(file.size)} • {pageCount} page
+                      {pageCount !== 1 ? "s" : ""}
                     </p>
                   </div>
                   <Button
@@ -509,7 +523,11 @@ export default function PdfRotate() {
                     size="icon"
                     onClick={() => setShowPreview(!showPreview)}
                   >
-                    {showPreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPreview ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
                   </Button>
                   <Button
                     variant="ghost"
@@ -570,9 +588,10 @@ export default function PdfRotate() {
                         Rotation complete!
                       </p>
                       <p className="text-sm text-green-700 dark:text-green-300">
-                        {options.mode === "all" 
-                          ? `All ${pageCount} pages` 
-                          : `${getPageNumbers().length} pages`} rotated {options.angle}°
+                        {options.mode === "all"
+                          ? `All ${pageCount} pages`
+                          : `${getPageNumbers().length} pages`}{" "}
+                        rotated {options.angle}°
                       </p>
                     </div>
                   </div>

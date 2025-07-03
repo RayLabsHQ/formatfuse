@@ -10,12 +10,12 @@ describe("Archive Tools Test Suite", () => {
       "zip-create.test.ts",
       "tar-extract.test.ts",
       "tar-create.test.ts",
-      "libarchive-extract.test.ts"
+      "libarchive-extract.test.ts",
     ];
-    
-    expectedTests.forEach(testFile => {
+
+    expectedTests.forEach((testFile) => {
       // Just verify the test files exist by trying to import them
-      expect(() => require(`./${testFile.replace('.ts', '')}`)).not.toThrow();
+      expect(() => require(`./${testFile.replace(".ts", "")}`)).not.toThrow();
     });
   });
 
@@ -27,7 +27,7 @@ describe("Archive Tools Test Suite", () => {
         { format: "TAR", library: "tar-js", supported: true },
         { format: "TAR.GZ", library: "tar-js + pako", supported: true },
         { format: "TAR.BZ2", library: "tar-js + bzip2", supported: true },
-        
+
         // Advanced formats (via libarchive-wasm)
         { format: "7Z", library: "libarchive-wasm", supported: true },
         { format: "RAR", library: "libarchive-wasm", supported: true },
@@ -38,10 +38,10 @@ describe("Archive Tools Test Suite", () => {
         { format: "XZ", library: "libarchive-wasm", supported: true },
         { format: "LZMA", library: "libarchive-wasm", supported: true },
         { format: "GZ", library: "libarchive-wasm", supported: true },
-        { format: "BZ2", library: "libarchive-wasm", supported: true }
+        { format: "BZ2", library: "libarchive-wasm", supported: true },
       ];
-      
-      extractionFormats.forEach(format => {
+
+      extractionFormats.forEach((format) => {
         expect(format.supported).toBe(true);
       });
     });
@@ -51,10 +51,10 @@ describe("Archive Tools Test Suite", () => {
         { format: "ZIP", library: "JSZip", supported: true },
         { format: "TAR", library: "tar-js", supported: true },
         { format: "TAR.GZ", library: "tar-js + pako", supported: true },
-        { format: "TAR.BZ2", library: "tar-js + bzip2", supported: false } // Requires external tool
+        { format: "TAR.BZ2", library: "tar-js + bzip2", supported: false }, // Requires external tool
       ];
-      
-      creationFormats.forEach(format => {
+
+      creationFormats.forEach((format) => {
         if (format.format !== "TAR.BZ2") {
           expect(format.supported).toBe(true);
         }
@@ -69,16 +69,16 @@ describe("Archive Tools Test Suite", () => {
         {
           create: "ZIP",
           extract: ["JSZip", "libarchive-wasm"],
-          description: "ZIP created with JSZip should be extractable by both"
+          description: "ZIP created with JSZip should be extractable by both",
         },
         {
           create: "TAR",
           extract: ["tar-js", "libarchive-wasm"],
-          description: "TAR created with tar-js should be extractable by both"
-        }
+          description: "TAR created with tar-js should be extractable by both",
+        },
       ];
-      
-      scenarios.forEach(scenario => {
+
+      scenarios.forEach((scenario) => {
         expect(scenario.extract.length).toBeGreaterThan(0);
       });
     });
@@ -92,10 +92,10 @@ describe("Archive Tools Test Suite", () => {
         { operation: "TAR extract 1MB", maxTime: 50 },
         { operation: "TAR create 1MB", maxTime: 100 },
         { operation: "7Z extract 1MB", maxTime: 500 },
-        { operation: "RAR extract 1MB", maxTime: 500 }
+        { operation: "RAR extract 1MB", maxTime: 500 },
       ];
-      
-      benchmarks.forEach(benchmark => {
+
+      benchmarks.forEach((benchmark) => {
         expect(benchmark.maxTime).toBeGreaterThan(0);
       });
     });
@@ -111,9 +111,9 @@ describe("Archive Tools Test Suite", () => {
         "Password-protected archives (not supported)",
         "Archives with invalid filenames",
         "Archives exceeding memory limits",
-        "Archives with circular references"
+        "Archives with circular references",
       ];
-      
+
       expect(errorScenarios.length).toBeGreaterThan(0);
     });
   });

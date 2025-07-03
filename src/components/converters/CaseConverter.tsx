@@ -23,7 +23,7 @@ import { Switch } from "../ui/switch";
 import { CodeEditor } from "../ui/code-editor";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
-import { ToolHeader } from '../ui/ToolHeader';
+import { ToolHeader } from "../ui/ToolHeader";
 import { cn } from "@/lib/utils";
 
 interface CaseFormat {
@@ -43,8 +43,25 @@ const preserveAcronyms = (
 ): string => {
   // Common acronyms to preserve
   const acronyms = [
-    "API", "URL", "ID", "UUID", "HTTP", "HTTPS", "SQL", "HTML", "CSS", "JS",
-    "JSON", "XML", "PDF", "CEO", "FBI", "NASA", "FAQ", "iOS", "macOS",
+    "API",
+    "URL",
+    "ID",
+    "UUID",
+    "HTTP",
+    "HTTPS",
+    "SQL",
+    "HTML",
+    "CSS",
+    "JS",
+    "JSON",
+    "XML",
+    "PDF",
+    "CEO",
+    "FBI",
+    "NASA",
+    "FAQ",
+    "iOS",
+    "macOS",
   ];
   const upperWord = word.toUpperCase();
 
@@ -291,22 +308,22 @@ export default function CaseConverter() {
   const [preserveNumbers, setPreserveNumbers] = useState(true);
   const [smartAcronyms, setSmartAcronyms] = useState(true);
   const [activeTab, setActiveTab] = useState<"input" | "output">("input");
-  
+
   // Theme detection for CodeEditor
   const [theme, setTheme] = useState("github-dark");
   useEffect(() => {
     const checkTheme = () => {
-      const isDark = document.documentElement.classList.contains('dark');
-      setTheme(isDark ? 'github-dark' : 'github-light');
+      const isDark = document.documentElement.classList.contains("dark");
+      setTheme(isDark ? "github-dark" : "github-light");
     };
     checkTheme();
-    
+
     const observer = new MutationObserver(checkTheme);
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['class']
+      attributeFilter: ["class"],
     });
-    
+
     return () => observer.disconnect();
   }, []);
 
@@ -383,9 +400,9 @@ export default function CaseConverter() {
   const handleDownloadAll = useCallback(() => {
     if (!input.trim()) return;
 
-    const content = conversions.map(conv => 
-      `${conv.name}:\n${conv.result}\n`
-    ).join('\n');
+    const content = conversions
+      .map((conv) => `${conv.name}:\n${conv.result}\n`)
+      .join("\n");
 
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
@@ -415,7 +432,6 @@ export default function CaseConverter() {
           features={features}
         />
 
-
         {/* Settings Card - Desktop only */}
         <div className="hidden sm:block mb-6">
           <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
@@ -428,7 +444,10 @@ export default function CaseConverter() {
                 {detectedFormat && (
                   <div className="flex items-center gap-2 text-sm">
                     <Sparkles className="w-4 h-4 text-primary" />
-                    <span>Detected: {caseFormats.find(f => f.id === detectedFormat)?.name}</span>
+                    <span>
+                      Detected:{" "}
+                      {caseFormats.find((f) => f.id === detectedFormat)?.name}
+                    </span>
                   </div>
                 )}
               </div>
@@ -441,18 +460,24 @@ export default function CaseConverter() {
                     checked={smartAcronyms}
                     onCheckedChange={setSmartAcronyms}
                   />
-                  <Label htmlFor="smart-acronyms" className="text-sm cursor-pointer">
+                  <Label
+                    htmlFor="smart-acronyms"
+                    className="text-sm cursor-pointer"
+                  >
                     Smart acronym preservation
                   </Label>
                 </div>
-                
+
                 <div className="flex items-center gap-2">
                   <Switch
                     id="preserve-numbers"
                     checked={preserveNumbers}
                     onCheckedChange={setPreserveNumbers}
                   />
-                  <Label htmlFor="preserve-numbers" className="text-sm cursor-pointer">
+                  <Label
+                    htmlFor="preserve-numbers"
+                    className="text-sm cursor-pointer"
+                  >
                     Preserve numbers
                   </Label>
                 </div>
@@ -475,7 +500,9 @@ export default function CaseConverter() {
         <div className="sm:hidden px-4 pb-3">
           <div className="bg-card/50 rounded-lg border p-3 space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground font-medium">Options</span>
+              <span className="text-xs text-muted-foreground font-medium">
+                Options
+              </span>
               <Button
                 variant="outline"
                 size="sm"
@@ -495,14 +522,20 @@ export default function CaseConverter() {
                   onCheckedChange={setSmartAcronyms}
                   className="h-4 w-8"
                 />
-                <Label htmlFor="smart-acronyms-mobile" className="text-xs cursor-pointer">
+                <Label
+                  htmlFor="smart-acronyms-mobile"
+                  className="text-xs cursor-pointer"
+                >
                   Smart acronyms
                 </Label>
               </div>
               {detectedFormat && (
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Sparkles className="w-3 h-3" />
-                  <span>Detected: {caseFormats.find(f => f.id === detectedFormat)?.name}</span>
+                  <span>
+                    Detected:{" "}
+                    {caseFormats.find((f) => f.id === detectedFormat)?.name}
+                  </span>
                 </div>
               )}
             </div>
@@ -598,7 +631,9 @@ export default function CaseConverter() {
             }`}
           >
             <div className="border-b px-3 sm:px-4 py-2 flex items-center justify-between bg-card">
-              <span className="text-xs sm:text-sm font-medium">All Formats</span>
+              <span className="text-xs sm:text-sm font-medium">
+                All Formats
+              </span>
               <div className="text-xs text-muted-foreground">
                 {conversions.length} formats
               </div>
@@ -612,19 +647,24 @@ export default function CaseConverter() {
                       key={conversion.id}
                       className={cn(
                         "border rounded-lg p-3 sm:p-4 space-y-2 transition-all cursor-pointer hover:bg-muted/30",
-                        conversion.isCurrentFormat && "bg-primary/5 border-primary"
+                        conversion.isCurrentFormat &&
+                          "bg-primary/5 border-primary",
                       )}
-                      onClick={() => handleCopy(conversion.result, conversion.name)}
+                      onClick={() =>
+                        handleCopy(conversion.result, conversion.name)
+                      }
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           {conversion.icon && (
                             <conversion.icon className="w-4 h-4 text-muted-foreground" />
                           )}
-                          <span className={cn(
-                            "font-medium",
-                            conversion.isCurrentFormat && "text-primary"
-                          )}>
+                          <span
+                            className={cn(
+                              "font-medium",
+                              conversion.isCurrentFormat && "text-primary",
+                            )}
+                          >
                             {conversion.name}
                           </span>
                           {conversion.isCurrentFormat && (

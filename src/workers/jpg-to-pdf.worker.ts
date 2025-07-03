@@ -40,7 +40,7 @@ const pageSizes = {
 
 async function convertJpgToPdf(
   images: Array<{ data: ArrayBuffer; name: string }>,
-  options: ConversionOptions
+  options: ConversionOptions,
 ): Promise<ArrayBuffer> {
   try {
     self.postMessage({ type: "progress", progress: 10 } as ProgressMessage);
@@ -67,7 +67,7 @@ async function convertJpgToPdf(
       }
 
       let pageWidth, pageHeight;
-      
+
       if (options.pageSize === "auto") {
         // Use image dimensions
         pageWidth = jpgImage.width;
@@ -87,13 +87,13 @@ async function convertJpgToPdf(
       const page = pdfDoc.addPage([pageWidth, pageHeight]);
 
       // Calculate image dimensions to fit within page with margins
-      const availableWidth = pageWidth - (options.margin * 2);
-      const availableHeight = pageHeight - (options.margin * 2);
-      
+      const availableWidth = pageWidth - options.margin * 2;
+      const availableHeight = pageHeight - options.margin * 2;
+
       let drawWidth, drawHeight;
       const imageAspectRatio = jpgImage.width / jpgImage.height;
       const pageAspectRatio = availableWidth / availableHeight;
-      
+
       if (options.pageSize === "auto") {
         // For auto mode, use full page
         drawWidth = pageWidth;

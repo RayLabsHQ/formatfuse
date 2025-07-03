@@ -20,7 +20,7 @@ import JSZip from "jszip";
 import * as pako from "pako";
 import Tar from "tar-js";
 import { Button } from "../ui/button";
-import { ToolHeader } from '../ui/ToolHeader';
+import { ToolHeader } from "../ui/ToolHeader";
 import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
@@ -39,7 +39,11 @@ const features = [
     text: "Privacy-first",
     description: "Files never leave your device",
   },
-  { icon: Zap, text: "Lightning fast", description: "Create archives instantly" },
+  {
+    icon: Zap,
+    text: "Lightning fast",
+    description: "Create archives instantly",
+  },
   {
     icon: Sparkles,
     text: "Multiple formats",
@@ -131,7 +135,9 @@ export default function CreateArchive() {
   const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [archiveName, setArchiveName] = useState("archive");
-  const [selectedFormat, setSelectedFormat] = useState<FormatOption>(formatOptions[0]);
+  const [selectedFormat, setSelectedFormat] = useState<FormatOption>(
+    formatOptions[0],
+  );
   const [compressionLevel, setCompressionLevel] = useState(6);
   const [editingPath, setEditingPath] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -192,7 +198,7 @@ export default function CreateArchive() {
           // Add files to ZIP
           for (let i = 0; i < files.length; i++) {
             const fileItem = files[i];
-            
+
             // Update status to processing
             setFiles((prev) =>
               prev.map((f, idx) =>
@@ -230,7 +236,7 @@ export default function CreateArchive() {
           // Add files to TAR
           for (let i = 0; i < files.length; i++) {
             const fileItem = files[i];
-            
+
             // Update status to processing
             setFiles((prev) =>
               prev.map((f, idx) =>
@@ -241,7 +247,7 @@ export default function CreateArchive() {
             // Read file content
             const content = await fileItem.file.arrayBuffer();
             const uint8Array = new Uint8Array(content);
-            
+
             // Add to TAR
             tar.append(fileItem.path, uint8Array);
 
@@ -260,7 +266,9 @@ export default function CreateArchive() {
 
           // Apply compression if needed
           if (selectedFormat.format === "tar.gz") {
-            archiveData = pako.gzip(archiveData, { level: compressionLevel as 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 });
+            archiveData = pako.gzip(archiveData, {
+              level: compressionLevel as 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9,
+            });
           }
           break;
         }
@@ -270,7 +278,9 @@ export default function CreateArchive() {
       }
 
       // Create blob and download
-      const blob = new Blob([archiveData], { type: "application/octet-stream" });
+      const blob = new Blob([archiveData], {
+        type: "application/octet-stream",
+      });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
       link.download = fileName;
@@ -283,9 +293,7 @@ export default function CreateArchive() {
         setIsCreating(false);
       }, 1000);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to create archive",
-      );
+      setError(err instanceof Error ? err.message : "Failed to create archive");
       setIsCreating(false);
     }
   }, [files, archiveName, selectedFormat, compressionLevel]);
@@ -313,7 +321,7 @@ export default function CreateArchive() {
           subtitle="Create ZIP, TAR, or TAR.GZ archives from multiple files right in your browser. No uploads required, 100% private."
           badge={{
             text: "Online Archive Creator • Free • No Upload",
-            icon: FileArchive
+            icon: FileArchive,
           }}
           features={features}
         />
@@ -394,7 +402,8 @@ export default function CreateArchive() {
               </div>
 
               {/* Compression Level (for ZIP and TAR.GZ) */}
-              {(selectedFormat.format === "zip" || selectedFormat.format === "tar.gz") && (
+              {(selectedFormat.format === "zip" ||
+                selectedFormat.format === "tar.gz") && (
                 <div className="space-y-3">
                   <label className="text-sm font-medium">
                     Compression Level: {compressionLevel}
@@ -404,7 +413,9 @@ export default function CreateArchive() {
                     min="0"
                     max="9"
                     value={compressionLevel}
-                    onChange={(e) => setCompressionLevel(Number(e.target.value))}
+                    onChange={(e) =>
+                      setCompressionLevel(Number(e.target.value))
+                    }
                     className="w-full"
                   />
                   <div className="flex justify-between text-xs text-muted-foreground">
@@ -570,14 +581,16 @@ export default function CreateArchive() {
                     >
                       <div className="flex items-center gap-4">
                         <File className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                        
+
                         {/* File Info */}
                         <div className="flex-1 min-w-0">
                           {editingPath === `${index}` ? (
                             <input
                               type="text"
                               value={fileItem.path}
-                              onChange={(e) => updatePath(index, e.target.value)}
+                              onChange={(e) =>
+                                updatePath(index, e.target.value)
+                              }
                               onBlur={() => setEditingPath(null)}
                               onKeyDown={(e) => {
                                 if (e.key === "Enter") setEditingPath(null);

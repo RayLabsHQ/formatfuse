@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import JSZip from "jszip";
 import { Button } from "../ui/button";
-import { ToolHeader } from '../ui/ToolHeader';
+import { ToolHeader } from "../ui/ToolHeader";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { cn } from "../../lib/utils";
@@ -33,7 +33,6 @@ interface ExtractedFile {
   content?: Blob;
   children?: ExtractedFile[];
 }
-
 
 const features = [
   {
@@ -155,7 +154,7 @@ export default function ZipExtract() {
 
         parts.forEach((part, index) => {
           currentPath = currentPath ? `${currentPath}/${part}` : part;
-          
+
           if (index < parts.length - 1 || path.endsWith("/")) {
             // This is a directory
             if (!directories.has(currentPath)) {
@@ -179,7 +178,7 @@ export default function ZipExtract() {
           const parts = path.split("/").filter(Boolean);
           const fileName = parts[parts.length - 1];
           const content = await zipEntry.async("blob");
-          
+
           const fileEntry: ExtractedFile = {
             name: fileName,
             path: path,
@@ -233,7 +232,7 @@ export default function ZipExtract() {
           }
         });
       };
-      
+
       sortEntries(files);
       setExtractedFiles(files);
     } catch (err) {
@@ -259,7 +258,7 @@ export default function ZipExtract() {
 
   const toggleSelect = useCallback((path: string, isDirectory: boolean) => {
     if (isDirectory) return; // Don't select directories
-    
+
     setSelectedFiles((prev) => {
       const newSelection = new Set(prev);
       if (newSelection.has(path)) {
@@ -308,7 +307,7 @@ export default function ZipExtract() {
     } else {
       // Create new ZIP with selected files
       const zip = new JSZip();
-      
+
       const findAndAddFile = (
         files: ExtractedFile[],
         path: string,
@@ -474,7 +473,7 @@ export default function ZipExtract() {
           subtitle="Extract and download files from ZIP archives instantly in your browser. No uploads, no installations - 100% client-side processing."
           badge={{
             text: "ZIP Extractor • Online • Free • Unzip",
-            icon: FileArchive
+            icon: FileArchive,
           }}
           features={features}
         />

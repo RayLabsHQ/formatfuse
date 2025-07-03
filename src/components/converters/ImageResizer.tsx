@@ -27,7 +27,7 @@ import { SimplifiedFileList } from "./SimplifiedFileList";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
-import { ToolHeader } from '../ui/ToolHeader';
+import { ToolHeader } from "../ui/ToolHeader";
 import { cn } from "../../lib/utils";
 import { Slider } from "../ui/slider";
 import { Button } from "../ui/button";
@@ -401,7 +401,6 @@ export default function ImageResizer() {
           badge={{ text: "Resize Images Online Free", icon: Maximize2 }}
           features={features}
         />
-
 
         {/* Main Resizer Interface */}
         <div className="space-y-6">

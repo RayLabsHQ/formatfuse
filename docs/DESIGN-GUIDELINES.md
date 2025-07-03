@@ -5,18 +5,21 @@ This document outlines the design principles and patterns used throughout Format
 ## Core Design Philosophy
 
 ### 1. Performance First
+
 - **Zero animations** - No decorative animations that could impact performance
 - **Instant feedback** - All user actions must feel immediate
 - **Minimal re-renders** - Optimize component updates
 - **Static where possible** - Leverage Astro's static generation
 
 ### 2. Mobile-First Approach
+
 - Design for touch interfaces first
 - Progressive enhancement for desktop
 - Minimum tap targets of 44px
 - Thumb-friendly interaction zones
 
 ### 3. Privacy & Trust
+
 - Clear messaging about client-side processing
 - No upload indicators or server communication UI
 - Prominent privacy badges and messaging
@@ -24,6 +27,7 @@ This document outlines the design principles and patterns used throughout Format
 ## Visual Design System
 
 ### Typography Scale
+
 ```css
 /* Headings - Responsive */
 h1: text-3xl sm:text-4xl lg:text-5xl
@@ -38,12 +42,14 @@ tiny: text-xs (12px)
 ```
 
 ### Color Usage
+
 - **Primary**: Used for CTAs, active states, and key interactions
 - **Muted**: Used for secondary text and subtle backgrounds
 - **Card**: Semi-transparent overlays for depth
 - **Border**: Subtle dividers, 50% opacity for softer look
 
 ### Spacing System
+
 ```css
 /* Section Spacing */
 Between sections: mt-12 pt-12 border-t
@@ -62,6 +68,7 @@ Tighter gaps for compact layouts
 ## Component Patterns
 
 ### 1. Hero Sections
+
 ```tsx
 <div className="text-center mb-8 sm:mb-12 space-y-4">
   <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold">
@@ -75,7 +82,9 @@ Tighter gaps for compact layouts
 ```
 
 ### 2. Feature Display
+
 **Desktop Layout:**
+
 ```tsx
 <div className="hidden sm:flex flex-wrap justify-center gap-6 mb-12">
   {features.map((feature) => (
@@ -93,11 +102,10 @@ Tighter gaps for compact layouts
 ```
 
 **Mobile Layout:**
+
 ```tsx
 <div className="sm:hidden space-y-3 mb-8">
-  <div className="flex justify-center gap-4">
-    {/* Compact icon buttons */}
-  </div>
+  <div className="flex justify-center gap-4">{/* Compact icon buttons */}</div>
   {activeFeature !== null && (
     <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border/50 p-4 mx-4">
       {/* Feature details */}
@@ -107,6 +115,7 @@ Tighter gaps for compact layouts
 ```
 
 ### 3. Settings Cards
+
 ```tsx
 <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 overflow-hidden">
   {/* Header with gradient */}
@@ -116,22 +125,23 @@ Tighter gaps for compact layouts
       Settings Title
     </h2>
   </div>
-  
+
   {/* Content */}
-  <div className="p-6 space-y-6">
-    {/* Settings sections */}
-  </div>
+  <div className="p-6 space-y-6">{/* Settings sections */}</div>
 </div>
 ```
 
 ### 4. File Upload Zones
+
 ```tsx
-<div className={cn(
-  "relative p-8 sm:p-12 rounded-2xl border-2 border-dashed transition-all duration-300 cursor-pointer",
-  isDragging 
-    ? "border-primary bg-primary/10 scale-[1.02]" 
-    : "border-border bg-card/50 hover:border-primary"
-)}>
+<div
+  className={cn(
+    "relative p-8 sm:p-12 rounded-2xl border-2 border-dashed transition-all duration-300 cursor-pointer",
+    isDragging
+      ? "border-primary bg-primary/10 scale-[1.02]"
+      : "border-border bg-card/50 hover:border-primary",
+  )}
+>
   <Upload className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4" />
   <p className="text-base sm:text-lg font-medium mb-2">Drop files here</p>
   <p className="text-xs sm:text-sm text-muted-foreground">or click to browse</p>
@@ -141,24 +151,28 @@ Tighter gaps for compact layouts
 ## Common UI Components
 
 ### FAQ Component
+
 - **Desktop**: 2-column grid with cards
 - **Mobile**: Collapsible accordion style
 - Always includes help icon in header
 - Consistent card styling with hover states
 
 ### Related Tools
+
 - Flexible layout with direction prop
 - Consistent hover effects
 - Icon + title + description pattern
 - Chevron indicator for navigation
 
 ### Format Selectors
+
 - Visual format buttons with brand colors
 - Clear source/target indication
 - Swap functionality prominently displayed
 - Mobile: Vertical layout with labels
 
 ### Quality Controls
+
 - Preset buttons for common values
 - Visual slider for fine control
 - Clear percentage display
@@ -167,6 +181,7 @@ Tighter gaps for compact layouts
 ## Responsive Design Patterns
 
 ### Breakpoints
+
 ```css
 /* Mobile First */
 default: 0-639px
@@ -177,6 +192,7 @@ xl: 1280px+ /* Large desktop */
 ```
 
 ### Common Responsive Patterns
+
 1. **Hide/Show**: Use `hidden sm:block` or `sm:hidden`
 2. **Stack to Grid**: `flex flex-col sm:flex-row`
 3. **Padding Scale**: `p-4 sm:p-6 lg:p-8`
@@ -184,6 +200,7 @@ xl: 1280px+ /* Large desktop */
 5. **Grid Columns**: `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`
 
 ### Mobile Optimizations
+
 - Collapsible sections for complex content
 - Tap-to-reveal for feature details
 - Simplified navigation with drawer
@@ -193,6 +210,7 @@ xl: 1280px+ /* Large desktop */
 ## Interaction States
 
 ### Hover Effects
+
 ```css
 /* Subtle scale on interactive elements */
 hover:scale-105 or group-hover:scale-110
@@ -207,11 +225,13 @@ transition-all duration-300
 ```
 
 ### Active/Selected States
+
 - Primary background with white text
 - Clear visual distinction
 - Consistent across all components
 
 ### Loading States
+
 - Inline spinners for buttons
 - Progress bars for file processing
 - Skeleton states for content loading
@@ -249,6 +269,7 @@ When implementing a new tool or feature:
 ## Future Considerations
 
 ### Ad Integration
+
 - Pre-allocate space to prevent layout shift
 - Design with 1-2 ad slots in mind
 - Never interrupt user workflow
@@ -256,6 +277,7 @@ When implementing a new tool or feature:
 - Lazy load for performance
 
 ### Scalability
+
 - Component patterns that work for 10 or 100 tools
 - Consistent navigation structure
 - Searchable and filterable tool listings

@@ -46,10 +46,14 @@ We're migrating from postMessage to Comlink for cleaner worker communication. He
 
 ```typescript
 // worker.ts
-import * as Comlink from 'comlink';
+import * as Comlink from "comlink";
 
 class MyConverterWorker {
-  async convert(input: Uint8Array, options: any, onProgress?: (p: number) => void) {
+  async convert(
+    input: Uint8Array,
+    options: any,
+    onProgress?: (p: number) => void,
+  ) {
     onProgress?.(10);
     const result = await processData(input, options);
     onProgress?.(100);
@@ -65,9 +69,11 @@ Comlink.expose(MyConverterWorker);
 
 ```typescript
 // main.ts
-import * as Comlink from 'comlink';
+import * as Comlink from "comlink";
 
-const worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
+const worker = new Worker(new URL("./worker.ts", import.meta.url), {
+  type: "module",
+});
 const Converter = Comlink.wrap<typeof MyConverterWorker>(worker);
 const converter = await new Converter();
 
@@ -75,7 +81,7 @@ const converter = await new Converter();
 const result = await converter.convert(
   data,
   options,
-  Comlink.proxy((progress) => setProgress(progress))
+  Comlink.proxy((progress) => setProgress(progress)),
 );
 
 // Clean up when done
@@ -83,6 +89,7 @@ converter[Comlink.releaseProxy]();
 ```
 
 ### Benefits of Comlink
+
 - **No postMessage boilerplate** - Just call methods directly
 - **Full TypeScript support** - IntelliSense works perfectly
 - **Easy progress callbacks** - Use Comlink.proxy()
@@ -92,6 +99,7 @@ converter[Comlink.releaseProxy]();
 ## Architecture Overview
 
 ### Tech Stack
+
 - **Framework**: Astro with React integration
 - **Styling**: Tailwind CSS v4 (using @tailwindcss/vite)
 - **UI Components**: Radix UI primitives
@@ -136,6 +144,7 @@ converter[Comlink.releaseProxy]();
 ```
 
 ### Key Design Decisions
+
 - **WASM for Processing**: All file conversions happen client-side using WebAssembly
 - **Web Workers**: Non-blocking UI during file processing
 - **Privacy-First**: No file uploads, everything processes in-browser
@@ -145,39 +154,45 @@ converter[Comlink.releaseProxy]();
 ## Tool Implementation Status
 
 ### 🚧 Priority Tools Implementation Progress
+
 1. ⚠️ JPG to PDF (300k/mo) - **Basic implementation** - Uses pdf-lib, no advanced features
-3. ✅ PNG to JPG (350k/mo) - via universal image converter
-4. ❌ PDF Merge (250k/mo) - **Not implemented**
-5. ❌ PDF Compress (200k/mo) - **Not implemented**
-6. ✅ Image Resizer (400k/mo)
-7. ✅ Background Remover (300k/mo)
-8. ❌ Word to PDF (380k/mo) - **Not implemented**
-9. ❌ PDF to JPG (180k/mo) - **Not implemented**
-10. ✅ WebP Converter (120k/mo) - via universal image converter
-11. ✅ HEIC to JPG (150k/mo) - via universal image converter
-12. ✅ QR Code Generator (200k/mo)
-13. ✅ Base64 Encoder (100k/mo)
-14. ✅ JSON Formatter (150k/mo)
-15. ❌ PDF Split (180k/mo) - **Not implemented**
+2. ✅ PNG to JPG (350k/mo) - via universal image converter
+3. ❌ PDF Merge (250k/mo) - **Not implemented**
+4. ❌ PDF Compress (200k/mo) - **Not implemented**
+5. ✅ Image Resizer (400k/mo)
+6. ✅ Background Remover (300k/mo)
+7. ❌ Word to PDF (380k/mo) - **Not implemented**
+8. ❌ PDF to JPG (180k/mo) - **Not implemented**
+9. ✅ WebP Converter (120k/mo) - via universal image converter
+10. ✅ HEIC to JPG (150k/mo) - via universal image converter
+11. ✅ QR Code Generator (200k/mo)
+12. ✅ Base64 Encoder (100k/mo)
+13. ✅ JSON Formatter (150k/mo)
+14. ❌ PDF Split (180k/mo) - **Not implemented**
 
 ### ✅ Fully Implemented Tools
+
 - **Image Formats**: Full conversion matrix between PNG, JPG, WebP, GIF, BMP, ICO, TIFF, AVIF, HEIC, SVG
 - **Developer Tools**: QR Generator, Base64 Encoder, JSON Formatter, URL Shortener, Word Counter, Hash Generator, Case Converter
 - **Archive Tools**: ZIP Extract, Create ZIP
 - **Other Tools**: Image Resizer, Background Remover, Text to PDF, RTF Converter, Markdown to HTML
 
 ### 🔴 Major Missing Implementations
+
 **PDF Tools** (High Priority - These drive significant traffic):
+
 - PDF Compress (200k/mo)
 - Word to PDF (380k/mo)
 - Excel to PDF (claimed but not implemented)
 
 **Note**: JPG to PDF tool has basic implementation but could be enhanced with:
+
 - Better image optimization
 - Page size options
 - Multi-page layout options
 
 ## Performance Targets
+
 - First paint: <1.5s
 - Tool ready: <2s
 - Processing: <100ms for images, <2s for PDFs
@@ -185,12 +200,13 @@ converter[Comlink.releaseProxy]();
 - Core Web Vitals: All green
 
 ## WASM Preloading Strategy (Two-Phase Loading)
+
 - **Phase 1 - Prefetch**: Use `<link rel="prefetch">` hints in document head to download WASM files at idle priority
 - **Phase 2 - Instantiation**: Defer WebAssembly instantiation using `requestIdleCallback` after LCP
 - **Smart Loading**: Different strategies based on intent:
   - Generic pages: Use `rel="prefetch"` (won't block critical resources)
   - Tool pages (`/convert/*`): Use `rel="preload"` for faster availability
-- **Implementation**: 
+- **Implementation**:
   - `WasmPrefetch.astro` component adds prefetch hints based on route
   - Instantiation happens via `requestIdleCallback` in the same component
 - **Benefits**:
@@ -199,6 +215,7 @@ converter[Comlink.releaseProxy]();
   - WebAssembly compilation happens when browser is idle
 
 ## Revenue & Ad Strategy
+
 - **Month 1**: No ads - focus on growth and user experience
 - **Month 2+**: Strategic ad integration
   - Target: $5 RPM (vs competitor's $2.80)
@@ -209,6 +226,7 @@ converter[Comlink.releaseProxy]();
   - Lazy load all ads for performance
 
 ## Performance Philosophy
+
 - **Zero animations** or minimal if absolutely necessary
 - **Core Web Vitals are critical** - every decision must consider performance
 - **Speed > aesthetics** - tools must load and run super fast
@@ -216,6 +234,7 @@ converter[Comlink.releaseProxy]();
 - **Instant feedback** - user actions must feel immediate
 
 ## SEO URL Structure
+
 ```
 formatfuse.com/
 ├── convert/[source]-to-[target]    # Primary converters
@@ -225,7 +244,9 @@ formatfuse.com/
 ```
 
 ## References from Old Project
+
 The old FormatFuse project at `/Users/arunavoray/Documents/Development/Studio/formatfuse/formatfuse` contains:
+
 - WASM implementation in Rust (`/wasm/src/`)
 - Worker architecture (`/workers/`)
 - File handling components
@@ -236,13 +257,16 @@ The old FormatFuse project at `/Users/arunavoray/Documents/Development/Studio/fo
 **IMPORTANT**: Every new tool MUST have comprehensive tests before it's considered complete.
 
 ### Test Structure
+
 When implementing a new converter tool, create tests following this structure:
 
 1. **Create test file**: `tests/workers/[tool-name].test.ts`
+
    - Copy from `tests/workers/converter-test-template.ts`
    - Customize for your specific converter
 
 2. **Test categories to implement**:
+
    - **Unit Tests**: Core conversion logic with real files
    - **Worker Integration**: Web Worker communication
    - **Performance Tests**: Conversion speed benchmarks
@@ -250,6 +274,7 @@ When implementing a new converter tool, create tests following this structure:
    - **Edge Cases**: Empty files, corrupted files, large files
 
 3. **Use real test fixtures**:
+
    - Add sample files to `tests/fixtures/[type]/`
    - Never mock file conversions - test with actual files
    - Include edge cases: empty, corrupted, large files
@@ -260,9 +285,11 @@ When implementing a new converter tool, create tests following this structure:
    ```
 
 ### Test Template Location
+
 Use `tests/workers/converter-test-template.ts` as your starting point for all new converter tests.
 
 ### Testing Philosophy
+
 - Test real file conversions, not mocks
 - Ensure tools work with actual user files
 - Performance matters - set reasonable time limits
@@ -271,6 +298,7 @@ Use `tests/workers/converter-test-template.ts` as your starting point for all ne
 ## UI/UX Guidelines
 
 ### Design Principles
+
 - **Clean and Minimal**: Keep interfaces uncluttered and focused on functionality
 - **No Search Metrics**: DO NOT display search counts (like "450k searches", "1M+ searches") in tool cards or anywhere in the UI
 - **Performance First**: Every UI decision must consider performance impact
@@ -279,12 +307,14 @@ Use `tests/workers/converter-test-template.ts` as your starting point for all ne
 ### Component Design Patterns
 
 #### Hero Sections
+
 - Center-aligned text with proper spacing
 - Responsive typography scaling (text-3xl sm:text-4xl lg:text-5xl)
 - Subtle badge elements for feature highlights
 - Mobile-optimized spacing with flex layouts
 
 #### Feature Display Pattern
+
 ```tsx
 // Desktop: Inline cards
 <div className="hidden sm:flex flex-wrap justify-center gap-6 mb-12">
@@ -301,6 +331,7 @@ Use `tests/workers/converter-test-template.ts` as your starting point for all ne
 ```
 
 #### Settings/Configuration Cards
+
 - Card header with gradient: `bg-gradient-to-r from-primary/5 to-transparent`
 - Icon + title in header
 - Organized sections within card body
@@ -308,6 +339,7 @@ Use `tests/workers/converter-test-template.ts` as your starting point for all ne
 - Desktop: Click-to-expand with chevron rotation
 
 #### File Upload Areas
+
 - Large drop zones with dashed borders
 - State-based styling: `isDragging ? 'border-primary bg-primary/10' : 'border-border'`
 - Responsive padding: `p-8 sm:p-12`
@@ -316,21 +348,24 @@ Use `tests/workers/converter-test-template.ts` as your starting point for all ne
 #### Common Component Patterns
 
 1. **FAQ Component**:
+
    ```tsx
    // Desktop: 2-column grid
    <div className="hidden md:grid md:grid-cols-2 gap-6">
-   
+
    // Mobile: Collapsible sections
    <div className="md:hidden space-y-4">
      <CollapsibleSection title={faq.question} defaultOpen={false}>
    ```
 
 2. **Related Tools**:
+
    - Direction prop for layout control per page
    - Consistent styling with hover states
    - Icon + title + description + chevron
 
 3. **Format Selection**:
+
    - Visual buttons with format colors
    - Swap functionality between source/target
    - Mobile: Vertical with labels
@@ -343,18 +378,21 @@ Use `tests/workers/converter-test-template.ts` as your starting point for all ne
    - Mobile: Grid layout for presets
 
 #### Responsive Patterns
+
 - Mobile-first approach
 - Progressive enhancement for larger screens
 - Touch-friendly tap targets (min 44px)
 - Collapsible sections to save space on mobile
 
 #### Spacing & Layout
+
 - Section separation: `mt-12 pt-12 border-t`
 - Card padding: `p-4 sm:p-6`
 - Consistent gaps: `gap-2` for tight, `gap-3` for normal, `gap-4` for loose
 - Mobile margins: Often smaller than desktop
 
 #### Animation & Performance
+
 - NO decorative animations
 - Only functional transitions (hover, active states)
 - Use `transition-all duration-300` for smooth interactions
@@ -365,16 +403,19 @@ Use `tests/workers/converter-test-template.ts` as your starting point for all ne
 ### Reusable UI Components
 
 1. **FAQ Component** (`/src/components/ui/FAQ.tsx`)
+
    - Props: `items: FAQItem[]`, `title?: string`, `className?: string`
    - Responsive: Grid on desktop, collapsible on mobile
    - Usage: Import and pass FAQ items array
 
 2. **RelatedTools Component** (`/src/components/ui/RelatedTools.tsx`)
+
    - Props: `tools: RelatedTool[]`, `title?: string`, `direction?: 'vertical' | 'horizontal' | 'responsive'`
    - Flexible layout based on direction prop
    - Usage: Import and configure per-page layout needs
 
 3. **CollapsibleSection** (`/src/components/ui/mobile/CollapsibleSection.tsx`)
+
    - Mobile-optimized collapsible container
    - Props: `title: string`, `defaultOpen?: boolean`, `children`
    - Usage: Wrap content that should be collapsible on mobile
@@ -387,6 +428,7 @@ Use `tests/workers/converter-test-template.ts` as your starting point for all ne
 ### Design Patterns to Follow
 
 When creating new tools:
+
 1. Copy the structure from Image Converter/Compressor/Resizer
 2. Use the common FAQ and RelatedTools components
 3. Follow the responsive feature display pattern
@@ -398,6 +440,7 @@ When creating new tools:
 ## Git Commit Guidelines
 
 ### Commit Message Strategy
+
 - Use simple, concise commit messages
 - Focus on describing the purpose or impact of the change
 - Avoid mentioning AI or Claude Code in commit messages

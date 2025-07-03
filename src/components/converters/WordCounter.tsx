@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
-import { ToolHeader } from '../ui/ToolHeader';
+import { ToolHeader } from "../ui/ToolHeader";
 import { CodeEditor } from "../ui/code-editor";
 
 interface TextStats {
@@ -113,22 +113,22 @@ export default function WordCounter() {
   const [speakingSpeed, setSpeakingSpeed] = useState(150); // words per minute
   const [activeTab, setActiveTab] = useState<"input" | "output">("input");
   const fileInputRef = React.useRef<HTMLInputElement>(null);
-  
+
   // Theme detection for CodeEditor
   const [theme, setTheme] = useState("github-dark");
   useEffect(() => {
     const checkTheme = () => {
-      const isDark = document.documentElement.classList.contains('dark');
-      setTheme(isDark ? 'github-dark' : 'github-light');
+      const isDark = document.documentElement.classList.contains("dark");
+      setTheme(isDark ? "github-dark" : "github-light");
     };
     checkTheme();
-    
+
     const observer = new MutationObserver(checkTheme);
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['class']
+      attributeFilter: ["class"],
     });
-    
+
     return () => observer.disconnect();
   }, []);
 
@@ -416,7 +416,7 @@ ${text}`;
                 "py-2 px-3 rounded-md text-sm font-medium transition-all duration-300",
                 activeTab === "input"
                   ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               <FileText className="w-4 h-4 inline mr-1" />
@@ -428,7 +428,7 @@ ${text}`;
                 "py-2 px-3 rounded-md text-sm font-medium transition-all duration-300 relative",
                 activeTab === "output"
                   ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               <BarChart3 className="w-4 h-4 inline mr-1" />
@@ -519,10 +519,12 @@ ${text}`;
           {/* Main Grid */}
           <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 min-h-0">
             {/* Input Panel */}
-            <div className={cn(
-              "flex flex-col",
-              activeTab !== "input" && "hidden lg:flex"
-            )}>
+            <div
+              className={cn(
+                "flex flex-col",
+                activeTab !== "input" && "hidden lg:flex",
+              )}
+            >
               <Card className="flex-1 flex flex-col shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
                 <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent pb-4">
                   <CardTitle className="flex items-center justify-between">
@@ -531,11 +533,7 @@ ${text}`;
                       Text Input
                     </span>
                     <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={handlePaste}
-                      >
+                      <Button variant="ghost" size="sm" onClick={handlePaste}>
                         <ClipboardPaste className="w-4 h-4" />
                       </Button>
                       <Button
@@ -563,10 +561,12 @@ ${text}`;
             </div>
 
             {/* Analysis Panel */}
-            <div className={cn(
-              "flex flex-col min-h-0",
-              activeTab !== "output" && "hidden lg:flex"
-            )}>
+            <div
+              className={cn(
+                "flex flex-col min-h-0",
+                activeTab !== "output" && "hidden lg:flex",
+              )}
+            >
               <Card className="flex-1 flex flex-col shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
                 <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent pb-4">
                   <CardTitle className="flex items-center gap-2">
@@ -591,25 +591,33 @@ ${text}`;
                             </span>
                           </div>
                           <div className="flex justify-between p-2 rounded hover:bg-muted/50 transition-colors">
-                            <span className="text-muted-foreground">Characters</span>
+                            <span className="text-muted-foreground">
+                              Characters
+                            </span>
                             <span className="font-medium font-mono">
                               {stats.characters.toLocaleString()}
                             </span>
                           </div>
                           <div className="flex justify-between p-2 rounded hover:bg-muted/50 transition-colors">
-                            <span className="text-muted-foreground">Characters (no spaces)</span>
+                            <span className="text-muted-foreground">
+                              Characters (no spaces)
+                            </span>
                             <span className="font-medium font-mono">
                               {stats.charactersNoSpaces.toLocaleString()}
                             </span>
                           </div>
                           <div className="flex justify-between p-2 rounded hover:bg-muted/50 transition-colors">
-                            <span className="text-muted-foreground">Sentences</span>
+                            <span className="text-muted-foreground">
+                              Sentences
+                            </span>
                             <span className="font-medium font-mono">
                               {stats.sentences}
                             </span>
                           </div>
                           <div className="flex justify-between p-2 rounded hover:bg-muted/50 transition-colors">
-                            <span className="text-muted-foreground">Paragraphs</span>
+                            <span className="text-muted-foreground">
+                              Paragraphs
+                            </span>
                             <span className="font-medium font-mono">
                               {stats.paragraphs}
                             </span>
@@ -627,7 +635,9 @@ ${text}`;
                         </h3>
                         <div className="space-y-2">
                           <div className="flex justify-between p-2 rounded hover:bg-muted/50 transition-colors">
-                            <span className="text-muted-foreground">Reading time</span>
+                            <span className="text-muted-foreground">
+                              Reading time
+                            </span>
                             <span className="font-medium">
                               {stats.readingTime === 0
                                 ? "0"
@@ -638,7 +648,9 @@ ${text}`;
                             </span>
                           </div>
                           <div className="flex justify-between p-2 rounded hover:bg-muted/50 transition-colors">
-                            <span className="text-muted-foreground">Speaking time</span>
+                            <span className="text-muted-foreground">
+                              Speaking time
+                            </span>
                             <span className="font-medium">
                               {stats.speakingTime === 0
                                 ? "0"
@@ -661,20 +673,26 @@ ${text}`;
                         </h3>
                         <div className="space-y-2">
                           <div className="flex justify-between p-2 rounded hover:bg-muted/50 transition-colors">
-                            <span className="text-muted-foreground">Unique words</span>
+                            <span className="text-muted-foreground">
+                              Unique words
+                            </span>
                             <span className="font-medium font-mono">
                               {stats.uniqueWords}
                             </span>
                           </div>
                           <div className="flex justify-between p-2 rounded hover:bg-muted/50 transition-colors">
-                            <span className="text-muted-foreground">Average word length</span>
+                            <span className="text-muted-foreground">
+                              Average word length
+                            </span>
                             <span className="font-medium font-mono">
                               {stats.averageWordLength.toFixed(1)} chars
                             </span>
                           </div>
                           {stats.longestWord && (
                             <div className="flex justify-between items-start p-2 rounded hover:bg-muted/50 transition-colors">
-                              <span className="text-muted-foreground">Longest word</span>
+                              <span className="text-muted-foreground">
+                                Longest word
+                              </span>
                               <span className="font-medium text-right break-all">
                                 {stats.longestWord}
                               </span>
@@ -699,10 +717,15 @@ ${text}`;
                                   className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
                                 >
                                   <span className="flex items-center gap-2">
-                                    <Badge variant="secondary" className="w-6 h-6 p-0 flex items-center justify-center">
+                                    <Badge
+                                      variant="secondary"
+                                      className="w-6 h-6 p-0 flex items-center justify-center"
+                                    >
                                       {index + 1}
                                     </Badge>
-                                    <span className="font-medium">{kw.word}</span>
+                                    <span className="font-medium">
+                                      {kw.word}
+                                    </span>
                                   </span>
                                   <span className="text-sm text-muted-foreground">
                                     {kw.count}× ({kw.density.toFixed(1)}%)

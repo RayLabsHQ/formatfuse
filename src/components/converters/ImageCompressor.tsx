@@ -29,7 +29,7 @@ import { Button } from "../ui/button";
 import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
-import { ToolHeader } from '../ui/ToolHeader';
+import { ToolHeader } from "../ui/ToolHeader";
 import { cn } from "../../lib/utils";
 import { ImageCarouselModal } from "./ImageCarouselModal";
 import JSZip from "jszip";
@@ -379,7 +379,6 @@ export default function ImageCompressor() {
           badge={{ text: "Compress Images Online Free", icon: Minimize2 }}
           features={features}
         />
-
 
         {/* Main Compressor Interface */}
         <div className="space-y-6">

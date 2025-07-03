@@ -20,7 +20,7 @@ import {
 import { Button } from "../ui/button";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
-import { ToolHeader } from '../ui/ToolHeader';
+import { ToolHeader } from "../ui/ToolHeader";
 import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 import { cn } from "../../lib/utils";
 import { Slider } from "../ui/slider";
@@ -133,7 +133,7 @@ export default function PdfCompress() {
   const [isDragging, setIsDragging] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   const { compress, isProcessing, error } = usePdfOperations();
 
   const [options, setOptions] = useState<CompressionOptions>({
@@ -146,7 +146,7 @@ export default function PdfCompress() {
 
   const handleFiles = useCallback((selectedFiles: File[]) => {
     const pdfFiles = selectedFiles.filter(
-      (file) => file.type === "application/pdf"
+      (file) => file.type === "application/pdf",
     );
     const newFiles: FileInfo[] = pdfFiles.map((file) => ({
       file,
@@ -162,7 +162,7 @@ export default function PdfCompress() {
       const selectedFiles = Array.from(e.target.files || []);
       handleFiles(selectedFiles);
     },
-    [handleFiles]
+    [handleFiles],
   );
 
   const handleDrop = useCallback(
@@ -173,7 +173,7 @@ export default function PdfCompress() {
       const droppedFiles = Array.from(e.dataTransfer.files);
       handleFiles(droppedFiles);
     },
-    [handleFiles]
+    [handleFiles],
   );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -213,8 +213,8 @@ export default function PdfCompress() {
     // Update status to processing
     setFiles((prev) =>
       prev.map((f) =>
-        f.status === "pending" ? { ...f, status: "processing" as const } : f
-      )
+        f.status === "pending" ? { ...f, status: "processing" as const } : f,
+      ),
     );
 
     // Process each file
@@ -222,23 +222,32 @@ export default function PdfCompress() {
       const fileInfo = pendingFiles[i];
       try {
         const fileData = new Uint8Array(await fileInfo.file.arrayBuffer());
-        
-        // Call compress function with progress callback
-        const compressed = await compress(fileData, {
-          imageQuality: options.imageQuality,
-          removeMetadata: options.removeMetadata,
-          optimizeImages: options.optimizeImages,
-          grayscale: options.grayscale,
-        }, (progress: number) => {
-          setFiles((prev) =>
-            prev.map((f) =>
-              f.file === fileInfo.file ? { ...f, progress } : f
-            )
-          );
-        });
 
-        const compressedBlob = new Blob([compressed], { type: "application/pdf" });
-        const compressionRatio = ((fileInfo.originalSize - compressedBlob.size) / fileInfo.originalSize) * 100;
+        // Call compress function with progress callback
+        const compressed = await compress(
+          fileData,
+          {
+            imageQuality: options.imageQuality,
+            removeMetadata: options.removeMetadata,
+            optimizeImages: options.optimizeImages,
+            grayscale: options.grayscale,
+          },
+          (progress: number) => {
+            setFiles((prev) =>
+              prev.map((f) =>
+                f.file === fileInfo.file ? { ...f, progress } : f,
+              ),
+            );
+          },
+        );
+
+        const compressedBlob = new Blob([compressed], {
+          type: "application/pdf",
+        });
+        const compressionRatio =
+          ((fileInfo.originalSize - compressedBlob.size) /
+            fileInfo.originalSize) *
+          100;
 
         setFiles((prev) =>
           prev.map((f) =>
@@ -251,8 +260,8 @@ export default function PdfCompress() {
                   compressedSize: compressedBlob.size,
                   compressionRatio,
                 }
-              : f
-          )
+              : f,
+          ),
         );
       } catch (err) {
         setFiles((prev) =>
@@ -263,8 +272,8 @@ export default function PdfCompress() {
                   status: "error" as const,
                   error: "Compression failed",
                 }
-              : f
-          )
+              : f,
+          ),
         );
       }
     }
@@ -280,7 +289,7 @@ export default function PdfCompress() {
 
   const handleDownloadAll = async () => {
     const completedFiles = files.filter(
-      (f) => f.status === "completed" && f.result
+      (f) => f.status === "completed" && f.result,
     );
 
     if (completedFiles.length === 1) {
@@ -319,7 +328,7 @@ export default function PdfCompress() {
   const hasCompleted = completedCount > 0;
   const totalSaved = files.reduce(
     (sum, f) => sum + (f.originalSize - (f.compressedSize || f.originalSize)),
-    0
+    0,
   );
 
   return (
@@ -348,7 +357,9 @@ export default function PdfCompress() {
           {error && (
             <div className="mb-4 px-4 py-3 bg-destructive/10 text-destructive rounded-lg flex items-center gap-2">
               <AlertCircle className="w-4 h-4" />
-              <span className="text-sm">{error.message || 'An error occurred'}</span>
+              <span className="text-sm">
+                {error.message || "An error occurred"}
+              </span>
             </div>
           )}
 
@@ -378,7 +389,7 @@ export default function PdfCompress() {
                         "relative p-4 rounded-xl border-2 transition-all duration-200 text-left",
                         options.quality === preset
                           ? "border-primary bg-primary/10"
-                          : "border-border/50 hover:border-primary/50 bg-card/50"
+                          : "border-border/50 hover:border-primary/50 bg-card/50",
                       )}
                     >
                       <div className="font-medium text-sm">
@@ -419,7 +430,9 @@ export default function PdfCompress() {
 
               {/* Quick Options */}
               <div className="space-y-3">
-                <label className="text-sm font-medium">Optimization Options</label>
+                <label className="text-sm font-medium">
+                  Optimization Options
+                </label>
                 <div className="space-y-2">
                   <label className="flex items-center gap-3 cursor-pointer">
                     <input
@@ -493,7 +506,7 @@ export default function PdfCompress() {
                   <ChevronRight
                     className={cn(
                       "w-4 h-4 ml-auto transition-transform",
-                      showAdvanced && "rotate-90"
+                      showAdvanced && "rotate-90",
                     )}
                   />
                 </button>
@@ -540,7 +553,7 @@ export default function PdfCompress() {
                   "relative p-12 sm:p-16 md:p-20 rounded-2xl border-2 border-dashed transition-all duration-300",
                   isDragging
                     ? "border-primary bg-primary/10 scale-[1.02]"
-                    : "border-border bg-card/50 hover:border-primary hover:bg-card group-hover:scale-[1.01]"
+                    : "border-border bg-card/50 hover:border-primary hover:bg-card group-hover:scale-[1.01]",
                 )}
               >
                 <div className="text-center">
@@ -549,7 +562,7 @@ export default function PdfCompress() {
                       "w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 transition-all duration-300",
                       isDragging
                         ? "text-primary scale-110"
-                        : "text-muted-foreground group-hover:text-primary"
+                        : "text-muted-foreground group-hover:text-primary",
                     )}
                   />
                   <p className="text-lg sm:text-xl font-medium mb-2">
