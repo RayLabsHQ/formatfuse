@@ -193,7 +193,7 @@ export default function RarExtractor() {
       let currentLevel = root;
       let currentPath = "";
 
-      parts.forEach((part, index) => {
+      parts.forEach((part: string, index: number) => {
         currentPath = currentPath ? `${currentPath}/${part}` : part;
         const isLastPart = index === parts.length - 1;
         const isDirectory = entry.path.endsWith("/") || !isLastPart;

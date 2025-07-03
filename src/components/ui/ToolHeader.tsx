@@ -44,7 +44,7 @@ export function ToolHeader({ title, subtitle, badge, className }: ToolHeaderProp
     )}>
       {badge && (
         <Badge
-          className="mb-2 bg-primary/10 text-primary border-primary/20 hover:bg-primary/15"
+          className="mb-4 bg-primary/10 text-primary border-primary/20 hover:bg-primary/15"
           variant="secondary"
         >
           {badge.icon && <badge.icon className="w-3 h-3 mr-1" />}

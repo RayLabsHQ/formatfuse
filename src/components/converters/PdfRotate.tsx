@@ -7,7 +7,6 @@ import {
   AlertCircle,
   Shield,
   Zap,
-  ChevronRight,
   Loader2,
   Info,
   RotateCw,
@@ -245,7 +244,7 @@ export default function PdfRotate() {
 
   return (
     <div className="w-full">
-      <section className="w-full max-w-6xl mx-auto p-4 sm:p-6 lg:p-8">
+      <section className="w-full max-w-6xl mx-auto p-4 sm:p-6 lg:px-8 lg:py-6">
         {/* Header */}
         <ToolHeader
           title={{ main: "Rotate", highlight: "PDF" }}

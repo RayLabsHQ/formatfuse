@@ -1,7 +1,6 @@
 import React, { useState, useRef, useCallback } from "react";
 import {
   Upload,
-  Download,
   X,
   FileArchive,
   Plus,
@@ -262,7 +261,7 @@ export default function CreateArchive() {
 
           // Apply compression if needed
           if (selectedFormat.format === "tar.gz") {
-            archiveData = pako.gzip(archiveData, { level: compressionLevel });
+            archiveData = pako.gzip(archiveData, { level: compressionLevel as 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 });
           }
           break;
         }
