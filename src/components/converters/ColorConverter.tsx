@@ -9,6 +9,7 @@ import { FAQ, type FAQItem } from '../ui/FAQ';
 import { RelatedTools, type RelatedTool } from '../ui/RelatedTools';
 import { ToolHeader } from '../ui/ToolHeader';
 import { cn } from '@/lib/utils';
+import { ToolHeaderWithFeatures } from '../ui/ToolHeaderWithFeatures';
 
 type ColorFormat = 'hex' | 'rgb' | 'hsl' | 'hsv' | 'hwb' | 'lab' | 'lch' | 'oklab' | 'oklch' | 'p3' | 'rec2020' | 'prophoto' | 'a98rgb' | 'xyz' | 'xyz-d50';
 
@@ -113,7 +114,6 @@ export function ColorConverter({ initialColor = '#3B82F6', hideHeader = false }:
   const [inputValue, setInputValue] = useState(initialColor);
   const [colorValues, setColorValues] = useState<ColorValues | null>(null);
   const [previewColor, setPreviewColor] = useState(initialColor);
-  const [activeFeature, setActiveFeature] = useState<number | null>(null);
   const [copiedFormat, setCopiedFormat] = useState<string | null>(null);
   const [detectedFormat, setDetectedFormat] = useState<ColorFormat | null>('hex');
   const [isValidColor, setIsValidColor] = useState(true);
@@ -664,68 +664,14 @@ export function ColorConverter({ initialColor = '#3B82F6', hideHeader = false }:
       </div>
 
       <section className="flex-1 w-full max-w-5xl mx-auto p-0 sm:p-4 md:p-6 lg:px-8 lg:py-6 flex flex-col h-full relative z-10">
-        {/* Header */}
+        {/* Header with Features */}
         {!hideHeader && (
-          <ToolHeader
+          <ToolHeaderWithFeatures
             title={{ highlight: "Color", main: "Converter" }}
             subtitle="Paste any color format and instantly get all conversions"
             badge={{ text: "HEX RGB HSL Color Code Converter", icon: Zap }}
+            features={features}
           />
-        )}
-
-        {/* Features - Desktop */}
-        {!hideHeader && (
-          <div className="hidden sm:flex justify-center gap-8 mb-12 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
-            {features.map((feature, index) => {
-              const Icon = feature.icon;
-              return (
-                <div key={index} className="flex items-center gap-3 group">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <Icon className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-medium">{feature.text}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {feature.description}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Features - Mobile */}
-        {!hideHeader && (
-          <div className="sm:hidden space-y-3 mb-6 px-4" style={{ animationDelay: "0.2s" }}>
-            <div className="flex justify-center gap-4 mb-4">
-              {features.map((feature, index) => {
-                const Icon = feature.icon;
-                return (
-                  <button
-                    key={index}
-                    onClick={() => setActiveFeature(activeFeature === index ? null : index)}
-                    className={cn(
-                      "w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300",
-                      activeFeature === index
-                        ? "bg-primary text-primary-foreground scale-110"
-                        : "bg-primary/10 text-primary hover:scale-105"
-                    )}
-                  >
-                    <Icon className="w-6 h-6" />
-                  </button>
-                );
-              })}
-            </div>
-            {activeFeature !== null && (
-              <div className="bg-muted/50 rounded-lg p-4 animate-fade-in">
-                <p className="font-medium mb-1">{features[activeFeature].text}</p>
-                <p className="text-sm text-muted-foreground">
-                  {features[activeFeature].description}
-                </p>
-              </div>
-            )}
-          </div>
         )}
 
         {/* Main Content - Streamlined Single Panel */}

@@ -5,7 +5,6 @@ import {
   Copy,
   Download,
   AlertCircle,
-  Check,
   Minimize2,
   Maximize2,
   FileJson,
@@ -29,9 +28,8 @@ import {
 } from "../ui/select";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
-import { ToolHeader } from "../ui/ToolHeader";
+import { ToolHeaderWithFeatures } from "../ui/ToolHeaderWithFeatures";
 import { CodeEditor } from "../ui/code-editor";
-import { cn } from "@/lib/utils";
 
 interface JsonError {
   line?: number;
@@ -129,7 +127,6 @@ export default function JsonFormatter() {
   const [error, setError] = useState<JsonError | null>(null);
   const [viewMode, setViewMode] = useState<"formatted" | "minified">("formatted");
   const [activeTab, setActiveTab] = useState<"input" | "output">("input");
-  const [activeFeature, setActiveFeature] = useState<number | null>(null);
   
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   
@@ -288,7 +285,7 @@ export default function JsonFormatter() {
         }
         return (
           Object.keys(obj).length +
-          Object.values(obj).reduce((sum, val) => sum + countKeys(val), 0)
+          Object.values(obj).reduce((sum: number, val) => sum + countKeys(val), 0)
         );
       };
 
@@ -320,72 +317,13 @@ export default function JsonFormatter() {
   return (
     <div className="w-full flex flex-col flex-1 min-h-0">
       <section className="flex-1 w-full max-w-7xl mx-auto p-0 sm:p-4 md:p-6 lg:px-8 lg:py-6 flex flex-col h-full">
-        {/* Header */}
-        <ToolHeader
+        {/* Header with Features */}
+        <ToolHeaderWithFeatures
           title={{ highlight: "JSON", main: "Formatter" }}
           subtitle="Free online JSON formatter and validator with syntax highlighting and auto-fix"
           badge={{ text: "JSON Tool", icon: Code }}
+          features={features}
         />
-
-        {/* Features - Hide on mobile to save space */}
-        <div className="hidden sm:block animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
-          {/* Desktop view */}
-          <div className="hidden sm:flex flex-wrap justify-center gap-6 mb-12">
-            {features.map((feature, index) => {
-              const Icon = feature.icon;
-              return (
-                <div key={index} className="flex items-center gap-3 group">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <Icon className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm">{feature.text}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {feature.description}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Mobile view - Compact icons */}
-          <div className="sm:hidden space-y-3 mb-8">
-            <div className="flex justify-center gap-4">
-              {features.map((feature, index) => {
-                const Icon = feature.icon;
-                return (
-                  <button
-                    key={index}
-                    onClick={() =>
-                      setActiveFeature(activeFeature === index ? null : index)
-                    }
-                    className={cn(
-                      "w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-300",
-                      activeFeature === index
-                        ? "bg-primary text-primary-foreground scale-105"
-                        : "bg-primary/10 hover:bg-primary/20"
-                    )}
-                  >
-                    <Icon className="w-6 h-6" />
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Mobile feature details */}
-            {activeFeature !== null && (
-              <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border/50 p-4 mx-4 animate-in slide-in-from-top-2 duration-300">
-                <p className="font-medium text-sm mb-1">
-                  {features[activeFeature].text}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {features[activeFeature].description}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
 
         {/* Settings Card - Desktop only */}
         <div className="hidden sm:block mb-6">
