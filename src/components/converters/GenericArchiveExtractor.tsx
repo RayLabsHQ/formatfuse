@@ -14,6 +14,7 @@ import {
   ChevronRight,
   ChevronDown,
   Package,
+  type LucideIcon,
 } from "lucide-react";
 import type { ArchiveReader as ArchiveReaderType } from "libarchive-wasm";
 import { Button } from "../ui/button";
@@ -188,7 +189,7 @@ export default function GenericArchiveExtractor({
       let currentLevel = root;
       let currentPath = "";
 
-      parts.forEach((part, index) => {
+      parts.forEach((part: string, index: number) => {
         currentPath = currentPath ? `${currentPath}/${part}` : part;
         const isLastPart = index === parts.length - 1;
         const isDirectory = entry.path.endsWith("/") || !isLastPart;
@@ -423,14 +424,14 @@ export default function GenericArchiveExtractor({
 
   return (
     <div className="min-h-screen w-full">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 lg:py-6 py-8 sm:py-12">
         {/* Hero Section */}
         <ToolHeader
           title={{ highlight: "Extract", main: `${formatName} Archives` }}
           subtitle={formatDescription}
           badge={{
             text: `${formatName} Extractor • Online • Free`,
-            icon: Icon || FileArchive
+            icon: (Icon || FileArchive) as LucideIcon
           }}
         />
 

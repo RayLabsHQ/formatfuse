@@ -1,7 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import GenericArchiveExtractor from '../../components/converters/GenericArchiveExtractor';
-import { FileArchive } from 'lucide-react';
 
 const title = 'Extract BZ2 Files Online - BZIP2 File Decompressor';
 const description = 'Free online BZ2 extractor. Decompress BZIP2 files instantly in your browser. No uploads, 100% privacy, works offline. Supports .bz2 and .tbz2 files.';
@@ -25,26 +24,6 @@ const faqs = [
   }
 ];
 
-const relatedTools = [
-  {
-    id: 'gz-extract',
-    name: 'GZ Extract',
-    description: 'Extract GZIP compressed files',
-    icon: FileArchive
-  },
-  {
-    id: 'xz-extract',
-    name: 'XZ Extract',
-    description: 'Extract XZ compressed files',
-    icon: FileArchive
-  },
-  {
-    id: 'tar-extract',
-    name: 'TAR Extract',
-    description: 'Extract TAR archives',
-    icon: FileArchive
-  }
-];
 ---
 
 <Layout title={title} description={description} toolType="archive">
@@ -55,6 +34,6 @@ const relatedTools = [
     formatDescription="Decompress BZIP2 files with high compression ratios without uploading. Fast, secure, and runs entirely in your browser."
     acceptedExtensions=".bz2,.tbz2,.tbz"
     faqs={faqs}
-    relatedTools={relatedTools}
+    
   />
 </Layout>

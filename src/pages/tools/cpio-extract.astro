@@ -1,7 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import GenericArchiveExtractor from '../../components/converters/GenericArchiveExtractor';
-import { FileArchive } from 'lucide-react';
 
 const title = 'Extract CPIO Files Online - CPIO Archive Extractor';
 const description = 'Free online CPIO extractor. Extract Unix CPIO archives and initramfs files instantly in your browser. No uploads, 100% privacy, works offline.';
@@ -25,26 +24,6 @@ const faqs = [
   }
 ];
 
-const relatedTools = [
-  {
-    id: 'tar-extract',
-    name: 'TAR Extract',
-    description: 'Extract TAR archives',
-    icon: FileArchive
-  },
-  {
-    id: 'ar-extract',
-    name: 'AR Extract',
-    description: 'Extract Unix AR archives',
-    icon: FileArchive
-  },
-  {
-    id: 'gz-extract',
-    name: 'GZ Extract',
-    description: 'Extract GZIP compressed files',
-    icon: FileArchive
-  }
-];
 ---
 
 <Layout title={title} description={description} toolType="archive">
@@ -55,6 +34,6 @@ const relatedTools = [
     formatDescription="Extract Unix CPIO archives without uploading. Fast, secure, and runs entirely in your browser."
     acceptedExtensions=".cpio,.cpgz"
     faqs={faqs}
-    relatedTools={relatedTools}
+    
   />
 </Layout>

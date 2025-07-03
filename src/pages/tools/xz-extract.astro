@@ -1,7 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import GenericArchiveExtractor from '../../components/converters/GenericArchiveExtractor';
-import { FileArchive } from 'lucide-react';
 
 const title = 'Extract XZ Files Online - XZ Compressed File Extractor';
 const description = 'Free online XZ extractor. Decompress XZ files instantly in your browser. No uploads, 100% privacy, works offline. Supports .xz and .txz files.';
@@ -25,26 +24,6 @@ const faqs = [
   }
 ];
 
-const relatedTools = [
-  {
-    id: 'gz-extract',
-    name: 'GZ Extract',
-    description: 'Extract GZIP compressed files',
-    icon: FileArchive
-  },
-  {
-    id: 'bz2-extract',
-    name: 'BZ2 Extract',
-    description: 'Extract BZIP2 compressed files',
-    icon: FileArchive
-  },
-  {
-    id: 'tar-extract',
-    name: 'TAR Extract',
-    description: 'Extract TAR archives',
-    icon: FileArchive
-  }
-];
 ---
 
 <Layout title={title} description={description} toolType="archive">
@@ -55,6 +34,6 @@ const relatedTools = [
     formatDescription="Decompress XZ files with high compression ratios without uploading. Fast, secure, and runs entirely in your browser."
     acceptedExtensions=".xz,.txz"
     faqs={faqs}
-    relatedTools={relatedTools}
+    
   />
 </Layout>

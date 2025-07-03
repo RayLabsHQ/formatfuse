@@ -1,7 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import GenericArchiveExtractor from '../../components/converters/GenericArchiveExtractor';
-import { FileArchive } from 'lucide-react';
 
 const title = 'Extract AR Files Online - Unix Archive Extractor';
 const description = 'Free online AR extractor. Extract Unix AR archives and Debian packages instantly in your browser. No uploads, 100% privacy, works offline.';
@@ -25,26 +24,6 @@ const faqs = [
   }
 ];
 
-const relatedTools = [
-  {
-    id: 'tar-extract',
-    name: 'TAR Extract',
-    description: 'Extract TAR archives',
-    icon: FileArchive
-  },
-  {
-    id: 'gz-extract',
-    name: 'GZ Extract',
-    description: 'Extract GZIP compressed files',
-    icon: FileArchive
-  },
-  {
-    id: 'zip-extract',
-    name: 'ZIP Extract',
-    description: 'Extract ZIP compressed files',
-    icon: FileArchive
-  }
-];
 ---
 
 <Layout title={title} description={description} toolType="archive">
@@ -55,6 +34,6 @@ const relatedTools = [
     formatDescription="Extract Unix AR archives and Debian packages without uploading. Fast, secure, and runs entirely in your browser."
     acceptedExtensions=".ar,.a,.deb"
     faqs={faqs}
-    relatedTools={relatedTools}
+    
   />
 </Layout>
