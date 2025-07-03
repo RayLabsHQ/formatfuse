@@ -213,7 +213,7 @@ export default function TarExtract() {
       // Decompress if needed
       if (fileName.endsWith(".gz") || fileName.endsWith(".tgz")) {
         try {
-          data = pako.ungzip(new Uint8Array(data)).buffer;
+          data = pako.ungzip(new Uint8Array(data)).buffer as ArrayBuffer;
         } catch (err) {
           throw new Error("Failed to decompress gzip archive");
         }
@@ -534,7 +534,7 @@ export default function TarExtract() {
 
   return (
     <div className="min-h-screen w-full">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 lg:py-6 py-8 sm:py-12">
         {/* Hero Section */}
         <ToolHeader
           title={{ highlight: "Extract", main: "TAR Files" }}
