@@ -343,7 +343,20 @@ export default function JpgToPdf() {
 
   return (
     <div className="w-full">
-      <section className="w-full max-w-6xl mx-auto p-4 sm:p-6 lg:px-8 lg:py-6">
+      {/* PDF-themed Gradient Effects - Hidden on mobile */}
+      <div className="hidden sm:block fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.02] via-transparent to-accent/[0.02]" />
+        <div 
+          className="absolute top-40 right-20 w-80 h-80 rounded-full blur-3xl opacity-10"
+          style={{ background: "radial-gradient(circle, var(--tool-pdf), transparent)" }}
+        />
+        <div 
+          className="absolute bottom-20 left-1/4 w-96 h-96 rounded-full blur-3xl opacity-5"
+          style={{ background: "radial-gradient(circle, var(--tool-jpg), transparent)" }}
+        />
+      </div>
+
+      <section className="w-full max-w-6xl mx-auto p-4 sm:p-6 lg:px-8 lg:py-6 relative z-10">
         {/* Header */}
         <ToolHeader
           title={{ main: "JPG to", highlight: "PDF" }}

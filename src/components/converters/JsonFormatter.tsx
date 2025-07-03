@@ -324,7 +324,13 @@ export default function JsonFormatter() {
 
   return (
     <div className="w-full flex flex-col flex-1 min-h-0">
-      <section className="flex-1 w-full max-w-7xl mx-auto p-0 sm:p-4 md:p-6 lg:px-8 lg:py-6 flex flex-col h-full">
+      {/* Subtle Code-themed Gradient Blobs - Hidden on mobile */}
+      <div className="hidden sm:block fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-32 left-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl animate-blob" />
+        <div className="absolute bottom-20 right-20 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-blob animation-delay-4000" />
+      </div>
+
+      <section className="flex-1 w-full max-w-7xl mx-auto p-0 sm:p-4 md:p-6 lg:px-8 lg:py-6 flex flex-col h-full relative z-10">
         {/* Header with Features */}
         <ToolHeader
           title={{ highlight: "JSON", main: "Formatter" }}

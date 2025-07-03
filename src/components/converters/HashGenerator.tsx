@@ -391,7 +391,14 @@ export default function HashGenerator() {
 
   return (
     <div className="w-full flex flex-col flex-1 min-h-0">
-      <section className="flex-1 w-full max-w-7xl mx-auto p-0 sm:p-4 md:p-6 lg:px-8 lg:py-6 flex flex-col h-full">
+      {/* Security-themed Gradient Blobs - Hidden on mobile */}
+      <div className="hidden sm:block fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 right-1/4 w-72 h-72 bg-primary/15 rounded-full blur-3xl animate-blob" />
+        <div className="absolute bottom-10 left-10 w-80 h-80 bg-primary/8 rounded-full blur-3xl animate-blob animation-delay-2000" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
+      </div>
+
+      <section className="flex-1 w-full max-w-7xl mx-auto p-0 sm:p-4 md:p-6 lg:px-8 lg:py-6 flex flex-col h-full relative z-10">
         {/* Header */}
         <ToolHeader
           title={{ highlight: "Hash", main: "Generator" }}

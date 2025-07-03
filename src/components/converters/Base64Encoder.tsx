@@ -377,7 +377,13 @@ export default function Base64Encoder() {
 
   return (
     <div className="w-full flex flex-col flex-1 min-h-0">
-      <section className="flex-1 w-full max-w-7xl mx-auto p-0 sm:p-4 md:p-6 lg:px-8 lg:py-6 flex flex-col h-full">
+      {/* Developer-themed Gradient Blobs - Hidden on mobile */}
+      <div className="hidden sm:block fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-40 left-1/4 w-80 h-80 bg-primary/8 rounded-full blur-3xl" />
+        <div className="absolute bottom-32 right-1/3 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
+      </div>
+
+      <section className="flex-1 w-full max-w-7xl mx-auto p-0 sm:p-4 md:p-6 lg:px-8 lg:py-6 flex flex-col h-full relative z-10">
         {/* Header */}
         <ToolHeader
           title={{ highlight: "Base64", main: "Encoder & Decoder" }}

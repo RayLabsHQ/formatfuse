@@ -295,7 +295,17 @@ export default function PdfMerge() {
 
   return (
     <div className="w-full">
-      <section className="w-full max-w-6xl mx-auto p-4 sm:p-6 lg:px-8 lg:py-6">
+      {/* Merge-themed Gradient Effects - Hidden on mobile */}
+      <div className="hidden sm:block fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.02] via-transparent to-accent/[0.02]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary/8 rounded-full blur-3xl animate-blob" />
+        <div 
+          className="absolute bottom-20 right-1/4 w-72 h-72 rounded-full blur-3xl opacity-5"
+          style={{ background: "radial-gradient(circle, var(--tool-pdf), transparent)" }}
+        />
+      </div>
+
+      <section className="w-full max-w-6xl mx-auto p-4 sm:p-6 lg:px-8 lg:py-6 relative z-10">
         {/* Header */}
         <ToolHeader
           title={{ main: "PDF", highlight: "Merge" }}
