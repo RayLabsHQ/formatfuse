@@ -31,7 +31,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
-import { ToolHeader } from "../ui/ToolHeader";
+import { ToolHeaderWithFeatures } from "../ui/ToolHeaderWithFeatures";
 
 interface QrTemplate {
   id: string;
@@ -410,7 +410,6 @@ export default function QrCodeGenerator() {
     lightColor: "#ffffff",
     errorCorrectionLevel: "M",
   });
-  const [activeFeature, setActiveFeature] = useState<number | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   // Generate QR code
@@ -602,62 +601,13 @@ export default function QrCodeGenerator() {
 
       <section className="flex-1 w-full max-w-7xl mx-auto p-0 sm:p-4 md:p-6 lg:px-8 lg:py-6 flex flex-col h-full relative z-10">
         {/* Header */}
-        <ToolHeader
+        <ToolHeaderWithFeatures
           title={{ highlight: "QR Code", main: "Generator" }}
           subtitle="Create customizable QR codes instantly. Perfect for URLs, WiFi, contacts, and more."
           badge={{ text: "Free QR Code Maker Online", icon: Zap }}
+          features={features}
         />
 
-        {/* Features - Desktop */}
-        <div className="hidden sm:flex justify-center gap-8 mb-12 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
-          {features.map((feature, index) => {
-            const Icon = feature.icon;
-            return (
-              <div key={index} className="flex items-center gap-3 group">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  <Icon className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <p className="font-medium">{feature.text}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {feature.description}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Features - Mobile */}
-        <div className="sm:hidden space-y-3 mb-6 px-4" style={{ animationDelay: "0.2s" }}>
-          <div className="flex justify-center gap-4 mb-4">
-            {features.map((feature, index) => {
-              const Icon = feature.icon;
-              return (
-                <button
-                  key={index}
-                  onClick={() => setActiveFeature(activeFeature === index ? null : index)}
-                  className={cn(
-                    "w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300",
-                    activeFeature === index
-                      ? "bg-primary text-primary-foreground scale-110"
-                      : "bg-primary/10 text-primary hover:scale-105"
-                  )}
-                >
-                  <Icon className="w-6 h-6" />
-                </button>
-              );
-            })}
-          </div>
-          {activeFeature !== null && (
-            <div className="bg-muted/50 rounded-lg p-4 animate-fade-in">
-              <p className="font-medium mb-1">{features[activeFeature].text}</p>
-              <p className="text-sm text-muted-foreground">
-                {features[activeFeature].description}
-              </p>
-            </div>
-          )}
-        </div>
 
         {/* Main Content - Side by Side on Desktop */}
         <div className="flex-1 flex flex-col lg:flex-row gap-4 sm:gap-6 px-4 sm:px-0 min-h-0">

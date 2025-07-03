@@ -29,7 +29,7 @@ import { Button } from "../ui/button";
 import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
-import { ToolHeader } from "../ui/ToolHeader";
+import { ToolHeaderWithFeatures } from "../ui/ToolHeaderWithFeatures";
 import { cn } from "../../lib/utils";
 import { ImageCarouselModal } from "./ImageCarouselModal";
 import JSZip from "jszip";
@@ -145,7 +145,6 @@ export default function ImageCompressor() {
   const [selectedFormat, setSelectedFormat] = useState(FORMATS.JPEG);
   const [maintainFormat, setMaintainFormat] = useState(true);
   const [quality, setQuality] = useState(85);
-  const [activeFeature, setActiveFeature] = useState<number | null>(null);
   const [maxWidth, setMaxWidth] = useState<number | undefined>(undefined);
   const [maxHeight, setMaxHeight] = useState<number | undefined>(undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -372,73 +371,15 @@ export default function ImageCompressor() {
 
   return (
     <div className="min-h-screen w-full">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 lg:py-6 py-6 sm:py-12">
         {/* Hero Section */}
-        <ToolHeader
+        <ToolHeaderWithFeatures
           title={{ highlight: "Image", main: "Compressor" }}
           subtitle="Reduce image file sizes by up to 90% while maintaining visual quality. Compress JPG, PNG, WebP, and AVIF images instantly in your browser."
           badge={{ text: "Compress Images Online Free", icon: Minimize2 }}
+          features={features}
         />
 
-        {/* Features - Responsive (Same as ImageConverter) */}
-        <div className="animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
-          {/* Desktop view */}
-          <div className="hidden sm:flex flex-wrap justify-center gap-6 mb-12">
-            {features.map((feature, index) => {
-              const Icon = feature.icon;
-              return (
-                <div key={index} className="flex items-center gap-3 group">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <Icon className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm">{feature.text}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {feature.description}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Mobile view - Compact icons */}
-          <div className="sm:hidden space-y-3 mb-8">
-            <div className="flex justify-center gap-4">
-              {features.map((feature, index) => {
-                const Icon = feature.icon;
-                return (
-                  <button
-                    key={index}
-                    onClick={() =>
-                      setActiveFeature(activeFeature === index ? null : index)
-                    }
-                    className={cn(
-                      "w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-300",
-                      activeFeature === index
-                        ? "bg-primary text-primary-foreground scale-105"
-                        : "bg-primary/10 hover:bg-primary/20",
-                    )}
-                  >
-                    <Icon className="w-6 h-6" />
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Mobile feature details */}
-            {activeFeature !== null && (
-              <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border/50 p-4 mx-4 animate-in slide-in-from-top-2 duration-300">
-                <p className="font-medium text-sm mb-1">
-                  {features[activeFeature].text}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {features[activeFeature].description}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
 
         {/* Main Compressor Interface */}
         <div className="space-y-6">

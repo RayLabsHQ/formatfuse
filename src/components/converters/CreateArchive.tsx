@@ -20,7 +20,7 @@ import JSZip from "jszip";
 import * as pako from "pako";
 import Tar from "tar-js";
 import { Button } from "../ui/button";
-import { ToolHeader } from "../ui/ToolHeader";
+import { ToolHeaderWithFeatures } from "../ui/ToolHeaderWithFeatures";
 import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
@@ -133,7 +133,6 @@ export default function CreateArchive() {
   const [archiveName, setArchiveName] = useState("archive");
   const [selectedFormat, setSelectedFormat] = useState<FormatOption>(formatOptions[0]);
   const [compressionLevel, setCompressionLevel] = useState(6);
-  const [activeFeature, setActiveFeature] = useState<number | null>(null);
   const [editingPath, setEditingPath] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -308,74 +307,16 @@ export default function CreateArchive() {
   return (
     <div className="min-h-screen w-full">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 lg:py-6 py-8 sm:py-12">
-        {/* Hero Section */}
-        <ToolHeader
+        {/* Hero Section with Features */}
+        <ToolHeaderWithFeatures
           title={{ highlight: "Create", main: "Archive Files" }}
           subtitle="Create ZIP, TAR, or TAR.GZ archives from multiple files right in your browser. No uploads required, 100% private."
           badge={{
             text: "Online Archive Creator • Free • No Upload",
             icon: FileArchive
           }}
+          features={features}
         />
-
-        {/* Features */}
-        <div className="animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
-          {/* Desktop view */}
-          <div className="hidden sm:flex flex-wrap justify-center gap-6 mb-12">
-            {features.map((feature, index) => {
-              const Icon = feature.icon;
-              return (
-                <div key={index} className="flex items-center gap-3 group">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <Icon className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm">{feature.text}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {feature.description}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Mobile view */}
-          <div className="sm:hidden space-y-3 mb-8">
-            <div className="flex justify-center gap-4">
-              {features.map((feature, index) => {
-                const Icon = feature.icon;
-                return (
-                  <button
-                    key={index}
-                    onClick={() =>
-                      setActiveFeature(activeFeature === index ? null : index)
-                    }
-                    className={cn(
-                      "w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-300",
-                      activeFeature === index
-                        ? "bg-primary text-primary-foreground scale-105"
-                        : "bg-primary/10 hover:bg-primary/20",
-                    )}
-                  >
-                    <Icon className="w-6 h-6" />
-                  </button>
-                );
-              })}
-            </div>
-
-            {activeFeature !== null && (
-              <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border/50 p-4 mx-4 animate-in slide-in-from-top-2 duration-300">
-                <p className="font-medium text-sm mb-1">
-                  {features[activeFeature].text}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {features[activeFeature].description}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
 
         {/* Main Interface */}
         <div className="space-y-6">

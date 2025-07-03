@@ -27,7 +27,7 @@ import { SimplifiedFileList } from "./SimplifiedFileList";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
-import { ToolHeader } from "../ui/ToolHeader";
+import { ToolHeaderWithFeatures } from "../ui/ToolHeaderWithFeatures";
 import { cn } from "../../lib/utils";
 import { Slider } from "../ui/slider";
 import { Button } from "../ui/button";
@@ -181,7 +181,6 @@ export default function ImageResizer() {
     useImageResize();
   const [files, setFiles] = useState<FileInfo[]>([]);
   const [isDragging, setIsDragging] = useState(false);
-  const [activeFeature, setActiveFeature] = useState<number | null>(null);
   const [options, setOptions] = useState<ResizeOptions>({
     width: 1920,
     height: 1080,
@@ -396,71 +395,13 @@ export default function ImageResizer() {
     <div className="w-full">
       <section className="w-full max-w-6xl mx-auto p-4 sm:p-6 lg:px-8 lg:py-6">
         {/* Header */}
-        <ToolHeader
+        <ToolHeaderWithFeatures
           title={{ highlight: "Image", main: "Resizer" }}
           subtitle="Resize images to exact dimensions with batch processing support. Choose from presets or set custom sizes with advanced resampling methods."
           badge={{ text: "Resize Images Online Free", icon: Maximize2 }}
+          features={features}
         />
 
-        {/* Features - Responsive */}
-        <div className="animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
-          {/* Desktop view */}
-          <div className="hidden sm:flex flex-wrap justify-center gap-6 mb-12">
-            {features.map((feature, index) => {
-              const Icon = feature.icon;
-              return (
-                <div key={index} className="flex items-center gap-3 group">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <Icon className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm">{feature.text}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {feature.description}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Mobile view - Compact icons */}
-          <div className="sm:hidden space-y-3 mb-8">
-            <div className="flex justify-center gap-4">
-              {features.map((feature, index) => {
-                const Icon = feature.icon;
-                return (
-                  <button
-                    key={index}
-                    onClick={() =>
-                      setActiveFeature(activeFeature === index ? null : index)
-                    }
-                    className={cn(
-                      "w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-300",
-                      activeFeature === index
-                        ? "bg-primary text-primary-foreground scale-105"
-                        : "bg-primary/10 hover:bg-primary/20",
-                    )}
-                  >
-                    <Icon className="w-6 h-6" />
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Mobile feature details */}
-            {activeFeature !== null && (
-              <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border/50 p-4 mx-4 animate-in slide-in-from-top-2 duration-300">
-                <p className="font-medium text-sm mb-1">
-                  {features[activeFeature].text}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {features[activeFeature].description}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
 
         {/* Main Resizer Interface */}
         <div className="space-y-6">

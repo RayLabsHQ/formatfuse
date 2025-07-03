@@ -33,7 +33,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
-import { ToolHeader } from "../ui/ToolHeader";
+import { ToolHeaderWithFeatures } from "../ui/ToolHeaderWithFeatures";
 import {
   Select,
   SelectContent,
@@ -150,7 +150,6 @@ export function TextDiffChecker() {
   const [ignoreCase, setIgnoreCase] = useState(false);
   const [ignoreWhitespace, setIgnoreWhitespace] = useState(false);
   const [activeTab, setActiveTab] = useState<"input" | "output">("input");
-  const [activeFeature, setActiveFeature] = useState<number | null>(null);
   const [theme, setTheme] = useState("github-dark");
 
   // Theme detection for CodeEditor
@@ -542,64 +541,12 @@ export function TextDiffChecker() {
     <div className="w-full flex flex-col flex-1 min-h-0">
       <section className="flex-1 w-full max-w-7xl mx-auto p-0 sm:p-4 md:p-6 lg:px-8 lg:py-6 flex flex-col h-full">
         {/* Header */}
-        <ToolHeader
+        <ToolHeaderWithFeatures
           title={{ highlight: "Text Diff", main: "Checker" }}
           subtitle="Free online text diff tool - Compare files and find differences instantly"
           badge={{ text: "Code Comparison", icon: GitBranch }}
+          features={features}
         />
-
-        {/* Features - Desktop */}
-        <div className="hidden sm:block animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
-          <div className="hidden sm:flex flex-wrap justify-center gap-6 mb-12">
-            {features.map((feature, index) => {
-              const Icon = feature.icon;
-              return (
-                <div key={index} className="flex items-center gap-3 group">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <Icon className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-medium">{feature.text}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {feature.description}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Features - Mobile */}
-        <div className="sm:hidden space-y-3 mb-8 px-4" style={{ animationDelay: "0.2s" }}>
-          <div className="flex justify-center gap-4 mb-4">
-            {features.map((feature, index) => {
-              const Icon = feature.icon;
-              return (
-                <button
-                  key={index}
-                  onClick={() => setActiveFeature(activeFeature === index ? null : index)}
-                  className={cn(
-                    "w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300",
-                    activeFeature === index
-                      ? "bg-primary text-primary-foreground scale-110"
-                      : "bg-primary/10 text-primary hover:scale-105"
-                  )}
-                >
-                  <Icon className="w-6 h-6" />
-                </button>
-              );
-            })}
-          </div>
-          {activeFeature !== null && (
-            <div className="bg-muted/50 rounded-lg p-4 animate-fade-in">
-              <p className="font-medium mb-1">{features[activeFeature].text}</p>
-              <p className="text-sm text-muted-foreground">
-                {features[activeFeature].description}
-              </p>
-            </div>
-          )}
-        </div>
 
         {/* Mobile Tabs */}
         <div className="sm:hidden mb-4 px-4">

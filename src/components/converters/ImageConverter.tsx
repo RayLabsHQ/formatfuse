@@ -25,11 +25,10 @@ import {
 import { getHeicImageConverter } from "../../lib/heic-image-converter";
 import { Slider } from "../ui/slider";
 import { Button } from "../ui/button";
-import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { FormatSelect } from "../ui/format-select";
-import { ToolHeader } from "../ui/ToolHeader";
+import { ToolHeaderWithFeatures } from "../ui/ToolHeaderWithFeatures";
 import { cn } from "../../lib/utils";
 import { ImageCarouselModal } from "./ImageCarouselModal";
 import JSZip from "jszip";
@@ -160,7 +159,6 @@ export default function ImageConverter({
   const [showCarousel, setShowCarousel] = useState(false);
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [isLossless, setIsLossless] = useState(true);
-  const [activeFeature, setActiveFeature] = useState<number | null>(null);
   const [qualityInput, setQualityInput] = useState("100");
   const parentRef = useRef<HTMLDivElement>(null);
 
@@ -518,7 +516,7 @@ export default function ImageConverter({
 
         <div className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8 lg:py-6">
           {/* Header with Badge */}
-          <ToolHeader
+          <ToolHeaderWithFeatures
             title={
               <span>
                 Convert{" "}
@@ -533,70 +531,9 @@ export default function ImageConverter({
             }
             subtitle="Fast, secure image conversion right in your browser. No uploads, no servers, no limits."
             badge={{ text: "Convert Images Online Free", icon: Zap }}
+            features={features}
           />
 
-          {/* Features - Responsive */}
-          <div
-            className="animate-fade-in-up"
-            style={{ animationDelay: "0.2s" }}
-          >
-            {/* Desktop view */}
-            <div className="hidden sm:flex flex-wrap justify-center gap-6 mb-12">
-              {features.map((feature, index) => {
-                const Icon = feature.icon;
-                return (
-                  <div key={index} className="flex items-center gap-3 group">
-                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                      <Icon className="w-5 h-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">{feature.text}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {feature.description}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Mobile view - Compact icons */}
-            <div className="sm:hidden space-y-3 mb-8">
-              <div className="flex justify-center gap-4">
-                {features.map((feature, index) => {
-                  const Icon = feature.icon;
-                  return (
-                    <button
-                      key={index}
-                      onClick={() =>
-                        setActiveFeature(activeFeature === index ? null : index)
-                      }
-                      className={cn(
-                        "w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-300",
-                        activeFeature === index
-                          ? "bg-primary text-primary-foreground scale-105"
-                          : "bg-primary/10 hover:bg-primary/20",
-                      )}
-                    >
-                      <Icon className="w-6 h-6" />
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Mobile feature details */}
-              {activeFeature !== null && (
-                <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border/50 p-4 mx-4 animate-in slide-in-from-top-2 duration-300">
-                  <p className="font-medium text-sm mb-1">
-                    {features[activeFeature].text}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {features[activeFeature].description}
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
 
           {/* Main Converter Interface */}
           <div className="space-y-6">

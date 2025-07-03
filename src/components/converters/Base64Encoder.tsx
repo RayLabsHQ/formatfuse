@@ -21,8 +21,7 @@ import { Switch } from "../ui/switch";
 import { CodeEditor } from "../ui/code-editor";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
-import { ToolHeader } from "../ui/ToolHeader";
-import { cn } from "@/lib/utils";
+import { ToolHeaderWithFeatures } from "../ui/ToolHeaderWithFeatures";
 
 type Mode = "encode" | "decode";
 type InputType = "text" | "file";
@@ -107,7 +106,6 @@ export default function Base64Encoder() {
   const [error, setError] = useState<string | null>(null);
   const [urlSafe, setUrlSafe] = useState(false);
   const [activeTab, setActiveTab] = useState<"input" | "output">("input");
-  const [activeFeature, setActiveFeature] = useState<number | null>(null);
   
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   
@@ -361,33 +359,13 @@ export default function Base64Encoder() {
     <div className="w-full flex flex-col flex-1 min-h-0">
       <section className="flex-1 w-full max-w-7xl mx-auto p-0 sm:p-4 md:p-6 lg:px-8 lg:py-6 flex flex-col h-full">
         {/* Header */}
-        <ToolHeader
+        <ToolHeaderWithFeatures
           title={{ highlight: "Base64", main: "Encoder & Decoder" }}
           subtitle="Free online Base64 encoder and decoder with file support and URL-safe encoding"
           badge={{ text: "Developer Tool", icon: Binary }}
+          features={features}
         />
 
-        {/* Features - Hide on mobile to save space */}
-        <div className="hidden sm:block animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
-          <div className="hidden sm:flex flex-wrap justify-center gap-6 mb-12">
-            {features.map((feature, index) => {
-              const Icon = feature.icon;
-              return (
-                <div key={index} className="flex items-center gap-3 group">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <Icon className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm">{feature.text}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {feature.description}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
 
         {/* Settings Card - Desktop only */}
         <div className="hidden sm:block mb-6">
