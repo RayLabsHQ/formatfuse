@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { Badge } from "./badge";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -28,8 +28,6 @@ export function ToolHeader({
   className,
 }: ToolHeaderProps) {
   const [activeFeature, setActiveFeature] = useState<number | null>(null);
-  const [maxWidth, setMaxWidth] = useState<number | null>(null);
-  const featureRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   // Parse title - can be string, object with highlight, or React node
   const renderTitle = () => {
@@ -56,25 +54,6 @@ export function ToolHeader({
     return null;
   };
 
-  // Calculate max width of feature items
-  useEffect(() => {
-    if (!features || features.length === 0) return;
-
-    // Reset max width to allow natural sizing
-    setMaxWidth(null);
-
-    // Use requestAnimationFrame to ensure DOM has updated
-    requestAnimationFrame(() => {
-      const widths = featureRefs.current
-        .filter((ref) => ref !== null)
-        .map((ref) => ref!.getBoundingClientRect().width);
-
-      if (widths.length > 0) {
-        const max = Math.max(...widths);
-        setMaxWidth(Math.ceil(max)); // Ceil to avoid fractional pixels
-      }
-    });
-  }, [features]);
 
   return (
     <div className={cn("space-y-4 sm:space-y-6", className)}>
@@ -117,17 +96,13 @@ export function ToolHeader({
               return (
                 <div
                   key={index}
-                  ref={(el) => {
-                    featureRefs.current[index] = el;
-                  }}
-                  className="flex items-center gap-3 group"
-                  style={{ width: maxWidth ? `${maxWidth}px` : "auto" }}
+                  className="flex items-center gap-3 group flex-1 max-w-[200px]"
                 >
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
                     <Icon className="w-5 h-5 text-primary" />
                   </div>
-                  <div className="min-w-0">
-                    <p className="font-medium text-sm whitespace-nowrap">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-sm">
                       {feature.text}
                     </p>
                     <p className="text-xs text-muted-foreground">
