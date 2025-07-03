@@ -31,6 +31,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
+import { ToolHeader } from "../ui/ToolHeader";
 
 interface QrTemplate {
   id: string;
@@ -601,24 +602,11 @@ export default function QrCodeGenerator() {
 
       <section className="flex-1 w-full max-w-7xl mx-auto p-0 sm:p-4 md:p-6 lg:p-8 flex flex-col h-full relative z-10">
         {/* Header */}
-        <div className="text-center mb-4 sm:mb-6 md:mb-8 space-y-2 sm:space-y-3 px-4 sm:px-0 pt-4 sm:pt-0">
-          <Badge
-            className="mb-2 bg-primary/10 text-primary border-primary/20 hover:bg-primary/15"
-            variant="secondary"
-          >
-            <Zap className="w-3 h-3 mr-1" />
-            Fast QR Generation
-          </Badge>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold animate-fade-in">
-            <span className="text-primary">QR Code</span> Generator
-          </h1>
-          <p
-            className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in-up"
-            style={{ animationDelay: "0.1s" }}
-          >
-            Create customizable QR codes instantly. Perfect for URLs, WiFi, contacts, and more.
-          </p>
-        </div>
+        <ToolHeader
+          title={{ highlight: "QR Code", main: "Generator" }}
+          subtitle="Create customizable QR codes instantly. Perfect for URLs, WiFi, contacts, and more."
+          badge={{ text: "Fast QR Generation", icon: Zap }}
+        />
 
         {/* Features - Desktop */}
         <div className="hidden sm:flex justify-center gap-8 mb-12 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>

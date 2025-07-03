@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Copy, Palette, Check, Zap, Shield, Sparkles, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import Color from 'colorjs.io';
 import { FAQ, type FAQItem } from '../ui/FAQ';
 import { RelatedTools, type RelatedTool } from '../ui/RelatedTools';
+import { ToolHeader } from '../ui/ToolHeader';
 import { cn } from '@/lib/utils';
 
 type ColorFormat = 'hex' | 'rgb' | 'hsl' | 'hsv' | 'hwb' | 'lab' | 'lch' | 'oklab' | 'oklch' | 'p3' | 'rec2020' | 'prophoto' | 'a98rgb' | 'xyz' | 'xyz-d50';
@@ -69,12 +68,6 @@ const faqs: FAQItem[] = [
   },
 ];
 
-const formatGroups = {
-  common: ['hex', 'rgb', 'hsl', 'hsv'],
-  perceptual: ['lab', 'lch', 'oklab', 'oklch'],
-  wideGamut: ['p3', 'rec2020', 'prophoto', 'a98rgb'],
-  technical: ['hwb', 'xyz', 'xyz-d50'],
-};
 
 interface ColorValues {
   hex: string;
@@ -661,27 +654,6 @@ export function ColorConverter({ initialColor = '#3B82F6', hideHeader = false }:
     return labels[format] || format.toUpperCase();
   };
 
-  const getPlaceholder = (format: ColorFormat): string => {
-    switch (format) {
-      case 'hex': return '#3B82F6 or 3B82F6';
-      case 'rgb': return '59, 130, 246 or rgb(59, 130, 246)';
-      case 'hsl': return '217, 91%, 60% or hsl(217, 91%, 60%)';
-      case 'hsv': return '217, 76%, 96% or hsv(217, 76%, 96%)';
-      case 'hwb': return '217 24% 4% or hwb(217 24% 4%)';
-      case 'lab': return '54.3 48.6 -36.5 or lab(54.3 48.6 -36.5)';
-      case 'lch': return '54.3 60.6 323.1 or lch(54.3 60.6 323.1)';
-      case 'oklab': return '0.623 0.076 -0.115 or oklab(0.623 0.076 -0.115)';
-      case 'oklch': return '0.623 0.138 303.5 or oklch(0.623 0.138 303.5)';
-      case 'p3': return '0.329 0.510 0.965 or color(display-p3 0.329 0.510 0.965)';
-      case 'rec2020': return '0.270 0.467 0.916 or color(rec2020 0.270 0.467 0.916)';
-      case 'prophoto': return '0.362 0.468 0.827 or color(prophoto-rgb 0.362 0.468 0.827)';
-      case 'a98rgb': return '0.379 0.509 0.929 or color(a98-rgb 0.379 0.509 0.929)';
-      case 'xyz': return '0.1804 0.1838 0.7552 or color(xyz 0.1804 0.1838 0.7552)';
-      case 'xyz-d50': return '0.1656 0.1771 0.5707 or color(xyz-d50 0.1656 0.1771 0.5707)';
-      default: return '';
-    }
-  };
-
   return (
     <div className="w-full flex flex-col flex-1 min-h-0">
       {/* Gradient Blobs - Hidden on mobile */}
@@ -694,24 +666,11 @@ export function ColorConverter({ initialColor = '#3B82F6', hideHeader = false }:
       <section className="flex-1 w-full max-w-5xl mx-auto p-0 sm:p-4 md:p-6 lg:p-8 flex flex-col h-full relative z-10">
         {/* Header */}
         {!hideHeader && (
-          <div className="text-center mb-4 sm:mb-6 md:mb-8 space-y-2 sm:space-y-3 px-4 sm:px-0 pt-4 sm:pt-0">
-            <Badge
-              className="mb-2 bg-primary/10 text-primary border-primary/20 hover:bg-primary/15"
-              variant="secondary"
-            >
-              <Zap className="w-3 h-3 mr-1" />
-              Professional Color Tools
-            </Badge>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold animate-fade-in">
-              <span className="text-primary">Color</span> Converter
-            </h1>
-            <p
-              className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in-up"
-              style={{ animationDelay: "0.1s" }}
-            >
-              Paste any color format and instantly get all conversions
-            </p>
-          </div>
+          <ToolHeader
+            title={{ highlight: "Color", main: "Converter" }}
+            subtitle="Paste any color format and instantly get all conversions"
+            badge={{ text: "Professional Color Tools", icon: Zap }}
+          />
         )}
 
         {/* Features - Desktop */}
