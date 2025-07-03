@@ -1,5 +1,5 @@
 ---
-import { Shield, Sparkles, ExternalLink } from 'lucide-react';
+import { Shield, Sparkles } from 'lucide-react';
 
 const currentYear = new Date().getFullYear();
 
@@ -42,11 +42,11 @@ const features = [
   <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     {/* Main footer content */}
     <div class="py-12 border-t border-border/50">
-      <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-8 lg:gap-12">
+      <div class="flex flex-col lg:flex-row gap-12 lg:gap-16">
         {/* Brand section */}
-        <div class="md:col-span-3 lg:col-span-2">
+        <div class="lg:w-1/3 lg:pr-8">
           <h3 class="font-bold text-2xl mb-4">FormatFuse</h3>
-          <p class="text-sm text-muted-foreground mb-6 leading-relaxed max-w-sm">
+          <p class="text-sm text-muted-foreground mb-6 leading-relaxed">
             Professional file conversion tools that work instantly in your browser. 
             No uploads, no servers, no limits. Everything stays on your device.
           </p>
@@ -65,72 +65,77 @@ const features = [
           </div>
         </div>
 
-        {/* PDF Tools */}
-        <div>
-          <h4 class="font-semibold mb-4 text-sm">PDF Tools</h4>
-          <ul class="space-y-2">
-            {footerTools.pdf.map((link) => (
-              <li>
-                <a 
-                  href={link.href} 
-                  class="text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
-                  {link.name}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
+        {/* Tools Grid - Right Aligned */}
+        <div class="flex-1">
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12 lg:justify-items-end">
+            {/* PDF Tools */}
+            <div>
+              <h4 class="font-semibold mb-4 text-sm">PDF Tools</h4>
+              <ul class="space-y-2">
+                {footerTools.pdf.map((link) => (
+                  <li>
+                    <a 
+                      href={link.href} 
+                      class="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      {link.name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-        {/* Image Tools */}
-        <div>
-          <h4 class="font-semibold mb-4 text-sm">Image Tools</h4>
-          <ul class="space-y-2">
-            {footerTools.image.map((link) => (
-              <li>
-                <a 
-                  href={link.href} 
-                  class="text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
-                  {link.name}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
+            {/* Image Tools */}
+            <div>
+              <h4 class="font-semibold mb-4 text-sm">Image Tools</h4>
+              <ul class="space-y-2">
+                {footerTools.image.map((link) => (
+                  <li>
+                    <a 
+                      href={link.href} 
+                      class="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      {link.name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-        {/* Developer Tools */}
-        <div>
-          <h4 class="font-semibold mb-4 text-sm">Developer Tools</h4>
-          <ul class="space-y-2">
-            {footerTools.developer.map((link) => (
-              <li>
-                <a 
-                  href={link.href} 
-                  class="text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
-                  {link.name}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
+            {/* Developer Tools */}
+            <div>
+              <h4 class="font-semibold mb-4 text-sm">Developer Tools</h4>
+              <ul class="space-y-2">
+                {footerTools.developer.map((link) => (
+                  <li>
+                    <a 
+                      href={link.href} 
+                      class="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      {link.name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-        {/* Archive Tools */}
-        <div>
-          <h4 class="font-semibold mb-4 text-sm">Archive Tools</h4>
-          <ul class="space-y-2">
-            {footerTools.archive.map((link) => (
-              <li>
-                <a 
-                  href={link.href} 
-                  class="text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
-                  {link.name}
-                </a>
-              </li>
-            ))}
-          </ul>
+            {/* Archive Tools */}
+            <div>
+              <h4 class="font-semibold mb-4 text-sm">Archive Tools</h4>
+              <ul class="space-y-2">
+                {footerTools.archive.map((link) => (
+                  <li>
+                    <a 
+                      href={link.href} 
+                      class="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      {link.name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -157,11 +162,6 @@ const features = [
           <a href="/terms" class="text-sm text-muted-foreground hover:text-primary transition-colors">
             Terms
           </a>
-        </div>
-        
-        <div class="flex items-center gap-2 text-xs text-muted-foreground">
-          <Shield className="w-4 h-4" />
-          <span>Your files never leave your device</span>
         </div>
       </div>
     </div>
