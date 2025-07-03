@@ -29,6 +29,7 @@ import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { FormatSelect } from "../ui/format-select";
+import { ToolHeader } from "../ui/ToolHeader";
 import { cn } from "../../lib/utils";
 import { ImageCarouselModal } from "./ImageCarouselModal";
 import JSZip from "jszip";
@@ -517,33 +518,22 @@ export default function ImageConverter({
 
         <div className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
           {/* Header with Badge */}
-          <div className="text-center mb-8 space-y-4">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card/80 backdrop-blur-sm border border-border/50 text-sm animate-fade-in">
-              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-              <span className="text-muted-foreground">
-                WebAssembly Powered Conversion
+          <ToolHeader
+            title={
+              <span>
+                Convert{" "}
+                <span style={{ color: selectedSourceFormat?.color }}>
+                  {selectedSourceFormat?.displayName}
+                </span>
+                {" to "}
+                <span style={{ color: selectedTargetFormat?.color }}>
+                  {selectedTargetFormat?.displayName}
+                </span>
               </span>
-            </div>
-
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold animate-fade-in-up">
-              <span className="text-foreground">Convert </span>
-              <span style={{ color: selectedSourceFormat?.color }}>
-                {selectedSourceFormat?.displayName}
-              </span>
-              <span className="text-foreground"> to </span>
-              <span style={{ color: selectedTargetFormat?.color }}>
-                {selectedTargetFormat?.displayName}
-              </span>
-            </h1>
-
-            <p
-              className="text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in-up"
-              style={{ animationDelay: "0.1s" }}
-            >
-              Fast, secure image conversion right in your browser. No uploads,
-              no servers, no limits.
-            </p>
-          </div>
+            }
+            subtitle="Fast, secure image conversion right in your browser. No uploads, no servers, no limits."
+            badge={{ text: "WebAssembly Powered Conversion", icon: Zap }}
+          />
 
           {/* Features - Responsive */}
           <div

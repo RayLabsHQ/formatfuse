@@ -4,7 +4,7 @@ import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ToolHeaderProps {
-  title: string | { highlight?: string; main: string };
+  title: string | { highlight?: string; main: string } | React.ReactNode;
   subtitle?: string;
   badge?: {
     text: string;
@@ -14,19 +14,27 @@ interface ToolHeaderProps {
 }
 
 export function ToolHeader({ title, subtitle, badge, className }: ToolHeaderProps) {
-  // Parse title - can be string or object with highlight
+  // Parse title - can be string, object with highlight, or React node
   const renderTitle = () => {
     if (typeof title === 'string') {
       return <>{title}</>;
     }
     
-    return (
-      <>
-        {title.highlight && <span className="text-primary">{title.highlight}</span>}
-        {title.highlight && ' '}
-        {title.main}
-      </>
-    );
+    if (React.isValidElement(title)) {
+      return title;
+    }
+    
+    if (typeof title === 'object' && 'main' in title) {
+      return (
+        <>
+          {title.highlight && <span className="text-primary">{title.highlight}</span>}
+          {title.highlight && ' '}
+          {title.main}
+        </>
+      );
+    }
+    
+    return null;
   };
 
   return (
