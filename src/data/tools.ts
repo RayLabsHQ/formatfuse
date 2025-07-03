@@ -20,6 +20,7 @@ import {
   Shield,
   GitBranch,
   Package,
+  Palette,
 } from "lucide-react";
 
 export interface Tool {
@@ -47,7 +48,6 @@ export const universalTools: Tool[] = [
     description:
       "Convert between PNG, JPG, WebP, GIF, BMP, ICO, TIFF, AVIF, HEIC and more",
     icon: Image,
-    searches: "1M+",
     isPopular: true,
     isImplemented: true,
     category: "image",
@@ -59,7 +59,6 @@ export const universalTools: Tool[] = [
     description:
       "Compress JPG, WebP, and AVIF images while maintaining quality",
     icon: FileDown,
-    searches: "500k",
     isPopular: true,
     isImplemented: true,
     category: "image",
@@ -71,7 +70,6 @@ export const universalTools: Tool[] = [
     description:
       "Resize images to exact dimensions with bulk processing support",
     icon: Image,
-    searches: "400k",
     isPopular: true,
     isImplemented: true,
     category: "image",
@@ -117,7 +115,6 @@ for (const from of imageFormats) {
         ? `Compress and optimize ${fromName} images`
         : `Convert ${fromName} images to ${toName} format`,
       icon: Image,
-      searches: getSearchVolume(from, to),
       isPopular: isPopularConversion(from, to),
       isImplemented: true, // All image conversions are implemented
       category: "image",
@@ -127,31 +124,6 @@ for (const from of imageFormats) {
 }
 
 // Helper functions
-function getSearchVolume(from: string, to: string): string {
-  const popularConversions: Record<string, string> = {
-    "png-to-jpg": "350k",
-    "jpg-to-png": "280k",
-    "jpg-to-pdf": "300k",
-    "webp-to-png": "150k",
-    "webp-to-jpg": "120k",
-    "heic-to-jpg": "180k",
-    "heic-to-png": "120k",
-    "heic-to-webp": "50k",
-    "gif-to-mp4": "100k",
-    "png-to-webp": "100k",
-    "jpg-to-webp": "90k",
-    "bmp-to-jpg": "80k",
-    "tiff-to-jpg": "70k",
-    "jpg-to-jpg": "200k", // compression
-    "webp-to-webp": "50k", // compression
-    "avif-to-jpg": "40k",
-    "avif-to-png": "30k",
-  };
-
-  const key = `${from}-to-${to}`;
-  return popularConversions[key] || "20k";
-}
-
 function isPopularConversion(from: string, to: string): boolean {
   const popular = [
     "png-to-jpg",
@@ -173,7 +145,6 @@ const pdfToolsAll: Tool[] = [
     name: "Merge PDF",
     description: "Combine multiple PDFs into one document",
     icon: Layers,
-    searches: "250k",
     isImplemented: true,
     category: "pdf",
     route: "/convert/pdf-merge",
@@ -183,7 +154,6 @@ const pdfToolsAll: Tool[] = [
     name: "Compress PDF",
     description: "Reduce PDF file size without losing quality",
     icon: FileDown,
-    searches: "200k",
     isImplemented: true,
     category: "pdf",
     route: "/convert/pdf-compress",
@@ -193,7 +163,6 @@ const pdfToolsAll: Tool[] = [
     name: "Split PDF",
     description: "Extract pages or split PDF into multiple files",
     icon: Scissors,
-    searches: "180k",
     isImplemented: true,
     category: "pdf",
     route: "/convert/pdf-split",
@@ -203,7 +172,6 @@ const pdfToolsAll: Tool[] = [
     name: "JPG to PDF",
     description: "Convert images to PDF documents",
     icon: Image,
-    searches: "300k",
     isPopular: true,
     isImplemented: true,
     category: "pdf",
@@ -214,7 +182,6 @@ const pdfToolsAll: Tool[] = [
     name: "Word to PDF",
     description: "Convert Word documents to PDF format",
     icon: Type,
-    searches: "380k",
     isPopular: true,
     isImplemented: false, // TODO: Not implemented
     category: "pdf",
@@ -225,7 +192,6 @@ const pdfToolsAll: Tool[] = [
     name: "PDF to JPG",
     description: "Extract images from PDF pages",
     icon: Image,
-    searches: "180k",
     isImplemented: true,
     category: "pdf",
     route: "/convert/pdf-to-jpg",
@@ -235,7 +201,6 @@ const pdfToolsAll: Tool[] = [
     name: "Excel to PDF",
     description: "Convert spreadsheets to PDF format",
     icon: FileSpreadsheet,
-    searches: "150k",
     isImplemented: false, // TODO: Not implemented
     category: "pdf",
     route: "/convert/excel-to-pdf",
@@ -245,7 +210,6 @@ const pdfToolsAll: Tool[] = [
     name: "Rotate PDF",
     description: "Rotate PDF pages to correct orientation",
     icon: FileText,
-    searches: "120k",
     isImplemented: true,
     category: "pdf",
     route: "/convert/pdf-rotate",
@@ -259,7 +223,6 @@ const devToolsAll: Tool[] = [
     name: "JSON Formatter",
     description: "Beautify, minify and validate JSON data with error detection",
     icon: Braces,
-    searches: "150k",
     isImplemented: true,
     category: "dev",
     route: "/tools/json-formatter",
@@ -269,7 +232,6 @@ const devToolsAll: Tool[] = [
     name: "Base64 Encode/Decode",
     description: "Encode and decode Base64 strings with file support",
     icon: Hash,
-    searches: "100k",
     isImplemented: true,
     category: "dev",
     route: "/tools/base64-encoder",
@@ -280,7 +242,6 @@ const devToolsAll: Tool[] = [
     description:
       "Create QR codes for URLs, WiFi, contacts, and more with custom styling",
     icon: QrCode,
-    searches: "200k",
     isPopular: true,
     isImplemented: true,
     category: "dev",
@@ -291,7 +252,6 @@ const devToolsAll: Tool[] = [
     name: "URL Shortener",
     description: "Create short links for long URLs",
     icon: Globe,
-    searches: "150k",
     isImplemented: false, // TODO: Not implemented
     category: "dev",
     route: "/tools/url-shorten",
@@ -301,7 +261,6 @@ const devToolsAll: Tool[] = [
     name: "Word Counter",
     description: "Count words, characters, and paragraphs",
     icon: Type,
-    searches: "120k",
     isImplemented: true,
     category: "dev",
     route: "/tools/word-counter",
@@ -312,7 +271,6 @@ const devToolsAll: Tool[] = [
     description:
       "Generate MD5, SHA-1, SHA-256, SHA-512 hashes for text and files",
     icon: Hash,
-    searches: "80k",
     isImplemented: true,
     category: "dev",
     route: "/tools/hash-generator",
@@ -323,7 +281,6 @@ const devToolsAll: Tool[] = [
     name: "Case Converter",
     description: "Convert text between case formats with smart detection",
     icon: Type,
-    searches: "90k",
     isImplemented: true,
     category: "dev",
     route: "/tools/case-converter",
@@ -334,7 +291,6 @@ const devToolsAll: Tool[] = [
     description:
       "Convert between JSON and YAML formats with syntax highlighting",
     icon: ArrowLeftRight,
-    searches: "200k",
     isImplemented: true,
     isNew: true,
     isPopular: true,
@@ -347,7 +303,6 @@ const devToolsAll: Tool[] = [
     description:
       "Generate UUIDs (v1, v3, v4, v5) in various formats with bulk generation",
     icon: Hash,
-    searches: "150k",
     isImplemented: true,
     isNew: true,
     category: "dev",
@@ -359,7 +314,6 @@ const devToolsAll: Tool[] = [
     description:
       "Generate secure passwords with customizable length, characters, and strength",
     icon: Lock,
-    searches: "200k",
     isImplemented: true,
     isNew: true,
     isPopular: true,
@@ -372,7 +326,6 @@ const devToolsAll: Tool[] = [
     description:
       "Decode and inspect JSON Web Tokens without sending them to a server",
     icon: Shield,
-    searches: "180k",
     isImplemented: true,
     isNew: true,
     isPopular: true,
@@ -385,11 +338,21 @@ const devToolsAll: Tool[] = [
     description:
       "Compare two texts and visualize differences with multiple view modes",
     icon: GitBranch,
-    searches: "150k",
     isImplemented: true,
     isNew: true,
     category: "dev",
     route: "/tools/text-diff-checker",
+  },
+  {
+    id: "color-converter",
+    name: "Color Converter",
+    description:
+      "Convert colors between HEX, RGB, HSL, HSV, CMYK, and LAB formats",
+    icon: Palette,
+    isImplemented: true,
+    isNew: true,
+    category: "dev",
+    route: "/tools/color-converter",
   },
 ];
 
@@ -400,7 +363,6 @@ const documentToolsAll: Tool[] = [
     name: "Text to PDF",
     description: "Convert plain text files to PDF",
     icon: FileText,
-    searches: "100k",
     isImplemented: false, // TODO: Not implemented
     category: "document",
     route: "/convert/txt-to-pdf",
@@ -410,7 +372,6 @@ const documentToolsAll: Tool[] = [
     name: "RTF Converter",
     description: "Convert Rich Text Format files",
     icon: FileText,
-    searches: "80k",
     isImplemented: false, // TODO: Not implemented
     category: "document",
     route: "/tools/rtf-converter",
@@ -420,7 +381,6 @@ const documentToolsAll: Tool[] = [
     name: "Markdown to HTML",
     description: "Convert Markdown to HTML format",
     icon: Code,
-    searches: "90k",
     isImplemented: false, // TODO: Not implemented
     category: "document",
     route: "/tools/markdown-to-html",
@@ -430,7 +390,6 @@ const documentToolsAll: Tool[] = [
     name: "Markdown to PDF",
     description: "Convert Markdown to PDF with live preview",
     icon: Code,
-    searches: "110k",
     isPopular: true,
     isImplemented: true,
     category: "document",
@@ -445,7 +404,6 @@ const archiveToolsAll: Tool[] = [
     name: "Create Archive",
     description: "Create ZIP, TAR, or TAR.GZ archives from multiple files",
     icon: FileArchive,
-    searches: "250k",
     isNew: true,
     isPopular: true,
     isImplemented: true,
@@ -457,7 +415,6 @@ const archiveToolsAll: Tool[] = [
     name: "Universal Extractor",
     description: "Extract any archive format: ZIP, 7Z, RAR, TAR, and more",
     icon: FileArchive,
-    searches: "200k",
     isNew: true,
     isPopular: true,
     isImplemented: true,
@@ -469,7 +426,6 @@ const archiveToolsAll: Tool[] = [
     name: "Create ZIP",
     description: "Compress files into ZIP archive",
     icon: FileArchive,
-    searches: "120k",
     isImplemented: true,
     category: "archive",
     route: "/tools/create-zip",
@@ -479,7 +435,6 @@ const archiveToolsAll: Tool[] = [
     name: "Create TAR",
     description: "Create TAR archives with optional compression",
     icon: Package,
-    searches: "60k",
     isNew: true,
     isImplemented: true,
     category: "archive",
@@ -490,7 +445,6 @@ const archiveToolsAll: Tool[] = [
     name: "Extract ZIP",
     description: "Extract files from ZIP archives",
     icon: FileArchive,
-    searches: "150k",
     isNew: true,
     isImplemented: true,
     category: "archive",
@@ -501,7 +455,6 @@ const archiveToolsAll: Tool[] = [
     name: "Extract 7-Zip",
     description: "Extract 7Z archives with high compression",
     icon: FileArchive,
-    searches: "100k",
     isNew: true,
     isPopular: true,
     isImplemented: true,
@@ -513,7 +466,6 @@ const archiveToolsAll: Tool[] = [
     name: "Extract RAR",
     description: "Extract RAR v4 and v5 archives",
     icon: FileArchive,
-    searches: "90k",
     isNew: true,
     isImplemented: true,
     category: "archive",
@@ -524,7 +476,6 @@ const archiveToolsAll: Tool[] = [
     name: "Extract TAR",
     description: "Extract TAR, TAR.GZ, and TAR.BZ2 archives",
     icon: Package,
-    searches: "80k",
     isNew: true,
     isImplemented: true,
     category: "archive",
@@ -535,7 +486,6 @@ const archiveToolsAll: Tool[] = [
     name: "Extract ISO",
     description: "Extract ISO disk image files",
     icon: FileArchive,
-    searches: "70k",
     isNew: true,
     isImplemented: true,
     category: "archive",
@@ -546,7 +496,6 @@ const archiveToolsAll: Tool[] = [
     name: "Extract CAB",
     description: "Extract Microsoft Cabinet (CAB) files",
     icon: FileArchive,
-    searches: "40k",
     isNew: true,
     isImplemented: true,
     category: "archive",
@@ -557,7 +506,6 @@ const archiveToolsAll: Tool[] = [
     name: "Extract AR",
     description: "Extract AR archives (Debian packages)",
     icon: FileArchive,
-    searches: "30k",
     isNew: true,
     isImplemented: true,
     category: "archive",
@@ -568,7 +516,6 @@ const archiveToolsAll: Tool[] = [
     name: "Extract CPIO",
     description: "Extract CPIO archives",
     icon: FileArchive,
-    searches: "25k",
     isNew: true,
     isImplemented: true,
     category: "archive",
@@ -579,7 +526,6 @@ const archiveToolsAll: Tool[] = [
     name: "Extract XZ",
     description: "Extract XZ compressed files",
     icon: FileArchive,
-    searches: "35k",
     isNew: true,
     isImplemented: true,
     category: "archive",
@@ -590,7 +536,6 @@ const archiveToolsAll: Tool[] = [
     name: "Extract LZMA",
     description: "Extract LZMA compressed files",
     icon: FileArchive,
-    searches: "20k",
     isNew: true,
     isImplemented: true,
     category: "archive",
@@ -601,7 +546,6 @@ const archiveToolsAll: Tool[] = [
     name: "Extract GZ",
     description: "Extract GZIP compressed files",
     icon: FileArchive,
-    searches: "50k",
     isNew: true,
     isImplemented: true,
     category: "archive",
@@ -612,7 +556,6 @@ const archiveToolsAll: Tool[] = [
     name: "Extract BZ2",
     description: "Extract BZIP2 compressed files",
     icon: FileArchive,
-    searches: "30k",
     isNew: true,
     isImplemented: true,
     category: "archive",
@@ -627,7 +570,6 @@ const otherImageToolsAll: Tool[] = [
     name: "Remove Background",
     description: "Remove background from images automatically",
     icon: Image,
-    searches: "300k",
     isPopular: true,
     isImplemented: false, // TODO: Not implemented
     category: "image",
@@ -639,7 +581,6 @@ const otherImageToolsAll: Tool[] = [
     description:
       "Convert SVG vector graphics to PNG, JPEG, WebP, or AVIF formats",
     icon: Image,
-    searches: "250k",
     isPopular: true,
     isImplemented: true,
     category: "image",

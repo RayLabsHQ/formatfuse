@@ -1,0 +1,78 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import { ColorConverter } from '@/components/converters/ColorConverter';
+import { FAQ } from '@/components/ui/FAQ.tsx';
+import { RelatedTools } from '@/components/ui/RelatedTools.tsx';
+import { Image, QrCode, Hash } from 'lucide-react';
+
+const title = 'Color Converter - HEX, RGB, HSL, LAB, P3, and More';
+const description = 'Convert colors between 15+ formats including HEX, RGB, HSL, HSV, HWB, LAB, LCH, OKLab, OKLCH, Display P3, Rec. 2020, ProPhoto RGB, Adobe RGB, and XYZ. Powered by Color.js for accurate conversions.';
+
+const faqs: FAQItem[] = [
+  {
+    question: 'What color formats are supported?',
+    answer: 'Our color converter supports 15 color formats including HEX, RGB, HSL, HSV, HWB, LAB, LCH, OKLab, OKLCH, Display P3, Rec. 2020, ProPhoto RGB, Adobe RGB (1998), XYZ (D65), and XYZ (D50). You can convert between any of these formats instantly using the Color.js library.',
+  },
+  {
+    question: 'How do I input colors?',
+    answer: 'You can input colors in various ways. For simple formats like HEX (#3B82F6), RGB (59, 130, 246), or HSL (217, 91%, 60%), just enter the values. For advanced formats, you can use CSS Color 4 syntax like color(display-p3 0.329 0.510 0.965) or the simplified coordinate format.',
+  },
+  {
+    question: 'What are OKLab and OKLCH?',
+    answer: 'OKLab and OKLCH are perceptually uniform color spaces designed to improve upon LAB/LCH. They provide more accurate color differences and better hue linearity, making them ideal for color manipulation and gradients.',
+  },
+  {
+    question: 'What is Display P3?',
+    answer: 'Display P3 is a wide-gamut color space developed by Apple that can represent about 25% more colors than sRGB. It\'s commonly used in modern displays and is part of the CSS Color 4 specification.',
+  },
+  {
+    question: 'Why use different color spaces?',
+    answer: 'Different color spaces serve different purposes. sRGB is standard for web, Display P3 and Rec. 2020 offer wider gamuts for modern displays, LAB/LCH are perceptually uniform for color manipulation, and ProPhoto RGB is used in professional photography for its extremely wide gamut.',
+  },
+  {
+    question: 'What is the difference between XYZ D65 and D50?',
+    answer: 'XYZ color spaces use different white point references. D65 represents average daylight and is used for displays, while D50 represents horizon light and is standard in printing and graphic arts. The converter handles the chromatic adaptation automatically.',
+  },
+];
+
+const relatedTools: RelatedTool[] = [
+  {
+    id: 'image-converter',
+    name: 'Image Converter',
+    description: 'Convert between image formats',
+    icon: Image,
+  },
+  {
+    id: 'qr-generator',
+    name: 'QR Code Generator',
+    description: 'Create QR codes with custom colors',
+    icon: QrCode,
+  },
+  {
+    id: 'hash-generator',
+    name: 'Hash Generator',
+    description: 'Generate cryptographic hashes',
+    icon: Hash,
+  },
+];
+---
+
+<Layout title={title} description={description}>
+  <div class="min-h-screen py-12 px-4">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-8">
+        <h1 class="text-3xl sm:text-4xl font-bold mb-4">{title}</h1>
+        <p class="text-muted-foreground text-lg">
+          Convert between HEX, RGB, HSL, HSV, CMYK, and LAB color formats instantly
+        </p>
+      </div>
+
+      <ColorConverter client:load />
+
+      <div class="mt-12 space-y-12">
+        <FAQ items={faqs} />
+        <RelatedTools tools={relatedTools} direction="horizontal" />
+      </div>
+    </div>
+  </div>
+</Layout>

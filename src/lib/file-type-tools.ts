@@ -88,7 +88,6 @@ export const fileTypeToTools: Record<string, ToolOption[]> = {
       name: "JPG to WebP",
       description: "Modern web format",
       icon: Image,
-      searches: "120k",
     },
   ],
 
@@ -130,7 +129,6 @@ export const fileTypeToTools: Record<string, ToolOption[]> = {
       name: "PNG to WebP",
       description: "Modern web format",
       icon: Image,
-      searches: "120k",
     },
   ],
 
@@ -140,14 +138,12 @@ export const fileTypeToTools: Record<string, ToolOption[]> = {
       name: "WebP to JPG",
       description: "Convert to JPG",
       icon: Image,
-      searches: "120k",
     },
     {
       id: "webp-to-png",
       name: "WebP to PNG",
       description: "Convert to PNG",
       icon: Image,
-      searches: "120k",
     },
     {
       id: "image-resize",
