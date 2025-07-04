@@ -39,15 +39,32 @@ export function ToolHeader({
     }
 
     if (typeof title === "object" && title && "main" in title) {
-      return (
-        <>
-          {title.highlight && (
-            <span className="text-primary">{title.highlight}</span>
-          )}
-          {title.highlight && " "}
-          {title.main}
-        </>
-      );
+      // For conversion tools (e.g., "JPG to PDF"), main comes first
+      // For other tools (e.g., "Image Resizer"), highlight comes first
+      const isConversionTool = title.main.includes(" to");
+      
+      if (isConversionTool) {
+        return (
+          <>
+            {title.main}
+            {title.highlight && " "}
+            {title.highlight && (
+              <span className="text-primary">{title.highlight}</span>
+            )}
+          </>
+        );
+      } else {
+        // For non-conversion tools, check if highlight should come first
+        return (
+          <>
+            {title.highlight && (
+              <span className="text-primary">{title.highlight}</span>
+            )}
+            {title.highlight && " "}
+            {title.main}
+          </>
+        );
+      }
     }
 
     return null;
