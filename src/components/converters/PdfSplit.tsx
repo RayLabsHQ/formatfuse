@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useRef } from "react";
 import {
-  Upload,
   Download,
   FileText,
   Settings2,
@@ -8,7 +7,6 @@ import {
   Shield,
   Zap,
   Loader2,
-  Info,
   Scissors,
   CheckCircle2,
   FileOutput,
@@ -21,6 +19,7 @@ import { Button } from "../ui/button";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { ToolHeader } from "../ui/ToolHeader";
+import { FileDropZone } from "../ui/FileDropZone";
 import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 import { cn } from "../../lib/utils";
 import { usePdfOperations } from "../../hooks/usePdfOperations";
@@ -168,8 +167,9 @@ export default function PdfSplit() {
     customRanges: "",
   });
 
-  const handleFileSelect = useCallback(
-    async (selectedFile: File) => {
+  const handleFilesSelected = useCallback(
+    async (files: File[]) => {
+      const selectedFile = files[0];
       if (!selectedFile || selectedFile.type !== "application/pdf") return;
 
       setFile(selectedFile);
@@ -191,50 +191,6 @@ export default function PdfSplit() {
     [getPageCount],
   );
 
-  const handleFileChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const selectedFile = e.target.files?.[0];
-      if (selectedFile) {
-        handleFileSelect(selectedFile);
-      }
-    },
-    [handleFileSelect],
-  );
-
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setIsDragging(false);
-      const droppedFile = e.dataTransfer.files[0];
-      if (droppedFile) {
-        handleFileSelect(droppedFile);
-      }
-    },
-    [handleFileSelect],
-  );
-
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  }, []);
-
-  const handleDragEnter = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX;
-    const y = e.clientY;
-    if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
-      setIsDragging(false);
-    }
-  }, []);
 
   const getPageRanges = (): Array<{ start: number; end: number }> => {
     if (options.mode === "preset") {
@@ -332,14 +288,6 @@ export default function PdfSplit() {
 
         {/* Main Interface */}
         <div className="space-y-6">
-          {/* Hidden file input */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="application/pdf"
-            onChange={handleFileChange}
-            className="hidden"
-          />
 
           {error && (
             <div className="mb-4 px-4 py-3 bg-destructive/10 text-destructive rounded-lg flex items-center gap-2">
@@ -475,46 +423,16 @@ export default function PdfSplit() {
 
           {/* Drop Zone / File Display */}
           {!file ? (
-            <label
-              htmlFor="file-upload"
-              className="group relative block cursor-pointer"
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-              onDragEnter={handleDragEnter}
-              onDragLeave={handleDragLeave}
-            >
-              <div
-                className={cn(
-                  "relative p-12 sm:p-16 md:p-20 rounded-2xl border-2 border-dashed transition-all duration-300",
-                  isDragging
-                    ? "border-primary bg-primary/10 scale-[1.02]"
-                    : "border-border bg-card/50 hover:border-primary hover:bg-card group-hover:scale-[1.01]",
-                )}
-              >
-                <div className="text-center">
-                  <Upload
-                    className={cn(
-                      "w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 transition-all duration-300",
-                      isDragging
-                        ? "text-primary scale-110"
-                        : "text-muted-foreground group-hover:text-primary",
-                    )}
-                  />
-                  <p className="text-lg sm:text-xl font-medium mb-2">
-                    Drop PDF here
-                  </p>
-                  <p className="text-sm sm:text-base text-muted-foreground mb-4">
-                    or click to browse
-                  </p>
-                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-muted/50">
-                    <Info className="w-4 h-4 text-primary" />
-                    <span className="text-sm text-muted-foreground">
-                      Split PDF into multiple files
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </label>
+            <FileDropZone
+              onFilesSelected={handleFilesSelected}
+              accept="application/pdf"
+              multiple={false}
+              isDragging={isDragging}
+              onDragStateChange={setIsDragging}
+              title="Drop PDF here"
+              subtitle="or click to browse"
+              infoMessage="Split PDF into multiple files"
+            />
           ) : (
             <div className="space-y-4">
               {/* File Info */}

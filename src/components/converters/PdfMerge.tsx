@@ -1,13 +1,11 @@
 import React, { useState, useCallback, useRef } from "react";
 import {
-  Upload,
   Download,
   FileText,
   AlertCircle,
   Shield,
   Zap,
   Loader2,
-  Info,
   X,
   GripVertical,
   Plus,
@@ -24,6 +22,7 @@ import { Button } from "../ui/button";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { ToolHeader } from "../ui/ToolHeader";
+import { FileDropZone } from "../ui/FileDropZone";
 import { cn } from "../../lib/utils";
 import { usePdfOperations } from "../../hooks/usePdfOperations";
 import { PdfPreview } from "../ui/pdf-preview";
@@ -154,38 +153,6 @@ export default function PdfMerge() {
     [handleFiles],
   );
 
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setIsDragging(false);
-      const droppedFiles = Array.from(e.dataTransfer.files);
-      handleFiles(droppedFiles);
-    },
-    [handleFiles],
-  );
-
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  }, []);
-
-  const handleDragEnter = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX;
-    const y = e.clientY;
-    if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
-      setIsDragging(false);
-    }
-  }, []);
 
   // File reordering functions
   const handleDragStart = useCallback((e: React.DragEvent, id: string) => {
@@ -337,46 +304,16 @@ export default function PdfMerge() {
 
           {/* Drop Zone / File List */}
           {!hasFiles ? (
-            <label
-              htmlFor="file-upload"
-              className="group relative block cursor-pointer"
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-              onDragEnter={handleDragEnter}
-              onDragLeave={handleDragLeave}
-            >
-              <div
-                className={cn(
-                  "relative p-12 sm:p-16 md:p-20 rounded-2xl border-2 border-dashed transition-all duration-300",
-                  isDragging
-                    ? "border-primary bg-primary/10 scale-[1.02]"
-                    : "border-border bg-card/50 hover:border-primary hover:bg-card group-hover:scale-[1.01]",
-                )}
-              >
-                <div className="text-center">
-                  <Upload
-                    className={cn(
-                      "w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 transition-all duration-300",
-                      isDragging
-                        ? "text-primary scale-110"
-                        : "text-muted-foreground group-hover:text-primary",
-                    )}
-                  />
-                  <p className="text-lg sm:text-xl font-medium mb-2">
-                    Drop PDFs here
-                  </p>
-                  <p className="text-sm sm:text-base text-muted-foreground mb-4">
-                    or click to browse
-                  </p>
-                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-muted/50">
-                    <Info className="w-4 h-4 text-primary" />
-                    <span className="text-sm text-muted-foreground">
-                      Select multiple PDFs to merge
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </label>
+            <FileDropZone
+              onFilesSelected={handleFiles}
+              accept="application/pdf"
+              multiple={true}
+              isDragging={isDragging}
+              onDragStateChange={setIsDragging}
+              title="Drop PDFs here"
+              subtitle="or click to browse"
+              infoMessage="Select multiple PDFs to merge"
+            />
           ) : (
             <div className="space-y-4">
               {/* File List */}

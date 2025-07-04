@@ -9,7 +9,6 @@ import {
   Zap,
   ChevronRight,
   Loader2,
-  Info,
   Package,
   Minimize2,
   CheckCircle2,
@@ -18,6 +17,7 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "../ui/button";
+import { FileDropZone } from "../ui/FileDropZone";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { ToolHeader } from "../ui/ToolHeader";
@@ -130,7 +130,6 @@ const QUALITY_PRESETS = {
 
 export default function PdfCompress() {
   const [files, setFiles] = useState<FileInfo[]>([]);
-  const [isDragging, setIsDragging] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -144,7 +143,7 @@ export default function PdfCompress() {
     imageQuality: 0.65,
   });
 
-  const handleFiles = useCallback((selectedFiles: File[]) => {
+  const handleFilesSelected = useCallback((selectedFiles: File[]) => {
     const pdfFiles = selectedFiles.filter(
       (file) => file.type === "application/pdf",
     );
@@ -155,47 +154,6 @@ export default function PdfCompress() {
       originalSize: file.size,
     }));
     setFiles((prev) => [...prev, ...newFiles]);
-  }, []);
-
-  const handleFileSelect = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const selectedFiles = Array.from(e.target.files || []);
-      handleFiles(selectedFiles);
-    },
-    [handleFiles],
-  );
-
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setIsDragging(false);
-      const droppedFiles = Array.from(e.dataTransfer.files);
-      handleFiles(droppedFiles);
-    },
-    [handleFiles],
-  );
-
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  }, []);
-
-  const handleDragEnter = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX;
-    const y = e.clientY;
-    if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
-      setIsDragging(false);
-    }
   }, []);
 
   const handleQualityPreset = (preset: "low" | "medium" | "high") => {
@@ -360,7 +318,10 @@ export default function PdfCompress() {
             type="file"
             accept="application/pdf"
             multiple
-            onChange={handleFileSelect}
+            onChange={(e) => {
+              const selectedFiles = Array.from(e.target.files || []);
+              handleFilesSelected(selectedFiles);
+            }}
             className="hidden"
           />
 
@@ -550,46 +511,14 @@ export default function PdfCompress() {
 
           {/* Drop Zone / File List */}
           {!hasFiles ? (
-            <label
-              htmlFor="file-upload"
-              className="group relative block cursor-pointer"
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-              onDragEnter={handleDragEnter}
-              onDragLeave={handleDragLeave}
-            >
-              <div
-                className={cn(
-                  "relative p-12 sm:p-16 md:p-20 rounded-2xl border-2 border-dashed transition-all duration-300",
-                  isDragging
-                    ? "border-primary bg-primary/10 scale-[1.02]"
-                    : "border-border bg-card/50 hover:border-primary hover:bg-card group-hover:scale-[1.01]",
-                )}
-              >
-                <div className="text-center">
-                  <Upload
-                    className={cn(
-                      "w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 transition-all duration-300",
-                      isDragging
-                        ? "text-primary scale-110"
-                        : "text-muted-foreground group-hover:text-primary",
-                    )}
-                  />
-                  <p className="text-lg sm:text-xl font-medium mb-2">
-                    Drop PDFs here
-                  </p>
-                  <p className="text-sm sm:text-base text-muted-foreground mb-4">
-                    or click to browse
-                  </p>
-                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-muted/50">
-                    <Info className="w-4 h-4 text-primary" />
-                    <span className="text-sm text-muted-foreground">
-                      Compress multiple PDFs at once
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </label>
+            <FileDropZone
+              onFilesSelected={handleFilesSelected}
+              accept="application/pdf"
+              multiple={true}
+              title="Drop PDFs here"
+              subtitle="or click to browse"
+              infoMessage="Compress multiple PDFs at once"
+            />
           ) : (
             <div className="space-y-4">
               {/* File List */}
