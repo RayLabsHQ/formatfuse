@@ -1,6 +1,7 @@
 import React, { useRef, useCallback } from "react";
-import { Upload, Info } from "lucide-react";
+import { Upload, Info, Plus, FolderPlus } from "lucide-react";
 import { cn } from "../../lib/utils";
+import { Button } from "./button";
 
 interface FileDropZoneProps {
   onFilesSelected: (files: File[]) => void;
@@ -14,6 +15,10 @@ interface FileDropZoneProps {
   secondaryInfo?: string;
   className?: string;
   disabled?: boolean;
+  allowFolders?: boolean;
+  showButtons?: boolean;
+  onAddFilesClick?: () => void;
+  onAddFolderClick?: () => void;
 }
 
 export function FileDropZone({
@@ -28,9 +33,14 @@ export function FileDropZone({
   secondaryInfo,
   className,
   disabled = false,
+  allowFolders = false,
+  showButtons = false,
+  onAddFilesClick,
+  onAddFolderClick,
 }: FileDropZoneProps) {
   const [internalIsDragging, setInternalIsDragging] = React.useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const folderInputRef = useRef<HTMLInputElement>(null);
 
   // Use external dragging state if provided, otherwise use internal
   const isDragging = externalIsDragging !== undefined ? externalIsDragging : internalIsDragging;
@@ -120,6 +130,17 @@ export function FileDropZone({
         disabled={disabled}
       />
       
+      {allowFolders && (
+        <input
+          ref={folderInputRef}
+          type="file"
+          onChange={handleFileSelect}
+          className="hidden"
+          disabled={disabled}
+          {...({ webkitdirectory: "", directory: "" } as any)}
+        />
+      )}
+      
       <div
         onClick={handleClick}
         className={cn(
@@ -143,9 +164,53 @@ export function FileDropZone({
           <p className="text-lg sm:text-xl font-medium mb-2">
             {title}
           </p>
-          <p className="text-sm sm:text-base text-muted-foreground mb-4">
-            {subtitle}
-          </p>
+          {subtitle && (
+            <p className="text-sm sm:text-base text-muted-foreground mb-4">
+              {subtitle}
+            </p>
+          )}
+          
+          {showButtons && (
+            <div className="flex items-center justify-center gap-4 mt-6 mb-6">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onAddFilesClick) {
+                    onAddFilesClick();
+                  } else {
+                    fileInputRef.current?.click();
+                  }
+                }}
+                disabled={disabled}
+                className="gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Add Files
+              </Button>
+              {allowFolders && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onAddFolderClick) {
+                      onAddFolderClick();
+                    } else {
+                      folderInputRef.current?.click();
+                    }
+                  }}
+                  disabled={disabled}
+                  className="gap-2"
+                >
+                  <FolderPlus className="w-4 h-4" />
+                  Add Folder
+                </Button>
+              )}
+            </div>
+          )}
+          
           {infoMessage && (
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-muted/50">
               <Info className="w-4 h-4 text-primary" />

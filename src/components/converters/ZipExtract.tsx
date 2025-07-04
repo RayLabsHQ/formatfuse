@@ -1,6 +1,5 @@
 import React, { useState, useRef, useCallback } from "react";
 import {
-  Upload,
   Download,
   X,
   FileArchive,
@@ -21,6 +20,7 @@ import { Button } from "../ui/button";
 import { ToolHeader } from "../ui/ToolHeader";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
+import { FileDropZone } from "../ui/FileDropZone";
 import { cn } from "../../lib/utils";
 
 interface ExtractedFile {
@@ -118,18 +118,16 @@ export default function ZipExtract() {
     [],
   );
 
-  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile && droppedFile.name.toLowerCase().endsWith(".zip")) {
-      setFile(droppedFile);
+  const handleFilesSelected = useCallback((files: File[]) => {
+    const selectedFile = files[0];
+    if (selectedFile && selectedFile.name.toLowerCase().endsWith(".zip")) {
+      setFile(selectedFile);
       setError(null);
       setExtractedFiles([]);
       setExpandedPaths(new Set());
       setSelectedFiles(new Set());
     } else {
-      setError("Please drop a valid ZIP file");
+      setError("Please select a valid ZIP file");
     }
   }, []);
 
@@ -501,39 +499,15 @@ export default function ZipExtract() {
               className="relative animate-fade-in-up"
               style={{ animationDelay: "0.3s" }}
             >
-              <div
-                onDrop={handleDrop}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  setIsDragging(true);
-                }}
-                onDragLeave={(e) => {
-                  e.preventDefault();
-                  setIsDragging(false);
-                }}
-                onClick={() => fileInputRef.current?.click()}
-                className={`relative rounded-2xl border-2 border-dashed transition-all duration-300 cursor-pointer overflow-hidden ${
-                  isDragging
-                    ? "border-primary bg-primary/10 scale-[1.02] shadow-lg shadow-primary/20"
-                    : "border-border bg-card/50 hover:border-primary hover:bg-card hover:shadow-lg hover:shadow-primary/10"
-                }`}
-              >
-                <div className="p-8 sm:p-12 text-center pointer-events-none">
-                  <FileArchive
-                    className={`w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 transition-all duration-300 ${
-                      isDragging
-                        ? "text-primary scale-110"
-                        : "text-muted-foreground"
-                    }`}
-                  />
-                  <p className="text-base sm:text-lg font-medium mb-2">
-                    Drop your ZIP file here or click to browse
-                  </p>
-                  <p className="text-xs sm:text-sm text-muted-foreground">
-                    Extract files from ZIP archives instantly
-                  </p>
-                </div>
-              </div>
+              <FileDropZone
+                onFilesSelected={handleFilesSelected}
+                accept=".zip"
+                multiple={false}
+                isDragging={isDragging}
+                onDragStateChange={setIsDragging}
+                title="Drop your ZIP file here or click to browse"
+                subtitle="Extract files from ZIP archives instantly"
+              />
             </div>
           )}
 

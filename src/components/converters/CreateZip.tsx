@@ -1,7 +1,5 @@
 import React, { useState, useRef, useCallback } from "react";
 import {
-  Upload,
-  Download,
   X,
   FileArchive,
   Plus,
@@ -19,11 +17,10 @@ import {
 } from "lucide-react";
 import JSZip from "jszip";
 import { Button } from "../ui/button";
-import { Slider } from "../ui/slider";
 import { ToolHeader } from "../ui/ToolHeader";
-import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
+import { FileDropZone } from "../ui/FileDropZone";
 import { cn } from "../../lib/utils";
 
 interface FileItem {
@@ -151,15 +148,15 @@ export default function CreateZip() {
     [handleFiles],
   );
 
-  const handleDrop = useCallback(
-    (e: React.DragEvent<HTMLDivElement>) => {
-      e.preventDefault();
-      setIsDragging(false);
-      const droppedFiles = Array.from(e.dataTransfer.files);
-      handleFiles(droppedFiles);
-    },
-    [handleFiles],
-  );
+  const handleAddFolder = useCallback(() => {
+    if (fileInputRef.current) {
+      fileInputRef.current.setAttribute("webkitdirectory", "");
+      fileInputRef.current.click();
+      setTimeout(() => {
+        fileInputRef.current?.removeAttribute("webkitdirectory");
+      }, 100);
+    }
+  }, []);
 
   const removeFile = useCallback((index: number) => {
     setFiles((prev) => prev.filter((_, i) => i !== index));
@@ -358,76 +355,19 @@ export default function CreateZip() {
               className="relative animate-fade-in-up"
               style={{ animationDelay: "0.4s" }}
             >
-              <div
-                onDrop={handleDrop}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  setIsDragging(true);
-                }}
-                onDragLeave={(e) => {
-                  e.preventDefault();
-                  setIsDragging(false);
-                }}
-                onClick={() => fileInputRef.current?.click()}
-                className={`relative rounded-2xl border-2 border-dashed transition-all duration-300 cursor-pointer overflow-hidden ${
-                  isDragging
-                    ? "border-primary bg-primary/10 scale-[1.02] shadow-lg shadow-primary/20"
-                    : "border-border bg-card/50 hover:border-primary hover:bg-card hover:shadow-lg hover:shadow-primary/10"
-                }`}
-              >
-                <div className="p-8 sm:p-12 text-center pointer-events-none">
-                  <Upload
-                    className={`w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 transition-all duration-300 ${
-                      isDragging
-                        ? "text-primary scale-110 rotate-12"
-                        : "text-muted-foreground"
-                    }`}
-                  />
-                  <p className="text-base sm:text-lg font-medium mb-2">
-                    Drop files here or click to browse
-                  </p>
-                  <p className="text-xs sm:text-sm text-muted-foreground">
-                    Select multiple files or folders to compress
-                  </p>
-                  <div className="flex items-center justify-center gap-4 mt-4">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        fileInputRef.current?.click();
-                      }}
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Files
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Set webkitdirectory attribute and click
-                        if (fileInputRef.current) {
-                          fileInputRef.current.setAttribute(
-                            "webkitdirectory",
-                            "",
-                          );
-                          fileInputRef.current.click();
-                          // Remove attribute after a delay to allow file selection
-                          setTimeout(() => {
-                            fileInputRef.current?.removeAttribute(
-                              "webkitdirectory",
-                            );
-                          }, 100);
-                        }
-                      }}
-                    >
-                      <FolderPlus className="w-4 h-4 mr-2" />
-                      Add Folder
-                    </Button>
-                  </div>
-                </div>
-              </div>
+              <FileDropZone
+                onFilesSelected={handleFiles}
+                multiple={true}
+                isDragging={isDragging}
+                onDragStateChange={setIsDragging}
+                title="Drop files here or click to browse"
+                subtitle=""
+                infoMessage="Select multiple files or folders to archive"
+                showButtons={true}
+                allowFolders={true}
+                onAddFilesClick={() => fileInputRef.current?.click()}
+                onAddFolderClick={handleAddFolder}
+              />
             </div>
           )}
 
@@ -436,7 +376,12 @@ export default function CreateZip() {
             <div
               className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 overflow-hidden animate-fade-in-up"
               style={{ animationDelay: "0.5s" }}
-              onDrop={handleDrop}
+              onDrop={(e) => {
+                e.preventDefault();
+                setIsDragging(false);
+                const droppedFiles = Array.from(e.dataTransfer.files);
+                handleFiles(droppedFiles);
+              }}
               onDragOver={(e) => {
                 e.preventDefault();
                 setIsDragging(true);
@@ -466,7 +411,16 @@ export default function CreateZip() {
                       className="gap-2"
                     >
                       <Plus className="w-4 h-4" />
-                      Add more
+                      Add Files
+                    </Button>
+                    <Button
+                      onClick={handleAddFolder}
+                      size="sm"
+                      variant="outline"
+                      className="gap-2"
+                    >
+                      <FolderPlus className="w-4 h-4" />
+                      Add Folder
                     </Button>
                     <Button
                       onClick={createZip}

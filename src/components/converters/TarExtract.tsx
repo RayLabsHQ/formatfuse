@@ -1,6 +1,5 @@
 import React, { useState, useRef, useCallback } from "react";
 import {
-  Upload,
   Download,
   X,
   FileArchive,
@@ -22,6 +21,7 @@ import { Button } from "../ui/button";
 import { ToolHeader } from "../ui/ToolHeader";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
+import { FileDropZone } from "../ui/FileDropZone";
 import { cn } from "../../lib/utils";
 
 interface ExtractedFile {
@@ -137,24 +137,22 @@ export default function TarExtract() {
     [],
   );
 
-  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const droppedFile = e.dataTransfer.files[0];
+  const handleFilesSelected = useCallback((files: File[]) => {
+    const selectedFile = files[0];
     if (
-      droppedFile &&
-      (droppedFile.name.toLowerCase().endsWith(".tar") ||
-        droppedFile.name.toLowerCase().endsWith(".tar.gz") ||
-        droppedFile.name.toLowerCase().endsWith(".tgz") ||
-        droppedFile.name.toLowerCase().endsWith(".tar.bz2"))
+      selectedFile &&
+      (selectedFile.name.toLowerCase().endsWith(".tar") ||
+        selectedFile.name.toLowerCase().endsWith(".tar.gz") ||
+        selectedFile.name.toLowerCase().endsWith(".tgz") ||
+        selectedFile.name.toLowerCase().endsWith(".tar.bz2"))
     ) {
-      setFile(droppedFile);
+      setFile(selectedFile);
       setError(null);
       setExtractedFiles([]);
       setExpandedPaths(new Set());
       setSelectedFiles(new Set());
     } else {
-      setError("Please drop a valid TAR file");
+      setError("Please select a valid TAR file");
     }
   }, []);
 
@@ -571,39 +569,15 @@ export default function TarExtract() {
               className="relative animate-fade-in-up"
               style={{ animationDelay: "0.3s" }}
             >
-              <div
-                onDrop={handleDrop}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  setIsDragging(true);
-                }}
-                onDragLeave={(e) => {
-                  e.preventDefault();
-                  setIsDragging(false);
-                }}
-                onClick={() => fileInputRef.current?.click()}
-                className={`relative rounded-2xl border-2 border-dashed transition-all duration-300 cursor-pointer overflow-hidden ${
-                  isDragging
-                    ? "border-primary bg-primary/10 scale-[1.02] shadow-lg shadow-primary/20"
-                    : "border-border bg-card/50 hover:border-primary hover:bg-card hover:shadow-lg hover:shadow-primary/10"
-                }`}
-              >
-                <div className="p-8 sm:p-12 text-center pointer-events-none">
-                  <Package
-                    className={`w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 transition-all duration-300 ${
-                      isDragging
-                        ? "text-primary scale-110"
-                        : "text-muted-foreground"
-                    }`}
-                  />
-                  <p className="text-base sm:text-lg font-medium mb-2">
-                    Drop your TAR file here or click to browse
-                  </p>
-                  <p className="text-xs sm:text-sm text-muted-foreground">
-                    Supports TAR, TAR.GZ, and TAR.BZ2 archives
-                  </p>
-                </div>
-              </div>
+              <FileDropZone
+                onFilesSelected={handleFilesSelected}
+                accept=".tar,.tar.gz,.tgz,.tar.bz2"
+                multiple={false}
+                isDragging={isDragging}
+                onDragStateChange={setIsDragging}
+                title="Drop your TAR file here or click to browse"
+                subtitle="Supports TAR, TAR.GZ, and TAR.BZ2 archives"
+              />
             </div>
           )}
 

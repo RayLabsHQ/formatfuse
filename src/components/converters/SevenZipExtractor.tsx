@@ -1,6 +1,5 @@
 import React, { useState, useRef, useCallback } from "react";
 import {
-  Upload,
   Download,
   X,
   FileArchive,
@@ -18,6 +17,7 @@ import { Button } from "../ui/button";
 import { ToolHeader } from "../ui/ToolHeader";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
+import { FileDropZone } from "../ui/FileDropZone";
 import { cn } from "../../lib/utils";
 
 interface FileNode {
@@ -110,10 +110,8 @@ export default function SevenZipExtractor() {
     [],
   );
 
-  const handleDrop = useCallback(async (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const file = e.dataTransfer.files[0];
+  const handleFilesSelected = useCallback(async (files: File[]) => {
+    const file = files[0];
     if (file) {
       await loadArchive(file);
     }
@@ -458,39 +456,15 @@ export default function SevenZipExtractor() {
               className="relative animate-fade-in-up"
               style={{ animationDelay: "0.3s" }}
             >
-              <div
-                onDrop={handleDrop}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  setIsDragging(true);
-                }}
-                onDragLeave={(e) => {
-                  e.preventDefault();
-                  setIsDragging(false);
-                }}
-                onClick={() => fileInputRef.current?.click()}
-                className={`relative rounded-2xl border-2 border-dashed transition-all duration-300 cursor-pointer overflow-hidden ${
-                  isDragging
-                    ? "border-primary bg-primary/10 scale-[1.02] shadow-lg shadow-primary/20"
-                    : "border-border bg-card/50 hover:border-primary hover:bg-card hover:shadow-lg hover:shadow-primary/10"
-                }`}
-              >
-                <div className="p-8 sm:p-12 text-center pointer-events-none">
-                  <Upload
-                    className={`w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 transition-all duration-300 ${
-                      isDragging
-                        ? "text-primary scale-110 rotate-12"
-                        : "text-muted-foreground"
-                    }`}
-                  />
-                  <p className="text-base sm:text-lg font-medium mb-2">
-                    Drop your archive here or click to browse
-                  </p>
-                  <p className="text-xs sm:text-sm text-muted-foreground">
-                    Supports 7Z archives with LZMA and LZMA2 compression
-                  </p>
-                </div>
-              </div>
+              <FileDropZone
+                onFilesSelected={handleFilesSelected}
+                accept=".7z"
+                multiple={false}
+                isDragging={isDragging}
+                onDragStateChange={setIsDragging}
+                title="Drop your archive here or click to browse"
+                subtitle="Supports 7Z archives with LZMA and LZMA2 compression"
+              />
             </div>
           )}
 
