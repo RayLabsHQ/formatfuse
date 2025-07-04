@@ -23,6 +23,7 @@ import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 import { cn } from "../../lib/utils";
 import { Slider } from "../ui/slider";
 import { usePdfOperations } from "../../hooks/usePdfOperations";
+import { PdfFileList, type PdfFile } from "../ui/PdfFileList";
 import FileSaver from "file-saver";
 import JSZip from "jszip";
 
@@ -102,10 +103,9 @@ const faqs: FAQItem[] = [
 ];
 
 export default function PdfToJpg() {
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<PdfFile[]>([]);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [results, setResults] = useState<ConversionResult[]>([]);
-  const [pageCount, setPageCount] = useState<number>(0);
 
   const { pdfToImages, getPageCount, isProcessing, progress, error } =
     usePdfOperations();
@@ -123,13 +123,21 @@ export default function PdfToJpg() {
       const selectedFile = selectedFiles[0];
       if (!selectedFile || selectedFile.type !== "application/pdf") return;
 
-      setFile(selectedFile);
       setResults([]);
 
       try {
-        const fileData = new Uint8Array(await selectedFile.arrayBuffer());
-        const count = await getPageCount(fileData);
-        setPageCount(count);
+        const data = new Uint8Array(await selectedFile.arrayBuffer());
+        const count = await getPageCount(data);
+        
+        const newFile: PdfFile = {
+          file: selectedFile,
+          id: `${Date.now()}`,
+          pageCount: count,
+          data: data,
+          showPreview: true,
+        };
+        
+        setFiles([newFile]);
         setOptions((prev) => ({
           ...prev,
           specificPages: `1-${count}`,
@@ -142,6 +150,7 @@ export default function PdfToJpg() {
   );
 
   const parsePageRanges = (input: string): number[] => {
+    const pageCount = files[0]?.pageCount || 0;
     const pages = new Set<number>();
     const ranges = input.split(",").map((s) => s.trim());
 
@@ -165,18 +174,18 @@ export default function PdfToJpg() {
   };
 
   const handleConvert = async () => {
-    if (!file) return;
+    const file = files[0];
+    if (!file || !file.data) return;
 
     setResults([]);
 
     try {
-      const fileData = new Uint8Array(await file.arrayBuffer());
       const pagesToConvert =
         options.pages === "all"
           ? undefined
           : parsePageRanges(options.specificPages);
 
-      const conversionResults = await pdfToImages(fileData, {
+      const conversionResults = await pdfToImages(file.data, {
         pages: pagesToConvert,
         format: options.format,
         quality: options.quality / 100,
@@ -199,7 +208,7 @@ export default function PdfToJpg() {
 
   const handleDownload = (result: ConversionResult) => {
     const ext = options.format === "png" ? "png" : "jpg";
-    const baseName = file!.name.replace(/\.pdf$/i, "");
+    const baseName = files[0]!.file.name.replace(/\.pdf$/i, "");
     const fileName = `${baseName}_page_${result.page}.${ext}`;
 
     const blob = new Blob([result.data], { type: result.mimeType });
@@ -214,7 +223,7 @@ export default function PdfToJpg() {
 
     const zip = new JSZip();
     const ext = options.format === "png" ? "png" : "jpg";
-    const baseName = file!.name.replace(/\.pdf$/i, "");
+    const baseName = files[0]!.file.name.replace(/\.pdf$/i, "");
 
     results.forEach((result) => {
       const fileName = `${baseName}_page_${result.page}.${ext}`;
@@ -467,7 +476,7 @@ export default function PdfToJpg() {
           </div>
 
           {/* Drop Zone / File Display */}
-          {!file ? (
+          {files.length === 0 ? (
             <FileDropZone
               onFilesSelected={handleFilesSelected}
               accept="application/pdf"
@@ -478,30 +487,22 @@ export default function PdfToJpg() {
             />
           ) : (
             <div className="space-y-4">
-              {/* File Info */}
-              <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-6">
-                <div className="flex items-center gap-3">
-                  <FileText className="w-8 h-8 text-muted-foreground" />
-                  <div className="flex-1">
-                    <p className="font-medium">{file.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {formatFileSize(file.size)} • {pageCount} page
-                      {pageCount !== 1 ? "s" : ""}
-                    </p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => {
-                      setFile(null);
-                      setResults([]);
-                      setPageCount(0);
-                    }}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
+              {/* File List */}
+              <PdfFileList
+                files={files}
+                onFilesChange={setFiles}
+                onFileRemove={() => {
+                  setFiles([]);
+                  setResults([]);
+                }}
+                title="PDF to convert"
+                enableReordering={false}
+                enablePreviews={true}
+                showAddButton={false}
+                multiple={false}
+                maxVisibleFiles={{ desktop: 1, mobile: 1 }}
+                emptyMessage="No PDF loaded"
+              />
 
               {/* Action Button */}
               <Button

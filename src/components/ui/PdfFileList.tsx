@@ -47,6 +47,12 @@ export interface PdfFileListProps {
   className?: string;
   title?: string;
   subtitle?: React.ReactNode;
+  multiple?: boolean; // Allow multiple files
+  accept?: string; // File accept type
+  showFileSize?: boolean; // Show file size
+  showPageCount?: boolean; // Show page count
+  customActions?: React.ReactNode; // Custom action buttons
+  emptyMessage?: string; // Custom empty state message
 }
 
 export function PdfFileList({
@@ -65,6 +71,12 @@ export function PdfFileList({
   className,
   title = "PDFs to merge",
   subtitle,
+  multiple = true,
+  accept = "application/pdf",
+  showFileSize = true,
+  showPageCount = true,
+  customActions,
+  emptyMessage = "No PDFs added yet",
 }: PdfFileListProps) {
   const [draggedFile, setDraggedFile] = useState<string | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -226,8 +238,8 @@ export function PdfFileList({
             <h3 className="font-medium text-base sm:text-lg">{title}</h3>
             {subtitle || (
               <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                {files.length} file{files.length !== 1 ? "s" : ""} • {totalPages}{" "}
-                total page{totalPages !== 1 ? "s" : ""}
+                {files.length} file{files.length !== 1 ? "s" : ""}
+                {showPageCount && ` • ${totalPages} total page${totalPages !== 1 ? "s" : ""}`}
               </p>
             )}
           </div>
@@ -261,8 +273,8 @@ export function PdfFileList({
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="application/pdf"
-                  multiple
+                  accept={accept}
+                  multiple={multiple}
                   onChange={handleFileSelect}
                   className="hidden"
                 />
@@ -298,6 +310,9 @@ export function PdfFileList({
                 )}
               </Button>
             )}
+            
+            {/* Custom actions */}
+            {customActions}
           </div>
         </div>
       </div>
@@ -306,7 +321,7 @@ export function PdfFileList({
       {files.length === 0 ? (
         <div className="p-8 text-center text-muted-foreground">
           <FileX className="w-12 h-12 mx-auto mb-3 opacity-50" />
-          <p className="text-sm">No PDFs added yet</p>
+          <p className="text-sm">{emptyMessage}</p>
         </div>
       ) : (
         <div
@@ -379,10 +394,12 @@ export function PdfFileList({
                           </p>
                         </div>
                         <p className="text-xs text-muted-foreground mt-0.5">
-                          {formatFileSize(fileInfo.file.size)} •{" "}
-                          {fileInfo.pageCount
-                            ? `${fileInfo.pageCount} page${fileInfo.pageCount !== 1 ? "s" : ""}`
-                            : "Loading..."}
+                          {showFileSize && formatFileSize(fileInfo.file.size)}
+                          {showFileSize && showPageCount && " • "}
+                          {showPageCount &&
+                            (fileInfo.pageCount
+                              ? `${fileInfo.pageCount} page${fileInfo.pageCount !== 1 ? "s" : ""}`
+                              : "Loading...")}
                         </p>
                       </div>
 

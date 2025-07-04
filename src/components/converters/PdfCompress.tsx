@@ -25,6 +25,7 @@ import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 import { cn } from "../../lib/utils";
 import { Slider } from "../ui/slider";
 import { usePdfOperations } from "../../hooks/usePdfOperations";
+import { PdfFileList, type PdfFile } from "../ui/PdfFileList";
 import FileSaver from "file-saver";
 
 const { saveAs } = FileSaver;
@@ -38,8 +39,7 @@ interface CompressionOptions {
   imageQuality: number;
 }
 
-interface FileInfo {
-  file: File;
+interface FileInfo extends PdfFile {
   status: "pending" | "processing" | "completed" | "error";
   progress: number;
   result?: Blob;
@@ -133,7 +133,7 @@ export default function PdfCompress() {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { compress, isProcessing, error } = usePdfOperations();
+  const { compress, getPageCount, isProcessing, error } = usePdfOperations();
 
   const [options, setOptions] = useState<CompressionOptions>({
     quality: "medium",
@@ -143,18 +143,42 @@ export default function PdfCompress() {
     imageQuality: 0.65,
   });
 
-  const handleFilesSelected = useCallback((selectedFiles: File[]) => {
-    const pdfFiles = selectedFiles.filter(
-      (file) => file.type === "application/pdf",
-    );
-    const newFiles: FileInfo[] = pdfFiles.map((file) => ({
-      file,
-      status: "pending" as const,
-      progress: 0,
-      originalSize: file.size,
-    }));
-    setFiles((prev) => [...prev, ...newFiles]);
-  }, []);
+  const handleFilesSelected = useCallback(
+    async (selectedFiles: File[]) => {
+      const pdfFiles = selectedFiles.filter(
+        (file) => file.type === "application/pdf",
+      );
+      const newFiles: FileInfo[] = [];
+      
+      for (const file of pdfFiles) {
+        try {
+          const data = new Uint8Array(await file.arrayBuffer());
+          const pageCount = await getPageCount(data);
+          newFiles.push({
+            file,
+            id: `${Date.now()}-${Math.random()}`,
+            pageCount,
+            data,
+            showPreview: true,
+            status: "pending" as const,
+            progress: 0,
+            originalSize: file.size,
+          });
+        } catch (err) {
+          newFiles.push({
+            file,
+            id: `${Date.now()}-${Math.random()}`,
+            showPreview: true,
+            status: "pending" as const,
+            progress: 0,
+            originalSize: file.size,
+          });
+        }
+      }
+      setFiles((prev) => [...prev, ...newFiles]);
+    },
+    [getPageCount],
+  );
 
   const handleQualityPreset = (preset: "low" | "medium" | "high") => {
     setOptions((prev) => ({
@@ -179,7 +203,7 @@ export default function PdfCompress() {
     for (let i = 0; i < pendingFiles.length; i++) {
       const fileInfo = pendingFiles[i];
       try {
-        const fileData = new Uint8Array(await fileInfo.file.arrayBuffer());
+        const fileData = fileInfo.data || new Uint8Array(await fileInfo.file.arrayBuffer());
 
         // Call compress function with progress callback
         const compressed = await compress(
@@ -193,7 +217,7 @@ export default function PdfCompress() {
           (progress: number) => {
             setFiles((prev) =>
               prev.map((f) =>
-                f.file === fileInfo.file ? { ...f, progress } : f,
+                f.id === fileInfo.id ? { ...f, progress } : f,
               ),
             );
           },
@@ -209,7 +233,7 @@ export default function PdfCompress() {
 
         setFiles((prev) =>
           prev.map((f) =>
-            f.file === fileInfo.file
+            f.id === fileInfo.id
               ? {
                   ...f,
                   status: "completed" as const,
@@ -224,7 +248,7 @@ export default function PdfCompress() {
       } catch (err) {
         setFiles((prev) =>
           prev.map((f) =>
-            f.file === fileInfo.file
+            f.id === fileInfo.id
               ? {
                   ...f,
                   status: "error" as const,

@@ -25,6 +25,7 @@ import { cn } from "../../lib/utils";
 import { usePdfOperations } from "../../hooks/usePdfOperations";
 import { parsePageRanges, formatPageRanges } from "../../lib/pdf-operations";
 import { PdfPreview } from "../ui/pdf-preview";
+import { PdfFileList, type PdfFile } from "../ui/PdfFileList";
 import FileSaver from "file-saver";
 import JSZip from "jszip";
 
@@ -149,13 +150,10 @@ const SPLIT_PRESETS = {
 };
 
 export default function PdfSplit() {
-  const [file, setFile] = useState<File | null>(null);
-  const [fileData, setFileData] = useState<Uint8Array | null>(null);
+  const [files, setFiles] = useState<PdfFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
   const [results, setResults] = useState<SplitResult[]>([]);
-  const [pageCount, setPageCount] = useState<number>(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { split, getPageCount, isProcessing, progress, error } =
@@ -168,18 +166,25 @@ export default function PdfSplit() {
   });
 
   const handleFilesSelected = useCallback(
-    async (files: File[]) => {
-      const selectedFile = files[0];
+    async (selectedFiles: File[]) => {
+      const selectedFile = selectedFiles[0];
       if (!selectedFile || selectedFile.type !== "application/pdf") return;
 
-      setFile(selectedFile);
       setResults([]);
 
       try {
         const data = new Uint8Array(await selectedFile.arrayBuffer());
-        setFileData(data);
         const count = await getPageCount(data);
-        setPageCount(count);
+        
+        const newFile: PdfFile = {
+          file: selectedFile,
+          id: `${Date.now()}`,
+          pageCount: count,
+          data: data,
+          showPreview: true,
+        };
+        
+        setFiles([newFile]);
         setOptions((prev) => ({
           ...prev,
           customRanges: `1-${count}`,
@@ -193,6 +198,7 @@ export default function PdfSplit() {
 
 
   const getPageRanges = (): Array<{ start: number; end: number }> => {
+    const pageCount = files[0]?.pageCount || 0;
     if (options.mode === "preset") {
       return SPLIT_PRESETS[options.preset].getRanges(pageCount);
     } else {
@@ -201,7 +207,8 @@ export default function PdfSplit() {
   };
 
   const handleSplit = async () => {
-    if (!file || !fileData) return;
+    const file = files[0];
+    if (!file || !file.data) return;
 
     const ranges = getPageRanges();
     if (ranges.length === 0) {
@@ -212,11 +219,11 @@ export default function PdfSplit() {
     setResults([]);
 
     try {
-      const splitResults = await split(fileData, { pageRanges: ranges });
+      const splitResults = await split(file.data, { pageRanges: ranges });
 
       const resultsWithMetadata = splitResults.map((data, index) => {
         const range = ranges[index];
-        const baseName = file.name.replace(/\.pdf$/i, "");
+        const baseName = file.file.name.replace(/\.pdf$/i, "");
         const filename =
           range.start === range.end
             ? `${baseName}_page_${range.start}.pdf`
@@ -253,7 +260,7 @@ export default function PdfSplit() {
     });
 
     const content = await zip.generateAsync({ type: "blob" });
-    const baseName = file!.name.replace(/\.pdf$/i, "");
+    const baseName = files[0]!.file.name.replace(/\.pdf$/i, "");
     saveAs(content, `${baseName}_split.zip`);
   };
 
@@ -264,6 +271,7 @@ export default function PdfSplit() {
   };
 
   const previewRanges = getPageRanges();
+  const pageCount = files[0]?.pageCount || 0;
 
   return (
     <div className="w-full">
@@ -422,7 +430,7 @@ export default function PdfSplit() {
           </div>
 
           {/* Drop Zone / File Display */}
-          {!file ? (
+          {files.length === 0 ? (
             <FileDropZone
               onFilesSelected={handleFilesSelected}
               accept="application/pdf"
@@ -435,53 +443,22 @@ export default function PdfSplit() {
             />
           ) : (
             <div className="space-y-4">
-              {/* File Info */}
-              <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-6">
-                <div className="flex items-center gap-3">
-                  <FileText className="w-8 h-8 text-muted-foreground" />
-                  <div className="flex-1">
-                    <p className="font-medium">{file.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {formatFileSize(file.size)} • {pageCount} page
-                      {pageCount !== 1 ? "s" : ""}
-                    </p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setShowPreview(!showPreview)}
-                  >
-                    {showPreview ? (
-                      <EyeOff className="w-4 h-4" />
-                    ) : (
-                      <Eye className="w-4 h-4" />
-                    )}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => {
-                      setFile(null);
-                      setFileData(null);
-                      setResults([]);
-                      setPageCount(0);
-                    }}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-
-                {/* PDF Preview */}
-                {showPreview && fileData && (
-                  <div className="mt-4 border-t pt-4">
-                    <PdfPreview
-                      pdfData={fileData}
-                      mode="strip"
-                      maxHeight={200}
-                    />
-                  </div>
-                )}
-              </div>
+              {/* File List */}
+              <PdfFileList
+                files={files}
+                onFilesChange={setFiles}
+                onFileRemove={() => {
+                  setFiles([]);
+                  setResults([]);
+                }}
+                title="PDF to split"
+                enableReordering={false}
+                enablePreviews={true}
+                showAddButton={false}
+                multiple={false}
+                maxVisibleFiles={{ desktop: 1, mobile: 1 }}
+                emptyMessage="No PDF loaded"
+              />
 
               {/* Action Button */}
               <Button

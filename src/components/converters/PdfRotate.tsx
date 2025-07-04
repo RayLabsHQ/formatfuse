@@ -14,6 +14,7 @@ import {
   EyeOff,
   X,
   FileOutput,
+  Info,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { FileDropZone } from "../ui/FileDropZone";
@@ -25,6 +26,7 @@ import { cn } from "../../lib/utils";
 import { usePdfOperations } from "../../hooks/usePdfOperations";
 import { parsePageRanges } from "../../lib/pdf-operations";
 import { PdfPreview } from "../ui/pdf-preview";
+import { PdfFileList, type PdfFile } from "../ui/PdfFileList";
 import FileSaver from "file-saver";
 
 const { saveAs } = FileSaver;
@@ -101,11 +103,8 @@ const ROTATION_OPTIONS = [
 ];
 
 export default function PdfRotate() {
-  const [file, setFile] = useState<File | null>(null);
-  const [fileData, setFileData] = useState<Uint8Array | null>(null);
-  const [showPreview, setShowPreview] = useState(false);
+  const [files, setFiles] = useState<PdfFile[]>([]);
   const [rotatedResult, setRotatedResult] = useState<Uint8Array | null>(null);
-  const [pageCount, setPageCount] = useState<number>(0);
 
   const { rotate, getPageCount, isProcessing, progress, error } =
     usePdfOperations();
@@ -122,14 +121,21 @@ export default function PdfRotate() {
       const selectedFile = selectedFiles[0];
       if (!selectedFile || selectedFile.type !== "application/pdf") return;
 
-      setFile(selectedFile);
       setRotatedResult(null);
 
       try {
         const data = new Uint8Array(await selectedFile.arrayBuffer());
-        setFileData(data);
         const count = await getPageCount(data);
-        setPageCount(count);
+        
+        const newFile: PdfFile = {
+          file: selectedFile,
+          id: `${Date.now()}`,
+          pageCount: count,
+          data: data,
+          showPreview: true,
+        };
+        
+        setFiles([newFile]);
         setOptions((prev) => ({
           ...prev,
           manualPages: `1-${count}`,
@@ -147,6 +153,7 @@ export default function PdfRotate() {
   }, []);
 
   const getPageNumbers = (): number[] => {
+    const pageCount = files[0]?.pageCount || 0;
     if (options.mode === "all") {
       return []; // Empty array means all pages
     } else if (options.mode === "visual") {
@@ -164,13 +171,14 @@ export default function PdfRotate() {
   };
 
   const handleRotate = async () => {
-    if (!file || !fileData) return;
+    const file = files[0];
+    if (!file || !file.data) return;
 
     setRotatedResult(null);
 
     try {
       const pageNumbers = getPageNumbers();
-      const rotated = await rotate(fileData, {
+      const rotated = await rotate(file.data, {
         angle: options.angle,
         pages: pageNumbers,
       });
@@ -181,10 +189,10 @@ export default function PdfRotate() {
   };
 
   const handleDownload = () => {
-    if (!rotatedResult || !file) return;
+    if (!rotatedResult || !files[0]) return;
 
     const blob = new Blob([rotatedResult], { type: "application/pdf" });
-    const baseName = file.name.replace(/\.pdf$/i, "");
+    const baseName = files[0].file.name.replace(/\.pdf$/i, "");
     saveAs(blob, `${baseName}_rotated_${options.angle}deg.pdf`);
   };
 
@@ -356,7 +364,7 @@ export default function PdfRotate() {
               </div>
 
               {/* Visual Selection Info */}
-              {options.mode === "visual" && file && (
+              {options.mode === "visual" && files.length > 0 && (
                 <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-lg p-3">
                   <div className="flex items-start gap-2">
                     <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
@@ -391,7 +399,7 @@ export default function PdfRotate() {
               )}
 
               {/* Selected Pages Summary */}
-              {options.mode !== "all" && pageCount > 0 && (
+              {options.mode !== "all" && files[0]?.pageCount > 0 && (
                 <div className="space-y-2">
                   <label className="text-sm font-medium">
                     Preview:{" "}
@@ -419,7 +427,7 @@ export default function PdfRotate() {
           </div>
 
           {/* Drop Zone / File Display */}
-          {!file ? (
+          {files.length === 0 ? (
             <FileDropZone
               onFilesSelected={handleFilesSelected}
               accept="application/pdf"
@@ -430,57 +438,36 @@ export default function PdfRotate() {
             />
           ) : (
             <div className="space-y-4">
-              {/* File Info */}
-              <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-6">
-                <div className="flex items-center gap-3">
-                  <FileText className="w-8 h-8 text-muted-foreground" />
-                  <div className="flex-1">
-                    <p className="font-medium">{file.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {formatFileSize(file.size)} • {pageCount} page
-                      {pageCount !== 1 ? "s" : ""}
-                    </p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setShowPreview(!showPreview)}
-                  >
-                    {showPreview ? (
-                      <EyeOff className="w-4 h-4" />
-                    ) : (
-                      <Eye className="w-4 h-4" />
-                    )}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => {
-                      setFile(null);
-                      setFileData(null);
-                      setRotatedResult(null);
-                      setPageCount(0);
-                      setOptions((prev) => ({ ...prev, selectedPages: [] }));
-                    }}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
+              {/* File List with Visual Selection */}
+              {options.mode === "visual" && files[0]?.data ? (
+                <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-6">
+                  <PdfPreview
+                    pdfData={files[0].data}
+                    mode="grid"
+                    maxHeight={400}
+                    selectable={true}
+                    selectedPages={options.selectedPages}
+                    onPageSelect={handlePageSelect}
+                  />
                 </div>
-
-                {/* PDF Preview */}
-                {showPreview && fileData && (
-                  <div className="mt-4 border-t pt-4">
-                    <PdfPreview
-                      pdfData={fileData}
-                      mode={options.mode === "visual" ? "grid" : "strip"}
-                      maxHeight={options.mode === "visual" ? 400 : 200}
-                      selectable={options.mode === "visual"}
-                      selectedPages={options.selectedPages}
-                      onPageSelect={handlePageSelect}
-                    />
-                  </div>
-                )}
-              </div>
+              ) : (
+                <PdfFileList
+                  files={files}
+                  onFilesChange={setFiles}
+                  onFileRemove={() => {
+                    setFiles([]);
+                    setRotatedResult(null);
+                    setOptions((prev) => ({ ...prev, selectedPages: [] }));
+                  }}
+                  title="PDF to rotate"
+                  enableReordering={false}
+                  enablePreviews={true}
+                  showAddButton={false}
+                  multiple={false}
+                  maxVisibleFiles={{ desktop: 1, mobile: 1 }}
+                  emptyMessage="No PDF loaded"
+                />
+              )}
 
               {/* Action Button */}
               <Button
