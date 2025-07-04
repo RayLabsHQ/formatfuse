@@ -278,59 +278,61 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
   }
 
   return (
-    <div className={cn("space-y-4", className)}>
-      {/* Controls */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-2">
-          {selectable && (
-            <>
-              <Button variant="outline" size="sm" onClick={handleSelectAll}>
-                Select All
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleSelectNone}>
-                Select None
-              </Button>
-              <span className="text-sm text-muted-foreground">
-                {selected.size} of {totalPages} selected
-              </span>
-            </>
-          )}
-        </div>
+    <div className={cn(mode !== "strip" && "space-y-4", className)}>
+      {/* Controls - Only show for non-strip modes */}
+      {mode !== "strip" && (
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-2">
+            {selectable && (
+              <>
+                <Button variant="outline" size="sm" onClick={handleSelectAll}>
+                  Select All
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleSelectNone}>
+                  Select None
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  {selected.size} of {totalPages} selected
+                </span>
+              </>
+            )}
+          </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={handleZoomOut}
-            disabled={scale <= 0.5}
-            className="touch-manipulation"
-          >
-            <ZoomOut className="h-4 w-4" />
-          </Button>
-          <span className="text-sm font-mono min-w-[60px] text-center">
-            {Math.round(scale * 100)}%
-          </span>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={handleZoomIn}
-            disabled={scale >= 2}
-            className="touch-manipulation"
-          >
-            <ZoomIn className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setScale(1)}
-            disabled={scale === 1}
-            title="Reset zoom"
-            className="touch-manipulation md:inline-flex hidden"
-          >
-            <RotateCcw className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleZoomOut}
+              disabled={scale <= 0.5}
+              className="touch-manipulation"
+            >
+              <ZoomOut className="h-4 w-4" />
+            </Button>
+            <span className="text-sm font-mono min-w-[60px] text-center">
+              {Math.round(scale * 100)}%
+            </span>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleZoomIn}
+              disabled={scale >= 2}
+              className="touch-manipulation"
+            >
+              <ZoomIn className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setScale(1)}
+              disabled={scale === 1}
+              title="Reset zoom"
+              className="touch-manipulation md:inline-flex hidden"
+            >
+              <RotateCcw className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Preview Container */}
       <div
@@ -400,18 +402,16 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
             {thumbnails.map((thumb) => (
               <div
                 key={thumb.pageNum}
-                onClick={(e) => handlePageClick(thumb.pageNum, e)}
+                onClick={() => handleEnlarge(thumb.pageNum)}
                 className={cn(
                   "relative group flex-shrink-0 cursor-pointer rounded overflow-hidden border-2 ff-transition",
-                  selected.has(thumb.pageNum)
-                    ? "border-primary ring-2 ring-primary/20"
-                    : "border-border hover:border-primary/50",
-                  selectable && "hover:shadow-md",
+                  "border-border hover:border-primary/50 hover:shadow-md",
                 )}
                 style={{
                   height: `${150 * scale}px`,
                   width: `${106 * scale}px`, // Maintain aspect ratio
                 }}
+                title="Click to view fullscreen"
               >
                 <img
                   src={thumb.canvas.toDataURL()}
@@ -419,24 +419,14 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
                   className="w-full h-full object-cover"
                 />
 
-                {/* Enlarge button */}
-                <button
-                  onClick={() => handleEnlarge(thumb.pageNum)}
-                  className="enlarge-button absolute top-1 left-1 bg-black/60 text-white rounded-full p-1.5 md:p-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity hover:bg-black/80 active:bg-black/90 touch-manipulation"
-                  title="View full screen"
-                >
-                  <Maximize2 className="w-4 h-4 md:w-2.5 md:h-2.5" />
-                </button>
+                {/* Overlay on hover showing maximize icon */}
+                <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-colors flex items-center justify-center">
+                  <Maximize2 className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg" />
+                </div>
 
                 {showPageNumbers && (
-                  <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-1 py-0.5">
+                  <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-1 py-0.5 pointer-events-none">
                     <span className="text-white text-xs">{thumb.pageNum}</span>
-                  </div>
-                )}
-
-                {selectable && selected.has(thumb.pageNum) && (
-                  <div className="absolute top-1 right-1 bg-primary text-primary-foreground rounded-full p-0.5">
-                    <Check className="w-3 h-3" />
                   </div>
                 )}
               </div>

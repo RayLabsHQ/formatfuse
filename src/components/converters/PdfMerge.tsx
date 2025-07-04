@@ -211,42 +211,27 @@ export default function PdfMerge() {
                 onFilesChange={setFiles}
                 onFilesAdd={handleFiles}
                 onMergedResultChange={setMergedResult}
+                onMerge={handleMerge}
+                isMerging={isProcessing}
+                mergeProgress={progress}
                 enableReordering={true}
                 enablePreviews={true}
                 showAddButton={true}
               />
 
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button
-                  onClick={handleMerge}
-                  disabled={isProcessing || files.length < 2}
-                  className="flex-1"
-                >
-                  {isProcessing ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Merging PDFs ({Math.round(progress)}%)
-                    </>
-                  ) : (
-                    <>
-                      <Layers className="w-4 h-4 mr-2" />
-                      Merge {files.length} PDFs
-                    </>
-                  )}
-                </Button>
-
-                {mergedResult && (
+              {/* Download button for merged result */}
+              {mergedResult && (
+                <div className="flex justify-center">
                   <Button
                     onClick={downloadMerged}
                     variant="default"
-                    className="flex-1"
+                    size="lg"
                   >
                     <Download className="w-4 h-4 mr-2" />
                     Download Merged PDF
                   </Button>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           )}
 

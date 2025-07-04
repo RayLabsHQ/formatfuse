@@ -11,6 +11,8 @@ import {
   FileX,
   ToggleLeft,
   ToggleRight,
+  Layers,
+  Loader2,
 } from "lucide-react";
 import { TbFileTypePdf } from "react-icons/tb";
 import { Button } from "./button";
@@ -32,6 +34,9 @@ export interface PdfFileListProps {
   onFilesAdd?: (files: File[]) => void;
   onFileRemove?: (id: string) => void;
   onMergedResultChange?: (result: Uint8Array | null) => void;
+  onMerge?: () => void;
+  isMerging?: boolean;
+  mergeProgress?: number;
   showAddButton?: boolean;
   enableReordering?: boolean;
   enablePreviews?: boolean;
@@ -50,6 +55,9 @@ export function PdfFileList({
   onFilesAdd,
   onFileRemove,
   onMergedResultChange,
+  onMerge,
+  isMerging = false,
+  mergeProgress = 0,
   showAddButton = true,
   enableReordering = true,
   enablePreviews = true,
@@ -61,6 +69,7 @@ export function PdfFileList({
   const [draggedFile, setDraggedFile] = useState<string | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [showAllPreviews, setShowAllPreviews] = useState(true);
+  const [individualPreviews, setIndividualPreviews] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -80,9 +89,12 @@ export function PdfFileList({
     const file = files[index];
     if (!file) return 80; // Base height
     
+    // Check if this file should show preview
+    const shouldShowPreview = showAllPreviews || individualPreviews.has(file.id);
+    
     // Base height + preview height if showing previews
-    return showAllPreviews && enablePreviews && file.data ? 280 : 80;
-  }, [files, showAllPreviews, enablePreviews]);
+    return shouldShowPreview && enablePreviews && file.data ? 280 : 80;
+  }, [files, showAllPreviews, individualPreviews, enablePreviews]);
 
   // Setup virtualizer with dynamic sizing
   const virtualizer = useVirtualizer({
@@ -95,7 +107,7 @@ export function PdfFileList({
   // Recalculate sizes when preview state changes
   useEffect(() => {
     virtualizer.measure();
-  }, [showAllPreviews, virtualizer]);
+  }, [showAllPreviews, individualPreviews, virtualizer]);
 
   // File utilities
   const formatFileSize = (bytes: number) => {
@@ -171,6 +183,22 @@ export function PdfFileList({
 
   const toggleAllPreviews = useCallback(() => {
     setShowAllPreviews((prev) => !prev);
+    // Clear individual previews when toggling global
+    if (!showAllPreviews) {
+      setIndividualPreviews(new Set());
+    }
+  }, [showAllPreviews]);
+
+  const toggleIndividualPreview = useCallback((fileId: string) => {
+    setIndividualPreviews((prev) => {
+      const next = new Set(prev);
+      if (next.has(fileId)) {
+        next.delete(fileId);
+      } else {
+        next.add(fileId);
+      }
+      return next;
+    });
   }, []);
 
   const handleFileSelect = useCallback(
@@ -193,8 +221,8 @@ export function PdfFileList({
     <div className={cn("bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50", className)}>
       {/* Header */}
       <div className="p-4 sm:p-6 border-b border-border/50">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+          <div className="flex-1">
             <h3 className="font-medium text-base sm:text-lg">{title}</h3>
             {subtitle || (
               <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
@@ -203,50 +231,75 @@ export function PdfFileList({
               </p>
             )}
           </div>
-          {showAddButton && onFilesAdd && (
-            <>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="application/pdf"
-                multiple
-                onChange={handleFileSelect}
-                className="hidden"
-              />
+          
+          {/* Action buttons */}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Toggle previews */}
+            {enablePreviews && files.length > 0 && files.some(f => f.data) && (
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={toggleAllPreviews}
               >
-                <Plus className="w-4 h-4 mr-2" />
-                Add more
+                {showAllPreviews ? (
+                  <>
+                    <EyeOff className="h-4 w-4 mr-2" />
+                    Hide all previews
+                  </>
+                ) : (
+                  <>
+                    <Eye className="h-4 w-4 mr-2" />
+                    Show all previews
+                  </>
+                )}
               </Button>
-            </>
-          )}
-        </div>
-        {/* Toggle all previews button */}
-        {enablePreviews && files.length > 0 && files.some(f => f.data) && (
-          <div className="mt-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleAllPreviews}
-              className="text-xs"
-            >
-              {showAllPreviews ? (
-                <>
-                  <EyeOff className="h-3 w-3 mr-1" />
-                  Hide all previews
-                </>
-              ) : (
-                <>
-                  <Eye className="h-3 w-3 mr-1" />
-                  Show all previews
-                </>
-              )}
-            </Button>
+            )}
+            
+            {/* Add more button */}
+            {showAddButton && onFilesAdd && (
+              <>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="application/pdf"
+                  multiple
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add more
+                </Button>
+              </>
+            )}
+            
+            {/* Merge button */}
+            {onMerge && files.length >= 2 && (
+              <Button
+                onClick={onMerge}
+                disabled={isMerging || files.length < 2}
+                size="sm"
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                {isMerging ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Merging ({Math.round(mergeProgress)}%)
+                  </>
+                ) : (
+                  <>
+                    <Layers className="w-4 h-4 mr-2" />
+                    Merge {files.length} PDFs
+                  </>
+                )}
+              </Button>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
       {/* File list container */}
@@ -276,7 +329,7 @@ export function PdfFileList({
             {virtualizer.getVirtualItems().map((virtualItem) => {
               const fileInfo = files[virtualItem.index];
               const index = virtualItem.index;
-              const isExpanded = showAllPreviews;
+              const shouldShowPreview = showAllPreviews || individualPreviews.has(fileInfo.id);
 
               return (
                 <div
@@ -316,7 +369,7 @@ export function PdfFileList({
                       )}
 
                       {/* PDF Icon */}
-                      <TbFileTypePdf className="w-8 h-8 sm:w-10 sm:h-10 text-foreground flex-shrink-0" />
+                      <TbFileTypePdf className="w-6 h-6 sm:w-10 sm:h-10 text-foreground flex-shrink-0" />
 
                       {/* File info */}
                       <div className="flex-1 min-w-0">
@@ -335,6 +388,23 @@ export function PdfFileList({
 
                       {/* Action buttons */}
                       <div className="flex items-center gap-1 sm:gap-2">
+                        {/* Preview toggle button */}
+                        {enablePreviews && fileInfo.data && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => toggleIndividualPreview(fileInfo.id)}
+                            title={shouldShowPreview ? "Hide preview" : "Show preview"}
+                          >
+                            {shouldShowPreview ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </Button>
+                        )}
+
                         {/* Mobile reorder buttons */}
                         {enableReordering && isMobile && (
                           <>
@@ -365,7 +435,7 @@ export function PdfFileList({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 hover:text-destructive"
+                          className="h-8 w-8 hover:bg-muted"
                           onClick={() => removeFile(fileInfo.id)}
                         >
                           <X className="h-4 w-4" />
@@ -374,13 +444,13 @@ export function PdfFileList({
                     </div>
 
                     {/* PDF Preview - Show if previews are enabled and toggled on */}
-                    {enablePreviews && showAllPreviews && fileInfo.data && (
+                    {enablePreviews && shouldShowPreview && fileInfo.data && (
                       <div className="mt-3 rounded-lg overflow-hidden border border-border/50">
                         <PdfPreview
                           pdfData={fileInfo.data}
                           mode="strip"
                           maxHeight={180}
-                          key={`${fileInfo.id}-${showAllPreviews}`}
+                          key={`${fileInfo.id}-${shouldShowPreview}`}
                         />
                       </div>
                     )}
