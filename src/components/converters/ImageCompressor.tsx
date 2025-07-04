@@ -30,6 +30,7 @@ import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { ToolHeader } from "../ui/ToolHeader";
+import { FileDropZone } from "../ui/FileDropZone";
 import { cn } from "../../lib/utils";
 import { ImageCarouselModal } from "./ImageCarouselModal";
 import JSZip from "jszip";
@@ -171,16 +172,6 @@ export default function ImageCompressor() {
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const selectedFiles = Array.from(e.target.files || []);
       handleFiles(selectedFiles);
-    },
-    [handleFiles],
-  );
-
-  const handleDrop = useCallback(
-    (e: React.DragEvent<HTMLDivElement>) => {
-      e.preventDefault();
-      setIsDragging(false);
-      const droppedFiles = Array.from(e.dataTransfer.files);
-      handleFiles(droppedFiles);
     },
     [handleFiles],
   );
@@ -630,42 +621,17 @@ export default function ImageCompressor() {
               className="relative animate-fade-in-up"
               style={{ animationDelay: "0.4s" }}
             >
-              <div
-                onDrop={handleDrop}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  setIsDragging(true);
-                }}
-                onDragLeave={(e) => {
-                  e.preventDefault();
-                  setIsDragging(false);
-                }}
-                onClick={() => fileInputRef.current?.click()}
-                className={`relative rounded-2xl border-2 border-dashed transition-all duration-300 cursor-pointer overflow-hidden ${
-                  isDragging
-                    ? "border-primary bg-primary/10 scale-[1.02] shadow-lg shadow-primary/20"
-                    : "border-border bg-card/50 hover:border-primary hover:bg-card hover:shadow-lg hover:shadow-primary/10"
-                }`}
-              >
-                <div className="p-8 sm:p-12 text-center pointer-events-none">
-                  <Upload
-                    className={`w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 transition-all duration-300 ${
-                      isDragging
-                        ? "text-primary scale-110 rotate-12"
-                        : "text-muted-foreground"
-                    }`}
-                  />
-                  <p className="text-base sm:text-lg font-medium mb-2">
-                    Drop images here or click to browse
-                  </p>
-                  <p className="text-xs sm:text-sm text-muted-foreground px-4">
-                    Supports JPG, PNG, WebP, AVIF, and more
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Maximum 50MB per file
-                  </p>
-                </div>
-              </div>
+              <FileDropZone
+                onFilesSelected={handleFiles}
+                accept="image/*"
+                multiple={true}
+                isDragging={isDragging}
+                onDragStateChange={setIsDragging}
+                title="Drop images here"
+                subtitle="or click to browse"
+                infoMessage="Supports JPG, PNG, WebP, AVIF, and more"
+                secondaryInfo="Maximum 50MB per file"
+              />
             </div>
           )}
 
@@ -673,16 +639,34 @@ export default function ImageCompressor() {
           {files.length > 0 && (
             <div className="space-y-6">
               <div
-                className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 overflow-hidden animate-fade-in-up"
+                className={cn(
+                  "bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 overflow-hidden animate-fade-in-up transition-all duration-300",
+                  isDragging && "border-primary bg-primary/5"
+                )}
                 style={{ animationDelay: "0.5s" }}
-                onDrop={handleDrop}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsDragging(false);
+                  const droppedFiles = Array.from(e.dataTransfer.files);
+                  if (droppedFiles.length > 0) {
+                    handleFiles(droppedFiles);
+                  }
+                }}
                 onDragOver={(e) => {
                   e.preventDefault();
+                  e.stopPropagation();
                   setIsDragging(true);
                 }}
                 onDragLeave={(e) => {
                   e.preventDefault();
-                  setIsDragging(false);
+                  e.stopPropagation();
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const x = e.clientX;
+                  const y = e.clientY;
+                  if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
+                    setIsDragging(false);
+                  }
                 }}
               >
                 {/* Card Header */}

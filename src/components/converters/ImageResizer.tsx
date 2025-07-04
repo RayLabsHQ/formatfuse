@@ -28,6 +28,7 @@ import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 import { ToolHeader } from "../ui/ToolHeader";
+import { FileDropZone } from "../ui/FileDropZone";
 import { cn } from "../../lib/utils";
 import { Slider } from "../ui/slider";
 import { Button } from "../ui/button";
@@ -218,39 +219,6 @@ export default function ImageResizer() {
     },
     [handleFiles],
   );
-
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setIsDragging(false);
-      const droppedFiles = Array.from(e.dataTransfer.files);
-      handleFiles(droppedFiles);
-    },
-    [handleFiles],
-  );
-
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  }, []);
-
-  const handleDragEnter = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX;
-    const y = e.clientY;
-    if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
-      setIsDragging(false);
-    }
-  }, []);
 
   const handlePresetChange = (presetName: string) => {
     setSelectedPreset(presetName);
@@ -739,46 +707,18 @@ export default function ImageResizer() {
 
           {/* Drop Zone / File Upload */}
           {!hasFiles ? (
-            <label
-              htmlFor="file-upload"
-              className="group relative block cursor-pointer"
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-              onDragEnter={handleDragEnter}
-              onDragLeave={handleDragLeave}
-            >
-              <div
-                className={cn(
-                  "relative p-12 sm:p-16 md:p-20 rounded-2xl border-2 border-dashed transition-all duration-300",
-                  isDragging
-                    ? "border-primary bg-primary/10 scale-[1.02]"
-                    : "border-border bg-card/50 hover:border-primary hover:bg-card group-hover:scale-[1.01]",
-                )}
-              >
-                <div className="text-center">
-                  <Upload
-                    className={cn(
-                      "w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 transition-all duration-300",
-                      isDragging
-                        ? "text-primary scale-110"
-                        : "text-muted-foreground group-hover:text-primary",
-                    )}
-                  />
-                  <p className="text-lg sm:text-xl font-medium mb-2">
-                    Drop images here
-                  </p>
-                  <p className="text-sm sm:text-base text-muted-foreground mb-4">
-                    or click to browse
-                  </p>
-                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-muted/50">
-                    <Info className="w-4 h-4 text-primary" />
-                    <span className="text-sm text-muted-foreground">
-                      Supports JPG, PNG, WebP, and more
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </label>
+            <div className="relative">
+              <FileDropZone
+                onFilesSelected={handleFiles}
+                accept="image/*"
+                multiple={true}
+                isDragging={isDragging}
+                onDragStateChange={setIsDragging}
+                title="Drop images here"
+                subtitle="or click to browse"
+                infoMessage="Supports JPG, PNG, WebP, and more"
+              />
+            </div>
           ) : (
             <div className="space-y-4">
               <SimplifiedFileList

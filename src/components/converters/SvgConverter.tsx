@@ -19,6 +19,7 @@ import { Input } from "../ui/input";
 import { useSvgConverter } from "../../hooks/useSvgConverter";
 import { SimplifiedFileList } from "./SimplifiedFileList";
 import { ToolHeader } from "../ui/ToolHeader";
+import { FileDropZone } from "../ui/FileDropZone";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { cn } from "../../lib/utils";
@@ -109,9 +110,8 @@ export function SvgConverter() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const additionalInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const selectedFiles = Array.from(e.target.files || []);
+  const handleFiles = useCallback(
+    (selectedFiles: File[]) => {
       const svgFiles = selectedFiles.filter((file) => file.type === "image/svg+xml");
 
       if (svgFiles.length === 0) {
@@ -127,6 +127,14 @@ export function SvgConverter() {
       setFiles((prev) => [...prev, ...newFiles]);
     },
     [],
+  );
+
+  const handleFileSelect = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const selectedFiles = Array.from(e.target.files || []);
+      handleFiles(selectedFiles);
+    },
+    [handleFiles],
   );
 
   const convertFile = useCallback(async (index: number) => {
@@ -379,30 +387,26 @@ export function SvgConverter() {
           )}
         </div>
 
+        {/* Hidden file input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".svg,image/svg+xml"
+          multiple
+          onChange={handleFileSelect}
+          className="hidden"
+        />
+
         {/* File Upload Area */}
         {files.length === 0 ? (
-          <div
-            className="border-2 border-dashed rounded-xl p-8 sm:p-12 text-center cursor-pointer transition-all hover:border-primary/50 hover:bg-primary/5"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-lg font-semibold mb-2">
-              Drop SVG files here or click to upload
-            </h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Convert multiple SVG files at once
-            </p>
-            <Button variant="outline" size="sm">
-              <Upload className="w-4 h-4 mr-2" />
-              Choose Files
-            </Button>
-            <input
-              ref={fileInputRef}
-              type="file"
+          <div className="relative">
+            <FileDropZone
+              onFilesSelected={handleFiles}
               accept=".svg,image/svg+xml"
-              multiple
-              onChange={handleFileSelect}
-              className="hidden"
+              multiple={true}
+              title="Drop SVG files here"
+              subtitle="or click to browse"
+              infoMessage="Convert multiple SVG files at once"
             />
           </div>
         ) : (
