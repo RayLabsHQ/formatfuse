@@ -89,8 +89,27 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
           import.meta.url,
         ).toString();
 
+        // Create a copy of the data to avoid ArrayBuffer detachment issues
+        let pdfDataCopy: Uint8Array;
+        try {
+          if (pdfData instanceof ArrayBuffer) {
+            pdfDataCopy = new Uint8Array(pdfData.slice(0));
+          } else {
+            // Check if the buffer is detached
+            if (pdfData.buffer.byteLength === 0) {
+              throw new Error("ArrayBuffer is detached");
+            }
+            pdfDataCopy = new Uint8Array(pdfData.buffer.slice(0));
+          }
+        } catch (err) {
+          console.error("Error copying PDF data:", err);
+          setError("Failed to load PDF: Invalid data");
+          setLoading(false);
+          return;
+        }
+        
         // Create loading task with timeout
-        const loadingTask = pdfjsLib.getDocument({ data: pdfData });
+        const loadingTask = pdfjsLib.getDocument({ data: pdfDataCopy });
 
         // Add timeout to prevent hanging
         const timeoutPromise = new Promise((_, reject) =>

@@ -11,6 +11,7 @@ interface FileDropZoneProps {
   title?: string;
   subtitle?: string;
   infoMessage?: string;
+  secondaryInfo?: string;
   className?: string;
   disabled?: boolean;
 }
@@ -24,6 +25,7 @@ export function FileDropZone({
   title = "Drop files here",
   subtitle = "or click to browse",
   infoMessage,
+  secondaryInfo,
   className,
   disabled = false,
 }: FileDropZoneProps) {
@@ -151,6 +153,11 @@ export function FileDropZone({
                 {infoMessage}
               </span>
             </div>
+          )}
+          {secondaryInfo && (
+            <p className="text-xs text-muted-foreground mt-3">
+              {secondaryInfo}
+            </p>
           )}
         </div>
       </div>

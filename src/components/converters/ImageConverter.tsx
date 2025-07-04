@@ -29,6 +29,7 @@ import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { FormatSelect } from "../ui/format-select";
 import { ToolHeader } from "../ui/ToolHeader";
+import { FileDropZone } from "../ui/FileDropZone";
 import { cn } from "../../lib/utils";
 import { ImageCarouselModal } from "./ImageCarouselModal";
 import JSZip from "jszip";
@@ -178,6 +179,11 @@ export default function ImageConverter({
   );
   const [quality, setQuality] = useState(100); // Default to lossless
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [lastConversionSettings, setLastConversionSettings] = useState<{
+    format: string;
+    quality: number;
+    isLossless: boolean;
+  } | null>(null);
 
   // Sync quality input when quality changes from buttons
   useEffect(() => {
@@ -208,120 +214,11 @@ export default function ImageConverter({
     selectedTargetFormat &&
     ["JPEG", "WEBP", "AVIF"].includes(selectedTargetFormat.name);
 
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      setIsDragging(false);
-
-      const droppedFiles = Array.from(e.dataTransfer.files);
-
-      // Auto-detect source format
-      if (droppedFiles.length > 0) {
-        const firstFile = droppedFiles[0];
-        const extension = firstFile.name.split(".").pop()?.toUpperCase();
-        const detectedFormat = getFormat(extension);
-        if (detectedFormat) {
-          setSelectedSourceFormat(detectedFormat);
-        }
-      }
-
-      const newFiles = droppedFiles.map((file) => ({
-        file,
-        status: "pending" as const,
-        progress: 0,
-        previewUrl: file.type.startsWith("image/")
-          ? URL.createObjectURL(file)
-          : undefined,
-      }));
-
-      setFiles((prev) => {
-        const newFilesList = [...prev, ...newFiles];
-
-        // Always auto-process files
-        if (newFiles.length > 0) {
-          setTimeout(() => {
-            newFiles.forEach((fileInfo, index) => {
-              processFile(fileInfo.file, prev.length + index);
-            });
-          }, 100);
-        }
-
-        return newFilesList;
-      });
-    },
-    [files.length],
+  const settingsChanged = lastConversionSettings && (
+    lastConversionSettings.format !== selectedTargetFormat.name ||
+    lastConversionSettings.quality !== (isLossless ? 100 : quality) ||
+    lastConversionSettings.isLossless !== isLossless
   );
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const selectedFiles = Array.from(e.target.files);
-
-      // Auto-detect source format
-      if (selectedFiles.length > 0) {
-        const firstFile = selectedFiles[0];
-        const extension = firstFile.name.split(".").pop()?.toUpperCase();
-        const detectedFormat = getFormat(extension);
-        if (detectedFormat) {
-          setSelectedSourceFormat(detectedFormat);
-        }
-      }
-
-      const newFiles = selectedFiles.map((file) => ({
-        file,
-        status: "pending" as const,
-        progress: 0,
-        previewUrl: file.type.startsWith("image/")
-          ? URL.createObjectURL(file)
-          : undefined,
-      }));
-
-      setFiles((prev) => {
-        const newFilesList = [...prev, ...newFiles];
-
-        // Always auto-process files
-        if (newFiles.length > 0) {
-          setTimeout(() => {
-            newFiles.forEach((fileInfo, index) => {
-              processFile(fileInfo.file, prev.length + index);
-            });
-          }, 100);
-        }
-
-        return newFilesList;
-      });
-    }
-  };
-
-  const removeFile = (index: number) => {
-    const fileToRemove = files[index];
-    if (fileToRemove?.previewUrl) {
-      URL.revokeObjectURL(fileToRemove.previewUrl);
-    }
-    if (fileToRemove?.result && fileToRemove.status === "completed") {
-      // Clean up result blob URL if it was created
-      const resultUrl =
-        fileToRemove.result instanceof Blob
-          ? URL.createObjectURL(fileToRemove.result)
-          : null;
-      if (resultUrl) URL.revokeObjectURL(resultUrl);
-    }
-    setFiles((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const removeAllFiles = () => {
-    // Clean up all preview URLs and result URLs
-    files.forEach((file) => {
-      if (file.previewUrl) {
-        URL.revokeObjectURL(file.previewUrl);
-      }
-      if (file.result && file.status === "completed") {
-        const resultUrl =
-          file.result instanceof Blob ? URL.createObjectURL(file.result) : null;
-        if (resultUrl) URL.revokeObjectURL(resultUrl);
-      }
-    });
-    setFiles([]);
-  };
 
   const processFile = useCallback(
     async (fileToProcess: File, fileIndex: number) => {
@@ -400,6 +297,117 @@ export default function ImageConverter({
     },
     [selectedTargetFormat, isLossless, quality],
   );
+
+  const handleFilesSelected = useCallback(
+    (selectedFiles: File[]) => {
+      // Auto-detect source format
+      if (selectedFiles.length > 0) {
+        const firstFile = selectedFiles[0];
+        const extension = firstFile.name.split(".").pop()?.toUpperCase();
+        const detectedFormat = getFormat(extension);
+        if (detectedFormat) {
+          setSelectedSourceFormat(detectedFormat);
+        }
+      }
+
+      const newFiles = selectedFiles.map((file) => ({
+        file,
+        status: "pending" as const,
+        progress: 0,
+        previewUrl: file.type.startsWith("image/")
+          ? URL.createObjectURL(file)
+          : undefined,
+      }));
+
+      setFiles((prev) => [...prev, ...newFiles]);
+    },
+    []
+  );
+
+  const convertAllFiles = useCallback(() => {
+    // Update last conversion settings
+    setLastConversionSettings({
+      format: selectedTargetFormat.name,
+      quality: isLossless ? 100 : quality,
+      isLossless,
+    });
+    
+    files.forEach((file, index) => {
+      if (file.status === "pending" || file.status === "error" || 
+          (settingsChanged && file.status === "completed")) {
+        // Reset status to pending for reconversion
+        if (file.status === "completed") {
+          setFiles((prev) =>
+            prev.map((f, i) =>
+              i === index ? { ...f, status: "pending" as const } : f
+            )
+          );
+        }
+        processFile(file.file, index);
+      }
+    });
+  }, [files, processFile, selectedTargetFormat, quality, isLossless, settingsChanged]);
+
+  const convertSingleFile = useCallback((index: number) => {
+    // Update last conversion settings
+    setLastConversionSettings({
+      format: selectedTargetFormat.name,
+      quality: isLossless ? 100 : quality,
+      isLossless,
+    });
+    
+    const file = files[index];
+    if (file && (file.status === "pending" || file.status === "error" || 
+        (settingsChanged && file.status === "completed"))) {
+      // Reset status to pending for reconversion
+      if (file.status === "completed") {
+        setFiles((prev) =>
+          prev.map((f, i) =>
+            i === index ? { ...f, status: "pending" as const } : f
+          )
+        );
+      }
+      processFile(file.file, index);
+    }
+  }, [files, processFile, selectedTargetFormat, quality, isLossless, settingsChanged]);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const selectedFiles = Array.from(e.target.files);
+      handleFilesSelected(selectedFiles);
+    }
+  };
+
+  const removeFile = (index: number) => {
+    const fileToRemove = files[index];
+    if (fileToRemove?.previewUrl) {
+      URL.revokeObjectURL(fileToRemove.previewUrl);
+    }
+    if (fileToRemove?.result && fileToRemove.status === "completed") {
+      // Clean up result blob URL if it was created
+      const resultUrl =
+        fileToRemove.result instanceof Blob
+          ? URL.createObjectURL(fileToRemove.result)
+          : null;
+      if (resultUrl) URL.revokeObjectURL(resultUrl);
+    }
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const removeAllFiles = () => {
+    // Clean up all preview URLs and result URLs
+    files.forEach((file) => {
+      if (file.previewUrl) {
+        URL.revokeObjectURL(file.previewUrl);
+      }
+      if (file.result && file.status === "completed") {
+        const resultUrl =
+          file.result instanceof Blob ? URL.createObjectURL(file.result) : null;
+        if (resultUrl) URL.revokeObjectURL(resultUrl);
+      }
+    });
+    setFiles([]);
+  };
 
   const downloadFile = (index: number) => {
     const fileInfo = files[index];
@@ -895,43 +903,17 @@ export default function ImageConverter({
                   className="relative animate-fade-in-up"
                   style={{ animationDelay: "0.4s" }}
                 >
-                  <div
-                    onDrop={handleDrop}
-                    onDragOver={(e) => {
-                      e.preventDefault();
-                      setIsDragging(true);
-                    }}
-                    onDragLeave={(e) => {
-                      e.preventDefault();
-                      setIsDragging(false);
-                    }}
-                    onClick={() => fileInputRef.current?.click()}
-                    className={`relative rounded-2xl border-2 border-dashed transition-all duration-300 cursor-pointer overflow-hidden ${
-                      isDragging
-                        ? "border-primary bg-primary/10 scale-[1.02] shadow-lg shadow-primary/20"
-                        : "border-border bg-card/50 hover:border-primary hover:bg-card hover:shadow-lg hover:shadow-primary/10"
-                    }`}
-                  >
-                    <div className="p-8 sm:p-12 text-center pointer-events-none">
-                      <Upload
-                        className={`w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 transition-all duration-300 ${
-                          isDragging
-                            ? "text-primary scale-110 rotate-12"
-                            : "text-muted-foreground"
-                        }`}
-                      />
-                      <p className="text-base sm:text-lg font-medium mb-2">
-                        Drop images here or click to browse
-                      </p>
-                      <p className="text-xs sm:text-sm text-muted-foreground px-4">
-                        Support for PNG, JPG, WebP, GIF, BMP, ICO, TIFF, AVIF,
-                        HEIC
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-2">
-                        Max recommended size: 100MB
-                      </p>
-                    </div>
-                  </div>
+                  <FileDropZone
+                    onFilesSelected={handleFilesSelected}
+                    accept="image/*"
+                    multiple={true}
+                    isDragging={isDragging}
+                    onDragStateChange={setIsDragging}
+                    title="Drop images here"
+                    subtitle="or click to browse"
+                    infoMessage="Support for PNG, JPG, WebP, GIF, BMP, ICO, TIFF, AVIF, HEIC"
+                    secondaryInfo="Max recommended size: 100MB"
+                  />
                 </div>
               )}
             </div>
@@ -940,9 +922,17 @@ export default function ImageConverter({
             {files.length > 0 && (
               <div className="space-y-6">
                 <div
-                  className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-6 animate-fade-in-up"
+                  className={cn(
+                    "bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-6 animate-fade-in-up transition-all duration-300",
+                    isDragging && "border-primary bg-primary/5"
+                  )}
                   style={{ animationDelay: "0.5s" }}
-                  onDrop={handleDrop}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDragging(false);
+                    const droppedFiles = Array.from(e.dataTransfer.files);
+                    handleFilesSelected(droppedFiles);
+                  }}
                   onDragOver={(e) => {
                     e.preventDefault();
                     setIsDragging(true);
@@ -968,11 +958,25 @@ export default function ImageConverter({
                         <span className="hidden sm:inline">Add more</span>
                         <span className="sm:hidden">Add</span>
                       </Button>
+                      {(files.some((f) => f.status === "pending" || f.status === "error") || (settingsChanged && hasCompletedFiles)) && (
+                        <Button
+                          onClick={convertAllFiles}
+                          size="sm"
+                          variant="default"
+                          className="gap-2 flex-1 sm:flex-none"
+                        >
+                          <ArrowRight className="w-4 h-4" />
+                          <span className="hidden sm:inline">
+                            {settingsChanged && hasCompletedFiles ? "Reconvert All" : "Convert All"}
+                          </span>
+                          <span className="sm:hidden">Convert</span>
+                        </Button>
+                      )}
                       {hasCompletedFiles && (
                         <Button
                           onClick={downloadAll}
                           size="sm"
-                          variant="default"
+                          variant="outline"
                           className="gap-2 flex-1 sm:flex-none"
                         >
                           <Download className="w-4 h-4" />
@@ -1081,6 +1085,11 @@ export default function ImageConverter({
                                     <span>
                                       {formatFileSize(file.file.size)}
                                     </span>
+                                    {file.status === "pending" && (
+                                      <span className="text-muted-foreground">
+                                        Ready to convert
+                                      </span>
+                                    )}
                                     {file.status === "processing" && (
                                       <span className="flex items-center gap-1">
                                         <Loader2 className="w-3 h-3 animate-spin" />
@@ -1114,6 +1123,20 @@ export default function ImageConverter({
                                 </div>
 
                                 <div className="flex items-center gap-1">
+                                  {(file.status === "pending" || file.status === "error" || 
+                                    (settingsChanged && file.status === "completed")) && (
+                                    <Button
+                                      onClick={() => convertSingleFile(index)}
+                                      size="sm"
+                                      variant="ghost"
+                                      className="gap-1 text-primary hover:text-primary"
+                                    >
+                                      <ArrowRight className="w-4 h-4" />
+                                      <span className="hidden sm:inline">
+                                        {settingsChanged && file.status === "completed" ? "Reconvert" : "Convert"}
+                                      </span>
+                                    </Button>
+                                  )}
                                   {file.status === "completed" && (
                                     <Button
                                       onClick={() => downloadFile(index)}
