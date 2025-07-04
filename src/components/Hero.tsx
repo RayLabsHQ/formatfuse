@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import {
-  Upload,
   FileText,
   Image,
   FileCode,
@@ -11,6 +10,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import ToolSuggestionModal from "./ToolSuggestionModal";
+import { FileDropZone } from "./ui/FileDropZone";
 import { getToolsForFile, isSupportedFileType } from "../lib/file-type-tools";
 import { storeFileForTransfer } from "../lib/file-transfer";
 
@@ -33,7 +33,6 @@ export default function Hero() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentTypeIndex, setCurrentTypeIndex] = useState(0);
   const [isTypeTransitioning, setIsTypeTransitioning] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
   const intervalRef = useRef<number | null>(null);
 
   // Rotate file types
@@ -71,51 +70,6 @@ export default function Hero() {
     setShowModal(true);
   }, []);
 
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setIsDragging(false);
-      const file = e.dataTransfer.files[0];
-      if (file) {
-        handleFile(file);
-      }
-    },
-    [handleFile],
-  );
-
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  }, []);
-
-  const handleDragEnter = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    // Only set dragging to false if we're leaving the drop zone entirely
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX;
-    const y = e.clientY;
-    if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
-      setIsDragging(false);
-    }
-  }, []);
-
-  const handleFileSelect = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (file) {
-        handleFile(file);
-      }
-    },
-    [handleFile],
-  );
 
   const handleToolSelect = async (toolId: string) => {
     if (!selectedFile) return;
@@ -230,74 +184,34 @@ export default function Hero() {
             className="animate-fade-in-up"
             style={{ animationDelay: "0.2s" }}
           >
-            <label
-              htmlFor="file-upload"
-              className={`group relative block cursor-pointer`}
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-              onDragEnter={handleDragEnter}
-              onDragLeave={handleDragLeave}
-            >
-              <input
-                type="file"
-                id="file-upload"
-                className="sr-only"
-                accept="*"
-                onChange={handleFileSelect}
-                disabled={isProcessing}
-                aria-label="Upload a file to convert"
-              />
-              <div
-                className={`relative p-12 sm:p-16 md:p-20 rounded-2xl border-2 border-dashed transition-all duration-300 overflow-hidden ${
-                  isDragging
-                    ? "border-primary bg-primary/10 scale-[1.02] shadow-lg shadow-primary/20"
-                    : "border-border bg-card/50 group-hover:border-primary group-hover:bg-card group-hover:shadow-lg group-hover:shadow-primary/10 group-hover:scale-[1.01]"
-                }`}
-              >
-                {/* Animated border gradient on hover */}
-                <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
-                  <div className="absolute inset-[-2px] rounded-2xl bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] animate-gradient-shift" />
-                  <div className="absolute inset-0 rounded-2xl bg-card/95" />
-                </div>
-
-                <div className="relative text-center">
-                  <Upload
-                    className={`w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 sm:mb-6 transition-all duration-300 ${
-                      isDragging
-                        ? "text-primary scale-110 rotate-12"
-                        : "text-muted-foreground group-hover:text-primary group-hover:scale-105"
-                    }`}
-                  />
-                  <p className="text-lg sm:text-xl font-medium mb-2 sm:mb-3 transition-colors duration-300 group-hover:text-primary">
-                    Drop any file here
-                  </p>
-                  <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6 transition-all duration-300 group-hover:text-foreground">
-                    or click to browse
-                  </p>
-
-                  {/* Quick action hint */}
-                  <div className="inline-flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2 rounded-lg bg-muted/50 transition-all duration-300 group-hover:bg-primary/10">
-                    <div className="flex items-center gap-1.5">
-                      <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary transition-transform duration-300 group-hover:scale-110" />
-                      <span className="text-xs sm:text-sm text-muted-foreground transition-colors duration-300 group-hover:text-foreground">
-                        Instant conversion
-                      </span>
-                    </div>
-                    <span className="hidden sm:inline text-xs sm:text-sm text-muted-foreground">
-                      •
-                    </span>
+            <FileDropZone
+              onFilesSelected={(files: File[]) => {
+                if (files && files.length > 0) {
+                  handleFile(files[0]);
+                }
+              }}
+              multiple={false}
+              title="Drop any file here"
+              subtitle="or click to browse"
+              showButtons={false}
+              disabled={isProcessing}
+              customInfoContent={
+                <div className="inline-flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2 rounded-lg bg-muted/50 transition-all duration-300 group-hover:bg-primary/10">
+                  <div className="flex items-center gap-1.5">
+                    <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary transition-transform duration-300 group-hover:scale-110" />
                     <span className="text-xs sm:text-sm text-muted-foreground transition-colors duration-300 group-hover:text-foreground">
-                      No sign-up required
+                      Instant conversion
                     </span>
                   </div>
+                  <span className="hidden sm:inline text-xs sm:text-sm text-muted-foreground">
+                    •
+                  </span>
+                  <span className="text-xs sm:text-sm text-muted-foreground transition-colors duration-300 group-hover:text-foreground">
+                    No sign-up required
+                  </span>
                 </div>
-
-                {/* Visual indicator for drag state */}
-                {isDragging && (
-                  <div className="absolute inset-0 bg-primary/5 pointer-events-none animate-pulse" />
-                )}
-              </div>
-            </label>
+              }
+            />
           </div>
         </div>
       </div>

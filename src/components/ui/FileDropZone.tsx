@@ -19,6 +19,7 @@ interface FileDropZoneProps {
   showButtons?: boolean;
   onAddFilesClick?: () => void;
   onAddFolderClick?: () => void;
+  customInfoContent?: React.ReactNode;
 }
 
 export function FileDropZone({
@@ -37,6 +38,7 @@ export function FileDropZone({
   showButtons = false,
   onAddFilesClick,
   onAddFolderClick,
+  customInfoContent,
 }: FileDropZoneProps) {
   const [internalIsDragging, setInternalIsDragging] = React.useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -211,13 +213,17 @@ export function FileDropZone({
             </div>
           )}
           
-          {infoMessage && (
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-muted/50">
-              <Info className="w-4 h-4 text-primary" />
-              <span className="text-sm text-muted-foreground">
-                {infoMessage}
-              </span>
-            </div>
+          {customInfoContent ? (
+            customInfoContent
+          ) : (
+            infoMessage && (
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-muted/50">
+                <Info className="w-4 h-4 text-primary" />
+                <span className="text-sm text-muted-foreground">
+                  {infoMessage}
+                </span>
+              </div>
+            )
           )}
           {secondaryInfo && (
             <p className="text-xs text-muted-foreground mt-3">
