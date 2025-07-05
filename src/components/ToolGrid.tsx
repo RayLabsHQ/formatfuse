@@ -95,8 +95,9 @@ const SectionTitle = memo(() => {
   return (
     <h3 className="text-2xl font-bold mb-8 text-center">
       <StableText className="text-muted-foreground">
-        Most Used{' '}
+        Most Used
       </StableText>
+      {' '}
       <StableText style={{ color: "var(--primary)" }}>
         This Week
       </StableText>
