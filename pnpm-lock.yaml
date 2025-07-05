@@ -140,9 +140,6 @@ importers:
       file-saver:
         specifier: ^2.0.5
         version: 2.0.5
-      framer-motion:
-        specifier: ^12.20.1
-        version: 12.20.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       js-yaml:
         specifier: ^4.1.0
         version: 4.1.0
@@ -2481,20 +2478,6 @@ packages:
     resolution: {integrity: sha512-gIXjKqtFuWEgzFRJA9WCQeSJLZDjgJUOMCMzxtvFq/37KojM1BFGufqsCy0r4qSQmYLsZYMeyRqzIWOMup03sw==}
     engines: {node: '>=14'}
 
-  framer-motion@12.20.1:
-    resolution: {integrity: sha512-NW2t2GHQcNvLHq18JyNVY15VKrwru+nkNyhLdqf4MbxbGhxZcSDi68iNcAy6O1nG0yYAQJbLioBIH1Kmg8Xr1g==}
-    peerDependencies:
-      '@emotion/is-prop-valid': '*'
-      react: ^18.0.0 || ^19.0.0
-      react-dom: ^18.0.0 || ^19.0.0
-    peerDependenciesMeta:
-      '@emotion/is-prop-valid':
-        optional: true
-      react:
-        optional: true
-      react-dom:
-        optional: true
-
   fs-constants@1.0.0:
     resolution: {integrity: sha512-y6OAwoSIf7FyjMIv94u+b5rdheZEjzR63GTyZJm5qh4Bi+2YgwLCcI/fPFZkL5PSixOt6ZNKm+w+Hfp/Bciwow==}
 
@@ -3137,12 +3120,6 @@ packages:
     resolution: {integrity: sha512-+NsyUUAZDmo6YVHzL/stxSu3t9YS1iljliy3BSDrXJ/dkn1KYdmtZODGGjLcc9XLgVVpH4KshHB8XmZgMhaBXg==}
     engines: {node: '>=10'}
     hasBin: true
-
-  motion-dom@12.20.1:
-    resolution: {integrity: sha512-XyveLJ9dmQTmaEsP9RlcuoNFxWlRIGdasdPJBB4aOwPr8bRcJdhltudAbiEjRQBmsGD30sjJdaEjhkHsAHapLQ==}
-
-  motion-utils@12.19.0:
-    resolution: {integrity: sha512-BuFTHINYmV07pdWs6lj6aI63vr2N4dg0vR+td0rtrdpWOhBzIkEklZyLcvKBoEtwSqx8Jg06vUB5RS0xDiUybw==}
 
   mrmime@2.0.1:
     resolution: {integrity: sha512-Y3wQdFg2Va6etvQ5I82yUhGdsKrcYox6p7FfL1LbK2J4V01F9TGlepTIhnK24t7koZibmg82KGglhA1XK5IsLQ==}
@@ -6765,15 +6742,6 @@ snapshots:
       cross-spawn: 7.0.6
       signal-exit: 4.1.0
 
-  framer-motion@12.20.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
-    dependencies:
-      motion-dom: 12.20.1
-      motion-utils: 12.19.0
-      tslib: 2.8.1
-    optionalDependencies:
-      react: 19.1.0
-      react-dom: 19.1.0(react@19.1.0)
-
   fs-constants@1.0.0: {}
 
   fsevents@2.3.3:
@@ -7730,12 +7698,6 @@ snapshots:
   mkdirp-classic@0.5.3: {}
 
   mkdirp@3.0.1: {}
-
-  motion-dom@12.20.1:
-    dependencies:
-      motion-utils: 12.19.0
-
-  motion-utils@12.19.0: {}
 
   mrmime@2.0.1: {}
 
