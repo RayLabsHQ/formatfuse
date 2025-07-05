@@ -12,15 +12,12 @@ import {
   FileOutput,
   Package,
   Eye,
-  EyeOff,
-  X,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { ToolHeader } from "../ui/ToolHeader";
 import { FileDropZone } from "../ui/FileDropZone";
-import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 import { cn } from "../../lib/utils";
 import { usePdfOperations } from "../../hooks/usePdfOperations";
 import { parsePageRanges, formatPageRanges } from "../../lib/pdf-operations";
@@ -152,7 +149,6 @@ const SPLIT_PRESETS = {
 export default function PdfSplit() {
   const [files, setFiles] = useState<PdfFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
-  const [showAdvanced, setShowAdvanced] = useState(false);
   const [results, setResults] = useState<SplitResult[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -306,91 +302,112 @@ export default function PdfSplit() {
             </div>
           )}
 
-          {/* Settings Card */}
-          <div
-            className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 overflow-hidden animate-fade-in-up"
-            style={{ animationDelay: "0.3s" }}
-          >
-            {/* Card Header */}
-            <div className="border-b border-border/50 px-6 py-4 bg-gradient-to-r from-primary/5 to-transparent">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <Settings2 className="w-5 h-5 text-primary" />
-                Split Settings
-              </h2>
+          {/* Split Settings - No card wrapper, inline style like PDF Compress */}
+          <div className="space-y-6">
+            {/* Split Mode Tabs */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-medium text-muted-foreground">Split Mode</h3>
+              <div className="flex gap-2 p-1 bg-muted/50 rounded-lg">
+                <button
+                  onClick={() =>
+                    setOptions((prev) => ({ ...prev, mode: "preset" }))
+                  }
+                  className={cn(
+                    "flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all",
+                    options.mode === "preset"
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <Scissors className="w-4 h-4 inline-block mr-2" />
+                  Presets
+                </button>
+                <button
+                  onClick={() =>
+                    setOptions((prev) => ({ ...prev, mode: "custom" }))
+                  }
+                  className={cn(
+                    "flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all",
+                    options.mode === "custom"
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <Settings2 className="w-4 h-4 inline-block mr-2" />
+                  Custom
+                </button>
+              </div>
             </div>
 
-            <div className="p-6 space-y-6">
-              {/* Split Mode */}
-              <div className="space-y-4">
-                <label className="text-sm font-medium">Split Mode</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() =>
-                      setOptions((prev) => ({ ...prev, mode: "preset" }))
-                    }
-                    className={cn(
-                      "px-3 py-2 rounded-lg border-2 transition-all duration-200 text-sm",
-                      options.mode === "preset"
-                        ? "border-primary bg-primary/10"
-                        : "border-border/50 hover:border-primary/50 bg-card/50",
-                    )}
-                  >
-                    Presets
-                  </button>
-                  <button
-                    onClick={() =>
-                      setOptions((prev) => ({ ...prev, mode: "custom" }))
-                    }
-                    className={cn(
-                      "px-3 py-2 rounded-lg border-2 transition-all duration-200 text-sm",
-                      options.mode === "custom"
-                        ? "border-primary bg-primary/10"
-                        : "border-border/50 hover:border-primary/50 bg-card/50",
-                    )}
-                  >
-                    Custom Ranges
-                  </button>
-                </div>
-              </div>
-
-              {/* Preset Options */}
-              {options.mode === "preset" && (
-                <div className="space-y-4">
-                  <label className="text-sm font-medium">Select Preset</label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {(
-                      Object.keys(SPLIT_PRESETS) as Array<
-                        keyof typeof SPLIT_PRESETS
-                      >
-                    ).map((preset) => (
+            {/* Preset Options - Visual style like PDF Compress quality presets */}
+            {options.mode === "preset" && (
+              <div className="space-y-3">
+                <h3 className="text-sm font-medium text-muted-foreground">Choose how to split</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {(
+                    Object.keys(SPLIT_PRESETS) as Array<
+                      keyof typeof SPLIT_PRESETS
+                    >
+                  ).map((preset) => {
+                    const isSelected = options.preset === preset;
+                    const presetInfo = SPLIT_PRESETS[preset];
+                    
+                    // Icons for each preset
+                    const icons = {
+                      individual: FileText,
+                      halves: Scissors,
+                      thirds: Package,
+                      quarters: FileOutput,
+                    };
+                    const Icon = icons[preset] || FileText;
+                    
+                    return (
                       <button
                         key={preset}
                         onClick={() =>
                           setOptions((prev) => ({ ...prev, preset }))
                         }
                         className={cn(
-                          "p-3 rounded-lg border-2 transition-all duration-200 text-left",
-                          options.preset === preset
-                            ? "border-primary bg-primary/10"
-                            : "border-border/50 hover:border-primary/50 bg-card/50",
+                          "relative p-4 rounded-xl border-2 transition-all text-left group",
+                          isSelected
+                            ? "border-primary bg-primary/5 shadow-sm"
+                            : "border-border hover:border-primary/50 hover:bg-muted/50"
                         )}
                       >
-                        <div className="font-medium text-sm">
-                          {SPLIT_PRESETS[preset].name}
+                        <div className="flex items-start gap-3">
+                          <Icon className={cn(
+                            "w-5 h-5 mt-0.5",
+                            isSelected ? "text-primary" : "text-muted-foreground"
+                          )} />
+                          <div className="flex-1">
+                            <div className={cn(
+                              "font-medium text-sm",
+                              isSelected ? "text-primary" : "text-foreground"
+                            )}>
+                              {presetInfo.name}
+                            </div>
+                            <div className="text-xs text-muted-foreground mt-0.5">
+                              {presetInfo.description}
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-xs text-muted-foreground mt-1">
-                          {SPLIT_PRESETS[preset].description}
-                        </div>
+                        {isSelected && (
+                          <div className="absolute top-3 right-3">
+                            <CheckCircle2 className="w-4 h-4 text-primary" />
+                          </div>
+                        )}
                       </button>
-                    ))}
-                  </div>
+                    );
+                  })}
                 </div>
-              )}
+              </div>
+            )}
 
-              {/* Custom Ranges Input */}
-              {options.mode === "custom" && (
+            {/* Custom Ranges Input - Cleaner style */}
+            {options.mode === "custom" && (
+              <div className="space-y-3">
+                <h3 className="text-sm font-medium text-muted-foreground">Page ranges</h3>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Page Ranges</label>
                   <input
                     type="text"
                     value={options.customRanges}
@@ -401,32 +418,39 @@ export default function PdfSplit() {
                       }))
                     }
                     placeholder="e.g., 1-5, 8, 10-15"
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                    className="w-full px-4 py-2.5 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Enter comma-separated ranges. Each range creates a separate
-                    PDF.
+                    Enter comma-separated ranges. Each range creates a separate PDF.
                   </p>
                 </div>
-              )}
+              </div>
+            )}
 
-              {/* Preview of splits */}
-              {pageCount > 0 && previewRanges.length > 0 && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">
-                    Preview: {previewRanges.length} file
-                    {previewRanges.length !== 1 ? "s" : ""} will be created
-                  </label>
-                  <div className="space-y-1 text-xs text-muted-foreground max-h-32 overflow-y-auto">
-                    {previewRanges.map((range, index) => (
-                      <div key={index}>
-                        File {index + 1}: {formatPageRanges([range])}
-                      </div>
-                    ))}
-                  </div>
+            {/* Preview of splits - Compact inline style */}
+            {pageCount > 0 && previewRanges.length > 0 && (
+              <div className="bg-muted/30 rounded-lg p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Eye className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-medium">
+                    {previewRanges.length} file{previewRanges.length !== 1 ? "s" : ""} will be created
+                  </span>
                 </div>
-              )}
-            </div>
+                <div className="space-y-1 text-xs text-muted-foreground pl-6">
+                  {previewRanges.slice(0, 5).map((range, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <FileText className="w-3 h-3" />
+                      <span>File {index + 1}: Pages {formatPageRanges([range])}</span>
+                    </div>
+                  ))}
+                  {previewRanges.length > 5 && (
+                    <div className="text-muted-foreground italic">
+                      ... and {previewRanges.length - 5} more
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Drop Zone / File Display */}
@@ -480,56 +504,61 @@ export default function PdfSplit() {
                 )}
               </Button>
 
-              {/* Results */}
+              {/* Results - Cleaner style matching PDF Compress */}
               {results.length > 0 && (
-                <>
-                  <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-lg p-4 flex items-center gap-2">
-                    <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
-                    <div>
-                      <p className="font-medium text-green-900 dark:text-green-200">
-                        Split complete!
-                      </p>
-                      <p className="text-sm text-green-700 dark:text-green-300">
-                        {results.length} file{results.length !== 1 ? "s" : ""}{" "}
-                        created
-                      </p>
+                <div className="space-y-4">
+                  {/* Success message */}
+                  <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-lg p-4">
+                    <div className="flex items-start gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="font-medium text-green-900 dark:text-green-200">
+                          Split complete!
+                        </p>
+                        <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                          {results.length} file{results.length !== 1 ? "s" : ""} created successfully
+                        </p>
+                      </div>
+                      <Button 
+                        onClick={handleDownloadAll}
+                        variant="outline"
+                        size="sm"
+                        className="border-green-300 hover:bg-green-100 dark:border-green-800 dark:hover:bg-green-900/50"
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Download All
+                      </Button>
                     </div>
                   </div>
 
-                  <div className="flex justify-end">
-                    <Button onClick={handleDownloadAll}>
-                      <Download className="w-4 h-4 mr-2" />
-                      Download All ({results.length})
-                    </Button>
-                  </div>
-
-                  <div className="space-y-3">
+                  {/* File list - Compact style */}
+                  <div className="space-y-2">
                     {results.map((result, index) => (
                       <div
                         key={index}
-                        className="bg-card/50 backdrop-blur-sm rounded-xl border border-border/50 p-4 flex items-center gap-3"
+                        className="group flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors"
                       >
-                        <FileText className="w-6 h-6 text-muted-foreground" />
-                        <div className="flex-1">
-                          <p className="font-medium text-sm">
+                        <FileText className="w-5 h-5 text-muted-foreground shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">
                             {result.filename}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            Pages {formatPageRanges([result.pageRange])} •{" "}
-                            {formatFileSize(result.data.byteLength)}
+                            Pages {formatPageRanges([result.pageRange])} • {formatFileSize(result.data.byteLength)}
                           </p>
                         </div>
                         <Button
                           size="sm"
+                          variant="ghost"
                           onClick={() => handleDownload(result)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity"
                         >
-                          <Download className="w-3 h-3 mr-1" />
-                          Download
+                          <Download className="w-4 h-4" />
                         </Button>
                       </div>
                     ))}
                   </div>
-                </>
+                </div>
               )}
             </div>
           )}
