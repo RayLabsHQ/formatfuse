@@ -27,6 +27,7 @@ export function ToolHeader({
   features,
   className,
 }: ToolHeaderProps) {
+  const [activeFeature, setActiveFeature] = React.useState<number | null>(null);
 
   // Parse title - can be string, object with highlight, or React node
   const renderTitle = () => {
@@ -74,7 +75,7 @@ export function ToolHeader({
   return (
     <div className={cn("space-y-4 sm:space-y-6", className)}>
       {/* Header */}
-      <div className="text-center mb-2 sm:mb-6 md:mb-8 space-y-2 sm:space-y-3 px-4 sm:px-0">
+      <div className="text-center mb-4 sm:mb-6 md:mb-8 space-y-2 sm:space-y-3 px-4 sm:px-0">
         {badge && (
           <Badge
             className="mb-4 bg-primary/10 text-primary border-primary/20 hover:bg-primary/15"
@@ -85,7 +86,7 @@ export function ToolHeader({
           </Badge>
         )}
 
-        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold animate-fade-in">
+        <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold animate-fade-in">
           {renderTitle()}
         </h1>
 
@@ -130,6 +131,47 @@ export function ToolHeader({
             })}
           </div>
 
+          {/* Mobile Features */}
+          <div
+            className="sm:hidden space-y-3 mb-6 animate-fade-in-up"
+            style={{ animationDelay: "0.3s" }}
+          >
+            {/* Feature Icons */}
+            <div className="flex justify-center gap-4">
+              {features.map((feature, index) => {
+                const Icon = feature.icon;
+                return (
+                  <button
+                    key={index}
+                    onClick={() => setActiveFeature(activeFeature === index ? null : index)}
+                    className={cn(
+                      "w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300",
+                      activeFeature === index
+                        ? "bg-gradient-to-br from-primary/20 to-primary/5 scale-110 shadow-lg"
+                        : "bg-gradient-to-br from-primary/10 to-primary/5 hover:scale-105"
+                    )}
+                  >
+                    <Icon className={cn(
+                      "w-6 h-6 transition-colors",
+                      activeFeature === index ? "text-primary" : "text-primary/70"
+                    )} />
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Active Feature Details */}
+            {activeFeature !== null && (
+              <div className="bg-gradient-to-br from-primary/5 to-transparent rounded-xl p-4 mx-4">
+                <p className="font-medium text-sm mb-1">
+                  {features[activeFeature].text}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {features[activeFeature].description}
+                </p>
+              </div>
+            )}
+          </div>
         </>
       )}
     </div>
