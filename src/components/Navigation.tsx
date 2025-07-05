@@ -145,7 +145,7 @@ export default function Navigation() {
           {/* Logo */}
           <div className="flex items-center">
             <a href="/" className="flex items-center space-x-2 group">
-              <img src="/logo.svg" alt="FormatFuse" className="h-10 w-auto" />
+              <img src="/logo.svg" alt="formatfuse brand logo" className="h-10 w-auto" />
               <span className="text-xl font-bold">FormatFuse</span>
             </a>
           </div>
