@@ -1,19 +1,18 @@
 import React, { useState, useCallback, useRef } from "react";
 import {
-  Upload,
   Download,
-  FileText,
   AlertCircle,
   Shield,
   Zap,
   Loader2,
   Package,
-  Minimize2,
   Check,
   ArrowRight,
   FileDown,
   X,
+  Plus,
 } from "lucide-react";
+import { FaRegFilePdf } from "react-icons/fa6";
 import { Button } from "../ui/button";
 import { FileDropZone } from "../ui/FileDropZone";
 import { FAQ, type FAQItem } from "../ui/FAQ";
@@ -65,13 +64,13 @@ const relatedTools: RelatedTool[] = [
     id: "pdf-merge",
     name: "PDF Merge",
     description: "Combine multiple PDFs",
-    icon: FileText,
+    icon: FaRegFilePdf,
   },
   {
     id: "pdf-split",
     name: "PDF Split",
     description: "Split PDFs into parts",
-    icon: FileText,
+    icon: FaRegFilePdf,
   },
   {
     id: "jpg-to-pdf",
@@ -548,7 +547,7 @@ export default function PdfCompress() {
               subtitle="or click to browse"
               customInfoContent={
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50">
-                  <FileText className="w-4 h-4 text-primary" />
+                  <FaRegFilePdf className="w-4 h-4 text-primary" />
                   <span className="text-sm text-muted-foreground">
                     Compress multiple PDFs at once
                   </span>
@@ -557,137 +556,163 @@ export default function PdfCompress() {
             />
           ) : (
             <div className="space-y-4">
-              {/* File List */}
-              <div className="space-y-3">
-                {files.map((file, index) => (
-                  <div
-                    key={index}
-                    className="bg-card/50 backdrop-blur-sm rounded-xl border border-border/50 p-4"
-                  >
-                    <div className="flex items-center gap-3">
-                      <FileText className="w-8 h-8 text-muted-foreground flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">
-                          {file.file.name}
-                        </p>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <span>{formatFileSize(file.originalSize)}</span>
-                          {file.compressedSize && (
-                            <>
-                              <ArrowRight className="w-3 h-3" />
-                              <span className="text-green-600 dark:text-green-400 font-medium">
-                                {formatFileSize(file.compressedSize)}
-                              </span>
-                              <span className="text-green-600 dark:text-green-400">
-                                (-{file.compressionRatio?.toFixed(1)}%)
-                              </span>
-                            </>
+              {/* Compact File List */}
+              <div className="space-y-2">
+                {files.map((file, index) => {
+                  const isCompleted = file.status === "completed";
+                  const isProcessing = file.status === "processing";
+                  const hasError = file.status === "error";
+                  
+                  return (
+                    <div
+                      key={index}
+                      className={cn(
+                        "group relative rounded-lg border transition-all duration-200 p-2.5 sm:p-3",
+                        isCompleted 
+                          ? "bg-green-50/50 dark:bg-green-950/20 border-green-200/50 dark:border-green-900/30"
+                          : hasError
+                          ? "bg-red-50/50 dark:bg-red-950/20 border-red-200/50 dark:border-red-900/30"
+                          : "bg-card/30 border-border/50 hover:border-primary/20"
+                      )}
+                    >
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        {/* File Icon with Status Indicator */}
+                        <div className="relative flex-shrink-0">
+                          <FaRegFilePdf className={cn(
+                            "w-5 h-5 sm:w-6 sm:h-6",
+                            isCompleted ? "text-green-600 dark:text-green-400" :
+                            hasError ? "text-red-600 dark:text-red-400" :
+                            "text-muted-foreground"
+                          )} />
+                          {isProcessing && (
+                            <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-primary rounded-full animate-pulse" />
                           )}
                         </div>
-                        {file.status === "processing" && (
-                          <div className="mt-2">
-                            <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                        
+                        {/* File Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-baseline gap-2">
+                            <p className="text-sm font-medium truncate max-w-[150px] sm:max-w-none">
+                              {file.file.name}
+                            </p>
+                            {/* Mobile: Show compressed size only */}
+                            <span className="sm:hidden text-xs text-muted-foreground">
+                              {file.compressedSize ? formatFileSize(file.compressedSize) : formatFileSize(file.originalSize)}
+                            </span>
+                          </div>
+                          
+                          {/* Desktop: Show detailed size info */}
+                          <div className="hidden sm:flex items-center gap-2 text-xs">
+                            <span className="text-muted-foreground">
+                              {formatFileSize(file.originalSize)}
+                            </span>
+                            {file.compressedSize && (
+                              <>
+                                <ArrowRight className="w-3 h-3 text-muted-foreground/50" />
+                                <span className="font-medium text-green-600 dark:text-green-400">
+                                  {formatFileSize(file.compressedSize)}
+                                </span>
+                                <span className="px-1.5 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded text-xs font-medium">
+                                  -{file.compressionRatio?.toFixed(0)}%
+                                </span>
+                              </>
+                            )}
+                          </div>
+                          
+                          {/* Progress Bar - Inline and Subtle */}
+                          {isProcessing && (
+                            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-muted/20 overflow-hidden">
                               <div
                                 className="h-full bg-primary transition-all duration-300"
                                 style={{ width: `${file.progress}%` }}
                               />
                             </div>
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {file.status === "completed" && file.result && (
+                          )}
+                        </div>
+                        
+                        {/* Actions - Compact */}
+                        <div className="flex items-center gap-1">
+                          {isCompleted && file.result && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDownload(file)}
+                              className="h-7 w-7 sm:h-8 sm:w-8"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                            </Button>
+                          )}
+                          {isProcessing && (
+                            <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                          )}
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleDownload(file)}
+                            onClick={() => handleRemoveFile(index)}
+                            className="h-7 w-7 sm:h-8 sm:w-8 opacity-0 group-hover:opacity-100 transition-opacity"
                           >
-                            <Download className="w-4 h-4" />
+                            <X className="w-3.5 h-3.5" />
                           </Button>
-                        )}
-                        {file.status === "processing" && (
-                          <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                        )}
-                        {file.status === "completed" && (
-                          <Check className="w-4 h-4 text-green-600" />
-                        )}
-                        {file.status === "error" && (
-                          <AlertCircle className="w-4 h-4 text-destructive" />
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleRemoveFile(index)}
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
-              {/* Summary Stats */}
+              {/* Compact Summary Stats */}
               {hasCompleted && (
-                <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-lg p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Minimize2 className="w-5 h-5 text-green-600 dark:text-green-400" />
-                      <div>
-                        <p className="font-medium text-green-900 dark:text-green-200">
-                          Compression complete!
-                        </p>
-                        <p className="text-sm text-green-700 dark:text-green-300">
-                          {completedCount} file{completedCount !== 1 ? "s" : ""}{" "}
-                          compressed • {formatFileSize(totalSaved)} saved
-                        </p>
-                      </div>
-                    </div>
+                <div className="flex items-center justify-between p-2.5 sm:p-3 bg-green-50/50 dark:bg-green-950/20 rounded-lg border border-green-200/50 dark:border-green-900/30">
+                  <div className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-green-600 dark:text-green-400" />
+                    <span className="text-sm font-medium text-green-900 dark:text-green-200">
+                      {completedCount} compressed
+                    </span>
+                    <span className="text-sm text-green-700 dark:text-green-300">
+                      • {formatFileSize(totalSaved)} saved
+                    </span>
                   </div>
+                  <Button
+                    size="sm"
+                    onClick={handleDownloadAll}
+                    className="h-7 px-3 text-xs"
+                  >
+                    <Download className="w-3 h-3 mr-1.5" />
+                    Download All
+                  </Button>
                 </div>
               )}
 
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-3">
+              {/* Compact Action Buttons */}
+              <div className="flex gap-2">
                 <Button
                   variant="outline"
+                  size="sm"
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex-1"
+                  className="h-8"
                 >
-                  <Upload className="w-4 h-4 mr-2" />
-                  Add More PDFs
+                  <Plus className="w-3.5 h-3.5 mr-1.5" />
+                  Add Files
                 </Button>
 
-                <Button
-                  onClick={handleCompress}
-                  disabled={
-                    isProcessing ||
-                    files.filter((f) => f.status === "pending").length === 0
-                  }
-                  className="flex-1"
-                >
-                  {isProcessing ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Compressing...
-                    </>
-                  ) : (
-                    <>
-                      <Package className="w-4 h-4 mr-2" />
-                      Compress{" "}
-                      {files.filter((f) => f.status === "pending").length} PDFs
-                    </>
-                  )}
-                </Button>
-
-                {hasCompleted && (
+                {files.filter((f) => f.status === "pending").length > 0 && (
                   <Button
-                    onClick={handleDownloadAll}
-                    variant="default"
-                    className="flex-1"
+                    onClick={handleCompress}
+                    disabled={isProcessing}
+                    size="sm"
+                    className="h-8 flex-1"
                   >
-                    <Download className="w-4 h-4 mr-2" />
-                    Download All ({completedCount})
+                    {isProcessing ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                        Compressing {files.filter((f) => f.status === "processing").length}/{files.length}
+                      </>
+                    ) : (
+                      <>
+                        <Package className="w-3.5 h-3.5 mr-1.5" />
+                        Compress {files.filter((f) => f.status === "pending").length} Files
+                      </>
+                    )}
                   </Button>
                 )}
               </div>
