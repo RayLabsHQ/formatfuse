@@ -1,35 +1,35 @@
 <svg width="1000" height="1000" viewBox="0 0 1000 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path d="M299 148.883C314.6 147.283 486.833 148.217 571 148.883C575.5 148.883 585.2 149.983 588 154.383C590.8 158.783 672.5 239.55 713 279.383C716 282.717 722.3 290.983 723.5 297.383C724.7 303.783 724 364.717 723.5 394.383C722.167 399.55 716.5 410.083 704.5 410.883C692.5 411.683 513.833 411.217 426 410.883L425.938 410.891C422.08 411.394 413.981 412.45 410.5 424.883V477.383H653C657.167 478.717 665.9 483.683 667.5 492.883C669.1 502.083 668.167 561.717 667.5 590.383C666 595.883 661 606.983 653 607.383C645 607.783 516.667 607.55 453.5 607.383H276V573H311V538H276V172.883C277.167 165.55 283.4 150.483 299 148.883ZM356 322C350.477 322 346 326.477 346 332C346 337.522 350.477 342 356 342H526C531.523 342 536 337.522 536 332C536 326.477 531.523 322 526 322H356ZM579 276.383C581.4 295.583 597 300.383 604.5 300.383H698.5L579 180.883V276.383ZM356 258C350.477 258 346 262.477 346 268C346 273.523 350.477 278 356 278H504C509.523 278 514 273.523 514 268C514 262.477 509.523 258 504 258H356Z" fill="url(#paint0_linear_486_489)"/>
-<rect x="416" y="538" width="35" height="35" fill="#5828DA"/>
-<rect x="381" y="573" width="35" height="35" fill="#5227D9"/>
-<rect x="416" y="573" width="35" height="35" fill="#7034E3"/>
-<rect x="381" y="538" width="35" height="35" fill="#7034E3"/>
-<rect x="346" y="538" width="35" height="35" fill="#5227D9"/>
-<rect x="311" y="573" width="35" height="35" fill="#5227D9"/>
-<rect x="346" y="573" width="35" height="35" fill="#7034E3"/>
-<rect x="311" y="538" width="35" height="35" fill="#7034E3"/>
-<rect x="276" y="573" width="35" height="35" fill="#7034E3"/>
-<rect x="416" y="608" width="35" height="35" fill="#5227D9"/>
-<rect x="381" y="643" width="35" height="35" fill="#5227D9"/>
-<rect x="416" y="643" width="35" height="35" fill="#7034E3"/>
-<rect x="381" y="608" width="35" height="35" fill="#7034E3"/>
-<rect x="346" y="608" width="35" height="35" fill="#5227D9"/>
-<rect x="346" y="643" width="35" height="35" fill="#7034E3"/>
-<rect x="311" y="608" width="35" height="35" fill="#7034E3"/>
-<rect x="276" y="643" width="35" height="35" fill="#7034E3"/>
-<rect x="416" y="678" width="35" height="35" fill="#5227D9"/>
-<rect x="416" y="713" width="35" height="35" fill="#7034E3"/>
-<rect x="381" y="678" width="35" height="35" fill="#7034E3"/>
-<rect x="311" y="713" width="35" height="35" fill="#5227D9"/>
-<rect x="451" y="747" width="35" height="35" fill="#5227D9"/>
-<rect x="486" y="678" width="35" height="35" fill="#7034E3"/>
-<rect x="381" y="747" width="35" height="35" fill="#7034E3"/>
-<rect x="416" y="817" width="35" height="35" fill="#5227D9"/>
-<rect x="311" y="782" width="35" height="35" fill="#5227D9"/>
+<rect x="416" y="538" width="35" height="35" fill="oklch(0.6 0.23 285)"/>
+<rect x="381" y="573" width="35" height="35" fill="oklch(0.55 0.25 285)"/>
+<rect x="416" y="573" width="35" height="35" fill="oklch(0.65 0.22 285)"/>
+<rect x="381" y="538" width="35" height="35" fill="oklch(0.65 0.22 285)"/>
+<rect x="346" y="538" width="35" height="35" fill="oklch(0.55 0.25 285)"/>
+<rect x="311" y="573" width="35" height="35" fill="oklch(0.55 0.25 285)"/>
+<rect x="346" y="573" width="35" height="35" fill="oklch(0.65 0.22 285)"/>
+<rect x="311" y="538" width="35" height="35" fill="oklch(0.65 0.22 285)"/>
+<rect x="276" y="573" width="35" height="35" fill="oklch(0.65 0.22 285)"/>
+<rect x="416" y="608" width="35" height="35" fill="oklch(0.55 0.25 285)"/>
+<rect x="381" y="643" width="35" height="35" fill="oklch(0.55 0.25 285)"/>
+<rect x="416" y="643" width="35" height="35" fill="oklch(0.65 0.22 285)"/>
+<rect x="381" y="608" width="35" height="35" fill="oklch(0.65 0.22 285)"/>
+<rect x="346" y="608" width="35" height="35" fill="oklch(0.55 0.25 285)"/>
+<rect x="346" y="643" width="35" height="35" fill="oklch(0.65 0.22 285)"/>
+<rect x="311" y="608" width="35" height="35" fill="oklch(0.65 0.22 285)"/>
+<rect x="276" y="643" width="35" height="35" fill="oklch(0.65 0.22 285)"/>
+<rect x="416" y="678" width="35" height="35" fill="oklch(0.55 0.25 285)"/>
+<rect x="416" y="713" width="35" height="35" fill="oklch(0.65 0.22 285)"/>
+<rect x="381" y="678" width="35" height="35" fill="oklch(0.65 0.22 285)"/>
+<rect x="311" y="713" width="35" height="35" fill="oklch(0.55 0.25 285)"/>
+<rect x="451" y="747" width="35" height="35" fill="oklch(0.55 0.25 285)"/>
+<rect x="486" y="678" width="35" height="35" fill="oklch(0.65 0.22 285)"/>
+<rect x="381" y="747" width="35" height="35" fill="oklch(0.65 0.22 285)"/>
+<rect x="416" y="817" width="35" height="35" fill="oklch(0.55 0.25 285)"/>
+<rect x="311" y="782" width="35" height="35" fill="oklch(0.55 0.25 285)"/>
 <defs>
 <linearGradient id="paint0_linear_486_489" x1="500.081" y1="148" x2="500.081" y2="607.604" gradientUnits="userSpaceOnUse">
-<stop stop-color="#942DE6"/>
-<stop offset="1" stop-color="#4F27D8"/>
+<stop stop-color="oklch(0.65 0.22 285)"/>
+<stop offset="1" stop-color="oklch(0.55 0.25 285)"/>
 </linearGradient>
 </defs>
 </svg>
