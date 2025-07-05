@@ -1,7 +1,8 @@
-import React, { useRef, useCallback } from "react";
+import React, { useRef, useCallback, useEffect } from "react";
 import { Upload, Info, Plus, FolderPlus } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { Button } from "./button";
+import { retrieveStoredFile } from "../../lib/file-transfer";
 
 interface FileDropZoneProps {
   onFilesSelected: (files: File[]) => void;
@@ -47,6 +48,17 @@ export function FileDropZone({
   // Use external dragging state if provided, otherwise use internal
   const isDragging = externalIsDragging !== undefined ? externalIsDragging : internalIsDragging;
   const setIsDragging = onDragStateChange || setInternalIsDragging;
+
+  // Check for stored file from homepage on mount
+  useEffect(() => {
+    const checkStoredFile = async () => {
+      const storedFile = await retrieveStoredFile();
+      if (storedFile && !disabled) {
+        onFilesSelected([storedFile]);
+      }
+    };
+    checkStoredFile();
+  }, [onFilesSelected, disabled]);
 
   const handleFileSelect = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {

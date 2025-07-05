@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import ToolSuggestionModal from "./ToolSuggestionModal";
 import { FileDropZone } from "./ui/FileDropZone";
-import { getToolsForFile, isSupportedFileType } from "../lib/file-type-tools";
+import { getToolsForFile, isSupportedFileType, type ToolOption } from "../lib/file-type-tools";
 import { storeFileForTransfer } from "../lib/file-transfer";
 
 const fileTypes = [
@@ -71,20 +71,23 @@ export default function Hero() {
   }, []);
 
 
-  const handleToolSelect = async (toolId: string) => {
+  const handleToolSelect = async (tool: ToolOption) => {
     if (!selectedFile) return;
 
     setIsProcessing(true);
 
     const stored = await storeFileForTransfer(selectedFile);
 
+    // Determine the correct URL
+    const url = tool.route || `/convert/${tool.id}`;
+
     if (stored) {
-      window.location.href = `/convert/${toolId}`;
+      window.location.href = url;
     } else {
       alert(
         "File is too large to transfer. Please select the file again on the tool page.",
       );
-      window.location.href = `/convert/${toolId}`;
+      window.location.href = url;
     }
   };
 

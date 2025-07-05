@@ -1,11 +1,4 @@
-import {
-  FileText,
-  Image,
-  Code,
-  FileSpreadsheet,
-  FileArchive,
-  Type,
-} from "lucide-react";
+import { allTools, type Tool } from "../data/tools";
 
 export interface ToolOption {
   id: string;
@@ -14,257 +7,179 @@ export interface ToolOption {
   icon: React.ElementType;
   popularity?: "high" | "medium" | "low";
   searches?: string;
+  route?: string;
+}
+
+// Helper function to convert Tool to ToolOption
+function toolToOption(tool: Tool): ToolOption {
+  return {
+    id: tool.id,
+    name: tool.name,
+    description: tool.description,
+    icon: tool.icon,
+    popularity: tool.isPopular ? "high" : "medium",
+    route: tool.route || tool.href,
+  };
+}
+
+// Find tools that match certain criteria
+function findTools(predicate: (tool: Tool) => boolean): ToolOption[] {
+  return allTools
+    .filter((t) => predicate(t) && t.isImplemented !== false)
+    .map(toolToOption);
 }
 
 // Comprehensive mapping of file extensions to available tools
 export const fileTypeToTools: Record<string, ToolOption[]> = {
   // PDF conversions
-  pdf: [
-    {
-      id: "pdf-compress",
-      name: "Compress PDF",
-      description: "Reduce file size",
-      icon: FileText,
-      popularity: "high",
-      searches: "200k",
-    },
-    {
-      id: "pdf-split",
-      name: "Split PDF",
-      description: "Extract pages",
-      icon: FileText,
-      searches: "180k",
-    },
-    {
-      id: "pdf-to-jpg",
-      name: "PDF to JPG",
-      description: "Convert to images",
-      icon: Image,
-      searches: "180k",
-    },
-    {
-      id: "pdf-merge",
-      name: "Merge PDFs",
-      description: "Combine with other PDFs",
-      icon: FileText,
-      searches: "250k",
-    },
-  ],
+  pdf: findTools((t) => 
+    ["pdf-compress", "pdf-split", "pdf-to-jpg", "pdf-merge", "pdf-rotate"].includes(t.id) ||
+    (t.id.startsWith("pdf-to-") && t.isImplemented !== false)
+  ),
 
-  // Image conversions
-  jpg: [
-    {
-      id: "jpg-to-pdf",
-      name: "JPG to PDF",
-      description: "Create PDF from image",
-      icon: FileText,
-      popularity: "high",
-      searches: "300k",
-    },
-    {
-      id: "jpg-to-png",
-      name: "JPG to PNG",
-      description: "Convert to PNG format",
-      icon: Image,
-      searches: "200k",
-    },
-    {
-      id: "image-resize",
-      name: "Resize Image",
-      description: "Change dimensions",
-      icon: Image,
-      popularity: "high",
-      searches: "400k",
-    },
-    {
-      id: "image-compress",
-      name: "Compress Image",
-      description: "Reduce file size",
-      icon: Image,
-      searches: "250k",
-    },
-    {
-      id: "jpg-to-webp",
-      name: "JPG to WebP",
-      description: "Modern web format",
-      icon: Image,
-    },
-  ],
+  // Image conversions - JPG/JPEG
+  jpg: findTools((t) => 
+    ["jpg-to-pdf", "jpg-to-png", "image-resizer", "image-compressor", "jpg-to-webp", 
+     "jpg-to-gif", "jpg-to-bmp", "jpg-to-ico", "jpg-to-tiff", "jpg-to-avif",
+     "image-converter", "background-remover"].includes(t.id) ||
+    (t.id.startsWith("jpg-to-") && t.isImplemented !== false)
+  ),
 
   jpeg: [], // Will use jpg tools
 
-  png: [
-    {
-      id: "png-to-jpg",
-      name: "PNG to JPG",
-      description: "Convert to JPG format",
-      icon: Image,
-      popularity: "high",
-      searches: "350k",
-    },
-    {
-      id: "png-to-pdf",
-      name: "PNG to PDF",
-      description: "Create PDF from image",
-      icon: FileText,
-      searches: "150k",
-    },
-    {
-      id: "background-remove",
-      name: "Remove Background",
-      description: "Make transparent",
-      icon: Image,
-      popularity: "high",
-      searches: "300k",
-    },
-    {
-      id: "image-resize",
-      name: "Resize Image",
-      description: "Change dimensions",
-      icon: Image,
-      searches: "400k",
-    },
-    {
-      id: "png-to-webp",
-      name: "PNG to WebP",
-      description: "Modern web format",
-      icon: Image,
-    },
-  ],
+  // PNG conversions
+  png: findTools((t) => 
+    ["png-to-jpg", "png-to-pdf", "background-remover", "image-resizer", 
+     "png-to-webp", "png-to-gif", "png-to-bmp", "png-to-ico", "png-to-tiff", 
+     "png-to-avif", "image-converter", "image-compressor"].includes(t.id) ||
+    (t.id.startsWith("png-to-") && t.isImplemented !== false)
+  ),
 
-  webp: [
-    {
-      id: "webp-to-jpg",
-      name: "WebP to JPG",
-      description: "Convert to JPG",
-      icon: Image,
-    },
-    {
-      id: "webp-to-png",
-      name: "WebP to PNG",
-      description: "Convert to PNG",
-      icon: Image,
-    },
-    {
-      id: "image-resize",
-      name: "Resize Image",
-      description: "Change dimensions",
-      icon: Image,
-      searches: "400k",
-    },
-  ],
+  // WebP conversions
+  webp: findTools((t) => 
+    ["webp-to-jpg", "webp-to-png", "image-resizer", "image-converter",
+     "webp-to-gif", "webp-to-bmp", "webp-to-ico", "webp-to-tiff", 
+     "webp-to-avif", "image-compressor"].includes(t.id) ||
+    (t.id.startsWith("webp-to-") && t.isImplemented !== false)
+  ),
 
-  heic: [
-    {
-      id: "heic-to-jpg",
-      name: "HEIC to JPG",
-      description: "Convert iPhone photos",
-      icon: Image,
-      popularity: "high",
-      searches: "150k",
-    },
-    {
-      id: "heic-to-png",
-      name: "HEIC to PNG",
-      description: "Convert to PNG",
-      icon: Image,
-      searches: "100k",
-    },
-  ],
+  // HEIC conversions
+  heic: findTools((t) => 
+    ["heic-to-jpg", "heic-to-png", "image-converter", "heic-to-webp",
+     "heic-to-gif", "heic-to-bmp", "heic-to-pdf"].includes(t.id) ||
+    (t.id.startsWith("heic-to-") && t.isImplemented !== false)
+  ),
+
+  // GIF conversions
+  gif: findTools((t) => 
+    ["gif-to-jpg", "gif-to-png", "gif-to-webp", "image-converter",
+     "gif-to-bmp", "gif-to-ico", "image-resizer"].includes(t.id) ||
+    (t.id.startsWith("gif-to-") && t.isImplemented !== false)
+  ),
+
+  // BMP conversions
+  bmp: findTools((t) => 
+    ["bmp-to-jpg", "bmp-to-png", "bmp-to-webp", "image-converter",
+     "bmp-to-gif", "bmp-to-ico", "image-resizer"].includes(t.id) ||
+    (t.id.startsWith("bmp-to-") && t.isImplemented !== false)
+  ),
+
+  // ICO conversions
+  ico: findTools((t) => 
+    ["ico-to-jpg", "ico-to-png", "ico-to-webp", "image-converter",
+     "ico-to-gif", "ico-to-bmp"].includes(t.id) ||
+    (t.id.startsWith("ico-to-") && t.isImplemented !== false)
+  ),
+
+  // TIFF conversions
+  tiff: findTools((t) => 
+    ["tiff-to-jpg", "tiff-to-png", "tiff-to-webp", "image-converter",
+     "tiff-to-gif", "tiff-to-bmp", "tiff-to-pdf"].includes(t.id) ||
+    (t.id.startsWith("tiff-to-") && t.isImplemented !== false)
+  ),
+
+  // AVIF conversions
+  avif: findTools((t) => 
+    ["avif-to-jpg", "avif-to-png", "avif-to-webp", "image-converter",
+     "avif-to-gif", "avif-to-bmp"].includes(t.id) ||
+    (t.id.startsWith("avif-to-") && t.isImplemented !== false)
+  ),
+
+  // SVG conversions
+  svg: findTools((t) => 
+    ["svg-to-png", "svg-to-jpg", "svg-converter", "svg-to-pdf"].includes(t.id) ||
+    (t.id.startsWith("svg-to-") && t.isImplemented !== false)
+  ),
 
   // Document conversions
-  doc: [
-    {
-      id: "word-to-pdf",
-      name: "Word to PDF",
-      description: "Convert to PDF",
-      icon: FileText,
-      popularity: "high",
-      searches: "380k",
-    },
-    {
-      id: "doc-to-txt",
-      name: "Word to Text",
-      description: "Extract plain text",
-      icon: Type,
-      searches: "80k",
-    },
-  ],
+  doc: findTools((t) => 
+    ["word-to-pdf", "doc-to-txt", "rtf-converter"].includes(t.id) ||
+    (t.id.startsWith("doc-to-") && t.isImplemented !== false)
+  ),
 
   docx: [], // Will use doc tools
 
-  xls: [
-    {
-      id: "excel-to-pdf",
-      name: "Excel to PDF",
-      description: "Convert spreadsheet to PDF",
-      icon: FileText,
-      searches: "150k",
-    },
-    {
-      id: "excel-to-csv",
-      name: "Excel to CSV",
-      description: "Convert to CSV format",
-      icon: FileSpreadsheet,
-      searches: "100k",
-    },
-  ],
+  rtf: findTools((t) => 
+    ["rtf-converter", "rtf-to-pdf", "rtf-to-txt"].includes(t.id) ||
+    (t.id.startsWith("rtf-to-") && t.isImplemented !== false)
+  ),
+
+  txt: findTools((t) => 
+    ["text-to-pdf", "word-counter", "case-converter"].includes(t.id) ||
+    (t.id.startsWith("txt-to-") && t.isImplemented !== false)
+  ),
+
+  // Spreadsheet conversions
+  xls: findTools((t) => 
+    ["excel-to-pdf", "excel-to-csv"].includes(t.id) ||
+    (t.id.startsWith("xls-to-") && t.isImplemented !== false)
+  ),
 
   xlsx: [], // Will use xls tools
 
-  // Developer tools
-  json: [
-    {
-      id: "json-format",
-      name: "Format JSON",
-      description: "Pretty print JSON",
-      icon: Code,
-      popularity: "high",
-      searches: "150k",
-    },
-    {
-      id: "json-to-csv",
-      name: "JSON to CSV",
-      description: "Convert to CSV",
-      icon: FileSpreadsheet,
-      searches: "80k",
-    },
-    {
-      id: "json-to-xml",
-      name: "JSON to XML",
-      description: "Convert to XML",
-      icon: Code,
-      searches: "60k",
-    },
-  ],
+  csv: findTools((t) => 
+    ["csv-to-json", "csv-to-excel"].includes(t.id) ||
+    (t.id.startsWith("csv-to-") && t.isImplemented !== false)
+  ),
 
-  csv: [
-    {
-      id: "csv-to-json",
-      name: "CSV to JSON",
-      description: "Convert to JSON",
-      icon: Code,
-      searches: "80k",
-    },
-    {
-      id: "csv-to-excel",
-      name: "CSV to Excel",
-      description: "Convert to Excel",
-      icon: FileSpreadsheet,
-      searches: "100k",
-    },
-  ],
+  // Developer tools
+  json: findTools((t) => 
+    ["json-formatter", "json-to-csv", "json-to-xml"].includes(t.id) ||
+    (t.id.startsWith("json-to-") && t.isImplemented !== false)
+  ),
+
+  xml: findTools((t) => 
+    ["xml-to-json", "xml-formatter"].includes(t.id) ||
+    (t.id.startsWith("xml-to-") && t.isImplemented !== false)
+  ),
+
+  yaml: findTools((t) => 
+    ["yaml-to-json", "yaml-formatter"].includes(t.id) ||
+    (t.id.startsWith("yaml-to-") && t.isImplemented !== false)
+  ),
+
+  // Markdown
+  md: findTools((t) => 
+    ["markdown-to-html", "markdown-to-pdf"].includes(t.id) ||
+    (t.id.startsWith("md-to-") && t.isImplemented !== false)
+  ),
 
   // Archive formats
-  zip: [
-    {
-      id: "zip-extract",
-      name: "Extract ZIP",
-      description: "Unzip files",
-      icon: FileArchive,
-      searches: "200k",
-    },
-  ],
+  zip: findTools((t) => 
+    ["zip-extract", "create-zip"].includes(t.id)
+  ),
+
+  rar: findTools((t) => 
+    ["rar-extract"].includes(t.id)
+  ),
+
+  "7z": findTools((t) => 
+    ["7z-extract"].includes(t.id)
+  ),
+
+  tar: findTools((t) => 
+    ["tar-extract"].includes(t.id)
+  ),
 };
 
 // Helper function to get tools for a file
@@ -284,6 +199,11 @@ export function getToolsForFile(file: File): ToolOption[] {
   // Handle xlsx -> xls mapping
   if (extension === "xlsx") {
     return fileTypeToTools["xls"] || [];
+  }
+
+  // Handle 7zip variations
+  if (extension === "7zip") {
+    return fileTypeToTools["7z"] || [];
   }
 
   return fileTypeToTools[extension] || [];

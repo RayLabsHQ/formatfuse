@@ -7,7 +7,7 @@ interface ToolSuggestionModalProps {
   onClose: () => void;
   file: File | null;
   tools: ToolOption[];
-  onSelectTool: (toolId: string) => void;
+  onSelectTool: (tool: ToolOption) => void;
 }
 
 export default function ToolSuggestionModal({
@@ -80,7 +80,7 @@ export default function ToolSuggestionModal({
                 return (
                   <button
                     key={tool.id}
-                    onClick={() => onSelectTool(tool.id)}
+                    onClick={() => onSelectTool(tool)}
                     className="w-full p-4 bg-secondary/50 hover:bg-secondary rounded-xl ff-transition group text-left"
                   >
                     <div className="flex items-center gap-4">
@@ -117,7 +117,7 @@ export default function ToolSuggestionModal({
           <div className="p-6 border-t border-border bg-secondary/30">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Clock className="w-4 h-4" />
-              <span>Your file will be ready on the next page</span>
+              <span>Your file will be automatically loaded in the tool</span>
             </div>
           </div>
         </div>
