@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, memo } from "react";
 import {
   FileText,
   Image,
@@ -8,7 +8,8 @@ import {
   TrendingUp,
   ArrowUpRight,
 } from "lucide-react";
-import { allTools as tools } from "../data/tools";
+import { allTools as tools, type Tool } from "../data/tools";
+import { StableText } from "./ui/StableText";
 
 const categories = [
   {
@@ -24,12 +25,89 @@ const categories = [
   { id: "dev", name: "Developer", icon: Wrench, color: "var(--accent)" },
 ];
 
-export default function ToolGridNew() {
+// Memoized popular tool card to prevent re-renders
+const PopularToolCard = memo(({ tool, category, index }: {
+  tool: Tool;
+  category: typeof categories[0] | undefined;
+  index: number;
+}) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const Icon = tool.icon;
+
+  return (
+    <a
+      href={tool.href || tool.route || `/convert/${tool.id}`}
+      className="group"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={{ animationDelay: `${index * 50}ms` }}
+    >
+      <div
+        className={`relative h-full p-6 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 transition-all duration-300 ${
+          isHovered
+            ? "transform -translate-y-1 shadow-lg border-primary/50"
+            : ""
+        }`}
+      >
+        {/* Gradient overlay on hover */}
+        <div
+          className={`absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 ${
+            isHovered ? "opacity-100" : ""
+          }`}
+          style={{
+            background: `radial-gradient(circle at top left, ${category?.color}10, transparent)`,
+          }}
+        />
+
+        <div className="relative">
+          <div className="flex items-start justify-between mb-4">
+            <div
+              className="w-12 h-12 rounded-xl flex items-center justify-center transition-transform duration-300"
+              style={{
+                backgroundColor: `${category?.color}20`,
+                transform: isHovered
+                  ? "scale(1.1) rotate(3deg)"
+                  : "scale(1) rotate(0deg)",
+              }}
+            >
+              <Icon
+                className="w-6 h-6"
+                style={{ color: category?.color }}
+              />
+            </div>
+          </div>
+
+          <h4 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors">
+            <StableText>{tool.title || tool.name}</StableText>
+          </h4>
+          <p className="text-sm text-muted-foreground line-clamp-2">
+            <StableText>{tool.description}</StableText>
+          </p>
+        </div>
+      </div>
+    </a>
+  );
+});
+PopularToolCard.displayName = "PopularToolCard";
+
+// Memoized section title to prevent re-renders
+const SectionTitle = memo(() => {
+  return (
+    <h3 className="text-2xl font-bold mb-8 text-center">
+      <StableText className="text-muted-foreground">
+        Most Used{' '}
+      </StableText>
+      <StableText style={{ color: "var(--primary)" }}>
+        This Week
+      </StableText>
+    </h3>
+  );
+});
+SectionTitle.displayName = "SectionTitle";
+
+const ToolGridNew = memo(function ToolGridNew() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(
     "popular",
-  );
-  const [hoveredPopularTool, setHoveredPopularTool] = useState<string | null>(
-    null,
   );
   const [hoveredGridTool, setHoveredGridTool] = useState<string | null>(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -87,16 +165,23 @@ export default function ToolGridNew() {
     };
   }, [isVisible]);
 
-  const filteredTools =
-    selectedCategory === "popular"
-      ? tools.filter((tool) => tool.popular || tool.isPopular)
-      : selectedCategory
-        ? tools.filter((tool) => tool.category === selectedCategory)
-        : tools;
+  const filteredTools = useMemo(
+    () =>
+      selectedCategory === "popular"
+        ? tools.filter((tool) => tool.popular || tool.isPopular)
+        : selectedCategory
+          ? tools.filter((tool) => tool.category === selectedCategory)
+          : tools,
+    [selectedCategory]
+  );
 
-  const popularTools = tools
-    .filter((tool) => tool.popular || tool.isPopular)
-    .slice(0, 6);
+  const popularTools = useMemo(
+    () =>
+      tools
+        .filter((tool) => tool.popular || tool.isPopular)
+        .slice(0, 6),
+    []
+  );
 
   return (
     <section id="all-tools" className="relative py-20 overflow-hidden">
@@ -186,69 +271,17 @@ export default function ToolGridNew() {
                 : "opacity-0 translate-y-10"
             }`}
           >
-            <h3 className="text-2xl font-bold mb-8 text-center">
-              <span className="text-muted-foreground">Most Used </span>
-              <span style={{ color: "var(--primary)" }}>This Week</span>
-            </h3>
+            <SectionTitle />
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {popularTools.map((tool, index) => {
-                const Icon = tool.icon;
                 const category = categories.find((c) => c.id === tool.category);
-                const isHovered = hoveredPopularTool === tool.id;
-
                 return (
-                  <a
+                  <PopularToolCard
                     key={tool.id}
-                    href={tool.href || tool.route || `/convert/${tool.id}`}
-                    className="group"
-                    onMouseEnter={() => setHoveredPopularTool(tool.id)}
-                    onMouseLeave={() => setHoveredPopularTool(null)}
-                    style={{ animationDelay: `${index * 50}ms` }}
-                  >
-                    <div
-                      className={`relative h-full p-6 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 transition-all duration-300 ${
-                        isHovered
-                          ? "transform -translate-y-1 shadow-lg border-primary/50"
-                          : ""
-                      }`}
-                    >
-                      {/* Gradient overlay on hover */}
-                      <div
-                        className={`absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 ${
-                          isHovered ? "opacity-100" : ""
-                        }`}
-                        style={{
-                          background: `radial-gradient(circle at top left, ${category?.color}10, transparent)`,
-                        }}
-                      />
-
-                      <div className="relative">
-                        <div className="flex items-start justify-between mb-4">
-                          <div
-                            className="w-12 h-12 rounded-xl flex items-center justify-center transition-transform duration-300"
-                            style={{
-                              backgroundColor: `${category?.color}20`,
-                              transform: isHovered
-                                ? "scale(1.1) rotate(3deg)"
-                                : "scale(1) rotate(0deg)",
-                            }}
-                          >
-                            <Icon
-                              className="w-6 h-6"
-                              style={{ color: category?.color }}
-                            />
-                          </div>
-                        </div>
-
-                        <h4 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors">
-                          {tool.title || tool.name}
-                        </h4>
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {tool.description}
-                        </p>
-                      </div>
-                    </div>
-                  </a>
+                    tool={tool}
+                    category={category}
+                    index={index}
+                  />
                 );
               })}
             </div>
@@ -331,4 +364,6 @@ export default function ToolGridNew() {
       </div>
     </section>
   );
-}
+});
+
+export default ToolGridNew;

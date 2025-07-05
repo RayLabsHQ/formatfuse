@@ -9,8 +9,6 @@ import {
   EyeOff,
   Plus,
   FileX,
-  ToggleLeft,
-  ToggleRight,
   Layers,
   Loader2,
 } from "lucide-react";

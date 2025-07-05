@@ -33,6 +33,11 @@
   --color-tool-doc: var(--tool-doc);
 }
 
+/* Prevent transition during theme changes */
+html.theme-changing * {
+  transition: none !important;
+}
+
 :root {
   --radius: 1rem;
 

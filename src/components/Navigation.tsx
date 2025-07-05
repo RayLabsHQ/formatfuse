@@ -54,6 +54,10 @@ export default function Navigation() {
 
   const toggleTheme = () => {
     const html = document.documentElement;
+    
+    // Add theme-changing class to prevent transitions
+    html.classList.add("theme-changing");
+    
     if (html.classList.contains("dark")) {
       html.classList.remove("dark");
       localStorage.setItem("theme", "light");
@@ -63,6 +67,11 @@ export default function Navigation() {
       localStorage.setItem("theme", "dark");
       setIsDark(true);
     }
+    
+    // Remove theme-changing class after a short delay
+    setTimeout(() => {
+      html.classList.remove("theme-changing");
+    }, 50);
   };
 
   // Get search results
