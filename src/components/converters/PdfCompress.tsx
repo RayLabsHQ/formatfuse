@@ -3,15 +3,13 @@ import {
   Upload,
   Download,
   FileText,
-  Settings2,
   AlertCircle,
   Shield,
   Zap,
-  ChevronRight,
   Loader2,
   Package,
   Minimize2,
-  CheckCircle2,
+  Check,
   ArrowRight,
   FileDown,
   X,
@@ -21,11 +19,10 @@ import { FileDropZone } from "../ui/FileDropZone";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { ToolHeader } from "../ui/ToolHeader";
-import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 import { cn } from "../../lib/utils";
 import { Slider } from "../ui/slider";
 import { usePdfOperations } from "../../hooks/usePdfOperations";
-import { PdfFileList, type PdfFile } from "../ui/PdfFileList";
+import { type PdfFile } from "../ui/PdfFileList";
 import FileSaver from "file-saver";
 
 const { saveAs } = FileSaver;
@@ -130,7 +127,6 @@ const QUALITY_PRESETS = {
 
 export default function PdfCompress() {
   const [files, setFiles] = useState<FileInfo[]>([]);
-  const [showAdvanced, setShowAdvanced] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { compress, getPageCount, isProcessing, error } = usePdfOperations();
@@ -358,47 +354,78 @@ export default function PdfCompress() {
             </div>
           )}
 
-          {/* Settings Card */}
+          {/* Settings Card - Minimalistic Design */}
           <div
-            className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 overflow-hidden animate-fade-in-up"
+            className="rounded-2xl animate-fade-in-up"
             style={{ animationDelay: "0.3s" }}
           >
-            {/* Card Header */}
-            <div className="border-b border-border/50 px-6 py-4 bg-gradient-to-r from-primary/5 to-transparent">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <Settings2 className="w-5 h-5 text-primary" />
-                Compression Settings
-              </h2>
-            </div>
-
-            <div className="p-6 space-y-6">
-              {/* Quality Presets */}
-              <div className="space-y-4">
-                <label className="text-sm font-medium">Quality Level</label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {(["high", "medium", "low"] as const).map((preset) => (
+            <div className="space-y-6">
+              {/* Quality Presets - Compact on Mobile, Single Row on Desktop */}
+              <div className="flex flex-col sm:flex-row gap-2">
+                {(["high", "medium", "low"] as const).map((preset) => {
+                  const isSelected = options.quality === preset;
+                  return (
                     <button
                       key={preset}
+                      type="button"
                       onClick={() => handleQualityPreset(preset)}
                       className={cn(
-                        "relative p-4 rounded-xl border-2 transition-all duration-200 text-left",
-                        options.quality === preset
-                          ? "border-primary bg-primary/10"
-                          : "border-border/50 hover:border-primary/50 bg-card/50",
+                        "relative w-full sm:flex-1 p-3 rounded-xl transition-all duration-200 group cursor-pointer",
+                        isSelected
+                          ? "bg-primary text-primary-foreground shadow-md"
+                          : "bg-card/50 hover:bg-card border border-border/50 hover:border-primary/30",
                       )}
                     >
-                      <div className="font-medium text-sm">
-                        {QUALITY_PRESETS[preset].label}
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        {QUALITY_PRESETS[preset].description}
-                      </div>
-                      <div className="text-xs font-mono mt-2">
-                        ~{QUALITY_PRESETS[preset].value}% quality
+                      <div className="flex items-center sm:flex-col gap-3">
+                        {/* Quality Icon */}
+                        <div className={cn(
+                          "w-10 h-10 rounded-full flex items-center justify-center transition-all flex-shrink-0 pointer-events-none",
+                          isSelected 
+                            ? "bg-primary-foreground/20" 
+                            : "bg-primary/10 group-hover:bg-primary/20"
+                        )}>
+                          {preset === "high" && (
+                            <svg className={cn("w-5 h-5 pointer-events-none", isSelected ? "text-primary-foreground" : "text-primary")} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <rect x="4" y="14" width="4" height="6" />
+                              <rect x="10" y="10" width="4" height="10" />
+                              <rect x="16" y="6" width="4" height="14" />
+                            </svg>
+                          )}
+                          {preset === "medium" && (
+                            <svg className={cn("w-5 h-5 pointer-events-none", isSelected ? "text-primary-foreground" : "text-primary")} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <rect x="4" y="14" width="4" height="6" />
+                              <rect x="10" y="10" width="4" height="10" />
+                              <rect x="16" y="10" width="4" height="10" />
+                            </svg>
+                          )}
+                          {preset === "low" && (
+                            <svg className={cn("w-5 h-5 pointer-events-none", isSelected ? "text-primary-foreground" : "text-primary")} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <rect x="4" y="14" width="4" height="6" />
+                              <rect x="10" y="14" width="4" height="6" />
+                              <rect x="16" y="14" width="4" height="6" />
+                            </svg>
+                          )}
+                        </div>
+                        
+                        {/* Text content */}
+                        <div className="flex-1 text-left sm:text-center pointer-events-none">
+                          <div className={cn(
+                            "font-medium text-sm",
+                            isSelected ? "text-primary-foreground" : "text-foreground"
+                          )}>
+                            {QUALITY_PRESETS[preset].label}
+                          </div>
+                          <div className={cn(
+                            "text-xs",
+                            isSelected ? "text-primary-foreground/80" : "text-muted-foreground"
+                          )}>
+                            {QUALITY_PRESETS[preset].description}
+                          </div>
+                        </div>
                       </div>
                     </button>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
 
               {/* Custom Quality Slider */}
@@ -423,13 +450,15 @@ export default function PdfCompress() {
                 </div>
               )}
 
-              {/* Quick Options */}
-              <div className="space-y-3">
-                <label className="text-sm font-medium">
-                  Optimization Options
-                </label>
-                <div className="space-y-2">
-                  <label className="flex items-center gap-3 cursor-pointer">
+              {/* Optimization Toggles - Single Row on Desktop */}
+              <div className="flex flex-col sm:flex-row gap-2">
+                <label className={cn(
+                  "relative flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-200 sm:flex-1",
+                  options.optimizeImages 
+                    ? "bg-primary/10 border-2 border-primary/30" 
+                    : "bg-card/50 border-2 border-border/50 hover:border-primary/20"
+                )}>
+                  <div className="relative">
                     <input
                       type="checkbox"
                       checked={options.optimizeImages}
@@ -439,11 +468,35 @@ export default function PdfCompress() {
                           optimizeImages: e.target.checked,
                         }))
                       }
-                      className="w-4 h-4 rounded border-border"
+                      className="sr-only"
                     />
-                    <span className="text-sm">Optimize embedded images</span>
-                  </label>
-                  <label className="flex items-center gap-3 cursor-pointer">
+                    <div className={cn(
+                      "w-5 h-5 rounded-md transition-all duration-200 flex items-center justify-center",
+                      options.optimizeImages 
+                        ? "bg-primary" 
+                        : "bg-background border-2 border-border"
+                    )}>
+                      {options.optimizeImages && (
+                        <Check className="w-3 h-3 text-primary-foreground" />
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-sm font-medium">Optimize images</div>
+                    <div className="text-xs text-muted-foreground hidden sm:block">Compress embedded images</div>
+                  </div>
+                  {options.optimizeImages && (
+                    <span className="text-xs font-medium text-primary sm:hidden">ON</span>
+                  )}
+                </label>
+
+                <label className={cn(
+                  "relative flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-200 sm:flex-1",
+                  options.removeMetadata 
+                    ? "bg-primary/10 border-2 border-primary/30" 
+                    : "bg-card/50 border-2 border-border/50 hover:border-primary/20"
+                )}>
+                  <div className="relative">
                     <input
                       type="checkbox"
                       checked={options.removeMetadata}
@@ -453,82 +506,34 @@ export default function PdfCompress() {
                           removeMetadata: e.target.checked,
                         }))
                       }
-                      className="w-4 h-4 rounded border-border"
+                      className="sr-only"
                     />
-                    <span className="text-sm">Remove metadata</span>
-                  </label>
-                </div>
+                    <div className={cn(
+                      "w-5 h-5 rounded-md transition-all duration-200 flex items-center justify-center",
+                      options.removeMetadata 
+                        ? "bg-primary" 
+                        : "bg-background border-2 border-border"
+                    )}>
+                      {options.removeMetadata && (
+                        <Check className="w-3 h-3 text-primary-foreground" />
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-sm font-medium">Remove metadata</div>
+                    <div className="text-xs text-muted-foreground hidden sm:block">Strip document properties</div>
+                  </div>
+                  {options.removeMetadata && (
+                    <span className="text-xs font-medium text-primary sm:hidden">ON</span>
+                  )}
+                </label>
               </div>
 
-              {/* Advanced Options - Collapsible on Mobile */}
-              <div className="sm:hidden">
-                <CollapsibleSection
-                  title="Advanced Options"
-                  defaultOpen={false}
-                >
-                  <div className="space-y-4 pt-2">
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={options.grayscale}
-                        onChange={(e) =>
-                          setOptions((prev) => ({
-                            ...prev,
-                            grayscale: e.target.checked,
-                          }))
-                        }
-                        className="w-4 h-4 rounded border-border"
-                      />
-                      <div>
-                        <span className="text-sm">Convert to grayscale</span>
-                        <p className="text-xs text-muted-foreground">
-                          Reduces file size by removing color
-                        </p>
-                      </div>
-                    </label>
-                  </div>
-                </CollapsibleSection>
-              </div>
-
-              {/* Desktop Advanced Options */}
-              <div className="hidden sm:block space-y-4">
-                <button
-                  onClick={() => setShowAdvanced(!showAdvanced)}
-                  className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors"
-                >
-                  <Settings2 className="w-4 h-4" />
-                  Advanced Options
-                  <ChevronRight
-                    className={cn(
-                      "w-4 h-4 ml-auto transition-transform",
-                      showAdvanced && "rotate-90",
-                    )}
-                  />
-                </button>
-
-                {showAdvanced && (
-                  <div className="space-y-4 pt-4 border-t">
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={options.grayscale}
-                        onChange={(e) =>
-                          setOptions((prev) => ({
-                            ...prev,
-                            grayscale: e.target.checked,
-                          }))
-                        }
-                        className="w-4 h-4 rounded border-border"
-                      />
-                      <div>
-                        <span className="text-sm">Convert to grayscale</span>
-                        <p className="text-xs text-muted-foreground">
-                          Reduces file size by removing color
-                        </p>
-                      </div>
-                    </label>
-                  </div>
-                )}
+              {/* Helpful tip */}
+              <div className="text-center">
+                <p className="text-xs text-muted-foreground">
+                  💡 Tip: Most PDFs compress best with "Balanced" settings
+                </p>
               </div>
             </div>
           </div>
@@ -539,9 +544,16 @@ export default function PdfCompress() {
               onFilesSelected={handleFilesSelected}
               accept="application/pdf"
               multiple={true}
-              title="Drop PDFs here"
+              title="Drop your PDFs here"
               subtitle="or click to browse"
-              infoMessage="Compress multiple PDFs at once"
+              customInfoContent={
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50">
+                  <FileText className="w-4 h-4 text-primary" />
+                  <span className="text-sm text-muted-foreground">
+                    Compress multiple PDFs at once
+                  </span>
+                </div>
+              }
             />
           ) : (
             <div className="space-y-4">
@@ -597,7 +609,7 @@ export default function PdfCompress() {
                           <Loader2 className="w-4 h-4 animate-spin text-primary" />
                         )}
                         {file.status === "completed" && (
-                          <CheckCircle2 className="w-4 h-4 text-green-600" />
+                          <Check className="w-4 h-4 text-green-600" />
                         )}
                         {file.status === "error" && (
                           <AlertCircle className="w-4 h-4 text-destructive" />
