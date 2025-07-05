@@ -236,7 +236,7 @@ const ToolGridNew = memo(function ToolGridNew() {
                 onClick={() => setSelectedCategory(category.id)}
                 className={`px-6 py-3 rounded-xl transition-all duration-300 flex items-center gap-2 ${
                   selectedCategory === category.id
-                    ? "text-white"
+                    ? "text-black"
                     : "bg-card/50 backdrop-blur-sm border border-border/50 hover:bg-card/80"
                 }`}
                 style={{
