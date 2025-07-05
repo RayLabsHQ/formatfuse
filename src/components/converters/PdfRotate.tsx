@@ -2,7 +2,6 @@ import React, { useState, useCallback } from "react";
 import {
   Download,
   FileText,
-  Settings2,
   AlertCircle,
   Shield,
   Zap,
@@ -11,8 +10,6 @@ import {
   RotateCcw,
   CheckCircle2,
   Eye,
-  EyeOff,
-  X,
   FileOutput,
   Info,
 } from "lucide-react";
@@ -21,7 +18,6 @@ import { FileDropZone } from "../ui/FileDropZone";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { ToolHeader } from "../ui/ToolHeader";
-import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 import { cn } from "../../lib/utils";
 import { usePdfOperations } from "../../hooks/usePdfOperations";
 import { parsePageRanges } from "../../lib/pdf-operations";
@@ -235,195 +231,185 @@ export default function PdfRotate() {
             </div>
           )}
 
-          {/* Settings Card */}
-          <div
-            className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 overflow-hidden animate-fade-in-up"
-            style={{ animationDelay: "0.3s" }}
-          >
-            {/* Card Header */}
-            <div className="border-b border-border/50 px-6 py-4 bg-gradient-to-r from-primary/5 to-transparent">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <Settings2 className="w-5 h-5 text-primary" />
-                Rotation Settings
-              </h2>
-            </div>
-
-            <div className="p-6 space-y-6">
-              {/* Rotation Angle */}
-              <div className="space-y-4">
-                <label className="text-sm font-medium">Rotation Angle</label>
-                <div className="grid grid-cols-3 gap-3">
-                  {ROTATION_OPTIONS.map(({ angle, label, icon: Icon }) => (
+          {/* Rotation Settings - No card wrapper, inline style */}
+          <div className="space-y-6">
+            {/* Rotation Angle */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-medium text-muted-foreground">Rotation angle</h3>
+              <div className="grid grid-cols-3 gap-3">
+                {ROTATION_OPTIONS.map(({ angle, label, icon: Icon }) => {
+                  const isSelected = options.angle === angle;
+                  return (
                     <button
                       key={angle}
                       onClick={() => setOptions((prev) => ({ ...prev, angle }))}
                       className={cn(
-                        "relative p-4 rounded-xl border-2 transition-all duration-200",
-                        options.angle === angle
-                          ? "border-primary bg-primary/10"
-                          : "border-border/50 hover:border-primary/50 bg-card/50",
+                        "relative p-4 rounded-xl border-2 transition-all group",
+                        isSelected
+                          ? "border-primary bg-primary/5 shadow-sm"
+                          : "border-border hover:border-primary/50 hover:bg-muted/50",
                       )}
                     >
-                      <div className="flex flex-col items-center gap-3">
-                        {/* Visual rotation preview */}
-                        <div className="relative w-16 h-16 bg-secondary rounded flex items-center justify-center">
-                          <div
-                            className="w-12 h-16 bg-card border-2 border-primary/20 rounded transition-transform duration-300"
-                            style={{ transform: `rotate(${angle}deg)` }}
-                          >
-                            <div className="h-full flex flex-col">
-                              <div className="h-2 bg-primary/20 rounded-t" />
-                              <div className="flex-1 p-1">
-                                <div className="h-1 bg-border rounded mb-1" />
-                                <div className="h-1 bg-border rounded mb-1" />
-                                <div className="h-1 bg-border rounded" />
+                        <div className="flex flex-col items-center gap-3">
+                          {/* Visual rotation preview */}
+                          <div className="relative w-16 h-16 bg-muted/50 rounded flex items-center justify-center">
+                            <div
+                              className={cn(
+                                "w-12 h-16 border-2 rounded transition-all duration-300",
+                                isSelected
+                                  ? "bg-background border-primary/40"
+                                  : "bg-card border-border"
+                              )}
+                              style={{ transform: `rotate(${angle}deg)` }}
+                            >
+                              <div className="h-full flex flex-col">
+                                <div className={cn(
+                                  "h-2 rounded-t",
+                                  isSelected ? "bg-primary/30" : "bg-muted"
+                                )} />
+                                <div className="flex-1 p-1 space-y-1">
+                                  <div className="h-0.5 bg-muted-foreground/20 rounded" />
+                                  <div className="h-0.5 bg-muted-foreground/20 rounded" />
+                                  <div className="h-0.5 bg-muted-foreground/20 rounded" />
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                        <div className="text-center">
-                          <div className="flex items-center gap-1 justify-center">
-                            <Icon className="w-4 h-4" />
-                            <span className="font-medium text-sm">
-                              {angle}°
+                          <div className="text-center">
+                            <div className="flex items-center gap-1 justify-center">
+                              <Icon className={cn(
+                                "w-4 h-4",
+                                isSelected ? "text-primary" : "text-muted-foreground"
+                              )} />
+                              <span className={cn(
+                                "font-medium text-sm",
+                                isSelected ? "text-primary" : "text-foreground"
+                              )}>
+                                {angle}°
+                              </span>
+                            </div>
+                            <span className="text-xs text-muted-foreground">
+                              {label}
                             </span>
                           </div>
-                          <span className="text-xs text-muted-foreground">
-                            {label}
-                          </span>
+                        </div>
+                        {isSelected && (
+                          <div className="absolute top-3 right-3">
+                            <CheckCircle2 className="w-4 h-4 text-primary" />
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+              </div>
+            </div>
+
+            {/* Page Selection Mode */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-medium text-muted-foreground">Pages to rotate</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {[
+                  { mode: "all" as const, icon: FileOutput, title: "All Pages", desc: "Rotate entire document" },
+                  { mode: "visual" as const, icon: Eye, title: "Visual Selection", desc: "Click pages to select" },
+                  { mode: "manual" as const, icon: FileText, title: "Manual Ranges", desc: "Enter page numbers" },
+                ].map(({ mode, icon: Icon, title, desc }) => {
+                  const isSelected = options.mode === mode;
+                  return (
+                    <button
+                      key={mode}
+                      onClick={() => setOptions((prev) => ({ ...prev, mode }))}
+                      className={cn(
+                        "relative p-4 rounded-xl border-2 transition-all text-left group",
+                        isSelected
+                          ? "border-primary bg-primary/5 shadow-sm"
+                          : "border-border hover:border-primary/50 hover:bg-muted/50"
+                      )}
+                    >
+                      <div className="flex items-start gap-3">
+                        <Icon className={cn(
+                          "w-5 h-5 mt-0.5",
+                          isSelected ? "text-primary" : "text-muted-foreground"
+                        )} />
+                        <div className="flex-1">
+                          <div className={cn(
+                            "font-medium text-sm",
+                            isSelected ? "text-primary" : "text-foreground"
+                          )}>
+                            {title}
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-0.5">
+                            {desc}
+                          </div>
                         </div>
                       </div>
-                      {options.angle === angle && (
-                        <div className="absolute top-2 right-2 w-5 h-5 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
-                          <CheckCircle2 className="w-3 h-3" />
+                      {isSelected && (
+                        <div className="absolute top-3 right-3">
+                          <CheckCircle2 className="w-4 h-4 text-primary" />
                         </div>
                       )}
                     </button>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
+            </div>
 
-              {/* Page Selection Mode */}
-              <div className="space-y-4">
-                <label className="text-sm font-medium">Pages to Rotate</label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <button
-                    onClick={() =>
-                      setOptions((prev) => ({ ...prev, mode: "all" }))
-                    }
-                    className={cn(
-                      "p-3 rounded-lg border-2 transition-all duration-200 text-left",
-                      options.mode === "all"
-                        ? "border-primary bg-primary/10"
-                        : "border-border/50 hover:border-primary/50 bg-card/50",
-                    )}
-                  >
-                    <FileOutput className="w-5 h-5 text-primary mb-2" />
-                    <div className="font-medium text-sm">All Pages</div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      Rotate entire document
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={() =>
-                      setOptions((prev) => ({ ...prev, mode: "visual" }))
-                    }
-                    className={cn(
-                      "p-3 rounded-lg border-2 transition-all duration-200 text-left",
-                      options.mode === "visual"
-                        ? "border-primary bg-primary/10"
-                        : "border-border/50 hover:border-primary/50 bg-card/50",
-                    )}
-                  >
-                    <Eye className="w-5 h-5 text-primary mb-2" />
-                    <div className="font-medium text-sm">Visual Selection</div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      Click pages to select
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={() =>
-                      setOptions((prev) => ({ ...prev, mode: "manual" }))
-                    }
-                    className={cn(
-                      "p-3 rounded-lg border-2 transition-all duration-200 text-left",
-                      options.mode === "manual"
-                        ? "border-primary bg-primary/10"
-                        : "border-border/50 hover:border-primary/50 bg-card/50",
-                    )}
-                  >
-                    <FileText className="w-5 h-5 text-primary mb-2" />
-                    <div className="font-medium text-sm">Manual Ranges</div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      Enter page numbers
-                    </div>
-                  </button>
-                </div>
-              </div>
-
-              {/* Visual Selection Info */}
-              {options.mode === "visual" && files.length > 0 && (
-                <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-lg p-3">
-                  <div className="flex items-start gap-2">
-                    <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-                    <div className="text-xs sm:text-sm text-blue-700 dark:text-blue-300">
-                      Click on pages below to select them for rotation. Selected
-                      pages will be highlighted and rotated by your chosen
-                      angle.
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Manual Range Input */}
-              {options.mode === "manual" && (
-                <div className="space-y-2">
-                  <input
-                    type="text"
-                    value={options.manualPages}
-                    onChange={(e) =>
-                      setOptions((prev) => ({
-                        ...prev,
-                        manualPages: e.target.value,
-                      }))
-                    }
-                    placeholder="e.g., 1-3, 5, 7-10"
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary text-sm font-mono"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Enter page numbers or ranges separated by commas
+            {/* Visual Selection Info */}
+            {options.mode === "visual" && files.length > 0 && (
+              <div className="bg-blue-50/50 dark:bg-blue-950/10 border border-blue-200/50 dark:border-blue-900/50 rounded-lg p-3">
+                <div className="flex items-start gap-2">
+                  <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs sm:text-sm text-blue-700 dark:text-blue-300">
+                    Click on pages below to select them for rotation
                   </p>
                 </div>
-              )}
+              </div>
+            )}
 
-              {/* Selected Pages Summary */}
-              {options.mode !== "all" && files[0]?.pageCount > 0 && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">
-                    Preview:{" "}
+            {/* Manual Range Input */}
+            {options.mode === "manual" && (
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  value={options.manualPages}
+                  onChange={(e) =>
+                    setOptions((prev) => ({
+                      ...prev,
+                      manualPages: e.target.value,
+                    }))
+                  }
+                  placeholder="e.g., 1-3, 5, 7-10"
+                  className="w-full px-4 py-2.5 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Enter page numbers or ranges separated by commas
+                </p>
+              </div>
+            )}
+
+            {/* Selected Pages Summary */}
+            {options.mode !== "all" && files[0]?.pageCount > 0 && (
+              <div className="bg-muted/30 rounded-lg p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <RotateCw className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-medium">
                     {options.mode === "visual"
                       ? options.selectedPages.length
                       : getPageNumbers().length}{" "}
-                    page
-                    {(options.mode === "visual"
+                    page{(options.mode === "visual"
                       ? options.selectedPages.length
                       : getPageNumbers().length) !== 1
                       ? "s"
                       : ""}{" "}
-                    will be rotated
-                  </label>
-                  {options.mode === "visual" &&
-                    options.selectedPages.length > 0 && (
-                      <p className="text-xs text-muted-foreground">
-                        Pages:{" "}
-                        {options.selectedPages.sort((a, b) => a - b).join(", ")}
-                      </p>
-                    )}
+                    will be rotated {options.angle}°
+                  </span>
                 </div>
-              )}
-            </div>
+                {options.mode === "visual" && options.selectedPages.length > 0 && (
+                  <p className="text-xs text-muted-foreground pl-6">
+                    Pages: {options.selectedPages.sort((a, b) => a - b).join(", ")}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Drop Zone / File Display */}
@@ -440,7 +426,7 @@ export default function PdfRotate() {
             <div className="space-y-4">
               {/* File List with Visual Selection */}
               {options.mode === "visual" && files[0]?.data ? (
-                <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-6">
+                <div className="rounded-xl border border-border p-4">
                   <PdfPreview
                     pdfData={files[0].data}
                     mode="grid"
@@ -490,36 +476,44 @@ export default function PdfRotate() {
 
               {/* Result */}
               {rotatedResult && (
-                <>
-                  <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-lg p-4 flex items-center gap-2">
-                    <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
-                    <div>
-                      <p className="font-medium text-green-900 dark:text-green-200">
-                        Rotation complete!
-                      </p>
-                      <p className="text-sm text-green-700 dark:text-green-300">
-                        {options.mode === "all"
-                          ? `All ${pageCount} pages`
-                          : `${getPageNumbers().length} pages`}{" "}
-                        rotated {options.angle}°
-                      </p>
+                <div className="space-y-4">
+                  {/* Success message */}
+                  <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-lg p-4">
+                    <div className="flex items-start gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="font-medium text-green-900 dark:text-green-200">
+                          Rotation complete!
+                        </p>
+                        <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                          {options.mode === "all"
+                            ? `All ${files[0]?.pageCount || 0} pages`
+                            : `${getPageNumbers().length} pages`}{" "}
+                          rotated {options.angle}°
+                        </p>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border/50 p-4 flex items-center gap-3">
-                    <FileText className="w-6 h-6 text-muted-foreground" />
-                    <div className="flex-1">
+                  {/* Download button */}
+                  <div className="group flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
+                    <FileText className="w-5 h-5 text-muted-foreground shrink-0" />
+                    <div className="flex-1 min-w-0">
                       <p className="font-medium text-sm">Rotated PDF</p>
                       <p className="text-xs text-muted-foreground">
                         {formatFileSize(rotatedResult.byteLength)}
                       </p>
                     </div>
-                    <Button size="sm" onClick={handleDownload}>
-                      <Download className="w-3 h-3 mr-1" />
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={handleDownload}
+                    >
+                      <Download className="w-4 h-4 mr-2" />
                       Download
                     </Button>
                   </div>
-                </>
+                </div>
               )}
             </div>
           )}

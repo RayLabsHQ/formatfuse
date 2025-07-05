@@ -2,11 +2,9 @@ import React, { useState, useCallback, useRef } from "react";
 import {
   Download,
   Image,
-  Settings2,
   AlertCircle,
   Shield,
   Zap,
-  ChevronRight,
   FileText,
   Loader2,
   X,
@@ -25,7 +23,6 @@ import { FileDropZone } from "../ui/FileDropZone";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { ToolHeader } from "../ui/ToolHeader";
-import { CollapsibleSection } from "../ui/mobile/CollapsibleSection";
 import { cn } from "../../lib/utils";
 import { Slider } from "../ui/slider";
 import FileSaver from "file-saver";
@@ -118,7 +115,6 @@ const faqs: FAQItem[] = [
 
 export default function JpgToPdf() {
   const [images, setImages] = useState<ImageWithPreview[]>([]);
-  const [showAdvanced, setShowAdvanced] = useState(false);
   const [draggedImage, setDraggedImage] = useState<string | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -344,157 +340,167 @@ export default function JpgToPdf() {
             </div>
           )}
 
-          {/* Settings Card */}
-          <div
-            className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 overflow-hidden animate-fade-in-up"
-            style={{ animationDelay: "0.3s" }}
-          >
-            {/* Card Header */}
-            <div className="border-b border-border/50 px-6 py-4 bg-gradient-to-r from-primary/5 to-transparent">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <Settings2 className="w-5 h-5 text-primary" />
-                PDF Settings
-              </h2>
-            </div>
-
-            <div className="p-6 space-y-6">
-              {/* Page Size */}
+          {/* PDF Settings - Compact desktop layout */}
+          <div className="space-y-6">
+            {/* Desktop: Two columns, Mobile: Stacked */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+              {/* Left Column: Page Settings */}
               <div className="space-y-4">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-muted-foreground" />
-                  Page Size
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {["auto", "a4", "letter", "legal"].map((size) => (
-                    <button
-                      key={size}
-                      onClick={() =>
-                        setOptions((prev) => ({
-                          ...prev,
-                          pageSize: size as any,
-                        }))
-                      }
-                      className={cn(
-                        "px-3 py-2 rounded-lg border-2 transition-all duration-200 text-sm",
-                        options.pageSize === size
-                          ? "border-primary bg-primary/10"
-                          : "border-border/50 hover:border-primary/50 bg-card/50",
-                      )}
-                    >
-                      {size.charAt(0).toUpperCase() + size.slice(1)}
-                    </button>
-                  ))}
+                {/* Page Size & Orientation combined */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium text-muted-foreground">Page settings</h3>
+                  
+                  {/* Page Size Grid */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { value: "auto", label: "Auto", desc: "Original" },
+                      { value: "a4", label: "A4", desc: "210×297mm" },
+                      { value: "letter", label: "Letter", desc: "8.5×11\"" },
+                      { value: "legal", label: "Legal", desc: "8.5×14\"" },
+                    ].map(({ value, label, desc }) => {
+                      const isSelected = options.pageSize === value;
+                      return (
+                        <button
+                          key={value}
+                          onClick={() =>
+                            setOptions((prev) => ({
+                              ...prev,
+                              pageSize: value as any,
+                            }))
+                          }
+                          className={cn(
+                            "relative p-2.5 rounded-lg border transition-all text-left group",
+                            isSelected
+                              ? "border-primary bg-primary/5"
+                              : "border-border hover:border-primary/50 hover:bg-muted/30"
+                          )}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <div>
+                              <div className={cn(
+                                "font-medium text-sm",
+                                isSelected ? "text-primary" : "text-foreground"
+                              )}>
+                                {label}
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                {desc}
+                              </div>
+                            </div>
+                            {isSelected && (
+                              <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Orientation Toggle */}
+                  <div className="flex gap-2 p-1 bg-muted/50 rounded-lg">
+                    {[
+                      { value: "portrait", icon: FileText, label: "Portrait" },
+                      { value: "landscape", icon: FileImage, label: "Landscape" },
+                    ].map(({ value, icon: Icon, label }) => (
+                      <button
+                        key={value}
+                        onClick={() =>
+                          setOptions((prev) => ({
+                            ...prev,
+                            orientation: value as any,
+                          }))
+                        }
+                        className={cn(
+                          "flex-1 px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center justify-center gap-2",
+                          options.orientation === value
+                            ? "bg-background text-foreground shadow-sm"
+                            : "text-muted-foreground hover:text-foreground"
+                        )}
+                      >
+                        <Icon className="w-4 h-4" />
+                        <span className="hidden sm:inline">{label}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              {/* Orientation */}
+              {/* Right Column: Quality Settings */}
               <div className="space-y-4">
-                <label className="text-sm font-medium">Orientation</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {["portrait", "landscape"].map((orientation) => (
-                    <button
-                      key={orientation}
-                      onClick={() =>
-                        setOptions((prev) => ({
-                          ...prev,
-                          orientation: orientation as any,
-                        }))
+                {/* Combined Quality & Margin */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium text-muted-foreground">Quality settings</h3>
+                  
+                  {/* Quality Slider */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Image quality</span>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          value={Math.round(options.quality * 100)}
+                          onChange={(e) => {
+                            const value = Math.max(50, Math.min(100, parseInt(e.target.value) || 50));
+                            setOptions((prev) => ({ ...prev, quality: value / 100 }));
+                          }}
+                          className="w-14 px-2 py-1 text-sm text-center border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                          min={50}
+                          max={100}
+                        />
+                        <span className="text-sm text-muted-foreground">%</span>
+                      </div>
+                    </div>
+                    <Slider
+                      value={[options.quality * 100]}
+                      onValueChange={(value) =>
+                        setOptions((prev) => ({ ...prev, quality: value[0] / 100 }))
                       }
-                      className={cn(
-                        "px-3 py-2 rounded-lg border-2 transition-all duration-200 text-sm",
-                        options.orientation === orientation
-                          ? "border-primary bg-primary/10"
-                          : "border-border/50 hover:border-primary/50 bg-card/50",
-                      )}
-                    >
-                      {orientation.charAt(0).toUpperCase() +
-                        orientation.slice(1)}
-                    </button>
-                  ))}
+                      min={50}
+                      max={100}
+                      step={5}
+                      className="w-full"
+                    />
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>Smaller file</span>
+                      <span>Higher quality</span>
+                    </div>
+                  </div>
+
+                  {/* Page Margin */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Page margin</span>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          value={options.margin}
+                          onChange={(e) => {
+                            const value = Math.max(0, Math.min(50, parseInt(e.target.value) || 0));
+                            setOptions((prev) => ({ ...prev, margin: value }));
+                          }}
+                          className="w-14 px-2 py-1 text-sm text-center border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                          min={0}
+                          max={50}
+                        />
+                        <span className="text-sm text-muted-foreground">px</span>
+                      </div>
+                    </div>
+                    <Slider
+                      value={[options.margin]}
+                      onValueChange={(value) =>
+                        setOptions((prev) => ({ ...prev, margin: value[0] }))
+                      }
+                      min={0}
+                      max={50}
+                      step={5}
+                      className="w-full"
+                    />
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>No margin</span>
+                      <span>Large margin</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-
-              {/* Quality Slider */}
-              <div className="space-y-4">
-                <label className="text-sm font-medium">
-                  Image Quality: {Math.round(options.quality * 100)}%
-                </label>
-                <Slider
-                  value={[options.quality * 100]}
-                  onValueChange={(value) =>
-                    setOptions((prev) => ({ ...prev, quality: value[0] / 100 }))
-                  }
-                  min={50}
-                  max={100}
-                  step={5}
-                  className="w-full"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Higher quality means larger file size
-                </p>
-              </div>
-
-              {/* Advanced Options - Collapsible on Mobile */}
-              <div className="sm:hidden">
-                <CollapsibleSection
-                  title="Advanced Options"
-                  defaultOpen={false}
-                >
-                  <div className="space-y-4 pt-2">
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">
-                        Page Margin: {options.margin}px
-                      </label>
-                      <Slider
-                        value={[options.margin]}
-                        onValueChange={(value) =>
-                          setOptions((prev) => ({ ...prev, margin: value[0] }))
-                        }
-                        min={0}
-                        max={50}
-                        step={5}
-                        className="w-full"
-                      />
-                    </div>
-                  </div>
-                </CollapsibleSection>
-              </div>
-
-              {/* Desktop Advanced Options */}
-              <div className="hidden sm:block space-y-4">
-                <button
-                  onClick={() => setShowAdvanced(!showAdvanced)}
-                  className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors"
-                >
-                  <Settings2 className="w-4 h-4" />
-                  Advanced Options
-                  <ChevronRight
-                    className={cn(
-                      "w-4 h-4 ml-auto transition-transform",
-                      showAdvanced && "rotate-90",
-                    )}
-                  />
-                </button>
-
-                {showAdvanced && (
-                  <div className="space-y-4 pt-4 border-t">
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">
-                        Page Margin: {options.margin}px
-                      </label>
-                      <Slider
-                        value={[options.margin]}
-                        onValueChange={(value) =>
-                          setOptions((prev) => ({ ...prev, margin: value[0] }))
-                        }
-                        min={0}
-                        max={50}
-                        step={5}
-                        className="w-full"
-                      />
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           </div>
@@ -512,15 +518,14 @@ export default function JpgToPdf() {
           ) : (
             <div className="space-y-4">
               {/* Image Grid */}
-              <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
-                    <h3 className="font-medium text-base sm:text-lg">
+                    <h3 className="text-sm font-medium text-muted-foreground">
                       Images to convert
                     </h3>
-                    <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                      {images.length} image{images.length !== 1 ? "s" : ""}{" "}
-                      selected
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {images.length} image{images.length !== 1 ? "s" : ""} selected • Drag to reorder
                     </p>
                   </div>
                   <Button
@@ -533,7 +538,7 @@ export default function JpgToPdf() {
                   </Button>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                   {images.map((imageInfo, index) => (
                     <div
                       key={imageInfo.id}
@@ -546,29 +551,31 @@ export default function JpgToPdf() {
                         setDraggedImage(null);
                       }}
                       className={cn(
-                        "relative group transition-all duration-200",
-                        dragOverIndex === index && "ring-2 ring-primary",
+                        "relative group transition-all duration-200 cursor-move",
+                        dragOverIndex === index && "ring-2 ring-primary ring-offset-2",
                         draggedImage === imageInfo.id && "opacity-50",
                       )}
                     >
-                      <div className="aspect-square bg-secondary/[0.3] rounded-lg overflow-hidden">
+                      <div className="aspect-square rounded-lg overflow-hidden border border-border hover:border-primary/50 transition-colors">
                         <img
                           src={imageInfo.preview}
                           alt={imageInfo.file.name}
                           className="w-full h-full object-cover"
                         />
-                      </div>
-                      <div className="absolute top-1 left-1 p-1 bg-background/90 rounded hidden sm:block">
-                        <GripVertical className="w-3 h-3 text-muted-foreground" />
-                      </div>
-                      <Button
-                        variant="destructive"
-                        size="icon"
-                        className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => removeImage(imageInfo.id)}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="p-1.5 bg-white/90 dark:bg-black/90 rounded-md">
+                            <GripVertical className="w-3.5 h-3.5 text-foreground" />
+                          </div>
+                        </div>
+                        <Button
+                          variant="secondary"
+                          size="icon"
+                          className="absolute top-2 right-2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => removeImage(imageInfo.id)}
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </Button>
                       {/* Mobile reorder buttons */}
                       <div className="absolute bottom-1 right-1 flex gap-0.5 sm:hidden">
                         {index > 0 && (
@@ -592,71 +599,64 @@ export default function JpgToPdf() {
                           </Button>
                         )}
                       </div>
-                      <div className="mt-1.5">
+                      <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent text-white opacity-0 group-hover:opacity-100 transition-opacity">
                         <p className="text-xs font-medium truncate">
                           {imageInfo.file.name}
                         </p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs opacity-80">
                           {formatFileSize(imageInfo.file.size)}
                         </p>
+                      </div>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                <p className="text-xs text-muted-foreground mt-4">
-                  <span className="hidden sm:inline">
-                    Drag images to reorder them in the PDF
-                  </span>
-                  <span className="sm:hidden">Use arrows to reorder pages</span>
-                </p>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button
-                  onClick={handleConvert}
-                  disabled={isProcessing || images.length === 0}
-                  className="flex-1"
-                >
-                  {isProcessing ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Converting to PDF ({progress}%)
-                    </>
-                  ) : (
-                    <>
-                      <FileText className="w-4 h-4 mr-2" />
-                      Convert to PDF
-                    </>
-                  )}
-                </Button>
-
-                {pdfResult && (
-                  <Button
-                    onClick={downloadPdf}
-                    variant="default"
-                    className="flex-1"
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Download PDF
-                  </Button>
+              {/* Action Button */}
+              <Button
+                onClick={handleConvert}
+                disabled={isProcessing || images.length === 0}
+                className="w-full"
+              >
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Converting to PDF ({progress}%)
+                  </>
+                ) : (
+                  <>
+                    <FileText className="w-4 h-4 mr-2" />
+                    Convert to PDF
+                  </>
                 )}
-              </div>
+              </Button>
             </div>
           )}
 
           {/* Success Message */}
           {pdfResult && (
-            <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-lg p-4 flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
-              <div>
-                <p className="font-medium text-green-900 dark:text-green-200">
-                  PDF created successfully!
-                </p>
-                <p className="text-sm text-green-700 dark:text-green-300">
-                  {formatFileSize(pdfResult.byteLength)}
-                </p>
+            <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5" />
+                <div className="flex-1">
+                  <p className="font-medium text-green-900 dark:text-green-200">
+                    PDF created successfully!
+                  </p>
+                  <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                    File size: {formatFileSize(pdfResult.byteLength)}
+                  </p>
+                </div>
+                <Button
+                  onClick={downloadPdf}
+                  variant="outline"
+                  size="sm"
+                  className="border-green-300 hover:bg-green-100 dark:border-green-800 dark:hover:bg-green-900/50"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Download PDF
+                </Button>
               </div>
             </div>
           )}
