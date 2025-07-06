@@ -74,6 +74,9 @@ const finalOgImage = ogImage || generatedOgImageUrl;
     <meta name="robots" content="index, follow" />
     <meta name="author" content="FormatFuse" />
     
+    <!-- Content Security Policy -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://scripts.simpleanalyticscdn.com; connect-src 'self' https://queue.simpleanalyticscdn.com; img-src 'self' data: blob: https://queue.simpleanalyticscdn.com https://simpleanalyticsbadges.com; style-src 'self' 'unsafe-inline'; worker-src 'self' blob:; font-src 'self' https://fonts.gstatic.com; frame-src 'self';">
+    
     <!-- Theme detection -->
     <script is:inline>
       const theme = (() => {
@@ -96,31 +99,10 @@ const finalOgImage = ogImage || generatedOgImageUrl;
     <!-- WASM Prefetch hints -->
     <WasmPrefetch sourceFormat={sourceFormat} targetFormat={targetFormat} />
     
-    <!-- Google Tag Manager -->
-    <script is:inline>
-      // Check if GTM is already initialized
-      if (!window.dataLayer || !window.google_tag_manager) {
-        window.dataLayer = window.dataLayer || [];
-        window.dataLayer.push({
-          
-          'gtm.start': new Date().getTime(),
-          event: 'gtm.js'
-        });
-
-        var firstScript = document.getElementsByTagName('script')[0];
-        var gtmScript = document.createElement('script');
-        gtmScript.async = true;
-        gtmScript.src = 'https://www.googletagmanager.com/gtm.js?id=GTM-MJKP526Z';
-        firstScript.parentNode.insertBefore(gtmScript, firstScript);
-      }
-    </script>
-    <!-- End Google Tag Manager -->
+    <!-- 100% privacy-first analytics -->
+    <script async src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
   </head>
   <body class="min-h-screen antialiased flex flex-col">
-    <!-- Google Tag Manager (noscript) -->
-    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MJKP526Z"
-    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-    <!-- End Google Tag Manager (noscript) -->
     <Navigation client:load />
     <div class="flex-1 flex flex-col min-h-0">
       <slot />
