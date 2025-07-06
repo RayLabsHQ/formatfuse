@@ -2,6 +2,7 @@ import type { AstroIntegration } from "astro";
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
+import { allTools, categories } from "../data/tools.js";
 
 interface LLMsTxtOptions {
   generateLLMsFullTxt?: boolean;
@@ -102,6 +103,9 @@ FormatFuse is a browser-based file conversion platform that processes all files 
 ### Document Converters
 {documentConverters}
 
+### Archive Tools
+{archiveTools}
+
 ## Privacy
 
 All file processing happens locally in your browser. We never upload, store, or have access to your files.
@@ -110,14 +114,23 @@ All file processing happens locally in your browser. We never upload, store, or 
 
 - Website: https://formatfuse.com`;
 
-  // Categorize routes
-  const categories = {
+  // Categorize routes based on actual tools data
+  const categorizedTools = {
     imageConverters: [] as string[],
     pdfTools: [] as string[],
     imageProcessing: [] as string[],
     developerTools: [] as string[],
     documentConverters: [] as string[],
+    archiveTools: [] as string[],
   };
+
+  // Create a map of routes to tools for quick lookup
+  const routeToTool = new Map<string, any>();
+  for (const tool of allTools) {
+    if (tool.route) {
+      routeToTool.set(tool.route, tool);
+    }
+  }
 
   for (const route of routes) {
     // Skip if route doesn't have pathname or component
@@ -126,22 +139,32 @@ All file processing happens locally in your browser. We never upload, store, or 
     if (shouldIgnoreRoute(route.pathname, ignoreFiles)) continue;
     
     const url = `https://formatfuse.com${route.pathname}`;
-    const description = getRouteDescription(route.pathname);
+    const tool = routeToTool.get(route.pathname);
     
-    if (route.pathname.includes("/convert/")) {
-      if (route.pathname.includes("pdf")) {
-        categories.pdfTools.push(`- [${description}](${url})`);
-      } else {
-        categories.imageConverters.push(`- [${description}](${url})`);
-      }
-    } else if (route.pathname.includes("/tools/")) {
-      const toolName = route.pathname.split("/").pop() || "";
-      if (["image-resizer", "background-remover", "image-compressor"].includes(toolName)) {
-        categories.imageProcessing.push(`- [${description}](${url})`);
-      } else if (["qr-generator", "base64-encoder", "json-formatter", "hash-generator", "url-shortener", "case-converter"].includes(toolName)) {
-        categories.developerTools.push(`- [${description}](${url})`);
-      } else {
-        categories.documentConverters.push(`- [${description}](${url})`);
+    if (tool) {
+      const link = `- [${tool.name}](${url})`;
+      
+      // Categorize based on tool category
+      switch (tool.category) {
+        case "image":
+          if (tool.id.includes("-to-") || tool.id === "image-converter") {
+            categorizedTools.imageConverters.push(link);
+          } else {
+            categorizedTools.imageProcessing.push(link);
+          }
+          break;
+        case "pdf":
+          categorizedTools.pdfTools.push(link);
+          break;
+        case "dev":
+          categorizedTools.developerTools.push(link);
+          break;
+        case "document":
+          categorizedTools.documentConverters.push(link);
+          break;
+        case "archive":
+          categorizedTools.archiveTools.push(link);
+          break;
       }
     }
   }
@@ -149,11 +172,12 @@ All file processing happens locally in your browser. We never upload, store, or 
   // Replace template variables
   let content = template
     .replace("{title}", title)
-    .replace("{imageConverters}", categories.imageConverters.join("\n"))
-    .replace("{pdfTools}", categories.pdfTools.join("\n"))
-    .replace("{imageProcessing}", categories.imageProcessing.join("\n"))
-    .replace("{developerTools}", categories.developerTools.join("\n"))
-    .replace("{documentConverters}", categories.documentConverters.join("\n"));
+    .replace("{imageConverters}", categorizedTools.imageConverters.join("\n"))
+    .replace("{pdfTools}", categorizedTools.pdfTools.join("\n"))
+    .replace("{imageProcessing}", categorizedTools.imageProcessing.join("\n"))
+    .replace("{developerTools}", categorizedTools.developerTools.join("\n"))
+    .replace("{documentConverters}", categorizedTools.documentConverters.join("\n"))
+    .replace("{archiveTools}", categorizedTools.archiveTools.join("\n"));
   
   // Replace custom variables
   for (const [key, value] of Object.entries(customVariables)) {
@@ -178,32 +202,34 @@ This file contains the complete documentation for FormatFuse in a single documen
 
 `;
 
-  // Add structured content about all tools
-  const toolCategories = {
-    "Image Converters": [
-      "PNG to JPG", "JPG to PNG", "WebP Converter", "HEIC to JPG", "SVG to PNG",
-      "BMP Converter", "ICO Converter", "TIFF Converter", "AVIF Converter"
-    ],
-    "PDF Tools": [
-      "JPG to PDF", "PNG to PDF", "Text to PDF", "PDF Split", "PDF Merge", "PDF Compress"
-    ],
-    "Image Processing": [
-      "Image Resizer", "Background Remover", "Image Compressor"
-    ],
-    "Developer Tools": [
-      "QR Code Generator", "Base64 Encoder", "JSON Formatter", 
-      "URL Shortener", "Hash Generator", "Case Converter"
-    ],
-    "Document Tools": [
-      "Markdown to HTML", "RTF Converter", "Word to PDF"
-    ]
-  };
-
-  for (const [category, tools] of Object.entries(toolCategories)) {
-    content += `## ${category}\n\n`;
-    for (const tool of tools) {
-      content += `### ${tool}\n`;
-      content += getToolDocumentation(tool);
+  // Use actual categories and tools from the data file
+  for (const category of categories) {
+    content += `## ${category.name}\n\n`;
+    
+    for (const tool of category.tools) {
+      // Skip unimplemented tools (extra safety check)
+      if (tool.isImplemented === false) continue;
+      
+      content += `### ${tool.name}\n`;
+      content += tool.description;
+      
+      // Add route information
+      if (tool.route) {
+        content += `\n- URL: https://formatfuse.com${tool.route}`;
+      }
+      
+      // Add feature list based on tool type
+      const features = getToolFeatures(tool);
+      if (features.length > 0) {
+        content += `\n\nFeatures:\n${features.map(f => `- ${f}`).join('\n')}`;
+      }
+      
+      // Add specific documentation if available
+      const extraDoc = getToolDocumentation(tool.name);
+      if (extraDoc !== `Convert or process files using ${tool.name}. All processing happens locally in your browser.`) {
+        content += `\n\n${extraDoc}`;
+      }
+      
       content += "\n\n";
     }
   }
@@ -254,6 +280,114 @@ function getRouteDescription(pathname: string): string {
     .split("-")
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
+}
+
+function getToolFeatures(tool: any): string[] {
+  const features: string[] = [];
+  
+  // Common features for all tools
+  features.push("Privacy-first: Files never leave your device");
+  features.push("Lightning fast: Instant processing");
+  features.push("No file size limits (except your RAM)");
+  
+  // Tool-specific features based on category and name
+  if (tool.category === "pdf") {
+    switch (tool.id) {
+      case "pdf-merge":
+        features.push("Drag to reorder PDFs");
+        features.push("Preview contents before merging");
+        features.push("Merge unlimited PDFs");
+        break;
+      case "pdf-split":
+        features.push("Extract specific pages");
+        features.push("Split into multiple files");
+        features.push("Visual page preview");
+        break;
+      case "pdf-compress":
+        features.push("Reduce PDF file size");
+        features.push("Maintain document quality");
+        features.push("Multiple compression levels");
+        break;
+      case "jpg-to-pdf":
+        features.push("Convert multiple images at once");
+        features.push("Adjust page size and orientation");
+        features.push("Reorder images before converting");
+        break;
+      case "pdf-to-jpg":
+        features.push("Extract all pages as images");
+        features.push("Choose image quality");
+        features.push("Download as ZIP for multiple pages");
+        break;
+      case "pdf-rotate":
+        features.push("Rotate individual pages");
+        features.push("Rotate all pages at once");
+        features.push("90°, 180°, 270° rotation options");
+        break;
+    }
+  } else if (tool.category === "image") {
+    if (tool.id === "image-converter") {
+      features.push("Convert between 10+ image formats");
+      features.push("Batch process multiple images");
+      features.push("Preserve image quality");
+    } else if (tool.id === "image-compressor") {
+      features.push("Adjust quality level");
+      features.push("Preview compressed result");
+      features.push("Support for JPG, WebP, and AVIF");
+    } else if (tool.id === "image-resizer") {
+      features.push("Resize by percentage or dimensions");
+      features.push("Maintain aspect ratio");
+      features.push("Batch resize multiple images");
+    } else if (tool.id.includes("-to-")) {
+      features.push("High-quality format conversion");
+      features.push("Batch processing support");
+      features.push("Preserve metadata when possible");
+    }
+  } else if (tool.category === "archive") {
+    if (tool.id.includes("extract")) {
+      features.push("Extract all files at once");
+      features.push("Preview archive contents");
+      features.push("Download individual files");
+    } else if (tool.id.includes("create")) {
+      features.push("Add multiple files and folders");
+      features.push("Choose compression level");
+      features.push("Set archive password (if supported)");
+    }
+  } else if (tool.category === "dev") {
+    switch (tool.id) {
+      case "qr-generator":
+        features.push("Multiple QR code types (URL, WiFi, Text, etc.)");
+        features.push("Customizable size and error correction");
+        features.push("Download as PNG or SVG");
+        break;
+      case "json-formatter":
+        features.push("Beautify and minify JSON");
+        features.push("Syntax highlighting");
+        features.push("Error detection and validation");
+        break;
+      case "base64-encoder":
+        features.push("Encode text and files");
+        features.push("Decode Base64 strings");
+        features.push("URL-safe encoding option");
+        break;
+      case "hash-generator":
+        features.push("Multiple algorithms (MD5, SHA-1, SHA-256, SHA-512)");
+        features.push("Hash text or files");
+        features.push("Compare hash values");
+        break;
+      case "password-generator":
+        features.push("Customizable length and character sets");
+        features.push("Strength indicator");
+        features.push("Bulk generation");
+        break;
+      case "uuid-generator":
+        features.push("Generate v1, v3, v4, v5 UUIDs");
+        features.push("Multiple output formats");
+        features.push("Bulk generation");
+        break;
+    }
+  }
+  
+  return features;
 }
 
 function getToolDocumentation(toolName: string): string {
