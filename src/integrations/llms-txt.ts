@@ -108,9 +108,7 @@ All file processing happens locally in your browser. We never upload, store, or 
 
 ## Links
 
-- Website: https://formatfuse.com
-- Issue Tracker: https://github.com/formatfuse/issues
-- All Tools: https://formatfuse.com/tools`;
+- Website: https://formatfuse.com`;
 
   // Categorize routes
   const categories = {

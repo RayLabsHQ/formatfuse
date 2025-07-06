@@ -6,7 +6,7 @@ import sitemap from "@astrojs/sitemap";
 import opengraphImages from "astro-opengraph-images";
 import { toolOGImage } from "./src/og-image-renderer.tsx";
 import partytown from "@astrojs/partytown";
-import simpleLLMsTxt from "./src/integrations/simple-llms-txt.ts";
+import llmsTxt from "./src/integrations/llms-txt.ts";
 import fs from "fs";
 
 // https://astro.build/config
@@ -55,7 +55,7 @@ export default defineConfig({
         forward: ["dataLayer.push"],
       },
     }),
-    simpleLLMsTxt(),
+    llmsTxt(),
   ],
   vite: {
     plugins: [tailwindcss()],
