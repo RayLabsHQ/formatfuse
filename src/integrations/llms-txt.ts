@@ -43,7 +43,7 @@ export default function llmsTxt(options: LLMsTxtOptions = {}): AstroIntegration 
         
         // Generate llms-full.txt if enabled
         if (generateLLMsFullTxt) {
-          const llmsFullTxtContent = await generateLLMsFullTxt(
+          const llmsFullTxtContent = await generateLLMsFullTxtContent(
             routes,
             title,
             ignoreFiles
@@ -163,7 +163,7 @@ All file processing happens locally in your browser. We never upload, store, or 
   return content;
 }
 
-async function generateLLMsFullTxt(
+async function generateLLMsFullTxtContent(
   routes: any[],
   title: string,
   ignoreFiles: string[] = []
