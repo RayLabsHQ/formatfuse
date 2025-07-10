@@ -28,6 +28,9 @@ const {
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
+// Don't append site name if it's already in the title
+const pageTitle = title.includes('FormatFuse') ? title : `${title} - FormatFuse`;
+
 // Generate OG image path
 const generatedOgImageUrl = getImagePath({
   url: Astro.url,
@@ -44,7 +47,7 @@ const finalOgImage = ogImage || generatedOgImageUrl;
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
-    <title>{title} - FormatFuse</title>
+    <title>{pageTitle}</title>
     <meta name="description" content={description} />
     <meta name="keywords" content={keywords} />
     <link rel="canonical" href={canonicalURL} />
@@ -57,7 +60,7 @@ const finalOgImage = ogImage || generatedOgImageUrl;
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     
     <!-- Open Graph -->
-    <meta property="og:title" content={`${title} - FormatFuse`} />
+    <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonicalURL} />
@@ -66,7 +69,7 @@ const finalOgImage = ogImage || generatedOgImageUrl;
     
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content={`${title} - FormatFuse`} />
+    <meta name="twitter:title" content={pageTitle} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={new URL(finalOgImage, Astro.site)} />
     
