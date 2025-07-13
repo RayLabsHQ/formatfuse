@@ -48,7 +48,7 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
   const [thumbnails, setThumbnails] = useState<PageThumbnail[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selected, setSelected] = useState<Set<number>>(new Set(selectedPages));
+  const [selected, setSelected] = useState<Set<number>>(() => new Set(selectedPages));
   const [carouselOpen, setCarouselOpen] = useState(false);
   const [carouselInitialPage, setCarouselInitialPage] = useState(1);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -191,9 +191,17 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
     };
   }, [pdfData]);
 
-  // Update selected pages
+  // Update selected pages - only if content actually changed
   useEffect(() => {
-    setSelected(new Set(selectedPages));
+    const newSelectedSet = new Set(selectedPages);
+    const currentSelectedArray = Array.from(selected).sort();
+    const newSelectedArray = Array.from(newSelectedSet).sort();
+    
+    // Only update if the actual content changed
+    if (currentSelectedArray.length !== newSelectedArray.length ||
+        currentSelectedArray.some((val, idx) => val !== newSelectedArray[idx])) {
+      setSelected(newSelectedSet);
+    }
   }, [selectedPages]);
 
   const handlePageClick = useCallback(

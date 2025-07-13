@@ -465,7 +465,7 @@ export function PdfFileList({
                           pdfData={fileInfo.data}
                           mode="strip"
                           maxHeight={180}
-                          key={`${fileInfo.id}-${shouldShowPreview}`}
+                          key={fileInfo.id}
                         />
                       </div>
                     )}
