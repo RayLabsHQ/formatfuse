@@ -1,5 +1,5 @@
 import * as Comlink from "comlink";
-import { PDFDocument, rgb, degrees, PDFPage } from "pdf-lib";
+import { PDFDocument, degrees } from "pdf-lib";
 import * as pdfjsLib from "pdfjs-dist";
 
 // Set up PDF.js worker
@@ -125,26 +125,41 @@ class PDFOperationsWorker {
     options: RotateOptions,
     onProgress?: (progress: number) => void,
   ): Promise<Uint8Array> {
+    console.log('[PDF Worker] Rotate called with options:', options);
     onProgress?.(0);
 
     const pdfDoc = await this.loadPdfDocument(pdfData);
     const totalPages = pdfDoc.getPageCount();
+    console.log('[PDF Worker] Total pages:', totalPages);
+    
     const pagesToRotate =
       options.pages?.map((p) => p - 1) ||
       Array.from({ length: totalPages }, (_, i) => i);
+    console.log('[PDF Worker] Pages to rotate:', pagesToRotate);
 
     let processed = 0;
     for (const pageIdx of pagesToRotate) {
       if (pageIdx >= 0 && pageIdx < totalPages) {
         const page = pdfDoc.getPage(pageIdx);
         const currentRotation = page.getRotation().angle;
-        page.setRotation(degrees(currentRotation + options.angle));
+        const newRotation = (currentRotation + options.angle) % 360;
+        
+        console.log(`[PDF Worker] Page ${pageIdx}: current rotation ${currentRotation}°, new rotation ${newRotation}°`);
+
+        // Simply set the rotation - PDF viewers handle the transformation
+        // Do NOT swap dimensions as this causes content to be cut off
+        page.setRotation(degrees(newRotation));
+        
+        // Verify rotation was set
+        const verifyRotation = page.getRotation().angle;
+        console.log(`[PDF Worker] Page ${pageIdx}: rotation after setting: ${verifyRotation}°`);
       }
       processed++;
       onProgress?.((processed / pagesToRotate.length) * 100);
     }
 
     const pdfBytes = await pdfDoc.save();
+    console.log('[PDF Worker] PDF saved, size:', pdfBytes.length);
     return Comlink.transfer(new Uint8Array(pdfBytes), [pdfBytes.buffer]);
   }
 
