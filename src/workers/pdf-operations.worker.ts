@@ -1,12 +1,55 @@
 import * as Comlink from "comlink";
 import { PDFDocument, degrees } from "pdf-lib";
-import * as pdfjsLib from "pdfjs-dist";
+import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 
-// Set up PDF.js worker
+// Set up PDF.js worker (legacy build for better worker compatibility)
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/build/pdf.worker.mjs",
+  "pdfjs-dist/legacy/build/pdf.worker.mjs",
   import.meta.url,
 ).toString();
+
+// Ensure document is available globally for PDF.js
+if (typeof globalThis.document === 'undefined') {
+  (globalThis as any).document = {
+    createElement: (tagName: string) => {
+      if (tagName === 'canvas') {
+        return new OffscreenCanvas(300, 150);
+      }
+      throw new Error(`Cannot create element ${tagName} in worker`);
+    }
+  };
+}
+
+// Canvas factory implementation for Web Workers
+class WorkerCanvasFactory {
+  create(width: number, height: number) {
+    const canvas = new OffscreenCanvas(width, height);
+    const context = canvas.getContext('2d') as any;
+    
+    // Add missing methods that PDF.js might need
+    if (!context.drawFocusIfNeeded) {
+      context.drawFocusIfNeeded = () => {};
+    }
+    if (!context.getContextAttributes) {
+      context.getContextAttributes = () => ({ alpha: true });
+    }
+    
+    return { canvas, context };
+  }
+
+  reset(canvasAndContext: any, width: number, height: number) {
+    canvasAndContext.canvas.width = width;
+    canvasAndContext.canvas.height = height;
+  }
+
+  destroy(canvasAndContext: any) {
+    canvasAndContext.canvas.width = 0;
+    canvasAndContext.canvas.height = 0;
+    canvasAndContext.canvas = null;
+    canvasAndContext.context = null;
+  }
+}
+
 
 interface SplitOptions {
   pageRanges: Array<{ start: number; end: number }>;
@@ -40,12 +83,21 @@ interface CompressOptions {
 }
 
 class PDFOperationsWorker {
+  private canvasFactory = new WorkerCanvasFactory();
+
   private async loadPdfDocument(data: Uint8Array): Promise<PDFDocument> {
     return PDFDocument.load(data);
   }
 
   private async loadPdfJsDocument(data: Uint8Array) {
-    const loadingTask = pdfjsLib.getDocument({ data });
+    const loadingTask = pdfjsLib.getDocument({ 
+      data,
+      isEvalSupported: false,
+      disableWorker: true, // We're already in a worker
+      disableFontFace: true, // Disable font face in worker
+      useWorkerFetch: false,
+      canvasFactory: this.canvasFactory,
+    } as any);
     return loadingTask.promise;
   }
 
@@ -219,18 +271,39 @@ class PDFOperationsWorker {
       const page = await pdf.getPage(pageNum);
       const viewport = page.getViewport({ scale });
 
-      // Create canvas
-      const canvas = new OffscreenCanvas(viewport.width, viewport.height);
-      const context = canvas.getContext(
-        "2d",
-      ) as OffscreenCanvasRenderingContext2D;
+      // Create canvas with proper dimensions
+      const canvas = new OffscreenCanvas(
+        Math.floor(viewport.width),
+        Math.floor(viewport.height)
+      );
+      const context = canvas.getContext("2d", {
+        alpha: false,
+      }) as OffscreenCanvasRenderingContext2D;
+      
       if (!context) throw new Error("Failed to create canvas context");
 
-      // Render PDF page to canvas
-      await page.render({
-        canvasContext: context as any,
+      // Add missing methods that PDF.js might need
+      const ctx = context as any;
+      if (!ctx.drawFocusIfNeeded) {
+        ctx.drawFocusIfNeeded = () => {}; // No-op
+      }
+      if (!ctx.getContextAttributes) {
+        ctx.getContextAttributes = () => ({ alpha: false });
+      }
+
+      // Set white background
+      context.fillStyle = 'white';
+      context.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Create render context
+      const renderContext = {
+        canvasContext: ctx, // Use the enhanced context
         viewport: viewport,
-      }).promise;
+        canvasFactory: this.canvasFactory,
+      };
+
+      // Render PDF page to canvas
+      await page.render(renderContext).promise;
 
       // Convert canvas to blob
       const blob = await canvas.convertToBlob({

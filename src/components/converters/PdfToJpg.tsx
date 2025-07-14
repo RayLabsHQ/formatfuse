@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   FileImage,
   Package,
+  Maximize2,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { FileDropZone } from "../ui/FileDropZone";
@@ -20,6 +21,7 @@ import { cn } from "../../lib/utils";
 import { Slider } from "../ui/slider";
 import { usePdfOperations } from "../../hooks/usePdfOperations";
 import { PdfFileList, type PdfFile } from "../ui/PdfFileList";
+import { ImagePreviewModal } from "../ui/image-preview-modal";
 import FileSaver from "file-saver";
 import JSZip from "jszip";
 
@@ -101,6 +103,8 @@ const faqs: FAQItem[] = [
 export default function PdfToJpg() {
   const [files, setFiles] = useState<PdfFile[]>([]);
   const [results, setResults] = useState<ConversionResult[]>([]);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewIndex, setPreviewIndex] = useState(0);
 
   const { pdfToImages, getPageCount, isProcessing, progress, error } =
     usePdfOperations();
@@ -233,6 +237,17 @@ export default function PdfToJpg() {
     if (bytes < 1024) return bytes + " B";
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
     return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+  };
+
+  const handlePreviewOpen = (index: number) => {
+    setPreviewIndex(index);
+    setPreviewOpen(true);
+  };
+
+  const handlePreviewDownload = (index: number) => {
+    if (results[index]) {
+      handleDownload(results[index]);
+    }
   };
 
   // Cleanup URLs on unmount
@@ -540,10 +555,11 @@ export default function PdfToJpg() {
 
                   {/* Image grid */}
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                    {results.map((result) => (
+                    {results.map((result, index) => (
                       <div
                         key={result.page}
-                        className="group relative rounded-lg overflow-hidden border border-border hover:border-primary/50 transition-colors"
+                        className="group relative rounded-lg overflow-hidden border border-border hover:border-primary/50 transition-colors cursor-pointer"
+                        onClick={() => handlePreviewOpen(index)}
                       >
                         <div className="aspect-[3/4] bg-muted">
                           {result.url && (
@@ -564,14 +580,30 @@ export default function PdfToJpg() {
                                   {formatFileSize(result.data.byteLength)}
                                 </p>
                               </div>
-                              <Button
-                                size="sm"
-                                variant="secondary"
-                                onClick={() => handleDownload(result)}
-                                className="h-8 px-2"
-                              >
-                                <Download className="w-4 h-4" />
-                              </Button>
+                              <div className="flex items-center gap-1">
+                                <Button
+                                  size="sm"
+                                  variant="secondary"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handlePreviewOpen(index);
+                                  }}
+                                  className="h-8 px-2"
+                                >
+                                  <Maximize2 className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="secondary"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDownload(result);
+                                  }}
+                                  className="h-8 px-2"
+                                >
+                                  <Download className="w-4 h-4" />
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -594,6 +626,20 @@ export default function PdfToJpg() {
           </div>
         </div>
       </section>
+
+      {/* Image Preview Modal */}
+      <ImagePreviewModal
+        isOpen={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+        images={results.map((result) => ({
+          url: result.url || "",
+          title: `Page ${result.page}`,
+          data: result.data,
+          mimeType: result.mimeType,
+        }))}
+        initialIndex={previewIndex}
+        onDownload={handlePreviewDownload}
+      />
     </div>
   );
 }
