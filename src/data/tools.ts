@@ -697,68 +697,113 @@ export const categories = [
 
 // Search function for tools
 export function searchTools(query: string): Tool[] {
-  if (!query) return allTools;
+  // Combine regular tools with color conversions for search
+  const searchableTools = [...allTools, ...colorConversions];
+  
+  if (!query) return searchableTools;
 
   const lowerQuery = query.toLowerCase();
 
-  // Combine regular tools with color conversions for search
-  const searchableTools = [...allTools, ...colorConversions];
+  // Score and filter tools
+  const scoredResults = searchableTools
+    .map((tool) => {
+      let score = 0;
+      let matches = false;
 
-  return searchableTools.filter((tool) => {
-    // Check tool name
-    if (tool.name.toLowerCase().includes(lowerQuery)) return true;
+      // Exact name match (highest priority)
+      if (tool.name.toLowerCase() === lowerQuery) {
+        score += 100;
+        matches = true;
+      }
+      // Name contains query
+      else if (tool.name.toLowerCase().includes(lowerQuery)) {
+        score += 50;
+        matches = true;
+      }
 
-    // Check tool description
-    if (tool.description.toLowerCase().includes(lowerQuery)) return true;
+      // Check tool description
+      if (tool.description.toLowerCase().includes(lowerQuery)) {
+        score += 20;
+        matches = true;
+      }
 
-    // Check tool id (for direct searches like "png-to-jpg")
-    if (tool.id.toLowerCase().includes(lowerQuery)) return true;
+      // Check tool id (for direct searches like "png-to-jpg")
+      if (tool.id.toLowerCase().includes(lowerQuery)) {
+        score += 30;
+        matches = true;
+      }
 
-    // Check acronyms (e.g., "pdf" matches "PDF to Word")
-    const acronym = tool.name
-      .split(" ")
-      .map((word) => word[0])
-      .join("")
-      .toLowerCase();
-    if (acronym.includes(lowerQuery)) return true;
+      // Check acronyms (e.g., "pdf" matches "PDF to Word")
+      const acronym = tool.name
+        .split(" ")
+        .map((word) => word[0])
+        .join("")
+        .toLowerCase();
+      if (acronym.includes(lowerQuery)) {
+        score += 15;
+        matches = true;
+      }
 
-    // Check format searches (e.g., "png jpg" matches "PNG to JPG")
-    const formats = tool.id.split("-to-");
-    if (formats.length === 2) {
-      const searchTerms = lowerQuery.split(" ").filter((t) => t.length > 0);
-      if (
-        searchTerms.every((term) =>
-          formats.some((format) => format.includes(term)),
-        )
-      )
-        return true;
-    }
+      // Special handling for color format searches
+      if (tool.id.startsWith("color-")) {
+        // Extract source and target formats from color converter ID
+        const colorIdMatch = tool.id.match(/^color-(.+)-to-(.+)$/);
+        if (colorIdMatch) {
+          const [, sourceFormat, targetFormat] = colorIdMatch;
+          
+          // Check if search query contains both formats
+          const searchTerms = lowerQuery.split(/\s+/).filter((t) => t.length > 0);
+          const hasSourceFormat = searchTerms.some(term => sourceFormat === term || sourceFormat.includes(term));
+          const hasTargetFormat = searchTerms.some(term => targetFormat === term || targetFormat.includes(term));
+          
+          // Exact match for "X to Y" searches (highest priority for color)
+          if (hasSourceFormat && hasTargetFormat && lowerQuery.includes("to")) {
+            score += 90;
+            matches = true;
+          }
+          // Both formats mentioned
+          else if (hasSourceFormat && hasTargetFormat) {
+            score += 70;
+            matches = true;
+          }
+          // Match source or target format
+          else if (searchTerms.some(term => sourceFormat === term || targetFormat === term)) {
+            score += 40;
+            matches = true;
+          }
+          // Partial match
+          else if (lowerQuery.includes(sourceFormat) || lowerQuery.includes(targetFormat)) {
+            score += 25;
+            matches = true;
+          }
+        }
+        
+        // Generic color search
+        if (lowerQuery.includes("color")) {
+          score += 10;
+          matches = true;
+        }
+      } else {
+        // Check format searches for non-color tools (e.g., "png jpg" matches "PNG to JPG")
+        const formats = tool.id.split("-to-");
+        if (formats.length === 2) {
+          const searchTerms = lowerQuery.split(/\s+/).filter((t) => t.length > 0);
+          if (
+            searchTerms.every((term) =>
+              formats.some((format) => format.includes(term)),
+            )
+          ) {
+            score += 40;
+            matches = true;
+          }
+        }
+      }
 
-    // Special handling for color format searches
-    if (tool.id.startsWith("color-")) {
-      // Allow searching by color format names
-      const colorTerms = [
-        "hex",
-        "rgb",
-        "hsl",
-        "hsv",
-        "hwb",
-        "lab",
-        "lch",
-        "oklab",
-        "oklch",
-        "p3",
-        "rec2020",
-        "prophoto",
-        "a98rgb",
-        "xyz",
-      ];
-      if (colorTerms.some((term) => lowerQuery.includes(term))) return true;
+      return { tool, score, matches };
+    })
+    .filter(result => result.matches)
+    .sort((a, b) => b.score - a.score)
+    .map(result => result.tool);
 
-      // Allow searching for "color" or "color converter"
-      if (lowerQuery.includes("color")) return true;
-    }
-
-    return false;
-  });
+  return scoredResults;
 }
