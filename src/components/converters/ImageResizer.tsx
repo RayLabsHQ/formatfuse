@@ -4,7 +4,6 @@ import {
   Download,
   X,
   ArrowRight,
-  ArrowUpDown,
   FileImage,
   AlertCircle,
   CheckCircle2,
@@ -19,7 +18,6 @@ import {
   Monitor,
   Tv,
   Image,
-  RatioIcon,
   Lock,
   Unlock,
 } from "lucide-react";
@@ -392,27 +390,16 @@ export default function ImageResizer() {
             className="hidden"
           />
 
-          {/* Settings Card */}
+          {/* Settings Card - Aligned with Image Converter Design */}
           <div
-            className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 overflow-hidden animate-fade-in-up relative z-20"
+            className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-4 sm:p-6 animate-fade-in-up relative z-20"
             style={{ animationDelay: "0.3s" }}
           >
-            {/* Card Header */}
-            <div className="border-b border-border/50 px-6 py-4 bg-gradient-to-r from-primary/5 to-transparent">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <RatioIcon className="w-5 h-5 text-primary" />
-                Resize Settings
-              </h2>
-            </div>
-
-            <div className="p-6 space-y-6">
+            <div className="max-w-2xl mx-auto space-y-6">
               {/* Dimension Inputs */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium flex items-center gap-2">
-                    <Maximize className="w-4 h-4 text-muted-foreground" />
-                    Dimensions
-                  </label>
+                  <label className="text-sm font-medium">Dimensions</label>
                   <button
                     onClick={handleAspectRatioToggle}
                     className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
@@ -472,7 +459,7 @@ export default function ImageResizer() {
               </div>
 
               {/* Preset Dimensions */}
-              <CollapsibleSection title="Preset Dimensions" defaultOpen={true}>
+              <CollapsibleSection title="Preset Dimensions" defaultOpen={false}>
                 <div className="mt-4 space-y-4">
                   {["Social Media", "Standard", "Web"].map((category) => (
                     <div key={category}>
@@ -487,15 +474,15 @@ export default function ImageResizer() {
                                 key={preset.name}
                                 onClick={() => selectPreset(preset)}
                                 className={cn(
-                                  "relative p-3 rounded-xl border-2 transition-all duration-200 group text-left",
+                                  "relative p-3 rounded-lg border transition-all duration-200 group text-left",
                                   selectedPreset === preset.name
                                     ? "border-primary bg-primary/10"
-                                    : "border-border/50 hover:border-primary/50 bg-card/50",
+                                    : "border-border/50 hover:border-primary/50 bg-background/50",
                                 )}
                               >
                                 <Icon
                                   className={cn(
-                                    "w-5 h-5 mb-1 transition-colors",
+                                    "w-4 h-4 mb-1 transition-colors",
                                     selectedPreset === preset.name
                                       ? "text-primary"
                                       : "text-muted-foreground group-hover:text-primary",
@@ -543,10 +530,10 @@ export default function ImageResizer() {
                       <button
                         onClick={() => setFitMethod("stretch")}
                         className={cn(
-                          "p-3 rounded-lg border-2 transition-all duration-200",
+                          "p-3 rounded-lg border transition-all duration-200",
                           fitMethod === "stretch"
                             ? "border-primary bg-primary/10"
-                            : "border-border/50 hover:border-primary/50 bg-card/50",
+                            : "border-border/50 hover:border-primary/50 bg-background/50",
                         )}
                       >
                         <div className="text-sm font-medium">Stretch</div>
@@ -557,10 +544,10 @@ export default function ImageResizer() {
                       <button
                         onClick={() => setFitMethod("contain")}
                         className={cn(
-                          "p-3 rounded-lg border-2 transition-all duration-200",
+                          "p-3 rounded-lg border transition-all duration-200",
                           fitMethod === "contain"
                             ? "border-primary bg-primary/10"
-                            : "border-border/50 hover:border-primary/50 bg-card/50",
+                            : "border-border/50 hover:border-primary/50 bg-background/50",
                         )}
                       >
                         <div className="text-sm font-medium">Contain</div>
@@ -630,10 +617,9 @@ export default function ImageResizer() {
                 }}
               >
                 {/* Card Header */}
-                <div className="border-b border-border/50 px-6 py-4 bg-gradient-to-r from-primary/5 to-transparent">
+                <div className="border-b border-border/50 px-6 py-4">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <FileImage className="w-5 h-5 text-primary" />
+                    <h3 className="text-lg font-semibold">
                       Files ({files.length})
                     </h3>
                     <div className="flex flex-wrap items-center gap-2">
@@ -775,8 +761,8 @@ export default function ImageResizer() {
                                       stroke="currentColor"
                                       strokeWidth="3"
                                       fill="none"
-                                      strokeDasharray={`${2 * Math.PI * 16}`}
-                                      strokeDashoffset={`${2 * Math.PI * 16 * (1 - fileInfo.progress / 100)}`}
+                                      strokeDasharray={100.53}
+                                      strokeDashoffset={100.53 * (1 - fileInfo.progress / 100)}
                                       className="text-primary transition-all duration-300"
                                     />
                                   </svg>
