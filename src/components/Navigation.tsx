@@ -13,9 +13,6 @@ import {
 import {
   categories,
   searchTools,
-  pdfTools,
-  imageTools,
-  devTools,
   allTools,
 } from "../data/tools";
 import type { Tool } from "../data/tools";

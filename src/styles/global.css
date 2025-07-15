@@ -2,6 +2,18 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* PWA minimum width constraint for standalone mode */
+@media all and (display-mode: standalone) {
+  body {
+    min-width: 1024px;
+  }
+  
+  /* Add horizontal scroll if viewport is smaller */
+  html {
+    overflow-x: auto;
+  }
+}
+
 @theme inline {
   --radius-sm: 0.25rem;
   --radius-md: 0.375rem;

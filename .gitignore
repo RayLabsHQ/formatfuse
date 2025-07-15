@@ -1,5 +1,9 @@
 # build output
 dist/
+
+# pwa build
+dev-dist/
+
 # generated types
 .astro/
 
@@ -29,3 +33,4 @@ tests/**/*.output.*
 tests/**/*.result.*
 coverage/
 .coverage/
+

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PWA Test - FormatFuse</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      background: #09090b;
+      color: #fafafa;
+    }
+    .status {
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 0.5rem;
+      background: #18181b;
+      border: 1px solid #27272a;
+    }
+    .success { background: #052e16; border-color: #14532d; }
+    .error { background: #450a0a; border-color: #7f1d1d; }
+    .info { background: #1e3a8a; border-color: #1e40af; }
+    h1 { color: #3b82f6; }
+    button {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 0.25rem;
+      cursor: pointer;
+      margin: 0.5rem 0;
+    }
+    button:hover { opacity: 0.9; }
+    pre {
+      background: #000;
+      padding: 1rem;
+      border-radius: 0.25rem;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>PWA Test Dashboard</h1>
+  
+  <div id="results"></div>
+  
+  <h2>Actions</h2>
+  <button onclick="checkInstallability()">Check Installability</button>
+  <button onclick="testServiceWorker()">Test Service Worker</button>
+  <button onclick="testCache()">Test Cache</button>
+  <button onclick="testOffline()">Test Offline</button>
+  
+  <script>
+    const results = document.getElementById('results');
+    
+    function log(message, type = 'info') {
+      const div = document.createElement('div');
+      div.className = `status ${type}`;
+      div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong> - ${message}`;
+      results.appendChild(div);
+    }
+    
+    // Check basic PWA requirements
+    window.addEventListener('load', async () => {
+      log('Testing PWA setup...');
+      
+      // Check HTTPS
+      if (location.protocol === 'https:' || location.hostname === 'localhost') {
+        log('✅ HTTPS/localhost detected', 'success');
+      } else {
+        log('❌ HTTPS required for PWA', 'error');
+      }
+      
+      // Check manifest
+      const manifestLink = document.querySelector('link[rel="manifest"]');
+      if (manifestLink) {
+        log(`✅ Manifest found: ${manifestLink.href}`, 'success');
+        try {
+          const response = await fetch(manifestLink.href);
+          const manifest = await response.json();
+          log(`✅ Manifest loaded: ${manifest.name}`, 'success');
+          log(`<pre>${JSON.stringify(manifest, null, 2)}</pre>`, 'info');
+        } catch (e) {
+          log(`❌ Failed to load manifest: ${e.message}`, 'error');
+        }
+      } else {
+        log('❌ No manifest link found', 'error');
+      }
+      
+      // Check service worker support
+      if ('serviceWorker' in navigator) {
+        log('✅ Service Worker API supported', 'success');
+        
+        // Check registration
+        const registration = await navigator.serviceWorker.getRegistration();
+        if (registration) {
+          log(`✅ Service Worker registered: ${registration.scope}`, 'success');
+          log(`State: ${registration.active ? 'active' : registration.installing ? 'installing' : 'waiting'}`, 'info');
+        } else {
+          log('⚠️ No Service Worker registered yet', 'error');
+        }
+      } else {
+        log('❌ Service Worker not supported', 'error');
+      }
+    });
+    
+    // Listen for install prompt
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      log('✅ Install prompt captured (beforeinstallprompt fired)', 'success');
+      log('App is installable! Use browser install button or custom prompt.', 'info');
+    });
+    
+    // Check installability
+    function checkInstallability() {
+      if (window.matchMedia('(display-mode: standalone)').matches) {
+        log('✅ App is already installed (running in standalone mode)', 'success');
+      } else if (deferredPrompt) {
+        log('✅ App is installable (install prompt available)', 'success');
+      } else {
+        log('⚠️ Install prompt not available. Check PWA criteria:', 'error');
+        log('- HTTPS required', 'info');
+        log('- Valid manifest with required fields', 'info');
+        log('- Service worker registered', 'info');
+        log('- Icons in manifest', 'info');
+      }
+    }
+    
+    // Test service worker
+    async function testServiceWorker() {
+      if (!('serviceWorker' in navigator)) {
+        log('❌ Service Worker not supported', 'error');
+        return;
+      }
+      
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (!registration) {
+        log('❌ No Service Worker registered', 'error');
+        return;
+      }
+      
+      log(`✅ Service Worker scope: ${registration.scope}`, 'success');
+      log(`Active: ${registration.active ? 'Yes' : 'No'}`, 'info');
+      log(`Waiting: ${registration.waiting ? 'Yes' : 'No'}`, 'info');
+      log(`Installing: ${registration.installing ? 'Yes' : 'No'}`, 'info');
+    }
+    
+    // Test cache
+    async function testCache() {
+      if (!('caches' in window)) {
+        log('❌ Cache API not supported', 'error');
+        return;
+      }
+      
+      const cacheNames = await caches.keys();
+      log(`✅ Found ${cacheNames.length} cache(s)`, 'success');
+      
+      for (const name of cacheNames) {
+        const cache = await caches.open(name);
+        const keys = await cache.keys();
+        log(`Cache "${name}": ${keys.length} entries`, 'info');
+      }
+    }
+    
+    // Test offline
+    function testOffline() {
+      log('Testing offline functionality...', 'info');
+      log('1. Open DevTools Network tab', 'info');
+      log('2. Set to "Offline"', 'info');
+      log('3. Try navigating the site', 'info');
+      log('4. Check if offline page appears', 'info');
+    }
+  </script>
+</body>
+</html>

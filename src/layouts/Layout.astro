@@ -4,6 +4,8 @@ import Navigation from '../components/Navigation.tsx';
 import Footer from '../components/layout/Footer.astro';
 import WasmPrefetch from '../components/WasmPrefetch.astro';
 import ToasterProvider from '../components/ToasterProvider.tsx';
+import { PwaUpdatePrompt } from '../components/PwaUpdatePrompt.tsx';
+import { PwaInstallPrompt } from '../components/PwaInstallPrompt.tsx';
 import { getImagePath } from 'astro-opengraph-images';
 
 export interface Props {
@@ -28,8 +30,8 @@ const {
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
-// Don't append site name if it's already in the title
-const pageTitle = title.includes('FormatFuse') ? title : `${title} - FormatFuse`;
+// Just use the title as-is without appending FormatFuse
+const pageTitle = title;
 
 // Generate OG image path
 const generatedOgImageUrl = getImagePath({
@@ -44,7 +46,7 @@ const finalOgImage = ogImage || generatedOgImageUrl;
 <html lang="en" class="scroll-smooth">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
     <title>{pageTitle}</title>
@@ -80,6 +82,11 @@ const finalOgImage = ogImage || generatedOgImageUrl;
     <!-- Content Security Policy -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://scripts.simpleanalyticscdn.com; connect-src 'self' https://queue.simpleanalyticscdn.com; img-src 'self' data: blob: https://queue.simpleanalyticscdn.com https://simpleanalyticsbadges.com; style-src 'self' 'unsafe-inline'; worker-src 'self' blob:; font-src 'self' https://fonts.gstatic.com; frame-src 'self';">
     
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#3b82f6" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
+    
     <!-- Theme detection -->
     <script is:inline>
       const theme = (() => {
@@ -112,5 +119,7 @@ const finalOgImage = ogImage || generatedOgImageUrl;
     </div>
     <Footer />
     <ToasterProvider client:only="react" />
+    <PwaUpdatePrompt client:only="react" />
+    <PwaInstallPrompt client:only="react" />
   </body>
 </html>

@@ -7,6 +7,7 @@ import opengraphImages from "astro-opengraph-images";
 import { toolOGImage } from "./src/og-image-renderer.tsx";
 import partytown from "@astrojs/partytown";
 import llmsTxt from "./src/integrations/llms-txt.ts";
+import AstroPWA from "@vite-pwa/astro";
 import fs from "fs";
 
 // https://astro.build/config
@@ -56,6 +57,142 @@ export default defineConfig({
       },
     }),
     llmsTxt(),
+    AstroPWA({
+      mode: 'production',
+      base: '/',
+      scope: '/',
+      includeAssets: ['favicon.ico', 'robots.txt', 'logo.svg'],
+      registerType: 'prompt',
+      manifest: {
+        name: 'FormatFuse - Free Online File Converter',
+        short_name: 'FormatFuse',
+        description: 'Convert images, PDFs, and files instantly in your browser. Privacy-first, no uploads required.',
+        theme_color: '#3b82f6',
+        background_color: '#09090b',
+        display: 'standalone',
+        orientation: 'portrait',
+        scope: '/',
+        start_url: '/',
+        display_override: ['window-controls-overlay', 'standalone'],
+        // Set minimum window size for PWA
+        launch_handler: {
+          client_mode: ['navigate-existing', 'auto']
+        },
+        // Experimental feature for window controls
+        window_controls_overlay: {
+          theme_color: '#3b82f6',
+          background_color: '#09090b'
+        },
+        icons: [
+          {
+            src: 'pwa-64x64.png',
+            sizes: '64x64',
+            type: 'image/png'
+          },
+          {
+            src: 'pwa-192x192.png',
+            sizes: '192x192',
+            type: 'image/png'
+          },
+          {
+            src: 'pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any'
+          },
+          {
+            src: 'maskable-icon-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable'
+          }
+        ],
+        shortcuts: [
+          {
+            name: 'Image Converter',
+            short_name: 'Images',
+            description: 'Convert between image formats',
+            url: '/tools/image-converter',
+            icons: [{ src: '/pwa-192x192.png', sizes: '192x192' }]
+          },
+          {
+            name: 'PDF Tools',
+            short_name: 'PDF',
+            description: 'PDF conversion and editing',
+            url: '/tools#pdf',
+            icons: [{ src: '/pwa-192x192.png', sizes: '192x192' }]
+          },
+          {
+            name: 'Color Converter',
+            short_name: 'Colors',
+            description: 'Convert between color formats',
+            url: '/tools/color-converter',
+            icons: [{ src: '/pwa-192x192.png', sizes: '192x192' }]
+          }
+        ],
+        categories: ['productivity', 'utilities']
+      },
+      workbox: {
+        navigateFallback: '/offline',
+        globPatterns: ['**/*.{css,js,html,svg,png,ico,txt,woff,woff2}'],
+        // Exclude WASM files from precaching, they'll be cached at runtime
+        globIgnores: ['**/*.wasm'],
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        skipWaiting: false,
+        // Increase the maximum file size limit to 5MB for other files
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+        // Don't show warnings for empty globs in development
+        disableDevLogs: true,
+        runtimeCaching: [
+          {
+            urlPattern: /\.wasm$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'wasm-cache',
+              expiration: {
+                maxEntries: 20,
+                maxAgeSeconds: 7 * 24 * 60 * 60
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
+          {
+            urlPattern: /^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 365 * 24 * 60 * 60
+              }
+            }
+          },
+          {
+            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|avif)$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'images',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 30 * 24 * 60 * 60
+              }
+            }
+          }
+        ]
+      },
+      devOptions: {
+        enabled: true, // Enable in dev for testing
+        navigateFallbackAllowlist: [/^\/$/],
+        type: 'module',
+        suppressWarnings: true
+      },
+      experimental: {
+        directoryAndTrailingSlashHandler: true
+      }
+    }),
   ],
   vite: {
     plugins: [tailwindcss()],

@@ -1,9 +1,6 @@
 import {
   FileText,
   Code,
-  ArrowRight,
-  TrendingUp,
-  Sparkles,
   Layers,
   FileDown,
   Scissors,
