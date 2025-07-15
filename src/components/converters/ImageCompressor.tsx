@@ -4,22 +4,16 @@ import {
   Download,
   X,
   ArrowRight,
-  ArrowUpDown,
   FileImage,
   AlertCircle,
   CheckCircle2,
   Loader2,
   Shield,
   Zap,
-  Sparkles,
   Info,
   Minimize2,
   Image,
-  Sliders,
-  Crown,
-  Star,
   Scale,
-  Package,
   File,
 } from "lucide-react";
 import { useImageCompress } from "../../hooks/useImageCompress";
@@ -87,7 +81,7 @@ const features = [
   },
   { icon: Zap, text: "Lightning fast", description: "Powered by WebAssembly" },
   {
-    icon: Sparkles,
+    icon: Scale,
     text: "Smart compression",
     description: "Optimal quality-to-size ratio",
   },
@@ -390,27 +384,16 @@ export default function ImageCompressor() {
             className="hidden"
           />
 
-          {/* Settings Card - Redesigned */}
+          {/* Settings Card - Aligned with Image Converter Design */}
           <div
-            className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 overflow-hidden animate-fade-in-up relative z-20"
+            className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-4 sm:p-6 animate-fade-in-up relative z-20"
             style={{ animationDelay: "0.3s" }}
           >
-            {/* Card Header */}
-            <div className="border-b border-border/50 px-6 py-4 bg-gradient-to-r from-primary/5 to-transparent">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <Sliders className="w-5 h-5 text-primary" />
-                Compression Settings
-              </h2>
-            </div>
-
-            <div className="p-6 space-y-6">
-              {/* Format Selection - Improved */}
+            <div className="max-w-2xl mx-auto space-y-6">
+              {/* Format Selection */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium flex items-center gap-2">
-                    <FileImage className="w-4 h-4 text-muted-foreground" />
-                    Output Format
-                  </label>
+                  <label className="text-sm font-medium">Output Format</label>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
@@ -453,61 +436,143 @@ export default function ImageCompressor() {
                 )}
               </div>
 
-              {/* Quality Settings - Enhanced */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-muted-foreground" />
-                    Quality
-                  </label>
-                  <div className="flex items-center gap-3">
-                    <div className="text-2xl font-bold text-primary">
-                      {quality}%
+              {/* Quality Settings */}
+              <div className="pt-6 border-t border-border/50">
+                {/* Desktop Layout */}
+                <div className="hidden sm:block">
+                  <div className="flex items-center justify-between mb-4">
+                    <label className="text-sm font-medium">Quality</label>
+                    <div className="flex items-center gap-3">
+
+                      {/* Quality Presets */}
+                      <div className="flex items-center gap-1 p-1 bg-background/50 rounded-lg">
+                        <button
+                          onClick={() => setQuality(95)}
+                          className={cn(
+                            "px-3 py-1 text-xs font-medium rounded-md transition-all duration-200",
+                            quality === 95
+                              ? "bg-primary text-primary-foreground"
+                              : "hover:bg-primary/10",
+                          )}
+                        >
+                          Maximum
+                        </button>
+                        <button
+                          onClick={() => setQuality(85)}
+                          className={cn(
+                            "px-3 py-1 text-xs font-medium rounded-md transition-all duration-200",
+                            quality === 85
+                              ? "bg-primary text-primary-foreground"
+                              : "hover:bg-primary/10",
+                          )}
+                        >
+                          High
+                        </button>
+                        <button
+                          onClick={() => setQuality(70)}
+                          className={cn(
+                            "px-3 py-1 text-xs font-medium rounded-md transition-all duration-200",
+                            quality === 70
+                              ? "bg-primary text-primary-foreground"
+                              : "hover:bg-primary/10",
+                          )}
+                        >
+                          Balanced
+                        </button>
+                        <button
+                          onClick={() => setQuality(50)}
+                          className={cn(
+                            "px-3 py-1 text-xs font-medium rounded-md transition-all duration-200",
+                            quality === 50
+                              ? "bg-primary text-primary-foreground"
+                              : "hover:bg-primary/10",
+                          )}
+                        >
+                          Small
+                        </button>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-muted-foreground">
+                          {quality}%
+                        </span>
+                      </div>
                     </div>
                   </div>
+
+                  {/* Slider */}
+                  <div className="relative">
+                    <Slider
+                      value={[quality]}
+                      onValueChange={(value) => setQuality(value[0])}
+                      min={10}
+                      max={100}
+                      step={5}
+                      className="w-full"
+                    />
+                  </div>
+
+                  <p className="text-xs text-muted-foreground mt-4">
+                    {quality >= 90 ? "Maximum quality with minimal compression" :
+                     quality >= 70 ? "Good balance between quality and file size" :
+                     quality >= 50 ? "Noticeable compression with smaller file size" :
+                     "High compression, some quality loss may be visible"}
+                  </p>
                 </div>
 
-                {/* Quality Presets */}
-                <div className="grid grid-cols-4 gap-2">
-                  {[
-                    { label: "Maximum", value: 95, size: "~90%", Icon: Crown },
-                    { label: "High", value: 85, size: "~70%", Icon: Star },
-                    { label: "Balanced", value: 70, size: "~50%", Icon: Scale },
-                    { label: "Small", value: 50, size: "~30%", Icon: Package },
-                  ].map((preset) => {
-                    const Icon = preset.Icon;
-                    return (
-                      <button
-                        key={preset.value}
-                        onClick={() => setQuality(preset.value)}
-                        className={cn(
-                          "relative p-3 rounded-xl border-2 transition-all duration-200 group",
-                          quality === preset.value
-                            ? "border-primary bg-primary/10 shadow-lg shadow-primary/20"
-                            : "border-border/50 hover:border-primary/50 bg-card/50",
-                        )}
-                      >
-                        <Icon
-                          className={cn(
-                            "w-5 h-5 mx-auto mb-1 transition-colors",
-                            quality === preset.value
-                              ? "text-primary"
-                              : "text-muted-foreground group-hover:text-primary",
-                          )}
-                        />
-                        <div className="text-xs font-medium">
-                          {preset.label}
-                        </div>
-                        <div className="text-[10px] text-muted-foreground mt-0.5">
-                          {preset.size}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Enhanced Slider */}
-                <div className="relative">
+                {/* Mobile Layout */}
+                <div className="sm:hidden space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium">Quality</label>
+                    <span className="text-sm font-medium text-muted-foreground">
+                      {quality}%
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => setQuality(95)}
+                      className={cn(
+                        "px-3 py-2 text-xs font-medium rounded-md transition-all duration-200",
+                        quality === 95
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-background/50 border border-border/50 hover:bg-primary/10",
+                      )}
+                    >
+                      Maximum
+                    </button>
+                    <button
+                      onClick={() => setQuality(85)}
+                      className={cn(
+                        "px-3 py-2 text-xs font-medium rounded-md transition-all duration-200",
+                        quality === 85
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-background/50 border border-border/50 hover:bg-primary/10",
+                      )}
+                    >
+                      High
+                    </button>
+                    <button
+                      onClick={() => setQuality(70)}
+                      className={cn(
+                        "px-3 py-2 text-xs font-medium rounded-md transition-all duration-200",
+                        quality === 70
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-background/50 border border-border/50 hover:bg-primary/10",
+                      )}
+                    >
+                      Balanced
+                    </button>
+                    <button
+                      onClick={() => setQuality(50)}
+                      className={cn(
+                        "px-3 py-2 text-xs font-medium rounded-md transition-all duration-200",
+                        quality === 50
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-background/50 border border-border/50 hover:bg-primary/10",
+                      )}
+                    >
+                      Small
+                    </button>
+                  </div>
                   <Slider
                     value={[quality]}
                     onValueChange={(value) => setQuality(value[0])}
@@ -516,53 +581,20 @@ export default function ImageCompressor() {
                     step={5}
                     className="w-full"
                   />
-                  <div className="flex justify-between mt-3">
-                    <div className="text-xs space-y-1">
-                      <div className="font-medium text-muted-foreground">
-                        Smaller file
-                      </div>
-                      <div className="text-[10px] text-muted-foreground/70">
-                        Lower quality
-                      </div>
-                    </div>
-                    <div className="text-xs space-y-1 text-right">
-                      <div className="font-medium text-muted-foreground">
-                        Better quality
-                      </div>
-                      <div className="text-[10px] text-muted-foreground/70">
-                        Larger file
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Visual Compression Impact */}
-                <div className="bg-gradient-to-r from-orange-500/10 via-yellow-500/10 to-green-500/10 rounded-xl p-4">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">
-                      Estimated size reduction
-                    </span>
-                    <span className="font-bold text-primary">
-                      {Math.round(100 - quality)}%
-                    </span>
-                  </div>
-                  <div className="mt-2 h-2 bg-black/10 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-orange-500 to-green-500 transition-all duration-500"
-                      style={{ width: `${100 - quality}%` }}
-                    />
-                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {quality >= 90 ? "Maximum quality with minimal compression" :
+                     quality >= 70 ? "Good balance between quality and file size" :
+                     quality >= 50 ? "Noticeable compression with smaller file size" :
+                     "High compression, some quality loss may be visible"}
+                  </p>
                 </div>
               </div>
 
-              {/* Size Limits - Redesigned */}
-              <CollapsibleSection title="Size Limits" defaultOpen={false}>
+              {/* Size Limits */}
+              <CollapsibleSection title="Advanced Settings" defaultOpen={false}>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium flex items-center gap-2">
-                      <ArrowRight className="w-3 h-3 text-muted-foreground" />
-                      Max Width
-                    </label>
+                    <label className="text-sm font-medium">Max Width</label>
                     <div className="relative">
                       <input
                         type="number"
@@ -583,10 +615,7 @@ export default function ImageCompressor() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium flex items-center gap-2">
-                      <ArrowUpDown className="w-3 h-3 text-muted-foreground rotate-90" />
-                      Max Height
-                    </label>
+                    <label className="text-sm font-medium">Max Height</label>
                     <div className="relative">
                       <input
                         type="number"
@@ -607,8 +636,7 @@ export default function ImageCompressor() {
                     </div>
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground mt-3 flex items-center gap-1">
-                  <Info className="w-3 h-3" />
+                <p className="text-xs text-muted-foreground mt-3">
                   Images will be resized proportionally if limits are exceeded
                 </p>
               </CollapsibleSection>
@@ -750,7 +778,7 @@ export default function ImageCompressor() {
                             Total savings
                           </p>
                           <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                            {(totalSavings / (1024 * 1024)).toFixed(2)} MB
+                            {formatFileSize(totalSavings)}
                           </p>
                         </div>
                         <div className="text-right">
@@ -832,8 +860,8 @@ export default function ImageCompressor() {
                                       stroke="currentColor"
                                       strokeWidth="3"
                                       fill="none"
-                                      strokeDasharray={`${2 * Math.PI * 16}`}
-                                      strokeDashoffset={`${2 * Math.PI * 16 * (1 - fileInfo.progress / 100)}`}
+                                      strokeDasharray={100.53}
+                                      strokeDashoffset={100.53 * (1 - fileInfo.progress / 100)}
                                       className="text-primary transition-all duration-300"
                                     />
                                   </svg>
