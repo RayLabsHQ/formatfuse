@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -139,15 +139,15 @@ export function ColorConverter({
   targetFormat,
   autoCopy = false,
 }: ColorConverterProps) {
-  const [inputValue, setInputValue] = useState(initialColor);
+  const [inputValue, setInputValue] = useState("");
   const [colorValues, setColorValues] = useState<ColorValues | null>(null);
-  const [previewColor, setPreviewColor] = useState(initialColor);
+  const [previewColor, setPreviewColor] = useState("");
   const [copiedFormat, setCopiedFormat] = useState<string | null>(null);
-  const [detectedFormat, setDetectedFormat] = useState<ColorFormat | null>(
-    "hex",
-  );
+  const [detectedFormat, setDetectedFormat] = useState<ColorFormat | null>(null);
   const [isValidColor, setIsValidColor] = useState(true);
   const [isConverting, setIsConverting] = useState(false);
+  const [hasAutoPasted, setHasAutoPasted] = useState(false);
+  const lastCopiedValue = useRef<string>("");
 
   // Debounce the input value for auto-conversion
   const debouncedInputValue = useDebounce(inputValue, 300);
@@ -592,16 +592,45 @@ export function ColorConverter({
 
   // Auto-copy target format when color changes
   useEffect(() => {
-    if (autoCopy && targetFormat && colorValues) {
+    if (autoCopy && targetFormat && colorValues && inputValue) {
       const targetValue = colorValues[targetFormat === 'xyz-d50' ? 'xyzD50' : targetFormat as keyof ColorValues];
-      if (targetValue) {
+      if (targetValue && targetValue !== lastCopiedValue.current) {
+        lastCopiedValue.current = targetValue;
         navigator.clipboard.writeText(targetValue);
-        toast.success(`Copied ${targetFormat.toUpperCase()} value to clipboard!`);
+        const formatName = targetFormat === 'hex' ? 'HEX' :
+                          targetFormat === 'rgb' ? 'RGB' :
+                          targetFormat === 'hsl' ? 'HSL' :
+                          targetFormat === 'hsv' ? 'HSV' :
+                          targetFormat === 'hwb' ? 'HWB' :
+                          targetFormat === 'lab' ? 'LAB' :
+                          targetFormat === 'lch' ? 'LCH' :
+                          targetFormat === 'oklab' ? 'OKLab' :
+                          targetFormat === 'oklch' ? 'OKLCH' :
+                          targetFormat === 'p3' ? 'Display P3' :
+                          targetFormat === 'rec2020' ? 'Rec. 2020' :
+                          targetFormat === 'prophoto' ? 'ProPhoto RGB' :
+                          targetFormat === 'a98rgb' ? 'Adobe RGB' :
+                          targetFormat === 'xyz' ? 'XYZ (D65)' :
+                          targetFormat === 'xyz-d50' ? 'XYZ (D50)' : 
+                          (targetFormat as string).toUpperCase();
+        toast.success(`Copied ${formatName} value to clipboard!`);
+        setCopiedFormat(targetFormat);
+        setTimeout(() => setCopiedFormat(null), 2000);
       }
     }
-  }, [colorValues, targetFormat, autoCopy]);
+  }, [colorValues, targetFormat, autoCopy, inputValue]);
 
   const handleCopy = (text: string, format?: string) => {
+    // Don't copy again if autoCopy is enabled and this is the target format
+    if (autoCopy && format === targetFormat) {
+      // Just show the check mark without copying again
+      if (format) {
+        setCopiedFormat(format);
+        setTimeout(() => setCopiedFormat(null), 2000);
+      }
+      return;
+    }
+    
     navigator.clipboard.writeText(text);
     toast.success("Copied to clipboard!");
     if (format) {
@@ -614,6 +643,29 @@ export function ColorConverter({
   useEffect(() => {
     handleConvert(debouncedInputValue);
   }, [debouncedInputValue, handleConvert]);
+
+  // Auto-paste from clipboard on hover
+  const handleInputHover = async () => {
+    // Only auto-paste once per session and if input is empty
+    if (hasAutoPasted || inputValue.trim() !== "") return;
+
+    try {
+      const clipboardText = await navigator.clipboard.readText();
+      if (clipboardText) {
+        const trimmedText = clipboardText.trim();
+        // Check if it's a valid color format
+        const format = detectColorFormat(trimmedText);
+        if (format) {
+          setInputValue(trimmedText);
+          setHasAutoPasted(true);
+          handleConvert(trimmedText);
+        }
+      }
+    } catch (err) {
+      // Clipboard access denied or not available
+      console.log("Clipboard access denied");
+    }
+  };
 
   const detectColorFormat = (value: string): ColorFormat | null => {
     value = value.trim();
@@ -768,7 +820,8 @@ export function ColorConverter({
                       id="color-input"
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
-                      placeholder="Paste any color: #3B82F6, rgb(59, 130, 246), hsl(217, 91%, 60%)..."
+                      onMouseEnter={handleInputHover}
+                      placeholder={`Try: ${initialColor}, rgb(59, 130, 246), hsl(217, 91%, 60%)`}
                       className={cn(
                         "h-14 text-lg font-mono pr-32 transition-all w-full",
                         !isValidColor &&
@@ -789,12 +842,12 @@ export function ColorConverter({
                       <div
                         className={cn(
                           "w-10 h-10 rounded-lg border-2 transition-all",
-                          isValidColor
+                          isValidColor && inputValue
                             ? "border-border"
                             : "border-muted bg-muted",
                         )}
                         style={{
-                          backgroundColor: isValidColor
+                          backgroundColor: isValidColor && inputValue
                             ? previewColor
                             : undefined,
                         }}
@@ -807,15 +860,23 @@ export function ColorConverter({
                       formats.
                     </p>
                   )}
+                  {!inputValue && !hasAutoPasted && (
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Tip: Hover over the input to auto-paste from clipboard
+                    </p>
+                  )}
                 </div>
 
                 {/* Output Section - Target Format Display */}
                 {colorValues && targetFormat && (
                   <div className="lg:flex-1 animate-fade-in">
-                    <Card className="border-primary/50 bg-primary/5 h-14 flex items-center">
-                      <CardContent className="p-0 px-4 w-full">
+                    <Card 
+                      className="border-primary/50 bg-primary/5 h-14 flex items-center cursor-pointer hover:bg-primary/10 transition-colors"
+                      onClick={() => handleCopy(colorValues[targetFormat === 'xyz-d50' ? 'xyzD50' : targetFormat as keyof ColorValues], targetFormat)}
+                    >
+                      <CardContent className="p-0 px-2 w-full">
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
                             <div
                               className="w-10 h-10 rounded-lg border-2 border-border shadow-sm flex-shrink-0"
                               style={{
@@ -844,16 +905,13 @@ export function ColorConverter({
                               {colorValues[targetFormat === 'xyz-d50' ? 'xyzD50' : targetFormat as keyof ColorValues]}
                             </p>
                           </div>
-                          <button
-                            onClick={() => handleCopy(colorValues[targetFormat === 'xyz-d50' ? 'xyzD50' : targetFormat as keyof ColorValues], targetFormat)}
-                            className="p-2 rounded-lg hover:bg-primary/10 transition-colors flex-shrink-0"
-                          >
+                          <div className="pr-2">
                             {copiedFormat === targetFormat ? (
                               <Check className="w-4 h-4 text-primary" />
                             ) : (
                               <Copy className="w-4 h-4 text-primary" />
                             )}
-                          </button>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
@@ -919,10 +977,10 @@ export function ColorConverter({
                       <Palette className="w-10 h-10 text-primary/60" />
                     </div>
                     <p className="text-muted-foreground">
-                      Start typing or paste a color value
+                      {inputValue ? "Converting..." : "Paste or type a color value"}
                     </p>
                     <p className="text-sm text-muted-foreground/60 mt-1">
-                      Auto-detects all supported formats
+                      {inputValue ? "Processing color format..." : "Auto-detects HEX, RGB, HSL, and 12+ formats"}
                     </p>
                   </div>
                 </div>
