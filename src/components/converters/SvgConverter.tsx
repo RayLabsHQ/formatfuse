@@ -4,14 +4,12 @@ import {
   Download,
   Zap,
   FileImage,
-  Settings2,
   AlertCircle,
   Palette,
   Maximize2,
   Shield,
   Image,
   Loader2,
-  ChevronDown,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { Slider } from "../ui/slider";
@@ -105,7 +103,6 @@ export function SvgConverter() {
   const [height, setHeight] = useState<number | undefined>(undefined);
   const [quality, setQuality] = useState(90);
   const [background, setBackground] = useState<string>("");
-  const [showSettings, setShowSettings] = useState(false);
   const { convert, isConverting, error } = useSvgConverter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const additionalInputRef = useRef<HTMLInputElement>(null);
@@ -248,9 +245,17 @@ export function SvgConverter() {
   const completedCount = files.filter((f) => f.status === "completed").length;
 
   return (
-    <div className="relative mx-auto max-w-6xl p-4 sm:px-6 lg:px-8 lg:py-6">
-      {/* Header */}
-      <ToolHeader
+    <div className="min-h-screen w-full">
+      {/* SVG-themed Gradient Effects - Hidden on mobile */}
+      <div className="hidden sm:block fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.02] via-transparent to-accent/[0.02]" />
+        <div className="absolute top-1/4 right-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-blob" />
+        <div className="absolute bottom-1/4 left-20 w-80 h-80 bg-accent/5 rounded-full blur-3xl animate-blob animation-delay-4000" />
+      </div>
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 lg:py-6 py-6 sm:py-12 relative z-10">
+        {/* Header */}
+        <ToolHeader
           title={{ main: "SVG to", highlight: outputFormat.toUpperCase() }}
           subtitle="Convert SVG files to raster formats with custom dimensions and quality settings. Perfect for web optimization and cross-platform compatibility."
           badge={{ text: "Vector to Raster Converter", icon: Image }}
@@ -259,33 +264,9 @@ export function SvgConverter() {
 
       {/* Main Converter Interface */}
       <div className="space-y-6">
-        {/* Format Selection Card */}
-        <div className="bg-card rounded-xl border p-4 sm:p-6">
-          <div
-            className="flex items-center justify-between cursor-pointer"
-            onClick={() => setShowSettings(!showSettings)}
-          >
-            <div className="flex items-center gap-4">
-              <div className="hidden sm:block">
-                <Settings2 className="w-5 h-5 text-muted-foreground" />
-              </div>
-              <div>
-                <h3 className="font-semibold">Conversion Settings</h3>
-                <p className="text-sm text-muted-foreground">
-                  Output format and quality options
-                </p>
-              </div>
-            </div>
-            <ChevronDown
-              className={cn(
-                "w-5 h-5 text-muted-foreground transition-transform",
-                showSettings && "rotate-180",
-              )}
-            />
-          </div>
-
-          {showSettings && (
-            <div className="mt-6 space-y-6">
+        {/* Settings Card - Aligned with Image Converter Design */}
+        <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-4 sm:p-6 animate-fade-in-up relative z-20" style={{ animationDelay: "0.3s" }}>
+          <div className="max-w-2xl mx-auto space-y-6">
               {/* Output Format */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Output Format</label>
@@ -336,24 +317,40 @@ export function SvgConverter() {
                 </div>
               </div>
 
-              {/* Quality Slider (for JPEG and WebP) */}
+              {/* Quality Controls (for JPEG and WebP) */}
               {(outputFormat === "jpeg" || outputFormat === "webp") && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
+                <div className="space-y-4">
+                  <div>
                     <label className="text-sm font-medium">Quality</label>
-                    <span className="text-sm text-muted-foreground">{quality}%</span>
+                    <div className="flex gap-2 mt-2">
+                      {[30, 60, 80, 90, 100].map((q) => (
+                        <button
+                          key={q}
+                          onClick={() => setQuality(q)}
+                          className={cn(
+                            "px-3 py-1.5 text-sm rounded-md border transition-all",
+                            quality === q
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-border hover:border-primary/50"
+                          )}
+                        >
+                          {q}%
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  <Slider
-                    value={[quality]}
-                    onValueChange={([value]) => setQuality(value)}
-                    min={1}
-                    max={100}
-                    step={1}
-                    className="w-full"
-                  />
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Lower file size</span>
-                    <span>Higher quality</span>
+                  <div>
+                    <Slider
+                      value={[quality]}
+                      onValueChange={([value]) => setQuality(value)}
+                      min={1}
+                      max={100}
+                      step={1}
+                      className="w-full"
+                    />
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="text-xs text-muted-foreground">Quality: {quality}%</span>
+                    </div>
                   </div>
                 </div>
               )}
@@ -383,8 +380,7 @@ export function SvgConverter() {
                   Leave empty for transparent (PNG/WebP/AVIF only)
                 </p>
               </div>
-            </div>
-          )}
+          </div>
         </div>
 
         {/* Hidden file input */}
@@ -399,7 +395,7 @@ export function SvgConverter() {
 
         {/* File Upload Area */}
         {files.length === 0 ? (
-          <div className="relative">
+          <div className="relative animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
             <FileDropZone
               onFilesSelected={handleFiles}
               accept=".svg,image/svg+xml"
@@ -481,14 +477,15 @@ export function SvgConverter() {
         )}
       </div>
 
-      {/* Related Tools */}
-      <div className="mt-12 space-y-6">
-        <RelatedTools tools={relatedTools} direction="responsive" />
-      </div>
+        {/* Related Tools */}
+        <div className="mt-12 space-y-6">
+          <RelatedTools tools={relatedTools} direction="responsive" />
+        </div>
 
-      {/* FAQ Section */}
-      <div className="mt-12 space-y-6">
-        <FAQ items={faqItems} />
+        {/* FAQ Section */}
+        <div className="mt-12 space-y-6">
+          <FAQ items={faqItems} />
+        </div>
       </div>
     </div>
   );
