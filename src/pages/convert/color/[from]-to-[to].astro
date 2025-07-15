@@ -111,7 +111,11 @@ const getDefaultColor = (format: string): string => {
   return defaults[format] || defaults['hex'];
 };
 
+// Get the default color in the source format
 const defaultInputColor = getDefaultColor(fromKey!);
+
+// Also get the example output in the target format for display
+const targetExampleColor = getDefaultColor(toKey!);
 
 // Schema.org structured data for SEO
 const structuredData = {
@@ -233,50 +237,123 @@ const faqData = generateFAQ();
         </p>
       </div>
       
-      <!-- Main converter component -->
-      <ColorConverter client:load initialColor={defaultInputColor} hideHeader={true} />
+      <!-- Main converter component with target format highlighting -->
+      <ColorConverter 
+        client:load 
+        initialColor={defaultInputColor} 
+        hideHeader={true}
+        targetFormat={toKey as any}
+        autoCopy={true}
+      />
       
       <!-- SEO Content Section -->
-      <section class="mt-16 prose prose-neutral dark:prose-invert max-w-4xl mx-auto">
-        <h2>Converting {fromFormat.name} to {toFormat.name} Colors</h2>
-        
-        <p>
-          This tool converts colors from {fromFormat.name} ({fromFormat.description}) 
-          to {toFormat.name} ({toFormat.description}). The conversion is performed using 
-          industry-standard color science algorithms to ensure accurate results.
-        </p>
-        
-        <h3>Example Conversion</h3>
-        <p>
-          <strong>Input ({fromFormat.name}):</strong> <code>{example.input}</code><br/>
-          <strong>Output ({toFormat.name}):</strong> <code>{example.output}</code>
-        </p>
-        
-        <h3>About {fromFormat.name}</h3>
-        <p>{fromFormat.description}. This color format is commonly used in {
-          fromKey === 'hex' || fromKey === 'rgb' ? 'web development and digital design' :
-          fromKey === 'hsl' || fromKey === 'hsv' ? 'color selection and manipulation' :
-          fromKey === 'lab' || fromKey === 'oklab' ? 'perceptually uniform color operations' :
-          fromKey === 'p3' || fromKey === 'rec2020' ? 'professional video and photography' :
-          'specialized color workflows'
-        }.</p>
-        
-        <h3>About {toFormat.name}</h3>
-        <p>{toFormat.description}. Converting to this format is useful for {
-          toKey === 'hex' || toKey === 'rgb' ? 'web and screen display' :
-          toKey === 'hsl' || toKey === 'hsv' ? 'intuitive color adjustments' :
-          toKey === 'lab' || toKey === 'oklab' ? 'color science and consistent gradients' :
-          toKey === 'p3' || toKey === 'rec2020' ? 'wide gamut displays and HDR content' :
-          'specialized applications'
-        }.</p>
-        
-        <h3>Use Cases</h3>
-        <ul>
-          <li>Web developers converting between CSS color formats</li>
-          <li>Designers working with different color spaces</li>
-          <li>Color scientists performing accurate color calculations</li>
-          <li>Content creators optimizing for different display technologies</li>
-        </ul>
+      <section class="mt-16 max-w-4xl mx-auto px-4 sm:px-0">
+        <div class="border-t border-border pt-12">
+          <h2 class="text-2xl sm:text-3xl font-bold mb-8 text-center">
+            Converting <span class="text-primary">{fromFormat.name}</span> to <span class="text-primary">{toFormat.name}</span> Colors
+          </h2>
+          
+          <div class="space-y-8">
+            {/* Introduction */}
+            <div class="text-center text-muted-foreground max-w-3xl mx-auto">
+              <p class="text-lg">
+                This tool converts colors from {fromFormat.name} ({fromFormat.description}) 
+                to {toFormat.name} ({toFormat.description}). The conversion is performed using 
+                industry-standard color science algorithms to ensure accurate results.
+              </p>
+            </div>
+            
+            {/* Example Conversion Card */}
+            <div class="bg-muted/30 rounded-xl p-6 sm:p-8 mx-auto max-w-4xl">
+              <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Example Conversion
+              </h3>
+              <div class="grid sm:grid-cols-2 gap-4">
+                <div class="bg-background rounded-lg p-4 border border-border">
+                  <p class="text-sm text-muted-foreground mb-2">Input ({fromFormat.name})</p>
+                  <code class="text-base font-mono font-semibold">{defaultInputColor}</code>
+                </div>
+                <div class="bg-background rounded-lg p-4 border border-primary/30">
+                  <p class="text-sm text-muted-foreground mb-2">Output ({toFormat.name})</p>
+                  <code class="text-base font-mono font-semibold text-primary">{targetExampleColor}</code>
+                </div>
+              </div>
+            </div>
+            
+            {/* Format Information Grid */}
+            <div class="grid md:grid-cols-2 gap-6 mt-10">
+              <div class="bg-card rounded-xl p-6 border border-border hover:border-primary/30 transition-colors">
+                <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <span class="text-primary font-bold text-sm">A</span>
+                  </div>
+                  About {fromFormat.name}
+                </h3>
+                <p class="text-muted-foreground">
+                  {fromFormat.description}. This color format is commonly used in {
+                    fromKey === 'hex' || fromKey === 'rgb' ? 'web development and digital design' :
+                    fromKey === 'hsl' || fromKey === 'hsv' ? 'color selection and manipulation' :
+                    fromKey === 'lab' || fromKey === 'oklab' ? 'perceptually uniform color operations' :
+                    fromKey === 'p3' || fromKey === 'rec2020' ? 'professional video and photography' :
+                    'specialized color workflows'
+                  }.
+                </p>
+              </div>
+              
+              <div class="bg-card rounded-xl p-6 border border-border hover:border-primary/30 transition-colors">
+                <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <span class="text-primary font-bold text-sm">B</span>
+                  </div>
+                  About {toFormat.name}
+                </h3>
+                <p class="text-muted-foreground">
+                  {toFormat.description}. Converting to this format is useful for {
+                    toKey === 'hex' || toKey === 'rgb' ? 'web and screen display' :
+                    toKey === 'hsl' || toKey === 'hsv' ? 'intuitive color adjustments' :
+                    toKey === 'lab' || toKey === 'oklab' ? 'color science and consistent gradients' :
+                    toKey === 'p3' || toKey === 'rec2020' ? 'wide gamut displays and HDR content' :
+                    'specialized applications'
+                  }.
+                </p>
+              </div>
+            </div>
+            
+            {/* Use Cases Section */}
+            <div class="mt-10">
+              <h3 class="text-lg font-semibold mb-4 text-center">Common Use Cases</h3>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-3xl mx-auto">
+                <div class="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/30 transition-colors">
+                  <svg class="w-5 h-5 text-primary mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span class="text-sm">Web developers converting between CSS color formats</span>
+                </div>
+                <div class="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/30 transition-colors">
+                  <svg class="w-5 h-5 text-primary mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span class="text-sm">Designers working with different color spaces</span>
+                </div>
+                <div class="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/30 transition-colors">
+                  <svg class="w-5 h-5 text-primary mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span class="text-sm">Color scientists performing accurate color calculations</span>
+                </div>
+                <div class="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/30 transition-colors">
+                  <svg class="w-5 h-5 text-primary mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span class="text-sm">Content creators optimizing for different display technologies</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
     </div>
   </main>

@@ -129,11 +129,15 @@ function useDebounce<T>(value: T, delay: number): T {
 interface ColorConverterProps {
   initialColor?: string;
   hideHeader?: boolean;
+  targetFormat?: ColorFormat;
+  autoCopy?: boolean;
 }
 
 export function ColorConverter({
   initialColor = "#3B82F6",
   hideHeader = false,
+  targetFormat,
+  autoCopy = false,
 }: ColorConverterProps) {
   const [inputValue, setInputValue] = useState(initialColor);
   const [colorValues, setColorValues] = useState<ColorValues | null>(null);
@@ -586,6 +590,17 @@ export function ColorConverter({
     setIsConverting(false);
   }, []);
 
+  // Auto-copy target format when color changes
+  useEffect(() => {
+    if (autoCopy && targetFormat && colorValues) {
+      const targetValue = colorValues[targetFormat === 'xyz-d50' ? 'xyzD50' : targetFormat as keyof ColorValues];
+      if (targetValue) {
+        navigator.clipboard.writeText(targetValue);
+        toast.success(`Copied ${targetFormat.toUpperCase()} value to clipboard!`);
+      }
+    }
+  }, [colorValues, targetFormat, autoCopy]);
+
   const handleCopy = (text: string, format?: string) => {
     navigator.clipboard.writeText(text);
     toast.success("Copied to clipboard!");
@@ -744,65 +759,111 @@ export function ColorConverter({
         <div className="flex-1 px-4 sm:px-0">
           <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-muted/50 bg-background/95 backdrop-blur-sm overflow-hidden">
             <CardContent className="p-4 sm:p-6 md:p-8">
-              {/* Input Section */}
-              <div className="mb-8">
-                <div className="relative">
-                  <Input
-                    id="color-input"
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    placeholder="Paste any color: #3B82F6, rgb(59, 130, 246), hsl(217, 91%, 60%)..."
-                    className={cn(
-                      "h-14 text-lg pr-32 transition-all",
-                      !isValidColor &&
-                        inputValue &&
-                        !isConverting &&
-                        "border-destructive/50 focus:border-destructive",
-                    )}
-                  />
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                    {isConverting && (
-                      <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
-                    )}
-                    {detectedFormat && isValidColor && !isConverting && (
-                      <Badge variant="secondary" className="text-xs">
-                        {getFormatLabel(detectedFormat)}
-                      </Badge>
-                    )}
-                    <div
+              {/* Single Row Input/Output Layout */}
+              <div className="flex flex-col lg:flex-row gap-2 lg:gap-4 lg:items-start">
+                {/* Input Section */}
+                <div className="lg:flex-1">
+                  <div className="relative">
+                    <Input
+                      id="color-input"
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
+                      placeholder="Paste any color: #3B82F6, rgb(59, 130, 246), hsl(217, 91%, 60%)..."
                       className={cn(
-                        "w-10 h-10 rounded-lg border-2 transition-all",
-                        isValidColor
-                          ? "border-border"
-                          : "border-muted bg-muted",
+                        "h-14 text-lg font-mono pr-32 transition-all w-full",
+                        !isValidColor &&
+                          inputValue &&
+                          !isConverting &&
+                          "border-destructive/50 focus:border-destructive",
                       )}
-                      style={{
-                        backgroundColor: isValidColor
-                          ? previewColor
-                          : undefined,
-                      }}
                     />
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                      {isConverting && (
+                        <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                      )}
+                      {detectedFormat && isValidColor && !isConverting && (
+                        <Badge variant="secondary" className="text-xs">
+                          {getFormatLabel(detectedFormat)}
+                        </Badge>
+                      )}
+                      <div
+                        className={cn(
+                          "w-10 h-10 rounded-lg border-2 transition-all",
+                          isValidColor
+                            ? "border-border"
+                            : "border-muted bg-muted",
+                        )}
+                        style={{
+                          backgroundColor: isValidColor
+                            ? previewColor
+                            : undefined,
+                        }}
+                      />
+                    </div>
                   </div>
+                  {!isValidColor && inputValue && !isConverting && (
+                    <p className="text-sm text-destructive mt-2">
+                      Invalid color format. Try HEX, RGB, HSL, or other supported
+                      formats.
+                    </p>
+                  )}
                 </div>
-                {!isValidColor && inputValue && !isConverting && (
-                  <p className="text-sm text-destructive mt-2">
-                    Invalid color format. Try HEX, RGB, HSL, or other supported
-                    formats.
-                  </p>
+
+                {/* Output Section - Target Format Display */}
+                {colorValues && targetFormat && (
+                  <div className="lg:flex-1 animate-fade-in">
+                    <Card className="border-primary/50 bg-primary/5 h-14 flex items-center">
+                      <CardContent className="p-0 px-4 w-full">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <div
+                              className="w-10 h-10 rounded-lg border-2 border-border shadow-sm flex-shrink-0"
+                              style={{
+                                backgroundColor: previewColor
+                              }}
+                            />
+                            <Badge variant="secondary" className="text-xs flex-shrink-0">
+                              {targetFormat === 'hex' ? 'HEX' :
+                               targetFormat === 'rgb' ? 'RGB' :
+                               targetFormat === 'hsl' ? 'HSL' :
+                               targetFormat === 'hsv' ? 'HSV' :
+                               targetFormat === 'hwb' ? 'HWB' :
+                               targetFormat === 'lab' ? 'LAB' :
+                               targetFormat === 'lch' ? 'LCH' :
+                               targetFormat === 'oklab' ? 'OKLab' :
+                               targetFormat === 'oklch' ? 'OKLCH' :
+                               targetFormat === 'p3' ? 'Display P3' :
+                               targetFormat === 'rec2020' ? 'Rec. 2020' :
+                               targetFormat === 'prophoto' ? 'ProPhoto RGB' :
+                               targetFormat === 'a98rgb' ? 'Adobe RGB' :
+                               targetFormat === 'xyz' ? 'XYZ (D65)' :
+                               targetFormat === 'xyz-d50' ? 'XYZ (D50)' : 
+                               (targetFormat as string).toUpperCase()}
+                            </Badge>
+                            <p className="text-sm font-mono font-semibold truncate">
+                              {colorValues[targetFormat === 'xyz-d50' ? 'xyzD50' : targetFormat as keyof ColorValues]}
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => handleCopy(colorValues[targetFormat === 'xyz-d50' ? 'xyzD50' : targetFormat as keyof ColorValues], targetFormat)}
+                            className="p-2 rounded-lg hover:bg-primary/10 transition-colors flex-shrink-0"
+                          >
+                            {copiedFormat === targetFormat ? (
+                              <Check className="w-4 h-4 text-primary" />
+                            ) : (
+                              <Copy className="w-4 h-4 text-primary" />
+                            )}
+                          </button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
                 )}
               </div>
 
-              {/* Output Section */}
+              {/* All Formats Grid - shown below the input/output row */}
               {colorValues ? (
-                <div className="space-y-6 animate-fade-in">
-                  {/* Color Preview */}
-                  <div className="mb-8">
-                    <div
-                      className="w-full h-24 sm:h-32 rounded-xl shadow-inner transition-all duration-300"
-                      style={{ backgroundColor: previewColor }}
-                    />
-                  </div>
-
+                <div className="mt-8 space-y-6 animate-fade-in">
                   {/* All Formats Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {Object.entries({
