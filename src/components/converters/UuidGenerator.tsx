@@ -452,12 +452,17 @@ export default function UuidGenerator() {
                         className="group p-3 bg-muted/20 rounded-lg hover:bg-muted/30 transition-colors cursor-pointer"
                         onClick={() => handleCopy(item.uuid)}
                       >
-                        <p className="font-mono text-sm break-all select-all">
-                          {formatUuid(item.uuid)}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {item.version} • Click to copy
-                        </p>
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-mono text-sm break-all select-all">
+                              {formatUuid(item.uuid)}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {item.version} • Click to copy
+                            </p>
+                          </div>
+                          <Copy className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors flex-shrink-0 mt-0.5" />
+                        </div>
                       </div>
                     ))}
                   </div>
