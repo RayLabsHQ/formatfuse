@@ -1,0 +1,14 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import PdfToMarkdown from "../../components/converters/PdfToMarkdown";
+
+const title = "PDF to Markdown Converter - Extract Text from PDFs";
+const description =
+  "Convert PDF documents to Markdown format. Extract text with smart structure detection, preserving headers, lists, and formatting. Free online PDF to MD converter.";
+---
+
+<Layout title={title} description={description}>
+  <main class="flex-1 flex flex-col">
+    <PdfToMarkdown client:load />
+  </main>
+</Layout>
