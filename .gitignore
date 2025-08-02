@@ -4,6 +4,9 @@ dist/
 # pwa build
 dev-dist/
 
+# temp dir
+tmp/
+
 # generated types
 .astro/
 
