@@ -81,12 +81,6 @@ const relatedTools: RelatedTool[] = [
     description: "Encode and decode Base64",
     icon: Binary,
   },
-  {
-    id: "text-encryptor",
-    name: "Text Encryptor",
-    description: "Encrypt text with AES",
-    icon: Lock,
-  },
 ];
 
 const faqs: FAQItem[] = [

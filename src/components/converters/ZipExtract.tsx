@@ -62,7 +62,7 @@ const relatedTools: RelatedTool[] = [
     icon: Package,
   },
   {
-    id: "7z-viewer",
+    id: "7z-extract",
     name: "7-Zip Viewer",
     description: "View and extract 7z files",
     icon: FileArchive,
