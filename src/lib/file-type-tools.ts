@@ -41,7 +41,7 @@ export const fileTypeToTools: Record<string, ToolOption[]> = {
   jpg: findTools((t) => 
     ["jpg-to-pdf", "jpg-to-png", "image-resizer", "image-compressor", "jpg-to-webp", 
      "jpg-to-gif", "jpg-to-bmp", "jpg-to-ico", "jpg-to-tiff", "jpg-to-avif",
-     "image-converter", "background-remover"].includes(t.id) ||
+     "image-converter"].includes(t.id) ||
     (t.id.startsWith("jpg-to-") && t.isImplemented !== false)
   ),
 
@@ -49,7 +49,7 @@ export const fileTypeToTools: Record<string, ToolOption[]> = {
 
   // PNG conversions
   png: findTools((t) => 
-    ["png-to-jpg", "png-to-pdf", "background-remover", "image-resizer", 
+    ["png-to-jpg", "png-to-pdf", "image-resizer", 
      "png-to-webp", "png-to-gif", "png-to-bmp", "png-to-ico", "png-to-tiff", 
      "png-to-avif", "image-converter", "image-compressor"].includes(t.id) ||
     (t.id.startsWith("png-to-") && t.isImplemented !== false)
