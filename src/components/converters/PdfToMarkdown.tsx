@@ -522,7 +522,7 @@ export const PdfToMarkdown: React.FC = () => {
 
           {/* Output Panel */}
           <div
-            className={`flex-1 flex flex-col min-h-0 h-full border-t lg:border-t-0 ${
+            className={`flex-1 flex flex-col min-h-0 border-t lg:border-t-0 ${
               activeTab === "output" ? "flex" : "hidden lg:flex"
             }`}
           >
@@ -530,6 +530,7 @@ export const PdfToMarkdown: React.FC = () => {
               <span className="text-xs sm:text-sm font-medium">Output</span>
               <div className="flex items-center gap-1 sm:gap-2">
                 {markdownResult && (
+                  // Action buttons for output
                   <>
                     <Button
                       variant="ghost"
@@ -580,7 +581,7 @@ export const PdfToMarkdown: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex-1 overflow-auto p-3 sm:p-6 bg-muted/10 min-h-0">
+            <div className="flex-1 flex overflow-auto p-3 sm:p-6 bg-muted/10 min-h-0">
               {error && (
                 <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mb-4">
                   <div className="flex items-center gap-2 text-destructive">
@@ -601,7 +602,7 @@ export const PdfToMarkdown: React.FC = () => {
               )}
 
               {markdownResult && (
-                <div className="relative min-h-0">
+                <div className="flex-1 flex relative min-h-0">
                   {/* Fullscreen Container */}
                   {isFullscreen && (
                     <div className="fixed inset-0 z-50 bg-background flex flex-col">
@@ -644,24 +645,27 @@ export const PdfToMarkdown: React.FC = () => {
 
                   {/* Normal Output */}
                   {!isFullscreen && (
-                    <>
-                      {showLineNumbers && (
-                        <div className="absolute left-0 top-0 bottom-0 w-6 sm:w-12 bg-muted/30 border-r flex flex-col items-center pt-3 sm:pt-4 text-[9px] sm:text-xs text-muted-foreground select-none">
-                          {markdownResult.split("\n").map((_, index) => (
-                            <div key={index} className="h-6 flex items-center">
-                              {index + 1}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      <textarea
-                        ref={textareaRef}
-                        value={markdownResult}
-                        onChange={(e) => setMarkdownResult(e.target.value)}
-                        className={`w-full h-full ${showLineNumbers ? "pl-9 sm:pl-16" : "pl-3 sm:pl-4"} pr-3 sm:pr-4 py-3 sm:py-4 bg-transparent resize-none outline-none font-mono text-xs sm:text-sm leading-6 sm:leading-6 overflow-auto`}
-                        spellCheck={false}
-                      />
-                    </>
+                    <div className="w-full h-full max-h-96 overflow-auto relative">
+                      <div className="flex min-h-full">
+                        {showLineNumbers && (
+                          <div className="flex-shrink-0 w-6 sm:w-12 bg-muted/30 border-r flex flex-col items-center pt-3 sm:pt-4 text-[9px] sm:text-xs text-muted-foreground select-none sticky left-0">
+                            {markdownResult.split("\n").map((_, index) => (
+                              <div key={index} className="h-6 flex items-center">
+                                {index + 1}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        <textarea
+                          ref={textareaRef}
+                          value={markdownResult}
+                          onChange={(e) => setMarkdownResult(e.target.value)}
+                          placeholder="Markdown output will appear here..."
+                          className={`flex-1 min-h-full ${showLineNumbers ? "pl-3 sm:pl-4" : "pl-3 sm:pl-4"} pr-3 sm:pr-4 py-3 sm:py-4 bg-transparent resize-none outline-none font-mono text-xs sm:text-sm leading-6 sm:leading-6`}
+                          spellCheck={false}
+                        />
+                      </div>
+                    </div>
                   )}
                 </div>
               )}
