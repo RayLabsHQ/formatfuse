@@ -109,6 +109,7 @@ export const PdfToMarkdown: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"input" | "output">("input");
   const [showLineNumbers, setShowLineNumbers] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
+  const [visualLineCount, setVisualLineCount] = useState(0);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -133,6 +134,30 @@ export const PdfToMarkdown: React.FC = () => {
       }
     };
   }, []);
+
+  // Calculate visual line count based on textarea content
+  useEffect(() => {
+    if (textareaRef.current && markdownResult) {
+      const textarea = textareaRef.current;
+      // Store original height
+      const originalHeight = textarea.style.height;
+      
+      // Reset height to auto to get scrollHeight
+      textarea.style.height = 'auto';
+      const scrollHeight = textarea.scrollHeight;
+      
+      // Calculate line height (24px based on leading-6 class)
+      const lineHeight = 24;
+      const calculatedLines = Math.ceil(scrollHeight / lineHeight);
+      
+      // Restore original height
+      textarea.style.height = originalHeight;
+      
+      setVisualLineCount(calculatedLines);
+    } else {
+      setVisualLineCount(0);
+    }
+  }, [markdownResult]);
 
   const handleFileSelect = useCallback(async (selectedFile: File) => {
     if (!selectedFile) return;
@@ -645,11 +670,12 @@ export const PdfToMarkdown: React.FC = () => {
 
                   {/* Normal Output */}
                   {!isFullscreen && (
-                    <div className="w-full h-full max-h-96 overflow-auto relative">
-                      <div className="flex min-h-full">
+                    //control the height of the textarea based on content from here
+                    <div className="w-full h-full max-h-[40rem] overflow-auto relative">
+                      <div className="flex">
                         {showLineNumbers && (
-                          <div className="flex-shrink-0 w-6 sm:w-12 bg-muted/30 border-r flex flex-col items-center pt-3 sm:pt-4 text-[9px] sm:text-xs text-muted-foreground select-none sticky left-0">
-                            {markdownResult.split("\n").map((_, index) => (
+                          <div className="flex-shrink-0 w-6 sm:w-12 bg-muted/30 border-r flex flex-col items-center pt-3 sm:pt-4 text-[9px] sm:text-xs text-muted-foreground select-none">
+                            {Array.from({ length: visualLineCount || markdownResult.split("\n").length }, (_, index) => (
                               <div key={index} className="h-6 flex items-center">
                                 {index + 1}
                               </div>
@@ -661,7 +687,8 @@ export const PdfToMarkdown: React.FC = () => {
                           value={markdownResult}
                           onChange={(e) => setMarkdownResult(e.target.value)}
                           placeholder="Markdown output will appear here..."
-                          className={`flex-1 min-h-full ${showLineNumbers ? "pl-3 sm:pl-4" : "pl-3 sm:pl-4"} pr-3 sm:pr-4 py-3 sm:py-4 bg-transparent resize-none outline-none font-mono text-xs sm:text-sm leading-6 sm:leading-6`}
+                          className={`flex-1 ${showLineNumbers ? "pl-3 sm:pl-4" : "pl-3 sm:pl-4"} pr-3 sm:pr-4 py-3 sm:py-4 bg-transparent resize-none outline-none font-mono text-xs sm:text-sm leading-6 overflow-hidden`}
+                          style={{ minHeight: `${(visualLineCount || markdownResult.split("\n").length) * 1.5}rem` }}
                           spellCheck={false}
                         />
                       </div>
