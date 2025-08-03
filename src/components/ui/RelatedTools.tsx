@@ -1,6 +1,7 @@
 import React from "react";
 import { ToolCase, ChevronRight } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { getToolRoute } from "../../lib/tool-helpers";
 
 export interface RelatedTool {
   id: string;
@@ -49,7 +50,7 @@ export function RelatedTools({
           return (
             <a
               key={tool.id}
-              href={`/tools/${tool.id}`}
+              href={getToolRoute(tool.id)}
               className="flex items-center gap-3 p-3 rounded-lg bg-card/30 border border-border/30 hover:bg-card/50 hover:border-primary/30 transition-all duration-300 group"
             >
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">

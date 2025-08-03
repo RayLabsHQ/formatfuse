@@ -101,12 +101,6 @@ const relatedTools: RelatedTool[] = [
     description: "Convert between all image formats",
     icon: FileImage,
   },
-  {
-    id: "background-remover",
-    name: "Background Remover",
-    description: "Remove image backgrounds instantly",
-    icon: Image,
-  },
 ];
 
 const faqs: FAQItem[] = [

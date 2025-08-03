@@ -1232,18 +1232,33 @@ export default function ImageConverter({
 
                   // Determine the conversion URL
                   let href = "#";
+                  const qualityFormats = ['jpg', 'webp', 'avif'];
+                  
+                  // Check if this would create a valid route
+                  const wouldCreateSelfReferential = (from: string, to: string) => {
+                    return from === to && !qualityFormats.includes(from);
+                  };
+                  
                   if (formatKey !== currentTo) {
                     // If clicking a format different from target, make it the new target
-                    href = `/convert/${currentFrom}-to-${formatKey}`;
+                    const potentialHref = `/convert/${currentFrom}-to-${formatKey}`;
+                    // Only set href if it wouldn't create an invalid self-referential route
+                    if (!wouldCreateSelfReferential(currentFrom, formatKey)) {
+                      href = potentialHref;
+                    }
                   } else if (formatKey !== currentFrom) {
                     // If clicking the current target format, swap it to source
-                    href = `/convert/${formatKey}-to-${currentFrom}`;
+                    const potentialHref = `/convert/${formatKey}-to-${currentFrom}`;
+                    // Only set href if it wouldn't create an invalid self-referential route
+                    if (!wouldCreateSelfReferential(formatKey, currentFrom)) {
+                      href = potentialHref;
+                    }
                   }
                   // If it's both source and target (same format conversion), don't link
 
                   const isClickable = !(
                     formatKey === currentFrom && formatKey === currentTo
-                  );
+                  ) && href !== "#";
 
                   return isClickable ? (
                     <a

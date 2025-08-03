@@ -431,6 +431,16 @@ const documentToolsAll: Tool[] = [
     category: "document",
     route: "/convert/markdown-to-pdf",
   },
+  {
+    id: "pdf-to-markdown",
+    name: "PDF to Markdown",
+    description: "Extract text from PDF and convert to formatted Markdown",
+    icon: FileText,
+    isPopular: true,
+    isImplemented: true,
+    category: "document",
+    route: "/convert/pdf-to-markdown",
+  },
 ];
 
 // Archive Tools (unfiltered - includes unimplemented for reference)

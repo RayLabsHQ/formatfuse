@@ -58,12 +58,6 @@ const relatedTools: RelatedTool[] = [
     description: "Create ZIP archives",
     icon: FileArchive,
   },
-  {
-    id: "7z-create",
-    name: "Create 7Z",
-    description: "Create 7-Zip archives",
-    icon: FileArchive,
-  },
 ];
 
 const faqs: FAQItem[] = [
