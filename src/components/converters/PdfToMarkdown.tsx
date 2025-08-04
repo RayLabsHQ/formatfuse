@@ -282,28 +282,39 @@ export const PdfToMarkdown: React.FC = () => {
         />
 
         {/* Controls Bar - Mobile optimized */}
-        <div className="hidden sm:block border-b px-3 sm:px-6 py-2 sm:py-3 bg-card/50">
+        <div className="border-b px-3 sm:px-6 py-2 sm:py-3 bg-card/50">
           <div className="flex flex-col gap-3">
-            {/* Mobile: Show convert button prominently */}
+            {/* Mobile: Show convert or download button based on state */}
             <div className="lg:hidden flex justify-center">
-              <Button
-                onClick={handleConvert}
-                disabled={isProcessing || !pdfFile}
-                size="default"
-                className="w-full max-w-xs touch-manipulation"
-              >
-                {isProcessing ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Converting...
-                  </>
-                ) : (
-                  <>
-                    <FileDown className="w-4 h-4 mr-2" />
-                    Convert to Markdown
-                  </>
-                )}
-              </Button>
+              {markdownResult && activeTab === "output" ? (
+                <Button
+                  onClick={downloadMarkdown}
+                  size="default"
+                  className="w-full max-w-xs touch-manipulation bg-primary hover:bg-primary/90"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Download Markdown
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleConvert}
+                  disabled={isProcessing || !pdfFile}
+                  size="default"
+                  className="w-full max-w-xs touch-manipulation"
+                >
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Converting...
+                    </>
+                  ) : (
+                    <>
+                      <FileDown className="w-4 h-4 mr-2" />
+                      Convert to Markdown
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
 
             {/* Options controls - collapsible on mobile */}
