@@ -120,7 +120,7 @@ export const PdfToMarkdown: React.FC = () => {
     const initWorker = async () => {
       const worker = new Worker(
         new URL("../../workers/pdf-to-markdown.worker.ts", import.meta.url),
-        { type: "module" },
+        { type: "module" }
       );
       const Converter = Comlink.wrap<typeof PdfToMarkdownWorker>(worker);
       workerRef.current = await new Converter();
@@ -141,18 +141,18 @@ export const PdfToMarkdown: React.FC = () => {
       const textarea = textareaRef.current;
       // Store original height
       const originalHeight = textarea.style.height;
-      
+
       // Reset height to auto to get scrollHeight
-      textarea.style.height = 'auto';
+      textarea.style.height = "auto";
       const scrollHeight = textarea.scrollHeight;
-      
+
       // Calculate line height (24px based on leading-6 class)
       const lineHeight = 24;
       const calculatedLines = Math.ceil(scrollHeight / lineHeight);
-      
+
       // Restore original height
       textarea.style.height = originalHeight;
-      
+
       setVisualLineCount(calculatedLines);
     } else {
       setVisualLineCount(0);
@@ -181,7 +181,7 @@ export const PdfToMarkdown: React.FC = () => {
         handleFileSelect(selectedFile);
       }
     },
-    [handleFileSelect],
+    [handleFileSelect]
   );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -204,7 +204,7 @@ export const PdfToMarkdown: React.FC = () => {
         handleFileSelect(file);
       }
     },
-    [handleFileSelect],
+    [handleFileSelect]
   );
 
   const handleCopy = useCallback(async () => {
@@ -238,7 +238,7 @@ export const PdfToMarkdown: React.FC = () => {
         },
         Comlink.proxy((progress) => {
           // Progress callback if needed
-        }),
+        })
       );
 
       setMarkdownResult(result);
@@ -482,15 +482,16 @@ export const PdfToMarkdown: React.FC = () => {
               {!pdfFile ? (
                 <div
                   className={cn(
-                    "h-full border-2 border-dashed rounded-lg transition-colors",
+                    "h-full border-2 border-dashed rounded-lg transition-colors cursor-pointer",
                     "flex items-center justify-center p-8 sm:p-12",
                     isDragging
                       ? "border-primary bg-primary/10"
-                      : "border-border hover:border-primary/50",
+                      : "border-border hover:border-primary/50"
                   )}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
+                  onClick={() => fileInputRef.current?.click()}
                 >
                   <div className="text-center">
                     <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
@@ -501,7 +502,7 @@ export const PdfToMarkdown: React.FC = () => {
                       Supports PDF files up to 100MB
                     </p>
                     <Button
-                      onClick={() => fileInputRef.current?.click()}
+                      //onClick={() => fileInputRef.current?.click()}
                       className="mt-4"
                       variant="outline"
                     >
@@ -525,6 +526,10 @@ export const PdfToMarkdown: React.FC = () => {
                           setPdfFile(null);
                           setMarkdownResult("");
                           setError(null);
+                          // Reset file input to allow re-uploading the same file
+                          if (fileInputRef.current) {
+                            fileInputRef.current.value = "";
+                          }
                         }}
                         variant="outline"
                         size="sm"
@@ -661,7 +666,9 @@ export const PdfToMarkdown: React.FC = () => {
                           ref={textareaRef}
                           value={markdownResult}
                           onChange={(e) => setMarkdownResult(e.target.value)}
-                          className={`w-full h-full ${showLineNumbers ? "pl-16" : "pl-4"} pr-4 py-4 bg-background resize-none outline-none font-mono text-sm leading-6 overflow-auto`}
+                          className={`w-full h-full ${
+                            showLineNumbers ? "pl-16" : "pl-4"
+                          } pr-4 py-4 bg-background resize-none outline-none font-mono text-sm leading-6 overflow-auto`}
                           spellCheck={false}
                         />
                       </div>
@@ -675,11 +682,21 @@ export const PdfToMarkdown: React.FC = () => {
                       <div className="flex">
                         {showLineNumbers && (
                           <div className="flex-shrink-0 w-6 sm:w-12 bg-muted/30 border-r flex flex-col items-center pt-3 sm:pt-4 text-[9px] sm:text-xs text-muted-foreground select-none">
-                            {Array.from({ length: visualLineCount || markdownResult.split("\n").length }, (_, index) => (
-                              <div key={index} className="h-6 flex items-center">
-                                {index + 1}
-                              </div>
-                            ))}
+                            {Array.from(
+                              {
+                                length:
+                                  visualLineCount ||
+                                  markdownResult.split("\n").length,
+                              },
+                              (_, index) => (
+                                <div
+                                  key={index}
+                                  className="h-6 flex items-center"
+                                >
+                                  {index + 1}
+                                </div>
+                              )
+                            )}
                           </div>
                         )}
                         <textarea
@@ -687,8 +704,15 @@ export const PdfToMarkdown: React.FC = () => {
                           value={markdownResult}
                           onChange={(e) => setMarkdownResult(e.target.value)}
                           placeholder="Markdown output will appear here..."
-                          className={`flex-1 ${showLineNumbers ? "pl-3 sm:pl-4" : "pl-3 sm:pl-4"} pr-3 sm:pr-4 py-3 sm:py-4 bg-transparent resize-none outline-none font-mono text-xs sm:text-sm leading-6 overflow-hidden`}
-                          style={{ minHeight: `${(visualLineCount || markdownResult.split("\n").length) * 1.5}rem` }}
+                          className={`flex-1 ${
+                            showLineNumbers ? "pl-3 sm:pl-4" : "pl-3 sm:pl-4"
+                          } pr-3 sm:pr-4 py-3 sm:py-4 bg-transparent resize-none outline-none font-mono text-xs sm:text-sm leading-6 overflow-hidden`}
+                          style={{
+                            minHeight: `${
+                              (visualLineCount ||
+                                markdownResult.split("\n").length) * 1.5
+                            }rem`,
+                          }}
                           spellCheck={false}
                         />
                       </div>
