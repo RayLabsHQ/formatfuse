@@ -159,6 +159,20 @@ export const PdfToMarkdown: React.FC = () => {
     }
   }, [markdownResult]);
 
+  // Add escape key handler for fullscreen
+  useEffect(() => {
+    const handleEscapeKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isFullscreen) {
+        setIsFullscreen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleEscapeKey);
+    return () => {
+      document.removeEventListener("keydown", handleEscapeKey);
+    };
+  }, [isFullscreen]);
+
   const handleFileSelect = useCallback(async (selectedFile: File) => {
     if (!selectedFile) return;
 
@@ -622,15 +636,16 @@ export const PdfToMarkdown: React.FC = () => {
                   {/* Fullscreen Container */}
                   {isFullscreen && (
                     <div className="fixed inset-0 z-50 bg-background flex flex-col">
-                      <div className="border-b px-4 py-2 flex items-center justify-between bg-card">
+                      <div className="relative z-50 border-b px-4 py-3 flex items-center justify-between bg-card shadow-lg">
                         <span className="text-sm font-medium">
                           Markdown Output - Fullscreen
                         </span>
                         <Button
-                          variant="ghost"
+                          variant="secondary"
                           size="icon"
                           onClick={() => setIsFullscreen(false)}
                           title="Exit fullscreen"
+                          className="fixed right-10 top-20 z-50"
                         >
                           <Minimize2 className="h-4 w-4" />
                         </Button>
