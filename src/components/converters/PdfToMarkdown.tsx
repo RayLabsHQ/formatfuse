@@ -391,8 +391,8 @@ export const PdfToMarkdown: React.FC = () => {
           </div>
         </div>
 
-        {/* Mobile Tab Navigation - Moved to top on mobile */}
-        <div className="sm:hidden border-b sticky top-0 z-20 bg-background">
+        {/* Mobile/Tablet Tab Navigation - Moved to top on mobile/tablet */}
+        <div className="lg:hidden border-b sticky top-0 z-20 bg-background">
           <div className="flex">
             <button
               onClick={() => setActiveTab("input")}
@@ -428,34 +428,6 @@ export const PdfToMarkdown: React.FC = () => {
           </div>
         </div>
 
-        {/* Mobile Options - Show above tabs */}
-        <div className="sm:hidden px-4 py-3 bg-card/50 border-b">
-          <div className="space-y-2">
-            <p className="text-xs text-muted-foreground font-medium">
-              Conversion Settings
-            </p>
-            <div className="flex flex-col gap-2">
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={includePageBreaks}
-                  onChange={(e) => setIncludePageBreaks(e.target.checked)}
-                  className="rounded"
-                />
-                Include page breaks
-              </label>
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={preserveFormatting}
-                  onChange={(e) => setPreserveFormatting(e.target.checked)}
-                  className="rounded"
-                />
-                Detect headers & formatting
-              </label>
-            </div>
-          </div>
-        </div>
 
         {/* Main Content - Split Screen for Desktop, Tabbed for Mobile */}
         <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
