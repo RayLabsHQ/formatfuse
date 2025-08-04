@@ -518,7 +518,10 @@ export const PdfToMarkdown: React.FC = () => {
                     </div>
                     <p className="text-lg font-medium mb-2">{pdfFile.name}</p>
                     <p className="text-sm text-muted-foreground mb-4">
-                      {(pdfFile.size / 1024 / 1024).toFixed(2)} MB
+                      {pdfFile.size < 10240 
+                        ? `${(pdfFile.size / 1024).toFixed(2)} KB`
+                        : `${(pdfFile.size / 1024 / 1024).toFixed(2)} MB`
+                      }
                     </p>
                     <div className="flex gap-2 justify-center">
                       <Button
