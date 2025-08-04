@@ -120,7 +120,7 @@ export const PdfToMarkdown: React.FC = () => {
     const initWorker = async () => {
       const worker = new Worker(
         new URL("../../workers/pdf-to-markdown.worker.ts", import.meta.url),
-        { type: "module" },
+        { type: "module" }
       );
       const Converter = Comlink.wrap<typeof PdfToMarkdownWorker>(worker);
       workerRef.current = await new Converter();
@@ -141,23 +141,37 @@ export const PdfToMarkdown: React.FC = () => {
       const textarea = textareaRef.current;
       // Store original height
       const originalHeight = textarea.style.height;
-      
+
       // Reset height to auto to get scrollHeight
-      textarea.style.height = 'auto';
+      textarea.style.height = "auto";
       const scrollHeight = textarea.scrollHeight;
-      
+
       // Calculate line height (24px based on leading-6 class)
       const lineHeight = 24;
       const calculatedLines = Math.ceil(scrollHeight / lineHeight);
-      
+
       // Restore original height
       textarea.style.height = originalHeight;
-      
+
       setVisualLineCount(calculatedLines);
     } else {
       setVisualLineCount(0);
     }
   }, [markdownResult]);
+
+  // Add escape key handler for fullscreen
+  useEffect(() => {
+    const handleEscapeKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isFullscreen) {
+        setIsFullscreen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleEscapeKey);
+    return () => {
+      document.removeEventListener("keydown", handleEscapeKey);
+    };
+  }, [isFullscreen]);
 
   const handleFileSelect = useCallback(async (selectedFile: File) => {
     if (!selectedFile) return;
@@ -181,7 +195,7 @@ export const PdfToMarkdown: React.FC = () => {
         handleFileSelect(selectedFile);
       }
     },
-    [handleFileSelect],
+    [handleFileSelect]
   );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -204,7 +218,7 @@ export const PdfToMarkdown: React.FC = () => {
         handleFileSelect(file);
       }
     },
-    [handleFileSelect],
+    [handleFileSelect]
   );
 
   const handleCopy = useCallback(async () => {
@@ -238,7 +252,7 @@ export const PdfToMarkdown: React.FC = () => {
         },
         Comlink.proxy((progress) => {
           // Progress callback if needed
-        }),
+        })
       );
 
       setMarkdownResult(result);
@@ -282,28 +296,39 @@ export const PdfToMarkdown: React.FC = () => {
         />
 
         {/* Controls Bar - Mobile optimized */}
-        <div className="hidden sm:block border-b px-3 sm:px-6 py-2 sm:py-3 bg-card/50">
+        <div className="border-b px-3 sm:px-6 py-2 sm:py-3 bg-card/50">
           <div className="flex flex-col gap-3">
-            {/* Mobile: Show convert button prominently */}
+            {/* Mobile: Show convert or download button based on state */}
             <div className="lg:hidden flex justify-center">
-              <Button
-                onClick={handleConvert}
-                disabled={isProcessing || !pdfFile}
-                size="default"
-                className="w-full max-w-xs touch-manipulation"
-              >
-                {isProcessing ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Converting...
-                  </>
-                ) : (
-                  <>
-                    <FileDown className="w-4 h-4 mr-2" />
-                    Convert to Markdown
-                  </>
-                )}
-              </Button>
+              {markdownResult && activeTab === "output" ? (
+                <Button
+                  onClick={downloadMarkdown}
+                  size="default"
+                  className="w-full max-w-xs touch-manipulation bg-primary hover:bg-primary/90"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Download Markdown
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleConvert}
+                  disabled={isProcessing || !pdfFile}
+                  size="default"
+                  className="w-full max-w-xs touch-manipulation"
+                >
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Converting...
+                    </>
+                  ) : (
+                    <>
+                      <FileDown className="w-4 h-4 mr-2" />
+                      Convert to Markdown
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
 
             {/* Options controls - collapsible on mobile */}
@@ -380,8 +405,8 @@ export const PdfToMarkdown: React.FC = () => {
           </div>
         </div>
 
-        {/* Mobile Tab Navigation - Moved to top on mobile */}
-        <div className="sm:hidden border-b sticky top-0 z-20 bg-background">
+        {/* Mobile/Tablet Tab Navigation - Moved to top on mobile/tablet */}
+        <div className="lg:hidden border-b sticky top-0 z-20 bg-background">
           <div className="flex">
             <button
               onClick={() => setActiveTab("input")}
@@ -417,34 +442,6 @@ export const PdfToMarkdown: React.FC = () => {
           </div>
         </div>
 
-        {/* Mobile Options - Show above tabs */}
-        <div className="sm:hidden px-4 py-3 bg-card/50 border-b">
-          <div className="space-y-2">
-            <p className="text-xs text-muted-foreground font-medium">
-              Conversion Settings
-            </p>
-            <div className="flex flex-col gap-2">
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={includePageBreaks}
-                  onChange={(e) => setIncludePageBreaks(e.target.checked)}
-                  className="rounded"
-                />
-                Include page breaks
-              </label>
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={preserveFormatting}
-                  onChange={(e) => setPreserveFormatting(e.target.checked)}
-                  className="rounded"
-                />
-                Detect headers & formatting
-              </label>
-            </div>
-          </div>
-        </div>
 
         {/* Main Content - Split Screen for Desktop, Tabbed for Mobile */}
         <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
@@ -482,15 +479,16 @@ export const PdfToMarkdown: React.FC = () => {
               {!pdfFile ? (
                 <div
                   className={cn(
-                    "h-full border-2 border-dashed rounded-lg transition-colors",
+                    "h-full border-2 border-dashed rounded-lg transition-colors cursor-pointer",
                     "flex items-center justify-center p-8 sm:p-12",
                     isDragging
                       ? "border-primary bg-primary/10"
-                      : "border-border hover:border-primary/50",
+                      : "border-border hover:border-primary/50"
                   )}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
+                  onClick={() => fileInputRef.current?.click()}
                 >
                   <div className="text-center">
                     <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
@@ -501,7 +499,7 @@ export const PdfToMarkdown: React.FC = () => {
                       Supports PDF files up to 100MB
                     </p>
                     <Button
-                      onClick={() => fileInputRef.current?.click()}
+                      //onClick={() => fileInputRef.current?.click()}
                       className="mt-4"
                       variant="outline"
                     >
@@ -517,7 +515,10 @@ export const PdfToMarkdown: React.FC = () => {
                     </div>
                     <p className="text-lg font-medium mb-2">{pdfFile.name}</p>
                     <p className="text-sm text-muted-foreground mb-4">
-                      {(pdfFile.size / 1024 / 1024).toFixed(2)} MB
+                      {pdfFile.size < 10240 
+                        ? `${(pdfFile.size / 1024).toFixed(2)} KB`
+                        : `${(pdfFile.size / 1024 / 1024).toFixed(2)} MB`
+                      }
                     </p>
                     <div className="flex gap-2 justify-center">
                       <Button
@@ -525,6 +526,10 @@ export const PdfToMarkdown: React.FC = () => {
                           setPdfFile(null);
                           setMarkdownResult("");
                           setError(null);
+                          // Reset file input to allow re-uploading the same file
+                          if (fileInputRef.current) {
+                            fileInputRef.current.value = "";
+                          }
                         }}
                         variant="outline"
                         size="sm"
@@ -631,15 +636,16 @@ export const PdfToMarkdown: React.FC = () => {
                   {/* Fullscreen Container */}
                   {isFullscreen && (
                     <div className="fixed inset-0 z-50 bg-background flex flex-col">
-                      <div className="border-b px-4 py-2 flex items-center justify-between bg-card">
+                      <div className="relative z-50 border-b px-4 py-3 flex items-center justify-between bg-card shadow-lg">
                         <span className="text-sm font-medium">
                           Markdown Output - Fullscreen
                         </span>
                         <Button
-                          variant="ghost"
+                          variant="secondary"
                           size="icon"
                           onClick={() => setIsFullscreen(false)}
                           title="Exit fullscreen"
+                          className="fixed right-10 top-20 z-50"
                         >
                           <Minimize2 className="h-4 w-4" />
                         </Button>
@@ -661,7 +667,9 @@ export const PdfToMarkdown: React.FC = () => {
                           ref={textareaRef}
                           value={markdownResult}
                           onChange={(e) => setMarkdownResult(e.target.value)}
-                          className={`w-full h-full ${showLineNumbers ? "pl-16" : "pl-4"} pr-4 py-4 bg-background resize-none outline-none font-mono text-sm leading-6 overflow-auto`}
+                          className={`w-full h-full ${
+                            showLineNumbers ? "pl-16" : "pl-4"
+                          } pr-4 py-4 bg-background resize-none outline-none font-mono text-sm leading-6 overflow-auto`}
                           spellCheck={false}
                         />
                       </div>
@@ -675,11 +683,21 @@ export const PdfToMarkdown: React.FC = () => {
                       <div className="flex">
                         {showLineNumbers && (
                           <div className="flex-shrink-0 w-6 sm:w-12 bg-muted/30 border-r flex flex-col items-center pt-3 sm:pt-4 text-[9px] sm:text-xs text-muted-foreground select-none">
-                            {Array.from({ length: visualLineCount || markdownResult.split("\n").length }, (_, index) => (
-                              <div key={index} className="h-6 flex items-center">
-                                {index + 1}
-                              </div>
-                            ))}
+                            {Array.from(
+                              {
+                                length:
+                                  visualLineCount ||
+                                  markdownResult.split("\n").length,
+                              },
+                              (_, index) => (
+                                <div
+                                  key={index}
+                                  className="h-6 flex items-center"
+                                >
+                                  {index + 1}
+                                </div>
+                              )
+                            )}
                           </div>
                         )}
                         <textarea
@@ -687,8 +705,15 @@ export const PdfToMarkdown: React.FC = () => {
                           value={markdownResult}
                           onChange={(e) => setMarkdownResult(e.target.value)}
                           placeholder="Markdown output will appear here..."
-                          className={`flex-1 ${showLineNumbers ? "pl-3 sm:pl-4" : "pl-3 sm:pl-4"} pr-3 sm:pr-4 py-3 sm:py-4 bg-transparent resize-none outline-none font-mono text-xs sm:text-sm leading-6 overflow-hidden`}
-                          style={{ minHeight: `${(visualLineCount || markdownResult.split("\n").length) * 1.5}rem` }}
+                          className={`flex-1 ${
+                            showLineNumbers ? "pl-3 sm:pl-4" : "pl-3 sm:pl-4"
+                          } pr-3 sm:pr-4 py-3 sm:py-4 bg-transparent resize-none outline-none font-mono text-xs sm:text-sm leading-6 overflow-hidden`}
+                          style={{
+                            minHeight: `${
+                              (visualLineCount ||
+                                markdownResult.split("\n").length) * 1.5
+                            }rem`,
+                          }}
                           spellCheck={false}
                         />
                       </div>
