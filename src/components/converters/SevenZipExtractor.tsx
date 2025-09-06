@@ -133,7 +133,15 @@ export default function SevenZipExtractor() {
       let mod = libarchiveMod;
       if (!mod) {
         const { libarchiveWasm } = await import("libarchive-wasm");
-        mod = await libarchiveWasm();
+        // Configure the module to find the WASM file in the public directory
+        mod = await libarchiveWasm({
+          locateFile: (path: string) => {
+            if (path.endsWith('.wasm')) {
+              return '/libarchive.wasm';
+            }
+            return path;
+          }
+        });
         setLibarchiveMod(mod);
       }
 
