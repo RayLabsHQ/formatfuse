@@ -1,0 +1,6 @@
+This is a sample text file for archive testing.
+It contains multiple lines of text.
+This file will be used to test ZIP creation and extraction.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.

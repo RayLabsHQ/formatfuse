@@ -1,0 +1,1 @@
+This file is in subfolder2 (second level nested).
