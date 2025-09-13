@@ -173,8 +173,8 @@ To get readable stack traces in PostHog from Cloudflare Pages builds, upload sou
 
 - Environment variables (Project → Settings → Environment variables):
   - `POSTHOG_CLI_ENV_ID` – your PostHog project ID
-  - `POSTHOG_CLI_TOKEN` – personal API key with error tracking write scope
-  - Optional: `POSTHOG_CLI_HOST` – `https://eu.posthog.com` (EU region)
+  - `POSTHOG_CLI_TOKEN` – personal API key with error tracking write scope.
+  - `POSTHOG_CLI_HOST` – `https://eu.posthog.com` (EU region)
 
 - Build command (Project → Settings → Build):
   - Option A (add CLI to PATH for this build):
