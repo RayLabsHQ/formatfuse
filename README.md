@@ -177,7 +177,11 @@ To get readable stack traces in PostHog from Cloudflare Pages builds, upload sou
   - Optional: `POSTHOG_CLI_HOST` – `https://eu.posthog.com` (EU region)
 
 - Build command (Project → Settings → Build):
-  - `curl --proto '=https' --tlsv1.2 -LsSf https://github.com/PostHog/posthog/releases/latest/download/posthog-cli-installer.sh | sh && pnpm build && pnpm run postbuild:posthog`
+  - Option A (add CLI to PATH for this build):
+    - `curl --proto '=https' --tlsv1.2 -LsSf https://github.com/PostHog/posthog/releases/latest/download/posthog-cli-installer.sh | sh && source $HOME/.posthog/env && pnpm build && pnpm run postbuild:posthog`
+  - Option B (call the installed binary directly, no PATH changes):
+    - `curl --proto '=https' --tlsv1.2 -LsSf https://github.com/PostHog/posthog/releases/latest/download/posthog-cli-installer.sh | sh && pnpm build && pnpm run postbuild:posthog`
+    - The package scripts are configured to call `$HOME/.posthog/posthog-cli` directly.
 
 - Output directory: `dist`
 
