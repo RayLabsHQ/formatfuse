@@ -7,6 +7,7 @@ import ToasterProvider from '../components/ToasterProvider.tsx';
 import { PwaUpdatePrompt } from '../components/PwaUpdatePrompt.tsx';
 import { PwaInstallPrompt } from '../components/PwaInstallPrompt.tsx';
 import { getImagePath } from 'astro-opengraph-images';
+import PostHog from '../components/posthog.astro';
 
 export interface Props {
   title: string;
@@ -111,6 +112,9 @@ const finalOgImage = ogImage || generatedOgImageUrl;
     
     <!-- 100% privacy-first analytics -->
     <script async src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
+
+    <!-- PostHog -->
+    <PostHog />
   </head>
   <body class="min-h-screen antialiased flex flex-col">
     <Navigation client:load />
