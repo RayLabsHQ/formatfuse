@@ -1,14 +1,11 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import ImageCompressor from '../../components/converters/ImageCompressor';
-import { PostHogBoundary } from '../../components/PostHogBoundary.tsx';
 
 const title = 'Image Compressor - Reduce Image File Sizes Online';
 const description = 'Compress JPG, PNG, and WebP images while maintaining quality. Batch compression, quality presets, and format conversion supported.';
 ---
 
 <Layout title={title} description={description} toolType="image">
-  <PostHogBoundary client:load>
-    <ImageCompressor />
-  </PostHogBoundary>
+  <ImageCompressor client:load />
 </Layout>

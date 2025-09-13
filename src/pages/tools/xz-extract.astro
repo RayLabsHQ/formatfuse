@@ -1,7 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import GenericArchiveExtractor from '../../components/converters/GenericArchiveExtractor';
-import { PostHogBoundary } from '../../components/PostHogBoundary.tsx';
 
 const title = 'Extract XZ Files Online - XZ Compressed File Extractor';
 const description = 'Free online XZ extractor. Decompress XZ files instantly in your browser. No uploads, 100% privacy, works offline. Supports .xz and .txz files.';
@@ -28,14 +27,13 @@ const faqs = [
 ---
 
 <Layout title={title} description={description} toolType="archive">
-  <PostHogBoundary client:load>
-    <GenericArchiveExtractor
-      format="xz"
-      formatName="XZ"
-      formatDescription="Decompress XZ files with high compression ratios without uploading. Fast, secure, and runs entirely in your browser."
-      acceptedExtensions=".xz,.txz"
-      faqs={faqs}
-      
-    />
-  </PostHogBoundary>
+  <GenericArchiveExtractor
+    client:load
+    format="xz"
+    formatName="XZ"
+    formatDescription="Decompress XZ files with high compression ratios without uploading. Fast, secure, and runs entirely in your browser."
+    acceptedExtensions=".xz,.txz"
+    faqs={faqs}
+    
+  />
 </Layout>

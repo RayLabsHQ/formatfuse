@@ -1,14 +1,11 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import HashGenerator from '../../components/converters/HashGenerator.tsx';
-import { PostHogBoundary } from '../../components/PostHogBoundary.tsx';
 
 const title = 'Hash Generator - MD5, SHA-1, SHA-256, SHA-512 Online';
 const description = 'Generate secure hash values using MD5, SHA-1, SHA-256, SHA-384, and SHA-512 algorithms. Support for text, files, and HMAC authentication.';
 ---
 
 <Layout title={title} description={description} toolType="developer">
-  <PostHogBoundary client:load>
-    <HashGenerator />
-  </PostHogBoundary>
+  <HashGenerator client:load />
 </Layout>

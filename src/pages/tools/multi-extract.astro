@@ -1,14 +1,11 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import UniversalExtractor from '../../components/converters/UniversalExtractor';
-import { PostHogBoundary } from '../../components/PostHogBoundary.tsx';
 
 const title = 'Universal Archive Extractor - Extract ZIP, 7Z, RAR, TAR Online';
 const description = 'Free online universal archive extractor. Open and extract ZIP, 7Z, RAR, TAR and many other archive formats instantly in your browser. No uploads, works offline.';
 ---
 
 <Layout title={title} description={description} toolType="archive">
-  <PostHogBoundary client:load>
-    <UniversalExtractor />
-  </PostHogBoundary>
+  <UniversalExtractor client:load />
 </Layout>

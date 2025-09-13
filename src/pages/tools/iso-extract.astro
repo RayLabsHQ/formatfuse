@@ -1,7 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import GenericArchiveExtractor from '../../components/converters/GenericArchiveExtractor';
-import { PostHogBoundary } from '../../components/PostHogBoundary.tsx';
 
 const title = 'Extract ISO Files Online - ISO Archive Extractor';
 const description = 'Free online ISO extractor. Extract ISO disk images and archives instantly in your browser. No uploads, 100% privacy, works offline.';
@@ -28,14 +27,13 @@ const faqs = [
 ---
 
 <Layout title={title} description={description} toolType="archive">
-  <PostHogBoundary client:load>
-    <GenericArchiveExtractor
-      format="iso"
-      formatName="ISO"
-      formatDescription="Extract disk image archives without uploading. Fast, secure, and runs entirely in your browser."
-      acceptedExtensions=".iso"
-      faqs={faqs}
-      
-    />
-  </PostHogBoundary>
+  <GenericArchiveExtractor
+    client:load
+    format="iso"
+    formatName="ISO"
+    formatDescription="Extract disk image archives without uploading. Fast, secure, and runs entirely in your browser."
+    acceptedExtensions=".iso"
+    faqs={faqs}
+    
+  />
 </Layout>

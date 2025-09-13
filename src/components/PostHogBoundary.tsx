@@ -1,6 +1,5 @@
 import React, { type ReactNode } from "react";
-import posthog from "posthog-js";
-import { PostHogProvider, PostHogErrorBoundary } from "posthog-js/react";
+import { ErrorBoundary as LocalErrorBoundary } from "./ErrorBoundary";
 
 type Props = {
   children: ReactNode;
@@ -21,10 +20,5 @@ type Props = {
  *   }
  */
 export function PostHogBoundary({ children, fallback }: Props) {
-  return (
-    <PostHogProvider client={posthog as any}>
-      <PostHogErrorBoundary fallback={fallback ?? null}>{children}</PostHogErrorBoundary>
-    </PostHogProvider>
-  );
+  return <LocalErrorBoundary fallback={fallback ?? null}>{children}</LocalErrorBoundary>;
 }
-

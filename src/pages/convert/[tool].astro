@@ -6,7 +6,6 @@ import PdfRotate from '../../components/converters/PdfRotate.tsx';
 import JpgToPdf from '../../components/converters/JpgToPdf.tsx';
 import PdfToJpg from '../../components/converters/PdfToJpg.tsx';
 import MarkdownToPdf from '../../components/converters/MarkdownToPdf.tsx';
-import { PostHogBoundary } from '../../components/PostHogBoundary.tsx';
 import '../../styles/global.css';
 
 export function getStaticPaths() {
@@ -81,36 +80,12 @@ const { title, component, description, toolType, sourceFormat, targetFormat } = 
 
 <Layout title={title} description={description} toolType={toolType} sourceFormat={sourceFormat} targetFormat={targetFormat}>
   <main class={component === 'MarkdownToPdf' ? 'flex flex-col h-[calc(100vh-4rem)] md:h-auto min-h-0' : ''}>
-    {component === 'PdfSplit' && (
-      <PostHogBoundary client:load>
-        <PdfSplit />
-      </PostHogBoundary>
-    )}
-    {component === 'PdfMerge' && (
-      <PostHogBoundary client:load>
-        <PdfMerge />
-      </PostHogBoundary>
-    )}
-    {component === 'PdfRotate' && (
-      <PostHogBoundary client:load>
-        <PdfRotate />
-      </PostHogBoundary>
-    )}
-    {component === 'JpgToPdf' && (
-      <PostHogBoundary client:load>
-        <JpgToPdf />
-      </PostHogBoundary>
-    )}
-    {component === 'PdfToJpg' && (
-      <PostHogBoundary client:load>
-        <PdfToJpg />
-      </PostHogBoundary>
-    )}
-    {component === 'MarkdownToPdf' && (
-      <PostHogBoundary client:load>
-        <MarkdownToPdf />
-      </PostHogBoundary>
-    )}
+    {component === 'PdfSplit' && <PdfSplit client:load />}
+    {component === 'PdfMerge' && <PdfMerge client:load />}
+    {component === 'PdfRotate' && <PdfRotate client:load />}
+    {component === 'JpgToPdf' && <JpgToPdf client:load />}
+    {component === 'PdfToJpg' && <PdfToJpg client:load />}
+    {component === 'MarkdownToPdf' && <MarkdownToPdf client:load />}
     {/* Add more component conditions here */}
   </main>
 </Layout>

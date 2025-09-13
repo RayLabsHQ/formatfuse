@@ -1,7 +1,6 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import PdfToMarkdown from "../../components/converters/PdfToMarkdown";
-import { PostHogBoundary } from "../../components/PostHogBoundary.tsx";
 
 const title = "PDF to Markdown Converter - Extract Text from PDFs";
 const description =
@@ -10,8 +9,6 @@ const description =
 
 <Layout title={title} description={description}>
   <main class="flex-1 flex flex-col">
-    <PostHogBoundary client:load>
-      <PdfToMarkdown />
-    </PostHogBoundary>
+    <PdfToMarkdown client:load />
   </main>
 </Layout>

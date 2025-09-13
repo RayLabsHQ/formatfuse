@@ -1,7 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import UuidGenerator from '../../components/converters/UuidGenerator';
-import { PostHogBoundary } from '../../components/PostHogBoundary.tsx';
 
 const title = 'UUID Generator - Generate Unique Identifiers Online';
 const description = 'Free online UUID generator. Create version 1, 3, 4, and 5 UUIDs in various formats. Supports bulk generation, validation, and custom namespaces.';
@@ -13,7 +12,5 @@ const description = 'Free online UUID generator. Create version 1, 3, 4, and 5 U
   keywords="uuid generator, guid generator, unique identifier, uuid v4, uuid v1, bulk uuid generator"
   toolType="developer"
 >
-  <PostHogBoundary client:load>
-    <UuidGenerator />
-  </PostHogBoundary>
+  <UuidGenerator client:load />
 </Layout>

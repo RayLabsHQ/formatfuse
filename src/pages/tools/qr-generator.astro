@@ -1,14 +1,11 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import QrCodeGenerator from '../../components/converters/QrCodeGenerator.tsx';
-import { PostHogBoundary } from '../../components/PostHogBoundary.tsx';
 
 const title = 'QR Code Generator - Create Custom QR Codes Online';
 const description = 'Generate QR codes for URLs, WiFi, contacts, emails, SMS, and more. Customize colors, size, and download as PNG or SVG. Free and instant QR code creation.';
 ---
 
 <Layout title={title} description={description} toolType="default">
-  <PostHogBoundary client:load>
-    <QrCodeGenerator />
-  </PostHogBoundary>
+  <QrCodeGenerator client:load />
 </Layout>

@@ -1,7 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import GenericArchiveExtractor from '../../components/converters/GenericArchiveExtractor';
-import { PostHogBoundary } from '../../components/PostHogBoundary.tsx';
 
 const title = 'Extract CAB Files Online - Cabinet Archive Extractor';
 const description = 'Free online CAB extractor. Extract Microsoft Cabinet files instantly in your browser. No uploads, 100% privacy, works offline.';
@@ -27,13 +26,12 @@ const faqs = [
 ---
 
 <Layout title={title} description={description} toolType="archive">
-  <PostHogBoundary client:load>
-    <GenericArchiveExtractor
-      format="cab"
-      formatName="CAB"
-      formatDescription="Extract Microsoft Cabinet archives without uploading. Fast, secure, and runs entirely in your browser."
-      acceptedExtensions=".cab"
-      faqs={faqs}
-    />
-  </PostHogBoundary>
+  <GenericArchiveExtractor
+    client:load
+    format="cab"
+    formatName="CAB"
+    formatDescription="Extract Microsoft Cabinet archives without uploading. Fast, secure, and runs entirely in your browser."
+    acceptedExtensions=".cab"
+    faqs={faqs}
+  />
 </Layout>
