@@ -1,6 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import { SvgConverter } from '../../components/converters/SvgConverter';
+import { PostHogBoundary } from '../../components/PostHogBoundary.tsx';
 ---
 
 <Layout 
@@ -10,5 +11,7 @@ import { SvgConverter } from '../../components/converters/SvgConverter';
   targetFormat="png"
   toolType="image"
 >
-  <SvgConverter client:load />
+  <PostHogBoundary client:load>
+    <SvgConverter />
+  </PostHogBoundary>
 </Layout>

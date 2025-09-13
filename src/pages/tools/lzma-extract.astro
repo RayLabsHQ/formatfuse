@@ -1,6 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import GenericArchiveExtractor from '../../components/converters/GenericArchiveExtractor';
+import { PostHogBoundary } from '../../components/PostHogBoundary.tsx';
 
 const title = 'Extract LZMA Files Online - LZMA Compressed File Extractor';
 const description = 'Free online LZMA extractor. Decompress LZMA files instantly in your browser. No uploads, 100% privacy, works offline.';
@@ -27,13 +28,14 @@ const faqs = [
 ---
 
 <Layout title={title} description={description} toolType="archive">
-  <GenericArchiveExtractor
-    client:load
-    format="lzma"
-    formatName="LZMA"
-    formatDescription="Decompress LZMA files with excellent compression ratios without uploading. Fast, secure, and runs entirely in your browser."
-    acceptedExtensions=".lzma,.tlz"
-    faqs={faqs}
-    
-  />
+  <PostHogBoundary client:load>
+    <GenericArchiveExtractor
+      format="lzma"
+      formatName="LZMA"
+      formatDescription="Decompress LZMA files with excellent compression ratios without uploading. Fast, secure, and runs entirely in your browser."
+      acceptedExtensions=".lzma,.tlz"
+      faqs={faqs}
+      
+    />
+  </PostHogBoundary>
 </Layout>

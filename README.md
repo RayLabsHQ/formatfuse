@@ -197,6 +197,32 @@ To get readable stack traces in PostHog from Cloudflare Pages builds, upload sou
   - Trigger an error in production (e.g., `throw new Error('PostHog test')` in console) and check Network for requests to `https://eu.i.posthog.com/capture/`.
   - In PostHog’s Error Tracking, confirm events and readable stack traces.
 
+## React Error Tracking (islands)
+
+- Install SDK (already added): `pnpm add posthog-js`
+- Add environment variables (local + hosting):
+  - `VITE_PUBLIC_POSTHOG_KEY` – your project API key
+  - `VITE_PUBLIC_POSTHOG_HOST` – e.g. `https://eu.i.posthog.com`
+  - Example file: `.env.example`
+- Use the provided wrapper to add React context and capture render errors per island:
+
+```tsx
+// In a React island component
+import { PostHogBoundary } from "../components/PostHogBoundary"; // adjust path as needed
+
+export default function MyIsland() {
+  return (
+    <PostHogBoundary>
+      {/* existing island content */}
+    </PostHogBoundary>
+  );
+}
+```
+
+- Notes:
+  - The app already loads the PostHog snippet globally. `PostHogBoundary` reuses that client (no double init) and provides hooks like `usePostHog` inside the wrapped island.
+  - Also enable “Exception autocapture” in PostHog project settings to capture unhandled errors.
+
 ## Contributing
 
 Contributions are welcome! Please read our [Design Guidelines](docs/DESIGN-GUIDELINES.md) before implementing new features to ensure consistency.

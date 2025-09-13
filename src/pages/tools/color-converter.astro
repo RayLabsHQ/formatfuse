@@ -1,11 +1,14 @@
 ---
 import Layout from '@/layouts/Layout.astro';
 import { ColorConverter } from '@/components/converters/ColorConverter';
+import { PostHogBoundary } from '../../components/PostHogBoundary.tsx';
 
 const title = 'Color Converter - HEX, RGB, HSL, LAB, P3, and More';
 const description = 'Convert colors between 15+ formats including HEX, RGB, HSL, HSV, HWB, LAB, LCH, OKLab, OKLCH, Display P3, Rec. 2020, ProPhoto RGB, Adobe RGB, and XYZ. Powered by Color.js for accurate conversions.';
 ---
 
 <Layout title={title} description={description}>
-  <ColorConverter client:load />
+  <PostHogBoundary client:load>
+    <ColorConverter />
+  </PostHogBoundary>
 </Layout>

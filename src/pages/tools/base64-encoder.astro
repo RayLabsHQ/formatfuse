@@ -1,11 +1,14 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import Base64Encoder from '../../components/converters/Base64Encoder';
+import { PostHogBoundary } from '../../components/PostHogBoundary.tsx';
 
 const title = 'Base64 Encoder/Decoder - Encode & Decode Base64 Online';
 const description = 'Free online Base64 encoder and decoder. Convert text and files to Base64 and back with URL-safe encoding and data URI support.';
 ---
 
 <Layout title={title} description={description} toolType="developer">
-  <Base64Encoder client:load />
+  <PostHogBoundary client:load>
+    <Base64Encoder />
+  </PostHogBoundary>
 </Layout>

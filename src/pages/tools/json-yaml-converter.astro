@@ -1,6 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import JsonYamlConverter from '../../components/converters/JsonYamlConverter';
+import { PostHogBoundary } from '../../components/PostHogBoundary.tsx';
 
 const title = 'JSON to YAML Converter - Convert JSON to YAML Online';
 const description = 'Free online JSON to YAML converter. Convert between JSON and YAML formats instantly with syntax highlighting and error detection. No upload required.';
@@ -12,5 +13,7 @@ const description = 'Free online JSON to YAML converter. Convert between JSON an
   keywords="json to yaml, yaml to json, json yaml converter, convert json to yaml online, yaml converter"
   toolType="developer"
 >
-  <JsonYamlConverter client:load />
+  <PostHogBoundary client:load>
+    <JsonYamlConverter />
+  </PostHogBoundary>
 </Layout>

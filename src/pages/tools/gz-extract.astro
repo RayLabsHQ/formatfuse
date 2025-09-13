@@ -1,6 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import GenericArchiveExtractor from '../../components/converters/GenericArchiveExtractor';
+import { PostHogBoundary } from '../../components/PostHogBoundary.tsx';
 
 const title = 'Extract GZ Files Online - GZIP File Decompressor';
 const description = 'Free online GZ extractor. Decompress GZIP files instantly in your browser. No uploads, 100% privacy, works offline. Supports .gz and .tgz files.';
@@ -27,13 +28,14 @@ const faqs = [
 ---
 
 <Layout title={title} description={description} toolType="archive">
-  <GenericArchiveExtractor
-    client:load
-    format="gz"
-    formatName="GZ"
-    formatDescription="Decompress GZIP files without uploading. Fast, secure, and runs entirely in your browser."
-    acceptedExtensions=".gz,.tgz"
-    faqs={faqs}
-    
-  />
+  <PostHogBoundary client:load>
+    <GenericArchiveExtractor
+      format="gz"
+      formatName="GZ"
+      formatDescription="Decompress GZIP files without uploading. Fast, secure, and runs entirely in your browser."
+      acceptedExtensions=".gz,.tgz"
+      faqs={faqs}
+      
+    />
+  </PostHogBoundary>
 </Layout>

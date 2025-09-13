@@ -1,11 +1,14 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import WordCounter from '../../components/converters/WordCounter.tsx';
+import { PostHogBoundary } from '../../components/PostHogBoundary.tsx';
 
 const title = 'Word Counter - Count Words, Characters & Reading Time';
 const description = 'Free online word counter tool. Count words, characters, sentences, paragraphs, and calculate reading time with keyword density analysis.';
 ---
 
 <Layout title={title} description={description} toolType="text">
-  <WordCounter client:load />
+  <PostHogBoundary client:load>
+    <WordCounter />
+  </PostHogBoundary>
 </Layout>

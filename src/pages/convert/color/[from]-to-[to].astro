@@ -1,6 +1,7 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
 import { ColorConverter } from '../../../components/converters/ColorConverter.tsx';
+import { PostHogBoundary } from '../../../components/PostHogBoundary.tsx';
 import '../../../styles/global.css';
 
 // Pre-render all dynamic routes at build time for SEO
@@ -238,13 +239,14 @@ const faqData = generateFAQ();
       </div>
       
       <!-- Main converter component with target format highlighting -->
-      <ColorConverter 
-        client:load 
-        initialColor={defaultInputColor} 
-        hideHeader={true}
-        targetFormat={toKey as any}
-        autoCopy={true}
-      />
+      <PostHogBoundary client:load>
+        <ColorConverter 
+          initialColor={defaultInputColor} 
+          hideHeader={true}
+          targetFormat={toKey as any}
+          autoCopy={true}
+        />
+      </PostHogBoundary>
       
       <!-- SEO Content Section -->
       <section class="mt-16 max-w-4xl mx-auto px-4 sm:px-0">

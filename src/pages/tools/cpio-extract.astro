@@ -1,6 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import GenericArchiveExtractor from '../../components/converters/GenericArchiveExtractor';
+import { PostHogBoundary } from '../../components/PostHogBoundary.tsx';
 
 const title = 'Extract CPIO Files Online - CPIO Archive Extractor';
 const description = 'Free online CPIO extractor. Extract Unix CPIO archives and initramfs files instantly in your browser. No uploads, 100% privacy, works offline.';
@@ -27,13 +28,14 @@ const faqs = [
 ---
 
 <Layout title={title} description={description} toolType="archive">
-  <GenericArchiveExtractor
-    client:load
-    format="cpio"
-    formatName="CPIO"
-    formatDescription="Extract Unix CPIO archives without uploading. Fast, secure, and runs entirely in your browser."
-    acceptedExtensions=".cpio,.cpgz"
-    faqs={faqs}
-    
-  />
+  <PostHogBoundary client:load>
+    <GenericArchiveExtractor
+      format="cpio"
+      formatName="CPIO"
+      formatDescription="Extract Unix CPIO archives without uploading. Fast, secure, and runs entirely in your browser."
+      acceptedExtensions=".cpio,.cpgz"
+      faqs={faqs}
+      
+    />
+  </PostHogBoundary>
 </Layout>

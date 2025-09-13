@@ -1,6 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import ImageConverterComponent from '../../components/converters/ImageConverter.tsx';
+import { PostHogBoundary } from '../../components/PostHogBoundary.tsx';
 import '../../styles/global.css';
 
 const title = 'Universal Image Converter - Convert Any Image Format';
@@ -9,6 +10,8 @@ const description = 'Convert between PNG, JPG, WebP, GIF, BMP, ICO, TIFF, AVIF a
 
 <Layout title={title} description={description} toolType="image">
   <main>
-    <ImageConverterComponent client:load />
+    <PostHogBoundary client:load>
+      <ImageConverterComponent />
+    </PostHogBoundary>
   </main>
 </Layout>

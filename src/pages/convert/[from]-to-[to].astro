@@ -1,6 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import ImageConverter from '../../components/converters/ImageConverter.tsx';
+import { PostHogBoundary } from '../../components/PostHogBoundary.tsx';
 import '../../styles/global.css';
 
 // Pre-render all dynamic routes at build time for SEO
@@ -89,6 +90,8 @@ const structuredData = {
   <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
   
   <main>
-    <ImageConverter sourceFormat={fromKey} targetFormat={toKey} client:load />
+    <PostHogBoundary client:load>
+      <ImageConverter sourceFormat={fromKey} targetFormat={toKey} />
+    </PostHogBoundary>
   </main>
 </Layout>

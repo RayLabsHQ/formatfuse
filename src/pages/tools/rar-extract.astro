@@ -1,11 +1,14 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import RarExtractor from '../../components/converters/RarExtractor';
+import { PostHogBoundary } from '../../components/PostHogBoundary.tsx';
 
 const title = 'Extract RAR Files Online - RAR Archive Extractor';
 const description = 'Free online RAR extractor. Extract RAR v4 and v5 archives instantly in your browser. No uploads, 100% privacy, works offline.';
 ---
 
 <Layout title={title} description={description} toolType="archive">
-  <RarExtractor client:load />
+  <PostHogBoundary client:load>
+    <RarExtractor />
+  </PostHogBoundary>
 </Layout>

@@ -1,11 +1,14 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import CreateArchiveComponent from '../../components/converters/CreateArchive';
+import { PostHogBoundary } from '../../components/PostHogBoundary.tsx';
 
 const title = 'Create Archive Online - ZIP, TAR, TAR.GZ Archive Creator';
 const description = 'Free online archive creator. Create ZIP, TAR, or TAR.GZ archives from multiple files right in your browser. No uploads required, 100% privacy.';
 ---
 
 <Layout title={title} description={description} toolType="archive">
-  <CreateArchiveComponent client:load />
+  <PostHogBoundary client:load>
+    <CreateArchiveComponent />
+  </PostHogBoundary>
 </Layout>

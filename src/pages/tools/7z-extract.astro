@@ -1,11 +1,14 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import SevenZipExtractor from '../../components/converters/SevenZipExtractor';
+import { PostHogBoundary } from '../../components/PostHogBoundary.tsx';
 
 const title = 'Extract 7-Zip Files Online - 7Z Archive Extractor';
 const description = 'Free online 7-Zip extractor. Extract 7Z archives with high compression instantly in your browser. No uploads, 100% privacy, works offline.';
 ---
 
 <Layout title={title} description={description} toolType="archive">
-  <SevenZipExtractor client:load />
+  <PostHogBoundary client:load>
+    <SevenZipExtractor />
+  </PostHogBoundary>
 </Layout>

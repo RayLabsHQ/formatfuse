@@ -1,8 +1,11 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import PdfCompress from "../../components/converters/PdfCompress";
+import { PostHogBoundary } from "../../components/PostHogBoundary.tsx";
 ---
 
 <Layout title="Compress PDF - Reduce PDF File Size | FormatFuse" description="Compress PDF files to reduce their size while maintaining quality. Smart compression with customizable settings for the perfect balance.">
-  <PdfCompress client:load />
+  <PostHogBoundary client:load>
+    <PdfCompress />
+  </PostHogBoundary>
 </Layout>

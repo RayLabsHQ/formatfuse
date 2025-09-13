@@ -1,6 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import GenericArchiveExtractor from '../../components/converters/GenericArchiveExtractor';
+import { PostHogBoundary } from '../../components/PostHogBoundary.tsx';
 
 const title = 'Extract BZ2 Files Online - BZIP2 File Decompressor';
 const description = 'Free online BZ2 extractor. Decompress BZIP2 files instantly in your browser. No uploads, 100% privacy, works offline. Supports .bz2 and .tbz2 files.';
@@ -27,13 +28,14 @@ const faqs = [
 ---
 
 <Layout title={title} description={description} toolType="archive">
-  <GenericArchiveExtractor
-    client:load
-    format="bz2"
-    formatName="BZ2"
-    formatDescription="Decompress BZIP2 files with high compression ratios without uploading. Fast, secure, and runs entirely in your browser."
-    acceptedExtensions=".bz2,.tbz2,.tbz"
-    faqs={faqs}
-    
-  />
+  <PostHogBoundary client:load>
+    <GenericArchiveExtractor
+      format="bz2"
+      formatName="BZ2"
+      formatDescription="Decompress BZIP2 files with high compression ratios without uploading. Fast, secure, and runs entirely in your browser."
+      acceptedExtensions=".bz2,.tbz2,.tbz"
+      faqs={faqs}
+      
+    />
+  </PostHogBoundary>
 </Layout>
