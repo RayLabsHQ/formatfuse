@@ -181,7 +181,7 @@ To get readable stack traces in PostHog from Cloudflare Pages builds, upload sou
     - `curl --proto '=https' --tlsv1.2 -LsSf https://github.com/PostHog/posthog/releases/latest/download/posthog-cli-installer.sh | sh && source $HOME/.posthog/env && pnpm build && pnpm run postbuild:posthog`
   - Option B (call the installed binary directly, no PATH changes):
     - `curl --proto '=https' --tlsv1.2 -LsSf https://github.com/PostHog/posthog/releases/latest/download/posthog-cli-installer.sh | sh && pnpm build && pnpm run postbuild:posthog`
-    - The package scripts are configured to call `$HOME/.posthog/posthog-cli` directly.
+    - The package scripts are configured to call `$HOME/.posthog/posthog-cli` directly and run a prepare step to fix pdf.worker sourcemap references before injection.
 
 - Output directory: `dist`
 
