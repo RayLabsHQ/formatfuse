@@ -1,5 +1,5 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import PostHogLayout from '../layouts/PostHogLayout.astro';
 import GridBackground from '../components/GridBackground.astro';
 import Hero from '../components/Hero.tsx';
 import ToolGrid from '../components/ToolGrid.tsx';
@@ -11,15 +11,11 @@ const description = "Convert PDF, images, documents, and more with FormatFuse. F
 const keywords = "file converter, online converter, pdf converter, image converter, document converter, free converter, privacy-first, browser-based, no upload, batch conversion, formatfuse";
 ---
 
-<Layout 
-  title={title}
-  description={description}
-  keywords={keywords}
->
+<PostHogLayout>
   <main class="relative">
     <GridBackground />    
     <Hero client:load />
     <ToolGrid client:load />
     <Stats client:load />
   </main>
-</Layout>
+</PostHogLayout>
