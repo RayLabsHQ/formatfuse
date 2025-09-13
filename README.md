@@ -167,6 +167,32 @@ The project uses oklch color space for better color consistency:
 - [CLAUDE.md](CLAUDE.md) - Development guidelines and project-specific instructions
 - [Future Roadmap](docs/FUTURE-ROADMAP.md) - Planned features and improvements
 
+## Cloudflare Pages (PostHog Error Tracking)
+
+To get readable stack traces in PostHog from Cloudflare Pages builds, upload source maps during the Pages build.
+
+- Environment variables (Project → Settings → Environment variables):
+  - `POSTHOG_CLI_ENV_ID` – your PostHog project ID
+  - `POSTHOG_CLI_TOKEN` – personal API key with error tracking write scope
+  - Optional: `POSTHOG_CLI_HOST` – `https://eu.posthog.com` (EU region)
+
+- Build command (Project → Settings → Build):
+  - `curl --proto '=https' --tlsv1.2 -LsSf https://github.com/PostHog/posthog/releases/latest/download/posthog-cli-installer.sh | sh && pnpm build && pnpm run postbuild:posthog`
+
+- Output directory: `dist`
+
+- What the scripts do:
+  - `pnpm run postbuild:posthog:inject` → injects PostHog chunk metadata into `dist/_astro`
+  - `pnpm run postbuild:posthog:upload` → uploads the modified assets and deletes `.map` files locally
+
+- CSP reminder:
+  - Ensure `connect-src` allows `https://eu.i.posthog.com https://eu-assets.i.posthog.com https://*.posthog.com` and `https://scripts.simpleanalyticscdn.com` if you use Simple Analytics.
+  - This repo sets CSP via the main layout; if you also set headers in Cloudflare, keep them consistent.
+
+- Verify:
+  - Trigger an error in production (e.g., `throw new Error('PostHog test')` in console) and check Network for requests to `https://eu.i.posthog.com/capture/`.
+  - In PostHog’s Error Tracking, confirm events and readable stack traces.
+
 ## Contributing
 
 Contributions are welcome! Please read our [Design Guidelines](docs/DESIGN-GUIDELINES.md) before implementing new features to ensure consistency.

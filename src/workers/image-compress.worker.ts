@@ -27,32 +27,45 @@ export interface CompressResult {
 }
 
 class ImageCompressWorker {
+  private async decodeViaCanvas(blob: Blob): Promise<ImageData> {
+    if (typeof OffscreenCanvas === "undefined") {
+      throw new Error("Canvas decode unavailable in this environment");
+    }
+    const img = await createImageBitmap(blob);
+    const canvas = new OffscreenCanvas(img.width, img.height);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Could not get canvas context");
+    ctx.drawImage(img, 0, 0);
+    return ctx.getImageData(0, 0, img.width, img.height);
+  }
+
   private async decodeImage(blob: Blob): Promise<ImageData> {
     const arrayBuffer = await blob.arrayBuffer();
-    const type = blob.type.toLowerCase();
+    const type = (blob.type || "").toLowerCase();
 
-    if (type.includes("jpeg") || type.includes("jpg")) {
-      return await decodeJpeg(new Uint8Array(arrayBuffer));
-    } else if (type.includes("png")) {
-      return await decodePng(new Uint8Array(arrayBuffer));
-    } else if (type.includes("webp")) {
-      return await decodeWebp(new Uint8Array(arrayBuffer));
-    } else if (type.includes("avif")) {
-      return await decodeAvif(new Uint8Array(arrayBuffer));
+    // Try format-specific decoders first with graceful fallback
+    try {
+      if (type.includes("jpeg") || type.includes("jpg")) {
+        return await decodeJpeg(new Uint8Array(arrayBuffer));
+      } else if (type.includes("png")) {
+        return await decodePng(new Uint8Array(arrayBuffer));
+      } else if (type.includes("webp")) {
+        return await decodeWebp(new Uint8Array(arrayBuffer));
+      } else if (type.includes("avif")) {
+        return await decodeAvif(new Uint8Array(arrayBuffer));
+      }
+    } catch (e) {
+      // Some decoders can throw for uncommon bit depths/interlace/chunks.
+      // Fallback to browser decode pipeline via canvas.
+      try {
+        return await this.decodeViaCanvas(blob);
+      } catch (_) {
+        throw e; // rethrow original if fallback also fails
+      }
     }
 
-    // For other formats, try using OffscreenCanvas
-    if (typeof OffscreenCanvas !== "undefined") {
-      const img = await createImageBitmap(blob);
-      const canvas = new OffscreenCanvas(img.width, img.height);
-      const ctx = canvas.getContext("2d");
-      if (!ctx) throw new Error("Could not get canvas context");
-
-      ctx.drawImage(img, 0, 0);
-      return ctx.getImageData(0, 0, img.width, img.height);
-    }
-
-    throw new Error("Unsupported image format");
+    // Unknown/empty type: attempt browser decode as a last resort
+    return this.decodeViaCanvas(blob);
   }
 
   private async resizeIfNeeded(

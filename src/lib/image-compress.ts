@@ -1,4 +1,5 @@
 import * as Comlink from "comlink";
+import { captureError } from "./posthog";
 import type {
   CompressOptions,
   CompressResult,
@@ -13,6 +14,28 @@ export class ImageCompressor {
       new URL("../workers/image-compress.worker.ts", import.meta.url),
       { type: "module" },
     );
+
+    // Surface low-level worker errors to PostHog and console
+    this.worker.addEventListener("error", (e: ErrorEvent) => {
+      console.error("ImageCompress worker error:", e.message, e);
+      try {
+        captureError(e.error || e.message, {
+          source: "ImageCompressor.worker.error",
+          filename: (e as any).filename,
+          lineno: (e as any).lineno,
+          colno: (e as any).colno,
+        });
+      } catch (_) {}
+    });
+
+    this.worker.addEventListener("messageerror", (e: MessageEvent) => {
+      console.error("ImageCompress worker messageerror:", e);
+      try {
+        captureError("Worker messageerror", {
+          source: "ImageCompressor.worker.messageerror",
+        });
+      } catch (_) {}
+    });
   }
 
   private async ensureWorkerReady() {

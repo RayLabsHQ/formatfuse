@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { ImageCompressor } from "../lib/image-compress";
 import type { CompressOptions, CompressResult } from "../lib/image-compress";
+import { captureError } from "../lib/posthog";
 
 export interface UseImageCompressResult {
   compress: (
@@ -72,6 +73,15 @@ export function useImageCompress(): UseImageCompressResult {
           err instanceof Error ? err.message : "Failed to compress image";
         setError(message);
         console.error("Compress error:", err);
+        try {
+          const mime = (file as File).type || (file instanceof Blob ? file.type : undefined);
+          captureError(err as unknown, {
+            source: "useImageCompress.compress",
+            options,
+            fileType: mime,
+            fileSize: (file as any)?.size,
+          });
+        } catch (_) {}
         return null;
       } finally {
         setIsCompressing(false);
@@ -122,6 +132,15 @@ export function useImageCompress(): UseImageCompressResult {
           err instanceof Error ? err.message : "Failed to compress images";
         setError(message);
         console.error("Batch compress error:", err);
+        try {
+          const types = files.map((f) => (f as File).type || (f as Blob).type);
+          captureError(err as unknown, {
+            source: "useImageCompress.compressBatch",
+            options,
+            fileTypes: types,
+            fileCount: files.length,
+          });
+        } catch (_) {}
         return [];
       } finally {
         setIsCompressing(false);

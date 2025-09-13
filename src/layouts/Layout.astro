@@ -8,6 +8,7 @@ import { PwaUpdatePrompt } from '../components/PwaUpdatePrompt.tsx';
 import { PwaInstallPrompt } from '../components/PwaInstallPrompt.tsx';
 import { getImagePath } from 'astro-opengraph-images';
 import PostHog from '../components/posthog.astro';
+import GlobalErrorCapture from '../components/GlobalErrorCapture.astro';
 
 export interface Props {
   title: string;
@@ -115,6 +116,8 @@ const finalOgImage = ogImage || generatedOgImageUrl;
 
     <!-- PostHog -->
     <PostHog />
+    <!-- Safety net for global errors when autocapture is disabled -->
+    <GlobalErrorCapture />
   </head>
   <body class="min-h-screen antialiased flex flex-col">
     <Navigation client:load />

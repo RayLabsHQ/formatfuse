@@ -1,0 +1,57 @@
+---
+---
+<script is:inline>
+  // Minimal global error capture as a safety net when PostHog project autocapture is off.
+  (function () {
+    function normalize(err) {
+      try {
+        if (err && err.name && err.message) {
+          return { name: err.name, message: err.message, stack: err.stack };
+        }
+        return { message: String(err) };
+      } catch (_) {
+        return { message: 'Unknown error' };
+      }
+    }
+
+    function send(eventName, payload) {
+      try {
+        var ph = window.posthog;
+        if (ph && typeof ph.captureException === 'function' && payload.originalError) {
+          ph.captureException(payload.originalError, payload);
+        } else if (ph && typeof ph.capture === 'function') {
+          ph.capture('$exception', payload);
+        }
+      } catch (_) {}
+    }
+
+    window.addEventListener('error', function (e) {
+      var info = normalize(e.error || e.message);
+      send('$exception', {
+        $exception_message: info.message,
+        $exception_type: info.name,
+        $exception_stack_trace: info.stack,
+        source: 'window.onerror',
+        filename: e.filename,
+        lineno: e.lineno,
+        colno: e.colno,
+        url: location.href,
+        originalError: e.error || null,
+      });
+    });
+
+    window.addEventListener('unhandledrejection', function (e) {
+      var reason = e.reason || e.detail;
+      var info = normalize(reason);
+      send('$exception', {
+        $exception_message: info.message,
+        $exception_type: info.name,
+        $exception_stack_trace: info.stack,
+        source: 'unhandledrejection',
+        url: location.href,
+        originalError: reason || null,
+      });
+    });
+  })();
+</script>
+
