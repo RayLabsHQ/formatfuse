@@ -1,5 +1,6 @@
 import React, { Component, type ReactNode } from "react";
 import { AlertCircle } from "lucide-react";
+import { captureError } from "../lib/posthog";
 
 interface Props {
   children: ReactNode;
@@ -23,6 +24,16 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error("ErrorBoundary caught an error:", error, errorInfo);
+    // Report to PostHog if available
+    try {
+      captureError(error, {
+        componentStack: errorInfo.componentStack,
+        location: typeof window !== "undefined" ? window.location.href : undefined,
+        source: "ReactErrorBoundary",
+      });
+    } catch (_) {
+      // no-op
+    }
   }
 
   render() {
