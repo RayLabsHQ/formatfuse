@@ -133,7 +133,8 @@ export default defineConfig({
         categories: ['productivity', 'utilities']
       },
       workbox: {
-        navigateFallback: '/offline',
+        // Use the actual offline HTML file shipped in /public
+        navigateFallback: '/offline.html',
         globPatterns: ['**/*.{css,js,html,svg,png,ico,txt,woff,woff2}'],
         // Exclude WASM files from precaching, they'll be cached at runtime
         globIgnores: ['**/*.wasm'],
@@ -210,8 +211,9 @@ export default defineConfig({
     },
     server: {
       headers: {
+        // Keep dev CSP aligned with meta tag in Layout
         "Content-Security-Policy":
-          "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://scripts.simpleanalyticscdn.com; connect-src 'self' https://queue.simpleanalyticscdn.com; img-src 'self' data: blob: https://queue.simpleanalyticscdn.com https://simpleanalyticsbadges.com; style-src 'self' 'unsafe-inline'; worker-src 'self' blob:; font-src 'self' https://fonts.gstatic.com; frame-src 'self';",
+          "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://scripts.simpleanalyticscdn.com https://eu.i.posthog.com; connect-src 'self' https://queue.simpleanalyticscdn.com https://eu.i.posthog.com; img-src 'self' data: blob: https://queue.simpleanalyticscdn.com https://simpleanalyticsbadges.com https://eu.i.posthog.com; style-src 'self' 'unsafe-inline'; worker-src 'self' blob:; font-src 'self' https://fonts.gstatic.com; frame-src 'self';",
       },
     },
     build: {
