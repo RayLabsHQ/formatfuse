@@ -91,6 +91,78 @@ const faqs: FAQItem[] = [
   },
 ];
 
+const FORMAT_DISPLAY_NAMES: Record<string, string> = {
+  hex: "HEX",
+  rgb: "RGB",
+  hsl: "HSL",
+  hsv: "HSV",
+  hwb: "HWB",
+  lab: "LAB",
+  lch: "LCH",
+  oklab: "OKLab",
+  oklch: "OKLCH",
+  p3: "Display P3",
+  rec2020: "Rec. 2020",
+  prophoto: "ProPhoto RGB",
+  a98rgb: "Adobe RGB",
+  xyz: "XYZ (D65)",
+  xyzD50: "XYZ (D50)",
+};
+
+const FORMAT_ALIASES: Record<string, keyof typeof FORMAT_DISPLAY_NAMES> = {
+  "xyz-d50": "xyzD50",
+};
+
+const MARQUEE_LENGTH_THRESHOLD = 28;
+const MARQUEE_SEPARATOR = " | ";
+
+const resolveFormatKey = (format?: string | null): string | undefined => {
+  if (!format) {
+    return undefined;
+  }
+
+  if (FORMAT_DISPLAY_NAMES[format]) {
+    return format;
+  }
+
+  if (FORMAT_ALIASES[format]) {
+    return FORMAT_ALIASES[format];
+  }
+
+  return format;
+};
+
+const getDisplayNameForFormat = (format?: string | null): string => {
+  const key = resolveFormatKey(format);
+  if (!key) {
+    return "Value";
+  }
+
+  return FORMAT_DISPLAY_NAMES[key] ?? key.toUpperCase();
+};
+
+const getColorValueForFormat = (
+  values: ColorValues,
+  format?: string | null,
+): string | undefined => {
+  const key = resolveFormatKey(format);
+  if (!key) {
+    return undefined;
+  }
+
+  return values[key as keyof ColorValues];
+};
+
+const shouldAnimateValue = (value?: string | null): boolean => {
+  if (!value) return false;
+
+  if (value.includes("…") || value.includes("...")) {
+    return true;
+  }
+
+  return value.length >= MARQUEE_LENGTH_THRESHOLD;
+};
+
 interface ColorValues {
   hex: string;
   rgb: string;
@@ -593,28 +665,14 @@ export function ColorConverter({
   // Auto-copy target format when color changes
   useEffect(() => {
     if (autoCopy && targetFormat && colorValues && inputValue) {
-      const targetValue = colorValues[targetFormat === 'xyz-d50' ? 'xyzD50' : targetFormat as keyof ColorValues];
+      const targetValue = getColorValueForFormat(colorValues, targetFormat);
       if (targetValue && targetValue !== lastCopiedValue.current) {
         lastCopiedValue.current = targetValue;
         navigator.clipboard.writeText(targetValue);
-        const formatName = targetFormat === 'hex' ? 'HEX' :
-                          targetFormat === 'rgb' ? 'RGB' :
-                          targetFormat === 'hsl' ? 'HSL' :
-                          targetFormat === 'hsv' ? 'HSV' :
-                          targetFormat === 'hwb' ? 'HWB' :
-                          targetFormat === 'lab' ? 'LAB' :
-                          targetFormat === 'lch' ? 'LCH' :
-                          targetFormat === 'oklab' ? 'OKLab' :
-                          targetFormat === 'oklch' ? 'OKLCH' :
-                          targetFormat === 'p3' ? 'Display P3' :
-                          targetFormat === 'rec2020' ? 'Rec. 2020' :
-                          targetFormat === 'prophoto' ? 'ProPhoto RGB' :
-                          targetFormat === 'a98rgb' ? 'Adobe RGB' :
-                          targetFormat === 'xyz' ? 'XYZ (D65)' :
-                          targetFormat === 'xyz-d50' ? 'XYZ (D50)' : 
-                          (targetFormat as string).toUpperCase();
+        const formatName = getDisplayNameForFormat(targetFormat);
         toast.success(`Copied ${formatName} value to clipboard!`);
-        setCopiedFormat(targetFormat);
+        const resolvedFormat = resolveFormatKey(targetFormat);
+        setCopiedFormat(resolvedFormat ?? targetFormat);
         setTimeout(() => setCopiedFormat(null), 2000);
       }
     }
@@ -632,9 +690,11 @@ export function ColorConverter({
     }
     
     navigator.clipboard.writeText(text);
-    toast.success("Copied to clipboard!");
+    const label = format ? getDisplayNameForFormat(format) : null;
+    toast.success(label ? `Copied ${label} to clipboard!` : "Copied to clipboard!");
     if (format) {
-      setCopiedFormat(format);
+      const resolvedFormat = resolveFormatKey(format);
+      setCopiedFormat(resolvedFormat ?? format);
       setTimeout(() => setCopiedFormat(null), 2000);
     }
   };
@@ -787,6 +847,56 @@ export function ColorConverter({
     return labels[format] || format.toUpperCase();
   };
 
+  const normalizedTargetFormat = resolveFormatKey(targetFormat);
+  const normalizedCopiedFormat = resolveFormatKey(copiedFormat);
+  const targetFormatValue =
+    colorValues && targetFormat
+      ? getColorValueForFormat(colorValues, targetFormat)
+      : undefined;
+
+  const renderColorValue = (
+    value?: string,
+    options: {
+      containerClassName?: string;
+      spanClassName?: string;
+    } = {},
+  ) => {
+    if (!value) {
+      return (
+        <div className={cn("relative overflow-hidden", options.containerClassName)}>
+          <span
+            className={cn(
+              "block font-mono text-sm text-muted-foreground",
+              options.spanClassName,
+            )}
+          >
+            --
+          </span>
+        </div>
+      );
+    }
+
+    const animate = shouldAnimateValue(value);
+    const displayValue = animate
+      ? `${value}${MARQUEE_SEPARATOR}${value}`
+      : value;
+
+    return (
+      <div className={cn("relative overflow-hidden max-w-full", options.containerClassName)}>
+        <span
+          className={cn(
+            "block font-mono text-sm",
+            animate ? "marquee-hover pr-8" : "truncate",
+            options.spanClassName,
+          )}
+          aria-label={value}
+        >
+          {displayValue}
+        </span>
+      </div>
+    );
+  };
+
   return (
     <div className="w-full flex flex-col flex-1 min-h-0">
       {/* Gradient Blobs - Hidden on mobile */}
@@ -871,8 +981,8 @@ export function ColorConverter({
                 {colorValues && targetFormat && (
                   <div className="lg:flex-1 animate-fade-in">
                     <Card 
-                      className="border-primary/50 bg-primary/5 h-14 flex items-center cursor-pointer hover:bg-primary/10 transition-colors"
-                      onClick={() => handleCopy(colorValues[targetFormat === 'xyz-d50' ? 'xyzD50' : targetFormat as keyof ColorValues], targetFormat)}
+                      className="border-primary/50 bg-primary/5 h-14 flex items-center cursor-pointer hover:bg-primary/10 transition-colors group"
+                      onClick={() => targetFormatValue && handleCopy(targetFormatValue, targetFormat)}
                     >
                       <CardContent className="p-0 px-2 w-full">
                         <div className="flex items-center justify-between">
@@ -884,29 +994,15 @@ export function ColorConverter({
                               }}
                             />
                             <Badge variant="secondary" className="text-xs flex-shrink-0">
-                              {targetFormat === 'hex' ? 'HEX' :
-                               targetFormat === 'rgb' ? 'RGB' :
-                               targetFormat === 'hsl' ? 'HSL' :
-                               targetFormat === 'hsv' ? 'HSV' :
-                               targetFormat === 'hwb' ? 'HWB' :
-                               targetFormat === 'lab' ? 'LAB' :
-                               targetFormat === 'lch' ? 'LCH' :
-                               targetFormat === 'oklab' ? 'OKLab' :
-                               targetFormat === 'oklch' ? 'OKLCH' :
-                               targetFormat === 'p3' ? 'Display P3' :
-                               targetFormat === 'rec2020' ? 'Rec. 2020' :
-                               targetFormat === 'prophoto' ? 'ProPhoto RGB' :
-                               targetFormat === 'a98rgb' ? 'Adobe RGB' :
-                               targetFormat === 'xyz' ? 'XYZ (D65)' :
-                               targetFormat === 'xyz-d50' ? 'XYZ (D50)' : 
-                               (targetFormat as string).toUpperCase()}
+                              {getDisplayNameForFormat(targetFormat)}
                             </Badge>
-                            <p className="text-sm font-mono font-semibold truncate">
-                              {colorValues[targetFormat === 'xyz-d50' ? 'xyzD50' : targetFormat as keyof ColorValues]}
-                            </p>
+                            {renderColorValue(targetFormatValue, {
+                              spanClassName: "font-semibold",
+                            })}
                           </div>
                           <div className="pr-2">
-                            {copiedFormat === targetFormat ? (
+                            {normalizedCopiedFormat && normalizedTargetFormat &&
+                            normalizedCopiedFormat === normalizedTargetFormat ? (
                               <Check className="w-4 h-4 text-primary" />
                             ) : (
                               <Copy className="w-4 h-4 text-primary" />
@@ -924,50 +1020,35 @@ export function ColorConverter({
                 <div className="mt-8 space-y-6 animate-fade-in">
                   {/* All Formats Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {Object.entries({
-                      hex: "HEX",
-                      rgb: "RGB",
-                      hsl: "HSL",
-                      hsv: "HSV",
-                      hwb: "HWB",
-                      lab: "LAB",
-                      lch: "LCH",
-                      oklab: "OKLab",
-                      oklch: "OKLCH",
-                      p3: "Display P3",
-                      rec2020: "Rec. 2020",
-                      prophoto: "ProPhoto RGB",
-                      a98rgb: "Adobe RGB",
-                      xyz: "XYZ (D65)",
-                      xyzD50: "XYZ (D50)",
-                    }).map(([key, label]) => (
-                      <button
-                        key={key}
-                        onClick={() =>
-                          handleCopy(colorValues[key as keyof ColorValues], key)
-                        }
-                        className={cn(
-                          "p-4 rounded-lg border text-left transition-all group hover:border-primary/50 hover:bg-muted/50",
-                          copiedFormat === key && "border-primary bg-primary/5",
-                        )}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="min-w-0 flex-1">
-                            <p className="text-xs text-muted-foreground mb-1">
-                              {label}
-                            </p>
-                            <p className="text-sm font-mono truncate pr-2">
-                              {colorValues[key as keyof ColorValues]}
-                            </p>
-                          </div>
-                          {copiedFormat === key ? (
-                            <Check className="w-4 h-4 text-primary flex-shrink-0" />
-                          ) : (
-                            <Copy className="w-4 h-4 text-muted-foreground group-hover:text-primary flex-shrink-0 transition-colors" />
+                    {Object.entries(FORMAT_DISPLAY_NAMES).map(([key, label]) => {
+                      const colorValue = colorValues[key as keyof ColorValues];
+                      return (
+                        <button
+                          key={key}
+                          onClick={() => handleCopy(colorValue, key)}
+                          className={cn(
+                            "p-4 rounded-lg border text-left transition-all group hover:border-primary/50 hover:bg-muted/50",
+                            copiedFormat === key && "border-primary bg-primary/5",
                           )}
-                        </div>
-                      </button>
-                    ))}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs text-muted-foreground mb-1">
+                                {label}
+                              </p>
+                              {renderColorValue(colorValue, {
+                                spanClassName: "pr-2",
+                              })}
+                            </div>
+                            {copiedFormat === key ? (
+                              <Check className="w-4 h-4 text-primary flex-shrink-0" />
+                            ) : (
+                              <Copy className="w-4 h-4 text-muted-foreground group-hover:text-primary flex-shrink-0 transition-colors" />
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               ) : (

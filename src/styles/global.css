@@ -418,6 +418,28 @@ html.theme-changing * {
   }
 }
 
+@keyframes marquee-scroll {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-hover {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  will-change: transform;
+  transform: translateX(0%);
+}
+
+.group:hover .marquee-hover,
+.group:focus-visible .marquee-hover {
+  animation: marquee-scroll 10s linear infinite;
+}
+
 .animate-fade-in {
   animation: fade-in 0.6s ease-out forwards;
 }
