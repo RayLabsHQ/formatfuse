@@ -823,7 +823,7 @@ export function ColorConverter({
                       onMouseEnter={handleInputHover}
                       placeholder={`Try: ${initialColor}, rgb(59, 130, 246), hsl(217, 91%, 60%)`}
                       className={cn(
-                        "h-14 text-lg font-mono pr-32 transition-all w-full",
+                        "h-14 text-lg font-mono pr-32 transition-all w-full placeholder:text-muted-foreground/60 dark:placeholder:text-muted-foreground/50",
                         !isValidColor &&
                           inputValue &&
                           !isConverting &&
