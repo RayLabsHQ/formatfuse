@@ -3,6 +3,7 @@ import { Upload, Info, Plus, FolderPlus } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { Button } from "./button";
 import { retrieveStoredFile } from "../../lib/file-transfer";
+import { captureError } from "../../lib/posthog";
 
 interface FileDropZoneProps {
   onFilesSelected: (files: File[]) => void;
@@ -62,16 +63,26 @@ export function FileDropZone({
 
   const handleFileSelect = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const selectedFiles = Array.from(e.target.files || []);
-      if (selectedFiles.length > 0) {
-        onFilesSelected(selectedFiles);
-      }
-      // Reset input to allow selecting the same file again
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
+      try {
+        const selectedFiles = Array.from(e.target.files || []);
+        if (selectedFiles.length > 0) {
+          onFilesSelected(selectedFiles);
+        }
+      } catch (error) {
+        captureError(error, {
+          component: "FileDropZone",
+          stage: "input-change",
+          fileCount: e.target.files?.length ?? 0,
+          accept,
+        });
+      } finally {
+        // Reset input to allow selecting the same file again
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
       }
     },
-    [onFilesSelected]
+    [onFilesSelected, accept]
   );
 
   const handleDrop = useCallback(
@@ -79,15 +90,24 @@ export function FileDropZone({
       e.preventDefault();
       e.stopPropagation();
       setIsDragging(false);
-      
+
       if (disabled) return;
-      
-      const droppedFiles = Array.from(e.dataTransfer.files);
-      if (droppedFiles.length > 0) {
-        onFilesSelected(droppedFiles);
+
+      try {
+        const droppedFiles = Array.from(e.dataTransfer.files);
+        if (droppedFiles.length > 0) {
+          onFilesSelected(droppedFiles);
+        }
+      } catch (error) {
+        captureError(error, {
+          component: "FileDropZone",
+          stage: "drop",
+          fileCount: e.dataTransfer.files?.length ?? 0,
+          accept,
+        });
       }
     },
-    [onFilesSelected, setIsDragging, disabled]
+    [onFilesSelected, setIsDragging, disabled, accept]
   );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {

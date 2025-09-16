@@ -23,6 +23,7 @@ import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { FileDropZone } from "../ui/FileDropZone";
 import { cn } from "../../lib/utils";
+import { captureError } from "../../lib/posthog";
 
 interface ExtractedFile {
   name: string;
@@ -317,6 +318,11 @@ export default function TarExtract() {
       sortEntries(files);
       setExtractedFiles(files);
     } catch (err) {
+      captureError(err, {
+        tool: "tar-extract",
+        fileName: file.name,
+        stage: "extract",
+      });
       setError(
         err instanceof Error ? err.message : "Failed to extract TAR file",
       );
@@ -369,67 +375,91 @@ export default function TarExtract() {
       files: ExtractedFile[],
       path: string,
     ): ExtractedFile | null => {
-      for (const file of files) {
-        if (file.path === path) return file;
-        if (file.children) {
-          const found = findFile(file.children, path);
+      for (const item of files) {
+        if (item.path === path) return item;
+        if (item.children) {
+          const found = findFile(item.children, path);
           if (found) return found;
         }
       }
       return null;
     };
 
-    if (selectedFiles.size === 1) {
-      const path = Array.from(selectedFiles)[0];
-      const file = findFile(extractedFiles, path);
-      if (file) {
-        downloadFile(file);
-      }
-    } else {
-      // For multiple files, we'll use JSZip to create a zip
-      const JSZip = (await import("jszip")).default;
-      const zip = new JSZip();
-
-      selectedFiles.forEach((path) => {
-        const file = findFile(extractedFiles, path);
-        if (file && file.content) {
-          zip.file(file.path, file.content);
+    try {
+      if (selectedFiles.size === 1) {
+        const path = Array.from(selectedFiles)[0];
+        const entry = findFile(extractedFiles, path);
+        if (entry) {
+          downloadFile(entry);
         }
-      });
+      } else {
+        // For multiple files, we'll use JSZip to create a zip
+        const JSZip = (await import("jszip")).default;
+        const zip = new JSZip();
 
-      const blob = await zip.generateAsync({ type: "blob" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = "selected-files.zip";
-      link.click();
-      URL.revokeObjectURL(link.href);
+        selectedFiles.forEach((path) => {
+          const entry = findFile(extractedFiles, path);
+          if (entry && entry.content) {
+            zip.file(entry.path, entry.content);
+          }
+        });
+
+        const blob = await zip.generateAsync({ type: "blob" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "selected-files.zip";
+        link.click();
+        URL.revokeObjectURL(link.href);
+      }
+    } catch (err) {
+      captureError(err, {
+        tool: "tar-extract",
+        fileName: file?.name,
+        stage: "download-selected",
+        selectionCount: selectedFiles.size,
+      });
+      setError(
+        err instanceof Error ? err.message : "Failed to download selection",
+      );
     }
-  }, [selectedFiles, extractedFiles, downloadFile]);
+  }, [selectedFiles, extractedFiles, downloadFile, file]);
 
   const downloadAll = useCallback(async () => {
     if (extractedFiles.length === 0) return;
 
-    const JSZip = (await import("jszip")).default;
-    const zip = new JSZip();
+    try {
+      const JSZip = (await import("jszip")).default;
+      const zip = new JSZip();
 
-    const addToZip = (files: ExtractedFile[]) => {
-      files.forEach((file) => {
-        if (file.isDirectory && file.children) {
-          addToZip(file.children);
-        } else if (file.content) {
-          zip.file(file.path, file.content);
-        }
+      const addToZip = (files: ExtractedFile[]) => {
+        files.forEach((entry) => {
+          if (entry.isDirectory && entry.children) {
+            addToZip(entry.children);
+          } else if (entry.content) {
+            zip.file(entry.path, entry.content);
+          }
+        });
+      };
+
+      addToZip(extractedFiles);
+
+      const blob = await zip.generateAsync({ type: "blob" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `extracted-${file?.name.replace(/\.(tar|gz|bz2)$/g, "") || "files"}.zip`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    } catch (err) {
+      captureError(err, {
+        tool: "tar-extract",
+        fileName: file?.name,
+        stage: "download-all",
+        extractedCount: extractedFiles.length,
       });
-    };
-
-    addToZip(extractedFiles);
-
-    const blob = await zip.generateAsync({ type: "blob" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `extracted-${file?.name.replace(/\.(tar|gz|bz2)$/g, "") || "files"}.zip`;
-    link.click();
-    URL.revokeObjectURL(link.href);
+      setError(
+        err instanceof Error ? err.message : "Failed to download files",
+      );
+    }
   }, [extractedFiles, file]);
 
   const formatFileSize = (bytes: number): string => {
