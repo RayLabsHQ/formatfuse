@@ -1,22 +1,39 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+
+import Color from 'colorjs.io';
 import {
-  Copy,
-  Palette,
   Check,
-  Zap,
+  Copy,
+  Loader2,
+  Palette,
   Shield,
   Sparkles,
-  Loader2,
-} from "lucide-react";
-import { toast } from "sonner";
-import Color from "colorjs.io";
-import { FAQ, type FAQItem } from "../ui/FAQ";
-import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
-import { cn } from "@/lib/utils";
-import { ToolHeader } from "../ui/ToolHeader";
+  Zap,
+} from 'lucide-react';
+import { toast } from 'sonner';
+
+import { Badge } from '@/components/ui/badge';
+import {
+  Card,
+  CardContent,
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
+
+import {
+  FAQ,
+  type FAQItem,
+} from '../ui/FAQ';
+import {
+  type RelatedTool,
+  RelatedTools,
+} from '../ui/RelatedTools';
+import { ToolHeader } from '../ui/ToolHeader';
 
 type ColorFormat =
   | "hex"
@@ -163,6 +180,166 @@ const shouldAnimateValue = (value?: string | null): boolean => {
   return value.length >= MARQUEE_LENGTH_THRESHOLD;
 };
 
+export const sanitizeColorInput = (value: string): string => {
+  if (!value) {
+    return value;
+  }
+
+  let cleaned = value
+    // Normalize unicode minus signs and smart quotes
+    .replace(/[\u2212\u2013\u2014]/g, "-")
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .trim();
+
+  // Strip surrounding quotes/backticks if present
+  cleaned = cleaned.replace(/^[`'\"]+/, "").replace(/[`'\"]+$/, "");
+
+  // Remove common CSS property prefixes like "color:" or "background-color:"
+  const colonIndex = cleaned.indexOf(":");
+  if (colonIndex !== -1 && !cleaned.slice(0, colonIndex).includes("(")) {
+    cleaned = cleaned.slice(colonIndex + 1);
+  }
+
+  cleaned = cleaned
+    // Drop !important and trailing punctuation
+    .replace(/!important$/i, "")
+    .replace(/[;,]+$/g, "")
+    .replace(/;/g, " ")
+    // Collapse repeated whitespace and tidy parentheses/comma spacing
+    .replace(/\s+/g, " ")
+    .replace(/\(\s+/g, "(")
+    .replace(/\s+\)/g, ")")
+    .replace(/\s*,\s*/g, ", ")
+    .trim();
+
+  // Remove spaces between a sign and numeric part ("- .5" -> "-.5")
+  cleaned = cleaned.replace(/([-+])\s+(?=[\d.])/g, "$1");
+
+  // Ensure decimals have a leading zero (".5" -> "0.5", "-.5" -> "-0.5")
+  cleaned = cleaned.replace(
+    /(^|[^\d])\.(\d+)/g,
+    (_: string, prefix: string, digits: string) => `${prefix}0.${digits}`,
+  );
+
+  if (cleaned.includes("(") && !cleaned.includes(")")) {
+    cleaned = `${cleaned})`;
+  }
+
+  // If there's a CSS color function within other text, extract it
+  const functionMatch = cleaned.match(/[a-z][a-z0-9-]*\([^)]*\)/i);
+  if (functionMatch && functionMatch[0] !== cleaned) {
+    cleaned = functionMatch[0];
+  } else if (!functionMatch) {
+    // Otherwise attempt to extract a hex token
+    const hexMatch = cleaned.match(/(^|[^a-z0-9])(#?[0-9A-Fa-f]{3,8})(?![a-z0-9])/i);
+    if (hexMatch) {
+      cleaned = hexMatch[2] ?? hexMatch[0].trim();
+    }
+  }
+
+  return cleaned.trim();
+};
+
+export const detectColorFormat = (value: string): ColorFormat | null => {
+  const trimmedValue = value.trim();
+
+  // HEX format
+  if (/^#?[0-9A-Fa-f]{3,8}$/.test(trimmedValue)) {
+    return "hex";
+  }
+
+  // RGB format
+  if (
+    /^rgb\s*\(/.test(trimmedValue) ||
+    /^\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}/.test(trimmedValue)
+  ) {
+    return "rgb";
+  }
+
+  // HSL format - be more lenient with detection
+  if (/^hsl\s*\(/.test(trimmedValue)) {
+    return "hsl";
+  }
+  // Check for h,s,l pattern but avoid conflicting with RGB
+  if (/^\d{1,3}\s*,\s*\d{1,3}%?\s*,\s*\d{1,3}%?$/.test(trimmedValue)) {
+    // If percentages are present, it's definitely HSL
+    if (trimmedValue.includes("%")) {
+      return "hsl";
+    }
+    // If all values are <= 100, it could be HSL (saturation and lightness are percentages)
+    const parts = trimmedValue.split(",").map((s) => parseInt(s.trim()));
+    if (parts.length === 3 && parts[1] <= 100 && parts[2] <= 100) {
+      // If first value > 255, it's likely HSL (hue can be 0-360)
+      if (parts[0] > 255) {
+        return "hsl";
+      }
+    }
+  }
+
+  // HSV format
+  if (/^hsv\s*\(/.test(trimmedValue)) {
+    return "hsv";
+  }
+
+  // HWB format
+  if (/^hwb\s*\(/.test(trimmedValue)) {
+    return "hwb";
+  }
+
+  // LAB format
+  if (
+    /^lab\s*\(/.test(trimmedValue) ||
+    /^-?\d+(?:\.\d+)?\s*,\s*-?\d+(?:\.\d+)?\s*,\s*-?\d+(?:\.\d+)?$/.test(
+      trimmedValue,
+    )
+  ) {
+    return "lab";
+  }
+
+  // LCH format
+  if (/^lch\s*\(/.test(trimmedValue)) {
+    return "lch";
+  }
+
+  // OKLab format
+  if (/^oklab\s*\(/.test(trimmedValue)) {
+    return "oklab";
+  }
+
+  // OKLCH format
+  if (/^oklch\s*\(/.test(trimmedValue)) {
+    return "oklch";
+  }
+
+  // Display P3 format
+  if (/^color\s*\(\s*display-p3|^display-p3|^p3/i.test(trimmedValue)) {
+    return "p3";
+  }
+
+  // Rec. 2020 format
+  if (/^color\s*\(\s*rec2020|^rec2020/i.test(trimmedValue)) {
+    return "rec2020";
+  }
+
+  // ProPhoto RGB format
+  if (/^color\s*\(\s*prophoto|^prophoto/i.test(trimmedValue)) {
+    return "prophoto";
+  }
+
+  // Adobe RGB format
+  if (/^color\s*\(\s*a98-rgb|^a98-rgb/i.test(trimmedValue)) {
+    return "a98rgb";
+  }
+
+  // XYZ format
+  if (/^color\s*\(\s*xyz(?:-d50)?|^xyz/i.test(trimmedValue)) {
+    return trimmedValue.toLowerCase().includes("d50") ? "xyz-d50" : "xyz";
+  }
+
+  return null;
+};
+
 interface ColorValues {
   hex: string;
   rgb: string;
@@ -219,6 +396,7 @@ export function ColorConverter({
   const [isValidColor, setIsValidColor] = useState(true);
   const [isConverting, setIsConverting] = useState(false);
   const [hasAutoPasted, setHasAutoPasted] = useState(false);
+  const [sanitizedDisplayValue, setSanitizedDisplayValue] = useState<string | null>(null);
   const lastCopiedValue = useRef<string>("");
 
   // Debounce the input value for auto-conversion
@@ -611,16 +789,29 @@ export function ColorConverter({
   };
 
   const handleConvert = useCallback((value: string) => {
-    if (!value.trim()) {
+    const trimmedValue = value.trim();
+    const sanitizedValue = sanitizeColorInput(value);
+
+    const normalizeForComparison = (input: string) =>
+      input.replace(/\s+/g, " ").replace(/\s*,\s*/g, ",").trim();
+    const sanitizedChanged =
+      sanitizedValue.length > 0 &&
+      trimmedValue.length > 0 &&
+      normalizeForComparison(sanitizedValue) !== normalizeForComparison(trimmedValue);
+
+    setSanitizedDisplayValue(sanitizedChanged ? sanitizedValue : null);
+
+    if (!sanitizedValue) {
       setIsValidColor(false);
       setColorValues(null);
+      setSanitizedDisplayValue(null);
       return;
     }
 
     setIsConverting(true);
 
     // Auto-detect format
-    const format = detectColorFormat(value);
+    const format = detectColorFormat(sanitizedValue);
     if (!format) {
       setIsValidColor(false);
       setColorValues(null);
@@ -631,7 +822,7 @@ export function ColorConverter({
 
     setDetectedFormat(format);
 
-    const color = parseInput(value, format);
+    const color = parseInput(sanitizedValue, format);
     if (color) {
       setIsValidColor(true);
       const values: ColorValues = {
@@ -657,6 +848,9 @@ export function ColorConverter({
     } else {
       setIsValidColor(false);
       setColorValues(null);
+      if (!sanitizedChanged) {
+        setSanitizedDisplayValue(null);
+      }
     }
 
     setIsConverting(false);
@@ -714,116 +908,18 @@ export function ColorConverter({
       if (clipboardText) {
         const trimmedText = clipboardText.trim();
         // Check if it's a valid color format
-        const format = detectColorFormat(trimmedText);
+        const sanitizedClipboardText = sanitizeColorInput(trimmedText);
+        const format = detectColorFormat(sanitizedClipboardText);
         if (format) {
-          setInputValue(trimmedText);
+          setInputValue(sanitizedClipboardText);
           setHasAutoPasted(true);
-          handleConvert(trimmedText);
+          handleConvert(sanitizedClipboardText);
         }
       }
     } catch (err) {
       // Clipboard access denied or not available
       console.log("Clipboard access denied");
     }
-  };
-
-  const detectColorFormat = (value: string): ColorFormat | null => {
-    value = value.trim();
-
-    // HEX format
-    if (/^#?[0-9A-Fa-f]{3,8}$/.test(value)) {
-      return "hex";
-    }
-
-    // RGB format
-    if (
-      /^rgb\s*\(/.test(value) ||
-      /^\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}/.test(value)
-    ) {
-      return "rgb";
-    }
-
-    // HSL format - be more lenient with detection
-    if (/^hsl\s*\(/.test(value)) {
-      return "hsl";
-    }
-    // Check for h,s,l pattern but avoid conflicting with RGB
-    if (/^\d{1,3}\s*,\s*\d{1,3}%?\s*,\s*\d{1,3}%?$/.test(value)) {
-      // If percentages are present, it's definitely HSL
-      if (value.includes("%")) {
-        return "hsl";
-      }
-      // If all values are <= 100, it could be HSL (saturation and lightness are percentages)
-      const parts = value.split(",").map((s) => parseInt(s.trim()));
-      if (parts.length === 3 && parts[1] <= 100 && parts[2] <= 100) {
-        // If first value > 255, it's likely HSL (hue can be 0-360)
-        if (parts[0] > 255) {
-          return "hsl";
-        }
-      }
-    }
-
-    // HSV format
-    if (/^hsv\s*\(/.test(value)) {
-      return "hsv";
-    }
-
-    // HWB format
-    if (/^hwb\s*\(/.test(value)) {
-      return "hwb";
-    }
-
-    // LAB format
-    if (
-      /^lab\s*\(/.test(value) ||
-      /^-?\d+(?:\.\d+)?\s*,\s*-?\d+(?:\.\d+)?\s*,\s*-?\d+(?:\.\d+)?$/.test(
-        value,
-      )
-    ) {
-      return "lab";
-    }
-
-    // LCH format
-    if (/^lch\s*\(/.test(value)) {
-      return "lch";
-    }
-
-    // OKLab format
-    if (/^oklab\s*\(/.test(value)) {
-      return "oklab";
-    }
-
-    // OKLCH format
-    if (/^oklch\s*\(/.test(value)) {
-      return "oklch";
-    }
-
-    // Display P3 format
-    if (/^color\s*\(\s*display-p3|^display-p3|^p3/i.test(value)) {
-      return "p3";
-    }
-
-    // Rec. 2020 format
-    if (/^color\s*\(\s*rec2020|^rec2020/i.test(value)) {
-      return "rec2020";
-    }
-
-    // ProPhoto RGB format
-    if (/^color\s*\(\s*prophoto|^prophoto/i.test(value)) {
-      return "prophoto";
-    }
-
-    // Adobe RGB format
-    if (/^color\s*\(\s*a98-rgb|^a98-rgb/i.test(value)) {
-      return "a98rgb";
-    }
-
-    // XYZ format
-    if (/^color\s*\(\s*xyz(?:-d50)?|^xyz/i.test(value)) {
-      return value.toLowerCase().includes("d50") ? "xyz-d50" : "xyz";
-    }
-
-    return null;
   };
 
   const getFormatLabel = (format: ColorFormat): string => {
@@ -968,6 +1064,13 @@ export function ColorConverter({
                     <p className="text-sm text-destructive mt-2">
                       Invalid color format. Try HEX, RGB, HSL, or other supported
                       formats.
+                    </p>
+                  )}
+                  {sanitizedDisplayValue && (
+                    <p className="text-xs text-muted-foreground mt-2">
+                      We cleaned the input to interpret it as
+                      {" "}
+                      <span className="font-mono break-all">{sanitizedDisplayValue}</span>.
                     </p>
                   )}
                   {!inputValue && !hasAutoPasted && (
