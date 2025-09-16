@@ -13,7 +13,6 @@ export class PdfToMarkdownWorker {
     options: {
       includePageBreaks?: boolean;
       preserveFormatting?: boolean;
-      extractImages?: boolean;
     } = {},
     onProgress?: (progress: number) => void,
   ): Promise<string> {
@@ -43,9 +42,14 @@ export class PdfToMarkdownWorker {
 
         // Process text items
         let pageText = "";
-        let lastY = null;
-        let lastFontSize = 0;
-        const lines: Array<{ text: string; y: number; fontSize: number }> = [];
+        let lastY: number | null = null;
+        const lines: Array<{
+          text: string;
+          y: number;
+          fontSize: number;
+          lastX: number;
+          lastXEnd: number;
+        }> = [];
 
         // Group text items by line
         for (const item of textContent.items) {
@@ -53,19 +57,34 @@ export class PdfToMarkdownWorker {
             const transform = item.transform;
             const y = transform[5];
             const fontSize = Math.abs(transform[0]);
+            const x = transform[4];
+            const itemWidth = typeof (item as any).width === "number" ? (item as any).width : 0;
 
             // Check if this is a new line
             if (lastY === null || Math.abs(y - lastY) > 2) {
-              lines.push({ text: item.str, y, fontSize });
+              lines.push({
+                text: item.str,
+                y,
+                fontSize,
+                lastX: x,
+                lastXEnd: x + itemWidth,
+              });
               lastY = y;
             } else {
               // Append to the last line
               if (lines.length > 0) {
-                lines[lines.length - 1].text += " " + item.str;
-                lines[lines.length - 1].fontSize = Math.max(
-                  lines[lines.length - 1].fontSize,
-                  fontSize,
-                );
+                const currentLine = lines[lines.length - 1];
+                const gap = x - currentLine.lastXEnd;
+                const spaceThreshold = Math.max(currentLine.fontSize, fontSize) * 0.15;
+
+                if (gap > spaceThreshold) {
+                  currentLine.text += " ";
+                }
+
+                currentLine.text += item.str;
+                currentLine.fontSize = Math.max(currentLine.fontSize, fontSize);
+                currentLine.lastX = x;
+                currentLine.lastXEnd = x + itemWidth;
               }
             }
           }
@@ -75,7 +94,6 @@ export class PdfToMarkdownWorker {
         lines.sort((a, b) => b.y - a.y);
 
         // Convert lines to markdown
-        let previousFontSize = 0;
         for (let i = 0; i < lines.length; i++) {
           const line = lines[i];
           const nextLine = lines[i + 1];
@@ -138,7 +156,6 @@ export class PdfToMarkdownWorker {
             }
           }
 
-          previousFontSize = line.fontSize;
         }
 
         // Clean up extra whitespace

@@ -33,6 +33,7 @@ import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { ToolHeader } from "../ui/ToolHeader";
 import { cn } from "../../lib/utils";
+import { captureError } from "../../lib/posthog";
 
 const { saveAs } = FileSaver;
 
@@ -248,7 +249,6 @@ export const PdfToMarkdown: React.FC = () => {
         {
           includePageBreaks,
           preserveFormatting,
-          extractImages: false,
         },
         Comlink.proxy((progress) => {
           // Progress callback if needed
@@ -259,6 +259,11 @@ export const PdfToMarkdown: React.FC = () => {
       setActiveTab("output");
       toast.success("Conversion completed successfully");
     } catch (err) {
+      captureError(err, {
+        tool: "pdf-to-markdown",
+        action: "convert",
+        fileName: pdfFile?.name,
+      });
       setError(err instanceof Error ? err : new Error("Conversion failed"));
       toast.error("Failed to convert PDF");
     } finally {

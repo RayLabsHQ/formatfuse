@@ -33,6 +33,7 @@ import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { ToolHeader } from "../ui/ToolHeader";
 import { cn } from "../../lib/utils";
+import { captureError } from "../../lib/posthog";
 
 const { saveAs } = FileSaver;
 
@@ -143,6 +144,8 @@ const faqs: FAQItem[] = [
 
 // Theme presets removed - can be added back when implementing theme selection
 
+type FontOption = "NotoSans" | "Helvetica" | "Times" | "Courier";
+
 export const MarkdownToPdf: React.FC = () => {
   const [markdownContent, setMarkdownContent] =
     useState<string>(SAMPLE_MARKDOWN);
@@ -152,9 +155,7 @@ export const MarkdownToPdf: React.FC = () => {
   const [fontSize, setFontSize] = useState<"small" | "medium" | "large">(
     "medium",
   );
-  const [fontFamily, setFontFamily] = useState<
-    "Helvetica" | "Times" | "Courier"
-  >("Helvetica");
+  const [fontFamily, setFontFamily] = useState<FontOption>("NotoSans");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [activeTab, setActiveTab] = useState<"editor" | "preview">("editor");
   const [showLineNumbers, setShowLineNumbers] = useState(true);
@@ -276,6 +277,10 @@ export const MarkdownToPdf: React.FC = () => {
       setPdfResult(result);
       setActiveTab("preview");
     } catch (err) {
+      captureError(err, {
+        tool: "markdown-to-pdf",
+        action: "convert",
+      });
       setError(err instanceof Error ? err : new Error("Conversion failed"));
     } finally {
       setIsProcessing(false);
@@ -404,14 +409,15 @@ export const MarkdownToPdf: React.FC = () => {
                 <span className="text-xs text-muted-foreground">Font:</span>
                 <Select
                   value={fontFamily}
-                  onValueChange={(value: "Helvetica" | "Times" | "Courier") =>
-                    setFontFamily(value)
+                  onValueChange={(value) =>
+                    setFontFamily(value as FontOption)
                   }
                 >
                   <SelectTrigger className="w-[100px] h-7 text-xs">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="NotoSans">Noto Sans (Unicode)</SelectItem>
                     <SelectItem value="Helvetica">Helvetica</SelectItem>
                     <SelectItem value="Times">Times</SelectItem>
                     <SelectItem value="Courier">Courier</SelectItem>
@@ -445,14 +451,15 @@ export const MarkdownToPdf: React.FC = () => {
                 <span className="text-sm text-muted-foreground">Font:</span>
                 <Select
                   value={fontFamily}
-                  onValueChange={(value: "Helvetica" | "Times" | "Courier") =>
-                    setFontFamily(value)
+                  onValueChange={(value) =>
+                    setFontFamily(value as FontOption)
                   }
                 >
                   <SelectTrigger className="w-[140px] h-8 text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="NotoSans">Noto Sans (Unicode)</SelectItem>
                     <SelectItem value="Helvetica">Helvetica</SelectItem>
                     <SelectItem value="Times">Times</SelectItem>
                     <SelectItem value="Courier">Courier</SelectItem>
@@ -550,14 +557,15 @@ export const MarkdownToPdf: React.FC = () => {
               <div className="flex-1">
                 <Select
                   value={fontFamily}
-                  onValueChange={(value: "Helvetica" | "Times" | "Courier") =>
-                    setFontFamily(value)
+                  onValueChange={(value) =>
+                    setFontFamily(value as FontOption)
                   }
                 >
                   <SelectTrigger className="w-full h-9 text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="NotoSans">Noto Sans (Unicode)</SelectItem>
                     <SelectItem value="Helvetica">Helvetica</SelectItem>
                     <SelectItem value="Times">Times</SelectItem>
                     <SelectItem value="Courier">Courier</SelectItem>
@@ -775,10 +783,12 @@ export const MarkdownToPdf: React.FC = () => {
                     style={{
                       fontFamily:
                         fontFamily === "Times"
-                          ? "serif"
+                          ? '"Times New Roman", Times, serif'
                           : fontFamily === "Courier"
-                            ? "monospace"
-                            : "sans-serif",
+                            ? '"Courier New", Courier, monospace'
+                            : fontFamily === "NotoSans"
+                              ? '"Noto Sans", "Helvetica Neue", Helvetica, Arial, sans-serif'
+                              : '"Helvetica Neue", Helvetica, Arial, sans-serif',
                       fontSize: getFontSize() + "px",
                     }}
                   />

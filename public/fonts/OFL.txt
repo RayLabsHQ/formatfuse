@@ -1,0 +1,8 @@
+Noto fonts are © Google and licensed under the SIL Open Font License, Version 1.1.
+The full license text is available at https://scripts.sil.org/OFL.
+
+This directory includes the following font files obtained from the official Noto repositories:
+- NotoSans-Regular.ttf
+- NotoSans-Bold.ttf
+- NotoSans-Italic.ttf
+- NotoEmoji-Regular.ttf
