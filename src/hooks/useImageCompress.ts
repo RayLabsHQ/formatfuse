@@ -28,6 +28,23 @@ export function useImageCompress(): UseImageCompressResult {
   const [error, setError] = useState<string | null>(null);
   const compressorRef = useRef<ImageCompressor | null>(null);
 
+  const getEnvironmentProps = useCallback(() => {
+    if (typeof window === "undefined") return {};
+    const nav = window.navigator as Navigator & {
+      deviceMemory?: number;
+    };
+    return {
+      browserUserAgent: nav?.userAgent,
+      browserPlatform: nav?.platform,
+      browserLanguage: nav?.language,
+      hardwareConcurrency: nav?.hardwareConcurrency,
+      deviceMemory: nav?.deviceMemory,
+      supportsWorker: typeof window.Worker !== "undefined",
+      supportsOffscreenCanvas: "OffscreenCanvas" in window,
+      supportsCreateImageBitmap: typeof window.createImageBitmap === "function",
+    };
+  }, []);
+
   useEffect(() => {
     // Initialize compressor
     compressorRef.current = new ImageCompressor();
@@ -80,6 +97,7 @@ export function useImageCompress(): UseImageCompressResult {
             options,
             fileType: mime,
             fileSize: (file as any)?.size,
+            ...getEnvironmentProps(),
           });
         } catch (_) {}
         return null;
@@ -139,6 +157,7 @@ export function useImageCompress(): UseImageCompressResult {
             options,
             fileTypes: types,
             fileCount: files.length,
+            ...getEnvironmentProps(),
           });
         } catch (_) {}
         return [];

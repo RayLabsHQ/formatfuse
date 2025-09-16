@@ -354,6 +354,147 @@ export default function ImageCompressor() {
   const averageRatio =
     totalOriginalSize > 0 ? (totalSavings / totalOriginalSize) * 100 : 0;
 
+  const renderFileItem = (fileInfo: FileInfo, index: number) => {
+    const ratio =
+      typeof fileInfo.compressionRatio === "number"
+        ? fileInfo.compressionRatio
+        : null;
+    const ratioPrefix = ratio === null ? "" : ratio >= 0 ? "-" : "+";
+    const ratioValue = ratio === null ? "" : Math.abs(ratio).toFixed(0);
+    const ratioBadgeClasses =
+      ratio !== null && ratio < 0
+        ? "bg-destructive/10 text-destructive"
+        : "bg-green-500/10 text-green-600 dark:text-green-400";
+
+    return (
+      <div
+        key={index}
+        className="bg-background/50 rounded-xl p-4 border border-border/50 hover:border-primary/30 transition-all duration-200"
+      >
+        <div className="flex items-center gap-4">
+          {/* Preview */}
+          {fileInfo.previewUrl && (
+            <button
+              onClick={() => openCarousel(index)}
+              className="flex-shrink-0 w-14 h-14 rounded-lg overflow-hidden bg-muted hover:ring-2 hover:ring-primary transition-all duration-200"
+            >
+              <img
+                src={fileInfo.previewUrl}
+                alt={fileInfo.file.name}
+                className="w-full h-full object-cover"
+              />
+            </button>
+          )}
+
+          {/* File Info */}
+          <div className="flex-1 min-w-0">
+            <p className="font-medium text-sm truncate mb-1">
+              {fileInfo.file.name}
+            </p>
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-muted-foreground">
+                {formatFileSize(fileInfo.originalSize!)}
+              </span>
+              {fileInfo.compressedSize && (
+                <>
+                  <ArrowRight className="w-3 h-3 text-muted-foreground" />
+                  <span className="text-sm font-medium text-primary">
+                    {formatFileSize(fileInfo.compressedSize)}
+                  </span>
+                  {ratio !== null && (
+                    <span
+                      className={cn(
+                        "text-sm px-2 py-0.5 rounded-full font-medium",
+                        ratioBadgeClasses,
+                      )}
+                    >
+                      {ratioPrefix}
+                      {ratioValue}%
+                    </span>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Status and Actions */}
+          <div className="flex items-center gap-2">
+            {fileInfo.status === "processing" && (
+              <div className="flex items-center gap-3">
+                <div className="relative w-10 h-10">
+                  <svg className="w-10 h-10 rotate-[-90deg]">
+                    <circle
+                      cx="20"
+                      cy="20"
+                      r="16"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      fill="none"
+                      className="text-muted-foreground/20"
+                    />
+                    <circle
+                      cx="20"
+                      cy="20"
+                      r="16"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      fill="none"
+                      strokeDasharray={100.53}
+                      strokeDashoffset={100.53 * (1 - fileInfo.progress / 100)}
+                      className="text-primary transition-all duration-300"
+                    />
+                  </svg>
+                  <span className="absolute inset-0 flex items-center justify-center text-xs font-medium">
+                    {fileInfo.progress}%
+                  </span>
+                </div>
+              </div>
+            )}
+            {fileInfo.status === "completed" && (
+              <>
+                <CheckCircle2 className="w-5 h-5 text-green-600" />
+                <Button
+                  onClick={() => downloadFile(fileInfo)}
+                  size="icon"
+                  variant="ghost"
+                  className="hover:bg-primary/10"
+                >
+                  <Download className="w-4 h-4" />
+                </Button>
+              </>
+            )}
+            {fileInfo.status === "error" && (
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-5 h-5 text-destructive" />
+                <span className="text-xs text-destructive max-w-[150px] truncate">
+                  {fileInfo.error}
+                </span>
+              </div>
+            )}
+            {fileInfo.status === "pending" && !isCompressing && (
+              <Button
+                onClick={() => compressFile(index)}
+                size="icon"
+                variant="ghost"
+                className="hover:bg-primary/10"
+              >
+                <Minimize2 className="w-4 h-4" />
+              </Button>
+            )}
+            <Button
+              onClick={() => removeFile(index)}
+              size="icon"
+              variant="ghost"
+              className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen w-full">
       {/* Compression-themed Gradient Effects - Hidden on mobile */}
@@ -795,126 +936,7 @@ export default function ImageCompressor() {
 
                   {/* File List */}
                   <div className="space-y-2">
-                    {files.map((fileInfo, index) => (
-                      <div
-                        key={index}
-                        className="bg-background/50 rounded-xl p-4 border border-border/50 hover:border-primary/30 transition-all duration-200"
-                      >
-                        <div className="flex items-center gap-4">
-                          {/* Preview */}
-                          {fileInfo.previewUrl && (
-                            <button
-                              onClick={() => openCarousel(index)}
-                              className="flex-shrink-0 w-14 h-14 rounded-lg overflow-hidden bg-muted hover:ring-2 hover:ring-primary transition-all duration-200"
-                            >
-                              <img
-                                src={fileInfo.previewUrl}
-                                alt={fileInfo.file.name}
-                                className="w-full h-full object-cover"
-                              />
-                            </button>
-                          )}
-
-                          {/* File Info */}
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm truncate mb-1">
-                              {fileInfo.file.name}
-                            </p>
-                            <div className="flex items-center gap-3">
-                              <span className="text-sm text-muted-foreground">
-                                {formatFileSize(fileInfo.originalSize!)}
-                              </span>
-                              {fileInfo.compressedSize && (
-                                <>
-                                  <ArrowRight className="w-3 h-3 text-muted-foreground" />
-                                  <span className="text-sm font-medium text-primary">
-                                    {formatFileSize(fileInfo.compressedSize)}
-                                  </span>
-                                  <span className="text-sm px-2 py-0.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 font-medium">
-                                    -{fileInfo.compressionRatio?.toFixed(0)}%
-                                  </span>
-                                </>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Status and Actions */}
-                          <div className="flex items-center gap-2">
-                            {fileInfo.status === "processing" && (
-                              <div className="flex items-center gap-3">
-                                <div className="relative w-10 h-10">
-                                  <svg className="w-10 h-10 rotate-[-90deg]">
-                                    <circle
-                                      cx="20"
-                                      cy="20"
-                                      r="16"
-                                      stroke="currentColor"
-                                      strokeWidth="3"
-                                      fill="none"
-                                      className="text-muted-foreground/20"
-                                    />
-                                    <circle
-                                      cx="20"
-                                      cy="20"
-                                      r="16"
-                                      stroke="currentColor"
-                                      strokeWidth="3"
-                                      fill="none"
-                                      strokeDasharray={100.53}
-                                      strokeDashoffset={100.53 * (1 - fileInfo.progress / 100)}
-                                      className="text-primary transition-all duration-300"
-                                    />
-                                  </svg>
-                                  <span className="absolute inset-0 flex items-center justify-center text-xs font-medium">
-                                    {fileInfo.progress}%
-                                  </span>
-                                </div>
-                              </div>
-                            )}
-                            {fileInfo.status === "completed" && (
-                              <>
-                                <CheckCircle2 className="w-5 h-5 text-green-600" />
-                                <Button
-                                  onClick={() => downloadFile(fileInfo)}
-                                  size="icon"
-                                  variant="ghost"
-                                  className="hover:bg-primary/10"
-                                >
-                                  <Download className="w-4 h-4" />
-                                </Button>
-                              </>
-                            )}
-                            {fileInfo.status === "error" && (
-                              <div className="flex items-center gap-2">
-                                <AlertCircle className="w-5 h-5 text-destructive" />
-                                <span className="text-xs text-destructive max-w-[150px] truncate">
-                                  {fileInfo.error}
-                                </span>
-                              </div>
-                            )}
-                            {fileInfo.status === "pending" &&
-                              !isCompressing && (
-                                <Button
-                                  onClick={() => compressFile(index)}
-                                  size="icon"
-                                  variant="ghost"
-                                  className="hover:bg-primary/10"
-                                >
-                                  <Minimize2 className="w-4 h-4" />
-                                </Button>
-                              )}
-                            <Button
-                              onClick={() => removeFile(index)}
-                              size="icon"
-                              variant="ghost"
-                              className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                            >
-                              <X className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                    {files.map(renderFileItem)}
                   </div>
                 </div>
               </div>
