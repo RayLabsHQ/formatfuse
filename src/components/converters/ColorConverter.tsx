@@ -1018,9 +1018,14 @@ export function ColorConverter({
           <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-muted/50 bg-background/95 backdrop-blur-sm overflow-hidden">
             <CardContent className="p-4 sm:p-6 md:p-8">
               {/* Single Row Input/Output Layout */}
-              <div className="flex flex-col lg:flex-row gap-2 lg:gap-4 lg:items-start">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 lg:gap-4 items-start">
                 {/* Input Section */}
-                <div className="lg:flex-1">
+                <div
+                  className={cn(
+                    "min-w-0",
+                    !(colorValues && targetFormat) && "lg:col-span-2",
+                  )}
+                >
                   <div className="relative">
                     <Input
                       id="color-input"
@@ -1082,7 +1087,7 @@ export function ColorConverter({
 
                 {/* Output Section - Target Format Display */}
                 {colorValues && targetFormat && (
-                  <div className="lg:flex-1 animate-fade-in">
+                  <div className="min-w-0 animate-fade-in">
                     <Card 
                       className="border-primary/50 bg-primary/5 h-14 flex items-center cursor-pointer hover:bg-primary/10 transition-colors group"
                       onClick={() => targetFormatValue && handleCopy(targetFormatValue, targetFormat)}
