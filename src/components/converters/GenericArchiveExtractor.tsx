@@ -125,8 +125,25 @@ export default function GenericArchiveExtractor({
     setSelectedFiles(new Set());
 
     try {
-      // Read file data
-      const data = await file.arrayBuffer();
+      const data = await (async () => {
+        try {
+          return await file.arrayBuffer();
+        } catch (readError) {
+          if (readError instanceof DOMException) {
+            if (readError.name === "NotReadableError") {
+              throw new Error(
+                "We couldn't read that file. On Windows this usually happens when the file is in use by another application or located in a protected folder. Please close any apps using it or copy it to a local folder and try again.",
+              );
+            }
+            if (readError.name === "SecurityError") {
+              throw new Error(
+                "The browser blocked access to this file. Try moving it to a different location on your computer and re-upload.",
+              );
+            }
+          }
+          throw readError;
+        }
+      })();
 
       // Initialize libarchive if not already done
       let mod = libarchiveMod;
@@ -146,7 +163,7 @@ export default function GenericArchiveExtractor({
 
       // Create archive reader
       const { ArchiveReader } = await import("libarchive-wasm");
-      const reader = new ArchiveReader(mod, new Int8Array(data));
+      const reader = new ArchiveReader(mod, new Uint8Array(data));
 
       // Extract all entries and build file tree
       const entries: any[] = [];
