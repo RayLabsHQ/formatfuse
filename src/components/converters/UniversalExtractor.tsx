@@ -21,6 +21,7 @@ import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { FileDropZone } from "../ui/FileDropZone";
 import { cn } from "../../lib/utils";
+import { captureError } from "../../lib/posthog";
 
 interface FileNode {
   name: string;
@@ -174,6 +175,11 @@ export default function UniversalExtractor() {
       const fileTree = buildFileTree(entries);
       setFiles(fileTree);
     } catch (err) {
+      captureError(err, {
+        tool: "universal-extract",
+        fileName: file.name,
+        stage: "load-archive",
+      });
       console.error("Archive error:", err);
       setError(
         err instanceof Error
@@ -279,6 +285,11 @@ export default function UniversalExtractor() {
       link.click();
       URL.revokeObjectURL(link.href);
     } catch (err) {
+      captureError(err, {
+        tool: "universal-extract",
+        fileName: node.name,
+        stage: "download-file",
+      });
       setError(err instanceof Error ? err.message : "Failed to download file");
     }
   };

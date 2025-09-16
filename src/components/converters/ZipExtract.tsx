@@ -22,6 +22,7 @@ import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { FileDropZone } from "../ui/FileDropZone";
 import { cn } from "../../lib/utils";
+import { captureError } from "../../lib/posthog";
 
 interface ExtractedFile {
   name: string;
@@ -234,6 +235,11 @@ export default function ZipExtract() {
       sortEntries(files);
       setExtractedFiles(files);
     } catch (err) {
+      captureError(err, {
+        tool: "zip-extract",
+        fileName: file.name,
+        stage: "extract",
+      });
       setError(
         err instanceof Error ? err.message : "Failed to extract ZIP file",
       );
@@ -281,83 +287,107 @@ export default function ZipExtract() {
   const downloadSelected = useCallback(async () => {
     if (selectedFiles.size === 0) return;
 
-    if (selectedFiles.size === 1) {
-      // Download single file
-      const findFile = (
-        files: ExtractedFile[],
-        path: string,
-      ): ExtractedFile | null => {
-        for (const file of files) {
-          if (file.path === path) return file;
-          if (file.children) {
-            const found = findFile(file.children, path);
-            if (found) return found;
+    try {
+      if (selectedFiles.size === 1) {
+        // Download single file
+        const findFile = (
+          files: ExtractedFile[],
+          path: string,
+        ): ExtractedFile | null => {
+          for (const file of files) {
+            if (file.path === path) return file;
+            if (file.children) {
+              const found = findFile(file.children, path);
+              if (found) return found;
+            }
           }
-        }
-        return null;
-      };
+          return null;
+        };
 
-      const path = Array.from(selectedFiles)[0];
-      const file = findFile(extractedFiles, path);
-      if (file) {
-        downloadFile(file);
+        const path = Array.from(selectedFiles)[0];
+        const file = findFile(extractedFiles, path);
+        if (file) {
+          downloadFile(file);
+        }
+      } else {
+        // Create new ZIP with selected files
+        const zip = new JSZip();
+
+        const findAndAddFile = (
+          files: ExtractedFile[],
+          path: string,
+        ): boolean => {
+          for (const file of files) {
+            if (file.path === path && file.content) {
+              zip.file(file.path, file.content);
+              return true;
+            }
+            if (file.children) {
+              if (findAndAddFile(file.children, path)) return true;
+            }
+          }
+          return false;
+        };
+
+        selectedFiles.forEach((path) => {
+          findAndAddFile(extractedFiles, path);
+        });
+
+        const blob = await zip.generateAsync({ type: "blob" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "selected-files.zip";
+        link.click();
+        URL.revokeObjectURL(link.href);
       }
-    } else {
-      // Create new ZIP with selected files
-      const zip = new JSZip();
-
-      const findAndAddFile = (
-        files: ExtractedFile[],
-        path: string,
-      ): boolean => {
-        for (const file of files) {
-          if (file.path === path && file.content) {
-            zip.file(file.path, file.content);
-            return true;
-          }
-          if (file.children) {
-            if (findAndAddFile(file.children, path)) return true;
-          }
-        }
-        return false;
-      };
-
-      selectedFiles.forEach((path) => {
-        findAndAddFile(extractedFiles, path);
+    } catch (err) {
+      captureError(err, {
+        tool: "zip-extract",
+        fileName: file?.name,
+        stage: "download-selected",
+        selectionCount: selectedFiles.size,
       });
-
-      const blob = await zip.generateAsync({ type: "blob" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = "selected-files.zip";
-      link.click();
-      URL.revokeObjectURL(link.href);
+      setError(
+        err instanceof Error ? err.message : "Failed to download selection",
+      );
     }
-  }, [selectedFiles, extractedFiles, downloadFile]);
+  }, [selectedFiles, extractedFiles, downloadFile, file]);
 
   const downloadAll = useCallback(async () => {
     if (extractedFiles.length === 0) return;
 
-    const zip = new JSZip();
+    try {
+      const zip = new JSZip();
 
-    const addToZip = (files: ExtractedFile[]) => {
-      files.forEach((file) => {
-        if (file.isDirectory && file.children) {
-          addToZip(file.children);
-        } else if (file.content) {
-          zip.file(file.path, file.content);
-        }
+      const addToZip = (files: ExtractedFile[]) => {
+        files.forEach((entry) => {
+          if (entry.isDirectory && entry.children) {
+            addToZip(entry.children);
+          } else if (entry.content) {
+            zip.file(entry.path, entry.content);
+          }
+        });
+      };
+
+      addToZip(extractedFiles);
+
+      const blob = await zip.generateAsync({ type: "blob" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `extracted-${file?.name || "files.zip"}`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    } catch (err) {
+      captureError(err, {
+        tool: "zip-extract",
+        fileName: file?.name,
+        stage: "download-all",
+        extractedCount: extractedFiles.length,
       });
-    };
-
-    addToZip(extractedFiles);
-
-    const blob = await zip.generateAsync({ type: "blob" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `extracted-${file?.name || "files.zip"}`;
-    link.click();
-    URL.revokeObjectURL(link.href);
+      setError(
+        err instanceof Error ? err.message : "Failed to download files",
+      );
+    }
   }, [extractedFiles, file]);
 
   const formatFileSize = (bytes: number): string => {
