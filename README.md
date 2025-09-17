@@ -190,7 +190,7 @@ To get readable stack traces in PostHog from Cloudflare Pages builds, upload sou
   - `pnpm run postbuild:posthog:upload` → uploads the modified assets and deletes `.map` files locally
 
 - CSP reminder:
-  - Ensure `connect-src` allows `https://eu.i.posthog.com https://eu-assets.i.posthog.com https://*.posthog.com` and `https://scripts.simpleanalyticscdn.com` if you use Simple Analytics.
+- Ensure `connect-src` allows `https://eu.i.posthog.com https://eu-assets.i.posthog.com https://*.posthog.com` and `https://cloud.umami.is` if you use Umami Cloud.
   - This repo sets CSP via the main layout; if you also set headers in Cloudflare, keep them consistent.
 
 - Verify:
