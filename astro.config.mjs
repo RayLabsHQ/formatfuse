@@ -213,7 +213,7 @@ export default defineConfig({
       headers: {
         // Keep dev CSP aligned with meta tag in Layout
         "Content-Security-Policy":
-          "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cloud.umami.is https://eu.i.posthog.com https://eu-assets.i.posthog.com https://*.posthog.com; connect-src 'self' https://cloud.umami.is https://eu.i.posthog.com https://eu-assets.i.posthog.com https://*.posthog.com; img-src 'self' data: blob: https://eu.i.posthog.com https://eu-assets.i.posthog.com https://*.posthog.com; style-src 'self' 'unsafe-inline'; worker-src 'self' blob:; font-src 'self' https://fonts.gstatic.com; frame-src 'self';",
+          "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cloud.umami.is https://eu.i.posthog.com https://eu-assets.i.posthog.com https://*.posthog.com; connect-src 'self' https://cloud.umami.is https://api-gateway.umami.dev https://eu.i.posthog.com https://eu-assets.i.posthog.com https://*.posthog.com; img-src 'self' data: blob: https://eu.i.posthog.com https://eu-assets.i.posthog.com https://*.posthog.com; style-src 'self' 'unsafe-inline'; worker-src 'self' blob:; font-src 'self' https://fonts.gstatic.com; frame-src 'self';",
       },
     },
     build: {
