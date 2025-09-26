@@ -1,32 +1,32 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import {
-  Download,
-  X,
-  FileArchive,
   AlertCircle,
-  Loader2,
-  Shield,
-  Zap,
-  Sparkles,
-  Package,
+  Download,
   DownloadIcon,
+  FileArchive,
+  Loader2,
+  Lock,
+  Package,
+  Shield,
+  Sparkles,
+  Zap,
 } from "lucide-react";
 import JSZip from "jszip";
+
 import { Button } from "../ui/button";
 import { ToolHeader } from "../ui/ToolHeader";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { FileDropZone } from "../ui/FileDropZone";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
+import { Input } from "../ui/input";
 import { captureError } from "../../lib/posthog";
-import ArchiveFileTree, { type ArchiveFileNode } from "./ArchiveFileTree";
-
-interface ExtractedFile extends ArchiveFileNode {
-  size: number;
-  compressedSize: number;
-  lastModified: Date;
-  content?: Blob;
-  children?: ExtractedFile[];
-}
+import {
+  useArchiveExtractionController,
+  type PendingPasswordState,
+} from "../../hooks/useArchiveExtractionController";
+import { ArchiveFileTree } from "./ArchiveFileTree";
+import type { ArchiveFileNode } from "../../lib/archive/fileTree";
 
 const features = [
   {
@@ -67,327 +67,166 @@ const faqs: FAQItem[] = [
   {
     question: "What file formats are supported?",
     answer:
-      "This tool extracts ZIP files. For other formats like TAR, 7Z, or RAR, please use our dedicated tools for those formats.",
+      "This tool extracts ZIP and ZIPX archives. For TAR, 7Z, or RAR files, explore our dedicated tools.",
   },
   {
     question: "Is there a file size limit?",
     answer:
-      "The tool can handle files up to 2GB, limited by browser memory. For larger files, consider using a desktop application.",
+      "We can comfortably handle archives up to a few gigabytes, limited only by your browser's memory.",
+  },
+  {
+    question: "How secure is the extraction process?",
+    answer:
+      "Everything happens locally. Drop a ZIP file, and we decrypt and preview it in your browser—no uploads, no tracking, and you can even repackage selected files into a fresh archive instantly.",
   },
   {
     question: "Can I extract password-protected ZIP files?",
     answer:
-      "Currently, this tool doesn't support password-protected archives. We're working on adding this feature.",
-  },
-  {
-    question: "Are my files secure?",
-    answer:
-      "Yes! All processing happens in your browser. No files are uploaded to any server, ensuring complete privacy.",
+      "Yes! Enter your password when prompted to unlock encrypted ZIP or ZIPX files securely.",
   },
 ];
 
+function formatBytes(bytes: number): string {
+  if (!Number.isFinite(bytes) || bytes < 0) return "-";
+  if (bytes === 0) return "0 B";
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  const exponent = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+  const value = bytes / 1024 ** exponent;
+  return `${value.toFixed(value < 10 && exponent > 0 ? 1 : 0)} ${units[exponent]}`;
+}
+
+function passwordDialogMessage(pending: PendingPasswordState | null): string {
+  if (!pending) return "";
+  if (pending.reason === "incorrect") {
+    return "The password you entered is incorrect. Please try again.";
+  }
+  return pending.message || "This ZIP archive is encrypted. Enter the password to continue.";
+}
+
 export default function ZipExtract() {
-  const [file, setFile] = useState<File | null>(null);
-  const [extractedFiles, setExtractedFiles] = useState<ExtractedFile[]>([]);
-  const [isExtracting, setIsExtracting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set());
-  const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
+  const {
+    state: {
+      archiveName,
+      sourceFileSize,
+      files,
+      isLoading,
+      isReady,
+      error,
+      isDragging,
+      expandedPaths,
+      selectedPaths,
+      metadata,
+      pendingPassword,
+      passwordError,
+      stats,
+    },
+    passwordInputRef,
+    actions: {
+      setIsDragging,
+      handleFilesSelected,
+      toggleExpand,
+      toggleSelect,
+      selectAll,
+      clearSelection,
+      submitPassword,
+      dismissPassword,
+      setError,
+      warmupEngines,
+    },
+    helpers,
+  } = useArchiveExtractionController({ format: "zip", toolId: "zip-extract" });
 
-  const startExtraction = useCallback(async (zipFile: File) => {
-    setFile(zipFile);
-    setError(null);
-    setExtractedFiles([]);
-    setExpandedPaths(new Set());
-    setSelectedFiles(new Set());
-    setIsExtracting(true);
-
+  const downloadFile = useCallback(async (node: ArchiveFileNode) => {
+    if (!node.fileData) return;
     try {
-      const zip = new JSZip();
-      const zipData = await zipFile.arrayBuffer();
-      await zip.loadAsync(zipData);
-
-      const files: ExtractedFile[] = [];
-      const directories: Map<string, ExtractedFile> = new Map();
-
-      Object.keys(zip.files).forEach((path) => {
-        const parts = path.split("/").filter(Boolean);
-        let currentPath = "";
-
-        parts.forEach((part, index) => {
-          currentPath = currentPath ? `${currentPath}/${part}` : part;
-
-          if (index < parts.length - 1 || path.endsWith("/")) {
-            if (!directories.has(currentPath)) {
-              directories.set(currentPath, {
-                name: part,
-                path: currentPath,
-                size: 0,
-                compressedSize: 0,
-                lastModified: new Date(),
-                isDirectory: true,
-                children: [],
-              });
-            }
-          }
-        });
-      });
-
-      for (const [path, zipEntry] of Object.entries(zip.files)) {
-        if (!zipEntry.dir) {
-          const parts = path.split("/").filter(Boolean);
-          const fileName = parts[parts.length - 1];
-          const content = await zipEntry.async("blob");
-
-          const fileEntry: ExtractedFile = {
-            name: fileName,
-            path,
-            size: content.size,
-            compressedSize: 0,
-            lastModified: zipEntry.date,
-            isDirectory: false,
-            content,
-          };
-
-          if (parts.length === 1) {
-            files.push(fileEntry);
-          } else {
-            const parentPath = parts.slice(0, -1).join("/");
-            const parent = directories.get(parentPath);
-            if (parent) {
-              parent.children!.push(fileEntry);
-            }
-          }
-        }
-      }
-
-      directories.forEach((dir, path) => {
-        const parts = path.split("/").filter(Boolean);
-        if (parts.length === 1) {
-          files.push(dir);
-        } else {
-          const parentPath = parts.slice(0, -1).join("/");
-          const parent = directories.get(parentPath);
-          if (parent) {
-            parent.children!.push(dir);
-          }
-        }
-      });
-
-      const sortEntries = (entries: ExtractedFile[]) => {
-        entries.sort((a, b) => {
-          if (a.isDirectory && !b.isDirectory) return -1;
-          if (!a.isDirectory && b.isDirectory) return 1;
-          return a.name.localeCompare(b.name);
-        });
-        entries.forEach((entry) => {
-          if (entry.children) {
-            sortEntries(entry.children);
-          }
-        });
-      };
-
-      sortEntries(files);
-      setExtractedFiles(files);
+      const blob = new Blob([node.fileData]);
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = node.name;
+      link.click();
+      URL.revokeObjectURL(link.href);
     } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to download file";
+      setError(message);
       captureError(err, {
         tool: "zip-extract",
-        fileName: zipFile.name,
-        stage: "extract",
+        fileName: node.name,
+        stage: "download",
       });
-      setError(err instanceof Error ? err.message : "Failed to extract ZIP file");
-    } finally {
-      setIsExtracting(false);
     }
-  }, [captureError]);
+  }, [setError]);
 
-  const handleFilesSelected = useCallback(
-    (files: File[]) => {
-      const selectedFile = files[0];
-      if (selectedFile && selectedFile.name.toLowerCase().endsWith(".zip")) {
-        void startExtraction(selectedFile);
-      } else {
-        setError("Please select a valid ZIP file");
+  const bundleFiles = useCallback(async (nodes: ArchiveFileNode[], archiveLabel: string) => {
+    const zip = new JSZip();
+    nodes.forEach((node) => {
+      if (!node.isDirectory && node.fileData) {
+        zip.file(node.path, node.fileData);
       }
-    },
-    [startExtraction],
-  );
-
-  const toggleExpand = useCallback((path: string) => {
-    setExpandedPaths((prev) => {
-      const newPaths = new Set(prev);
-      if (newPaths.has(path)) {
-        newPaths.delete(path);
-      } else {
-        newPaths.add(path);
-      }
-      return newPaths;
     });
-  }, []);
-
-  const toggleSelect = useCallback((node: ExtractedFile) => {
-    if (node.isDirectory) return;
-
-    setSelectedFiles((prev) => {
-      const next = new Set(prev);
-      if (next.has(node.path)) {
-        next.delete(node.path);
-      } else {
-        next.add(node.path);
-      }
-      return next;
-    });
-  }, []);
-
-  const downloadFile = useCallback((file: ExtractedFile) => {
-    if (!file.content) return;
-
+    const blob = await zip.generateAsync({ type: "blob" });
     const link = document.createElement("a");
-    link.href = URL.createObjectURL(file.content);
-    link.download = file.name;
+    link.href = URL.createObjectURL(blob);
+    link.download = archiveLabel;
     link.click();
     URL.revokeObjectURL(link.href);
   }, []);
 
   const downloadSelected = useCallback(async () => {
-    if (selectedFiles.size === 0) return;
+    if (selectedPaths.size === 0) return;
+    const flat = helpers.flattenNodes();
+    const nodes = flat.filter((node) => selectedPaths.has(node.path));
+
+    if (nodes.length === 1 && nodes[0].fileData) {
+      await downloadFile(nodes[0]);
+      return;
+    }
 
     try {
-      if (selectedFiles.size === 1) {
-        // Download single file
-        const findFile = (
-          files: ExtractedFile[],
-          path: string,
-        ): ExtractedFile | null => {
-          for (const file of files) {
-            if (file.path === path) return file;
-            if (file.children) {
-              const found = findFile(file.children, path);
-              if (found) return found;
-            }
-          }
-          return null;
-        };
-
-        const path = Array.from(selectedFiles)[0];
-        const file = findFile(extractedFiles, path);
-        if (file) {
-          downloadFile(file);
-        }
-      } else {
-        // Create new ZIP with selected files
-        const zip = new JSZip();
-
-        const findAndAddFile = (
-          files: ExtractedFile[],
-          path: string,
-        ): boolean => {
-          for (const file of files) {
-            if (file.path === path && file.content) {
-              zip.file(file.path, file.content);
-              return true;
-            }
-            if (file.children) {
-              if (findAndAddFile(file.children, path)) return true;
-            }
-          }
-          return false;
-        };
-
-        selectedFiles.forEach((path) => {
-          findAndAddFile(extractedFiles, path);
-        });
-
-        const blob = await zip.generateAsync({ type: "blob" });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = "selected-files.zip";
-        link.click();
-        URL.revokeObjectURL(link.href);
-      }
+      const label = nodes.length === 1 ? `${nodes[0].name}.zip` : "selected-files.zip";
+      await bundleFiles(nodes, label);
     } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to download selection";
+      setError(message);
       captureError(err, {
         tool: "zip-extract",
-        fileName: file?.name,
         stage: "download-selected",
-        selectionCount: selectedFiles.size,
+        selectionCount: nodes.length,
       });
-      setError(
-        err instanceof Error ? err.message : "Failed to download selection",
-      );
     }
-  }, [selectedFiles, extractedFiles, downloadFile, file]);
+  }, [bundleFiles, downloadFile, helpers, selectedPaths, setError]);
 
   const downloadAll = useCallback(async () => {
-    if (extractedFiles.length === 0) return;
+    if (files.length === 0) return;
+    const flat = helpers.flattenNodes();
 
     try {
-      const zip = new JSZip();
-
-      const addToZip = (files: ExtractedFile[]) => {
-        files.forEach((entry) => {
-          if (entry.isDirectory && entry.children) {
-            addToZip(entry.children);
-          } else if (entry.content) {
-            zip.file(entry.path, entry.content);
-          }
-        });
-      };
-
-      addToZip(extractedFiles);
-
-      const blob = await zip.generateAsync({ type: "blob" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = `extracted-${file?.name || "files.zip"}`;
-      link.click();
-      URL.revokeObjectURL(link.href);
+      const label = archiveName ? `extracted-${archiveName}` : "files.zip";
+      await bundleFiles(flat, label.endsWith(".zip") ? label : `${label}.zip`);
     } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to download archive";
+      setError(message);
       captureError(err, {
         tool: "zip-extract",
-        fileName: file?.name,
         stage: "download-all",
-        extractedCount: extractedFiles.length,
+        extractedCount: flat.length,
       });
-      setError(
-        err instanceof Error ? err.message : "Failed to download files",
-      );
     }
-  }, [extractedFiles, file]);
+  }, [archiveName, bundleFiles, files.length, helpers, setError]);
 
-  const formatFileSize = (bytes: number): string => {
-    if (bytes < 1024) return bytes + " B";
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
-    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
-  };
-
-  const stats = useMemo(() => {
-    let totalFiles = 0;
-    let totalSize = 0;
-    let totalCompressed = 0;
-
-    const countFiles = (files: ExtractedFile[]) => {
-      files.forEach((entry) => {
-        if (!entry.isDirectory) {
-          totalFiles += 1;
-          totalSize += entry.size;
-          totalCompressed += entry.compressedSize;
-        }
-        if (entry.children) {
-          countFiles(entry.children);
-        }
-      });
+  const compressionSummary = useMemo(() => {
+    if (!stats) return null;
+    if (!sourceFileSize || sourceFileSize <= 0) {
+      return null;
+    }
+    const ratio = stats.totalSize > 0 ? Math.max(0, Math.round((1 - sourceFileSize / stats.totalSize) * 100)) : null;
+    return {
+      ratio,
+      source: sourceFileSize,
+      extracted: stats.totalSize,
     };
+  }, [sourceFileSize, stats]);
 
-    countFiles(extractedFiles);
-
-    const compressionRatio = totalSize > 0
-      ? Math.max(0, Math.round(((totalSize - totalCompressed) / totalSize) * 100))
-      : null;
-
-    return { totalFiles, totalSize, totalCompressed, compressionRatio };
-  }, [extractedFiles]);
+  const passwordMessage = passwordDialogMessage(pendingPassword);
 
   return (
     <section className="relative min-h-screen w-full">
@@ -400,7 +239,7 @@ export default function ZipExtract() {
       <div className="relative z-10 mx-auto flex max-w-6xl flex-col gap-10 px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
         <ToolHeader
           title={{ highlight: "Extract", main: "ZIP Files" }}
-          subtitle="Extract and download files from ZIP archives instantly in your browser. No uploads, no installs — everything runs locally."
+          subtitle="Open, browse, and decrypt ZIP archives instantly — including password-protected ZIP and ZIPX files."
           badge={{
             text: "ZIP Extractor • Online • Free",
             icon: FileArchive,
@@ -408,162 +247,179 @@ export default function ZipExtract() {
           features={features}
         />
 
-        <div className="space-y-8">
-          {!file && (
-            <div className="relative animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+        <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
+          <div className="space-y-6">
+            <div onPointerEnter={warmupEngines} onFocusCapture={warmupEngines}>
               <FileDropZone
-                accept=".zip"
+                accept=".zip,.zipx"
                 multiple={false}
                 isDragging={isDragging}
                 onDragStateChange={setIsDragging}
                 onFilesSelected={handleFilesSelected}
                 title="Drop your ZIP archive"
-                subtitle="Or tap the button to browse a ZIP file from your device."
+                subtitle="We extract everything locally in your browser."
                 primaryButtonLabel="Browse ZIP file"
               />
             </div>
-          )}
 
-          {file && extractedFiles.length === 0 && (
-            <div
-              className="space-y-4 rounded-2xl border border-border/40 bg-card/80 p-6 backdrop-blur animate-fade-in-up"
-              style={{ animationDelay: "0.25s" }}
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <FileArchive className="h-8 w-8 text-primary" />
-                  <div>
-                    <p className="font-medium text-foreground">{file.name}</p>
-                    <p className="text-sm text-muted-foreground">{formatFileSize(file.size)}</p>
-                  </div>
+            {error && (
+              <div className="flex items-start gap-3 rounded-md border border-destructive/30 bg-destructive/10 p-4 text-sm">
+                <AlertCircle className="mt-0.5 h-5 w-5 text-destructive" />
+                <div className="flex-1">
+                  <p className="font-medium text-destructive">Extraction failed</p>
+                  <p className="text-muted-foreground">{error}</p>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    setFile(null);
-                    setExtractedFiles([]);
-                    setSelectedFiles(new Set());
-                    setExpandedPaths(new Set());
-                    setError(null);
-                  }}
-                >
-                  <X className="h-4 w-4" />
+                <Button size="sm" variant="ghost" onClick={() => setError(null)}>
+                  Dismiss
                 </Button>
               </div>
+            )}
 
-              {isExtracting ? (
-                <div className="flex items-center gap-3 rounded-md border border-border/30 bg-background/40 p-4 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                  <span>Extracting archive…</span>
-                </div>
-              ) : (
-                error && (
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      onClick={() => {
-                        if (file) {
-                          void startExtraction(file);
-                        }
-                      }}
-                      className="gap-2"
-                    >
-                      <DownloadIcon className="h-4 w-4" />
-                      Retry extraction
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setFile(null);
-                        setExtractedFiles([]);
-                        setSelectedFiles(new Set());
-                        setExpandedPaths(new Set());
-                        setError(null);
-                      }}
-                    >
-                      Choose another file
-                    </Button>
-                  </div>
-                )
-              )}
-            </div>
-          )}
+            {isLoading && (
+              <div className="flex items-center gap-3 rounded-md border border-muted bg-card p-4 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>{isReady ? "Extracting archive…" : "Preparing extraction engines…"}</span>
+              </div>
+            )}
 
-          {extractedFiles.length > 0 && (
-            <div className="space-y-4 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
-              <div className="flex flex-col gap-4 rounded-2xl border border-border/40 bg-card/80 p-6 backdrop-blur">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            {files.length > 0 && (
+              <div className="rounded-2xl border border-border/40 bg-card/80 p-6 backdrop-blur">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <h2 className="text-lg font-semibold text-foreground">Extracted files</h2>
                     <p className="text-sm text-muted-foreground">
-                      {stats.totalFiles} files • {formatFileSize(stats.totalSize)} total
-                      {typeof stats.compressionRatio === "number" && (
-                        <span> • {stats.compressionRatio}% compression</span>
+                      {stats && `${stats.totalFiles} files • ${formatBytes(stats.totalSize)} total`}
+                      {compressionSummary?.ratio !== null && (
+                        <span>
+                          {` • Archive reduced size by ${compressionSummary.ratio}%`}
+                        </span>
                       )}
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {selectedFiles.size > 0 && (
-                      <Button onClick={downloadSelected} variant="outline" className="gap-2">
+                    <Button onClick={selectAll} variant="outline" className="gap-2">
+                      Select all
+                    </Button>
+                    {selectedPaths.size > 0 && (
+                      <Button onClick={() => void downloadSelected()} variant="outline" className="gap-2">
                         <DownloadIcon className="h-4 w-4" />
-                        Download selected ({selectedFiles.size})
+                        Download selected ({selectedPaths.size})
                       </Button>
                     )}
-                    <Button onClick={downloadAll} variant="secondary" className="gap-2">
+                    <Button onClick={() => void downloadAll()} variant="secondary" className="gap-2">
                       <DownloadIcon className="h-4 w-4" />
                       Download all
                     </Button>
                     <Button
                       onClick={() => {
-                        setFile(null);
-                        setExtractedFiles([]);
-                        setSelectedFiles(new Set());
-                        setExpandedPaths(new Set());
+                        clearSelection();
                       }}
                       variant="ghost"
                     >
-                      Reset
+                      Clear selection
                     </Button>
                   </div>
                 </div>
 
+                {metadata && (
+                  <div className="mt-3 rounded-md border border-border/40 bg-background/60 p-3 text-xs text-muted-foreground">
+                    <p>
+                      Engine: <span className="font-medium text-foreground">{metadata.engine}</span>
+                      {metadata.encrypted && <span className="ml-1 text-emerald-500">(password applied)</span>}
+                    </p>
+                    {metadata.warnings.length > 0 && (
+                      <ul className="mt-2 space-y-1">
+                        {metadata.warnings.map((warning, idx) => (
+                          <li key={`${warning}-${idx}`}>{warning}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+
                 <ArchiveFileTree
-                  nodes={extractedFiles}
+                  nodes={files}
                   expandedPaths={expandedPaths}
-                  selectedPaths={selectedFiles}
+                  selectedPaths={selectedPaths}
                   onToggleExpand={toggleExpand}
                   onToggleSelect={toggleSelect}
-                  getNodeMeta={(entry) => (entry.isDirectory ? "Directory" : formatFileSize(entry.size))}
+                  getNodeMeta={(node) => (node.isDirectory ? "Directory" : formatBytes(node.size))}
+                  renderActions={(node) =>
+                    node.isDirectory || !node.fileData ? null : (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 gap-2"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          void downloadFile(node);
+                        }}
+                      >
+                        <Download className="h-4 w-4" />
+                        Save
+                      </Button>
+                    )
+                  }
+                  className="mt-4 max-h-[520px] text-sm"
                   onDownload={downloadFile}
-                  className="max-h-[520px] rounded-md border border-border/30"
                 />
               </div>
-            </div>
-          )}
+            )}
 
-          {error && (
-            <div className="flex items-start gap-3 rounded-md border border-destructive/30 bg-destructive/10 p-4 text-sm">
-              <AlertCircle className="h-5 w-5 text-destructive" />
-              <div>
-                <p className="font-semibold text-destructive">Extraction failed</p>
-                <p className="text-muted-foreground">{error}</p>
+            {files.length === 0 && !isLoading && !error && (
+              <div className="rounded-2xl border border-dashed border-border/40 bg-card/60 p-8 text-center text-sm text-muted-foreground">
+                Drop a ZIP archive above to examine and extract its contents instantly.
               </div>
-            </div>
-          )}
-
-          {isExtracting && !extractedFiles.length && (
-            <div className="flex items-center gap-3 rounded-md border border-border/30 bg-card/70 p-4 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Processing ZIP archive…</span>
-            </div>
-          )}
-
-          <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
-            <FAQ items={faqs} />
-            <RelatedTools tools={relatedTools} />
+            )}
           </div>
+
+          <aside className="space-y-6">
+            <RelatedTools tools={relatedTools} />
+
+            <FAQ items={faqs} />
+          </aside>
         </div>
       </div>
+
+      <Dialog open={Boolean(pendingPassword)} onOpenChange={(open) => !open && dismissPassword()}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Enter ZIP password</DialogTitle>
+            <DialogDescription>{passwordMessage}</DialogDescription>
+          </DialogHeader>
+          <form
+            className="space-y-4"
+            onSubmit={(event) => {
+              event.preventDefault();
+              submitPassword();
+            }}
+          >
+            <label className="flex items-center gap-2 text-sm font-medium text-foreground" htmlFor="zip-password">
+              <Lock className="h-4 w-4 text-muted-foreground" />
+              Password
+            </label>
+            <Input
+              id="zip-password"
+              type="password"
+              ref={passwordInputRef}
+              placeholder="Enter archive password"
+              autoComplete="off"
+              spellCheck={false}
+              aria-invalid={Boolean(passwordError)}
+            />
+            {passwordError && <p className="text-xs text-destructive">{passwordError}</p>}
+            <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+              <Button type="button" variant="ghost" onClick={dismissPassword}>
+                Cancel
+              </Button>
+              <Button type="submit" className="gap-2">
+                <Lock className="h-4 w-4" />
+                Unlock
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

@@ -35,6 +35,7 @@ export interface WorkerArchiveEntry {
   isDirectory: boolean;
   lastModified?: number | null;
   data?: ArrayBuffer;
+  compressedSize?: number;
 }
 
 export interface ExtractSuccess {
@@ -74,3 +75,35 @@ export interface ArchiveProbe {
   fileName: string;
 }
 
+export type ArchiveCreateFormat = "zip" | "sevenZip";
+
+export interface CreateArchiveFile {
+  path: string;
+  data: ArrayBuffer;
+  lastModified?: number | null;
+}
+
+export interface CreateArchiveRequest {
+  format: ArchiveCreateFormat;
+  files: CreateArchiveFile[];
+  password?: string | null;
+  encryptHeaders?: boolean;
+}
+
+export interface CreateArchiveSuccess {
+  ok: true;
+  data: ArrayBuffer;
+  format: ArchiveCreateFormat;
+  engine: ArchiveEngine;
+  warnings: string[];
+  passwordProtected: boolean;
+}
+
+export interface CreateArchiveFailure {
+  ok: false;
+  code: "CREATE_FAILED" | "UNSUPPORTED_FORMAT";
+  message: string;
+  recoverable?: boolean;
+}
+
+export type CreateArchiveResult = CreateArchiveSuccess | CreateArchiveFailure;

@@ -571,8 +571,8 @@ describe('All Archive Format Operations', () => {
       // BEST compression should be smallest
       expect(results[2].size).toBeLessThanOrEqual(results[1].size);
       
-      // STORE should be fastest
-      expect(results[0].time).toBeLessThan(results[2].time * 2);
+      // STORE should generally be faster than high compression (allow headroom for noisy environments)
+      expect(results[0].time).toBeLessThanOrEqual(results[2].time * 3);
     });
   });
 

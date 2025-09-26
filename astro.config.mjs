@@ -205,6 +205,7 @@ export default defineConfig({
         "@jsquash/jpeg",
         "@jsquash/png",
         "@jsquash/webp",
+        "7z-wasm",
       ],
     },
     worker: {

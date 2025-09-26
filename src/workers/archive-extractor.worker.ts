@@ -273,6 +273,7 @@ export class ArchiveExtractorWorker {
         engine: "libarchive",
         warnings: [],
         format,
+        encrypted: Boolean(request.password && request.password.length > 0),
       } satisfies ExtractSuccess;
     } catch (error) {
       if (reader) {
@@ -290,6 +291,21 @@ export class ArchiveExtractorWorker {
   private classifyLibarchiveError(error: Error, format: ArchiveFormat): ExtractFailure {
     const message = error.message || "libarchive failed";
     const normalized = message.toLowerCase();
+
+    if (
+      normalized.includes("incorrect password") ||
+      normalized.includes("wrong password") ||
+      normalized.includes("bad password") ||
+      normalized.includes("incorrect passphrase")
+    ) {
+      return {
+        ok: false,
+        code: "PASSWORD_REQUIRED",
+        message: "The password you entered is incorrect. Try again.",
+        recoverable: true,
+        format,
+      };
+    }
 
     if (normalized.includes("password") || normalized.includes("passphrase")) {
       return {
@@ -376,6 +392,7 @@ export class ArchiveExtractorWorker {
         engine: "sevenZip",
         warnings: this.lastSevenZipStderr.slice(),
         format,
+        encrypted: Boolean(request.password && request.password.length > 0),
       } satisfies ExtractSuccess;
     } catch (error) {
       this.cleanupSevenZip(module, archiveName, outputDir);
@@ -450,11 +467,15 @@ export class ArchiveExtractorWorker {
     const stdout = this.lastSevenZipStdout.join("\n").toLowerCase();
     const combined = `${stderr}\n${stdout}`;
 
-    if (combined.includes("wrong password") || combined.includes("can not open encrypted archive")) {
+    if (
+      combined.includes("wrong password") ||
+      combined.includes("can not open encrypted archive") ||
+      combined.includes("incorrect password")
+    ) {
       return {
         ok: false,
         code: "PASSWORD_REQUIRED",
-        message: "This archive is encrypted. Provide a password to extract it.",
+        message: "The password you entered is incorrect. Try again.",
         recoverable: true,
         format,
       };
@@ -482,11 +503,15 @@ export class ArchiveExtractorWorker {
   private analyzeSevenZipMessages(format: ArchiveFormat): ExtractFailure | null {
     const stderr = this.lastSevenZipStderr.join("\n").toLowerCase();
 
-    if (stderr.includes("wrong password") || stderr.includes("data error in encrypted file")) {
+    if (
+      stderr.includes("wrong password") ||
+      stderr.includes("data error in encrypted file") ||
+      stderr.includes("incorrect password")
+    ) {
       return {
         ok: false,
         code: "PASSWORD_REQUIRED",
-        message: "This archive is encrypted. Provide a password to extract it.",
+        message: "The password you entered is incorrect. Try again.",
         recoverable: true,
         format,
       };

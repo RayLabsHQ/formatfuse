@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useMemo } from "react";
 import {
   AlertCircle,
   Download,
@@ -20,23 +20,13 @@ import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { FileDropZone } from "../ui/FileDropZone";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Input } from "../ui/input";
-import ArchiveFileTree, { type ArchiveFileNode } from "./ArchiveFileTree";
-import { captureError, captureEvent } from "../../lib/posthog";
-import { useArchiveExtractor } from "../../hooks/useArchiveExtractor";
-import type {
-  ArchiveEngine,
-  ArchiveFormat,
-  ExtractRequest,
-  ExtractResult,
-  WorkerArchiveEntry,
-} from "../../lib/archive/types";
-
-interface FileNode extends Omit<ArchiveFileNode, "children"> {
-  children: FileNode[];
-  size: number;
-  lastModified?: Date | null;
-  fileData?: Uint8Array;
-}
+import { ArchiveFileTree } from "./ArchiveFileTree";
+import { captureError } from "../../lib/posthog";
+import {
+  useArchiveExtractionController,
+  type PendingPasswordState,
+} from "../../hooks/useArchiveExtractionController";
+import type { ArchiveFileNode } from "../../lib/archive/fileTree";
 
 interface GenericArchiveExtractorProps {
   format: string;
@@ -47,18 +37,6 @@ interface GenericArchiveExtractorProps {
   features?: Feature[];
   faqs?: FAQItem[];
   relatedTools?: RelatedTool[];
-}
-
-interface ExtractionMetadata {
-  engine: ArchiveEngine;
-  format: ArchiveFormat;
-  warnings: string[];
-}
-
-interface PendingPasswordState {
-  file: File;
-  message: string;
-  attempts: number;
 }
 
 const defaultFeatures: Feature[] = [
@@ -96,6 +74,29 @@ const defaultRelatedTools: RelatedTool[] = [
   },
 ];
 
+const defaultFaqs: FAQItem[] = [
+  {
+    question: "Which archive formats does this support?",
+    answer:
+      "Our universal extractor handles ZIP, RAR, 7Z, TAR, ISO, CAB, and many other formats by combining libarchive and 7-Zip WebAssembly engines.",
+  },
+  {
+    question: "Can I open password-protected archives?",
+    answer:
+      "Yes. When we detect encryption we'll prompt you for the password and decrypt everything locally in your browser.",
+  },
+  {
+    question: "What happens when I drop an archive?",
+    answer:
+      "We load the necessary engines, inspect the archive entirely on your device, and render a browsable file tree. If the archive is encrypted you'll see a password prompt; otherwise you can preview, select, and download files immediately.",
+  },
+  {
+    question: "Is there a file size limit?",
+    answer:
+      "You're only limited by the memory available in your browser. Most modern devices handle archives up to a few gigabytes without trouble, and nothing ever leaves your device.",
+  },
+];
+
 function formatBytes(bytes: number): string {
   if (!Number.isFinite(bytes) || bytes < 0) return "-";
   if (bytes === 0) return "0 B";
@@ -105,98 +106,12 @@ function formatBytes(bytes: number): string {
   return `${value.toFixed(value < 10 && exponent > 0 ? 1 : 0)} ${units[exponent]}`;
 }
 
-function buildFileTree(entries: WorkerArchiveEntry[]): FileNode[] {
-  const root: FileNode[] = [];
-  const nodeMap = new Map<string, FileNode>();
-
-  const sortedEntries = [...entries].sort((a, b) => a.path.localeCompare(b.path));
-
-  for (const entry of sortedEntries) {
-    const normalizedPath = entry.isDirectory && entry.path.endsWith("/") ? entry.path.slice(0, -1) : entry.path;
-    const segments = normalizedPath.split("/").filter(Boolean);
-    let currentLevel = root;
-    let currentPath = "";
-
-    segments.forEach((segment, index) => {
-      currentPath = currentPath ? `${currentPath}/${segment}` : segment;
-      const isLast = index === segments.length - 1;
-      const isDirectory = isLast ? entry.isDirectory : true;
-
-      let node = nodeMap.get(currentPath);
-      if (!node) {
-        node = {
-          name: segment,
-          path: currentPath,
-          isDirectory,
-          children: [],
-          size: isLast && !isDirectory ? entry.size : 0,
-          lastModified: entry.lastModified ? new Date(entry.lastModified) : null,
-          fileData:
-            isLast && !isDirectory && entry.data ? new Uint8Array(entry.data) : undefined,
-        };
-        nodeMap.set(currentPath, node);
-        currentLevel.push(node);
-      }
-
-      if (isLast) {
-        node.size = entry.size;
-        node.lastModified = entry.lastModified ? new Date(entry.lastModified) : node.lastModified ?? null;
-        if (!isDirectory && entry.data) {
-          node.fileData = new Uint8Array(entry.data);
-        }
-        node.isDirectory = isDirectory;
-      }
-
-      if (node.isDirectory) {
-        currentLevel = node.children;
-      }
-    });
-
-    if (segments.length === 0 && entry.path) {
-      // root-level file with no slash
-      const leaf: FileNode = {
-        name: entry.path,
-        path: entry.path,
-        isDirectory: entry.isDirectory,
-        children: [],
-        size: entry.size,
-        lastModified: entry.lastModified ? new Date(entry.lastModified) : null,
-        fileData: !entry.isDirectory && entry.data ? new Uint8Array(entry.data) : undefined,
-      };
-      root.push(leaf);
-      nodeMap.set(entry.path, leaf);
-    }
+function passwordDialogMessage(pending: PendingPasswordState | null): string {
+  if (!pending) return "";
+  if (pending.reason === "incorrect") {
+    return "The password you entered is incorrect. Please try again.";
   }
-
-  return root;
-}
-
-function flattenFiles(nodes: FileNode[]): FileNode[] {
-  const files: FileNode[] = [];
-  const walk = (items: FileNode[]) => {
-    items.forEach((node) => {
-      if (node.isDirectory) {
-        walk(node.children);
-      } else {
-        files.push(node);
-      }
-    });
-  };
-  walk(nodes);
-  return files;
-}
-
-function engineLabel(engine: ArchiveEngine): string {
-  switch (engine) {
-    case "libarchive":
-      return "libarchive";
-    case "sevenZip":
-      return "7-Zip";
-    case "native":
-      return "Native decoder";
-    default:
-      return engine;
-  }
+  return pending.message || "This archive is encrypted. Enter the password to continue.";
 }
 
 export default function GenericArchiveExtractor({
@@ -209,199 +124,39 @@ export default function GenericArchiveExtractor({
   faqs,
   relatedTools,
 }: GenericArchiveExtractorProps) {
-  const { extract, preload, isReady } = useArchiveExtractor();
-
-  const [files, setFiles] = useState<FileNode[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [archiveName, setArchiveName] = useState<string>("");
-  const [isDragging, setIsDragging] = useState(false);
-  const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set());
-  const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
-  const [metadata, setMetadata] = useState<ExtractionMetadata | null>(null);
-  const [pendingPassword, setPendingPassword] = useState<PendingPasswordState | null>(null);
-  const [passwordError, setPasswordError] = useState<string | null>(null);
-
-  const passwordInputRef = useRef<HTMLInputElement>(null);
-
-  const resetState = useCallback(() => {
-    setFiles([]);
-    setSelectedFiles(new Set());
-    setExpandedPaths(new Set());
-    setMetadata(null);
-  }, []);
-
-  const handleExtractionResult = useCallback(
-    (file: File, result: ExtractResult, attempt: { passwordUsed: boolean }) => {
-      const extractFormat = (fmt?: ArchiveFormat) => {
-        if (!fmt) return format;
-        return fmt.format;
-      };
-
-      if (!result.ok) {
-        if (result.code === "PASSWORD_REQUIRED") {
-          setPendingPassword((prev) => {
-            const attempts = (prev?.attempts ?? 0) + 1;
-            captureEvent("archive_password_prompted", {
-              tool: "generic-archive-extract",
-              format: extractFormat(result.format),
-              fileName: file.name,
-              attempts,
-            });
-            return {
-              file,
-              message: result.message,
-              attempts,
-            };
-          });
-          setPasswordError(null);
-        } else {
-          const failureProps = {
-            tool: "generic-archive-extract",
-            format: extractFormat(result.format),
-            fileName: file.name,
-            stage: "extract",
-            code: result.code,
-            recoverable: !!result.recoverable,
-          };
-          captureEvent("archive_extract_failed", failureProps);
-          setError(result.message);
-          captureError(new Error(result.message), failureProps);
-        }
-        return;
-      }
-
-      captureEvent("archive_extract_succeeded", {
-        tool: "generic-archive-extract",
-        format: extractFormat(result.format),
-        engine: result.engine,
-        warnings: result.warnings.length,
-        passwordUsed: attempt.passwordUsed,
-        fileName: file.name,
-        fileSize: file.size,
-      });
-
-      const tree = buildFileTree(result.entries);
-      setFiles(tree);
-      setExpandedPaths(new Set(tree.filter((node) => node.isDirectory).map((node) => node.path)));
-      setSelectedFiles(new Set());
-      setMetadata({ engine: result.engine, format: result.format, warnings: result.warnings });
-      setPendingPassword(null);
-      setPasswordError(null);
+  const {
+    state: {
+      archiveName,
+      files,
+      isLoading,
+      isReady,
+      error,
+      isDragging,
+      expandedPaths,
+      selectedPaths,
+      metadata,
+      pendingPassword,
+      passwordError,
+      stats,
     },
-    [format],
-  );
-
-  const readFileBuffer = useCallback(async (file: File) => {
-    try {
-      return await file.arrayBuffer();
-    } catch (err) {
-      if (err instanceof DOMException) {
-        if (err.name === "NotReadableError") {
-          throw new Error(
-            "We couldn't read that file. On Windows this usually happens when the file is in use by another application or located in a protected folder. Please close any apps using it or copy it to a local folder and try again.",
-          );
-        }
-        if (err.name === "SecurityError") {
-          throw new Error(
-            "The browser blocked access to this file. Try moving it to a different location on your computer and re-upload.",
-          );
-        }
-      }
-      throw err;
-    }
-  }, []);
-
-  const performExtraction = useCallback(
-    async (file: File, password?: string | null) => {
-      setIsLoading(true);
-      setError(null);
-      setArchiveName(file.name);
-      resetState();
-
-      try {
-        await preload();
-        const buffer = await readFileBuffer(file);
-        const request: ExtractRequest = {
-          fileName: file.name,
-          buffer,
-          password: password ?? undefined,
-        };
-
-        const result = await extract(request);
-        handleExtractionResult(file, result, { passwordUsed: !!password });
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Failed to extract archive";
-        setError(message);
-        captureError(err, {
-          tool: "generic-archive-extract",
-          format,
-          fileName: file.name,
-          stage: "read",
-        });
-      } finally {
-        setIsLoading(false);
-      }
+    passwordInputRef,
+    actions: {
+      setIsDragging,
+      handleFilesSelected,
+      toggleExpand,
+      toggleSelect,
+      selectAll,
+      clearSelection,
+      submitPassword,
+      dismissPassword,
+      setPasswordError,
+      setError,
+      warmupEngines,
     },
-    [extract, format, handleExtractionResult, preload, readFileBuffer, resetState],
-  );
+    helpers,
+  } = useArchiveExtractionController({ format, toolId: "generic-archive-extract" });
 
-  const handleFilesSelected = useCallback(
-    async (selected: File[]) => {
-      if (selected.length > 1) {
-        setError("Please choose a single archive to extract at a time.");
-        captureEvent("archive_multiple_files_selected", {
-          tool: "generic-archive-extract",
-          format,
-          fileCount: selected.length,
-        });
-        return;
-      }
-
-      const file = selected[0];
-      if (file) {
-        void performExtraction(file);
-      }
-    },
-    [format, performExtraction],
-  );
-
-  const toggleExpanded = useCallback((path: string) => {
-    setExpandedPaths((prev) => {
-      const next = new Set(prev);
-      if (next.has(path)) {
-        next.delete(path);
-      } else {
-        next.add(path);
-      }
-      return next;
-    });
-  }, []);
-
-  const toggleSelected = useCallback((node: FileNode) => {
-    if (node.isDirectory) return;
-
-    setSelectedFiles((prev) => {
-      const next = new Set(prev);
-      if (next.has(node.path)) {
-        next.delete(node.path);
-      } else {
-        next.add(node.path);
-      }
-      return next;
-    });
-  }, []);
-
-  const selectAll = useCallback(() => {
-    const nodes = flattenFiles(files);
-    setSelectedFiles(new Set(nodes.map((node) => node.path)));
-  }, [files]);
-
-  const clearSelection = useCallback(() => {
-    setSelectedFiles(new Set());
-  }, []);
-
-  const downloadFile = useCallback(async (node: FileNode) => {
+  const downloadFile = useCallback(async (node: ArchiveFileNode) => {
     if (!node.fileData) return;
 
     try {
@@ -421,72 +176,30 @@ export default function GenericArchiveExtractor({
         stage: "download",
       });
     }
-  }, [format]);
+  }, [format, setError]);
 
   const downloadSelected = useCallback(() => {
-    const nodes = flattenFiles(files).filter((node) => selectedFiles.has(node.path));
+    const flat = helpers.flattenNodes();
+    const nodes = flat.filter((node) => selectedPaths.has(node.path));
     nodes.forEach((node) => {
       void downloadFile(node);
     });
-  }, [downloadFile, files, selectedFiles]);
+  }, [downloadFile, helpers, selectedPaths]);
 
   const metadataSummary = useMemo(() => {
     if (!metadata) return null;
     const warnings = metadata.warnings.filter((entry) => entry.trim().length > 0);
     return {
-      engine: engineLabel(metadata.engine),
+      engine: metadata.engine,
       warnings,
+      encrypted: metadata.encrypted ?? false,
+      format: metadata.format,
     };
   }, [metadata]);
 
-  const handlePasswordSubmit = useCallback(
-    (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
-      if (!pendingPassword) return;
-      const password = passwordInputRef.current?.value ?? "";
-      if (!password && pendingPassword.attempts > 1) {
-        setPasswordError("Password cannot be empty.");
-        return;
-      }
-      setPasswordError(null);
-      captureEvent("archive_password_submitted", {
-        tool: "generic-archive-extract",
-        format,
-        fileName: pendingPassword.file.name,
-        attempts: pendingPassword.attempts,
-      });
-      void performExtraction(pendingPassword.file, password);
-    },
-    [format, pendingPassword, performExtraction],
-  );
-
-  const handlePasswordDismiss = useCallback(() => {
-    if (pendingPassword) {
-      captureEvent("archive_password_dismissed", {
-        tool: "generic-archive-extract",
-        format,
-        fileName: pendingPassword.file.name,
-        attempts: pendingPassword.attempts,
-      });
-    }
-    setPendingPassword(null);
-    setPasswordError(null);
-  }, [format, pendingPassword]);
-
-  const warmupEngines = useCallback(() => {
-    void preload();
-  }, [preload]);
-
-  useEffect(() => {
-    if (pendingPassword) {
-      if (passwordInputRef.current) {
-        passwordInputRef.current.value = "";
-      }
-    }
-  }, [pendingPassword]);
-
   const featureList = features ?? defaultFeatures;
   const relatedList = relatedTools ?? defaultRelatedTools;
+  const faqItems = faqs ?? defaultFaqs;
 
   return (
     <section className="relative min-h-screen w-full">
@@ -543,6 +256,9 @@ export default function GenericArchiveExtractor({
                 <p>
                   Extraction engine: <span className="font-medium text-foreground">{metadataSummary.engine}</span>
                 </p>
+                {metadataSummary.encrypted && (
+                  <p className="mt-1 text-xs text-foreground/80">Password protected archive unlocked securely in your browser.</p>
+                )}
                 {metadataSummary.warnings.length > 0 && (
                   <div className="mt-2 space-y-1">
                     <p className="font-medium text-foreground">Messages</p>
@@ -560,13 +276,16 @@ export default function GenericArchiveExtractor({
 
             {files.length > 0 ? (
               <div className="rounded-md border border-muted bg-card">
-                <div className="flex items-center justify-between border-b border-muted p-4">
+                <div className="flex flex-col gap-3 border-b border-muted p-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <h2 className="text-base font-semibold">{archiveName}</h2>
                     <p className="text-sm text-muted-foreground">
-                      {selectedFiles.size > 0
-                        ? `${selectedFiles.size} file${selectedFiles.size === 1 ? "" : "s"} selected`
+                      {stats
+                        ? `${stats.totalFiles} files • ${formatBytes(stats.totalSize)} total`
                         : "Select files to download"}
+                      {selectedPaths.size > 0 && (
+                        <span>{` • ${selectedPaths.size} selected`}</span>
+                      )}
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
@@ -579,7 +298,7 @@ export default function GenericArchiveExtractor({
                     <Button
                       size="sm"
                       onClick={downloadSelected}
-                      disabled={selectedFiles.size === 0}
+                      disabled={selectedPaths.size === 0}
                     >
                       <Download className="mr-2 h-4 w-4" /> Download selected
                     </Button>
@@ -589,9 +308,9 @@ export default function GenericArchiveExtractor({
                 <ArchiveFileTree
                   nodes={files}
                   expandedPaths={expandedPaths}
-                  selectedPaths={selectedFiles}
-                  onToggleExpand={toggleExpanded}
-                  onToggleSelect={toggleSelected}
+                  selectedPaths={selectedPaths}
+                  onToggleExpand={toggleExpand}
+                  onToggleSelect={toggleSelect}
                   getNodeMeta={(node) => (node.isDirectory ? "Directory" : formatBytes(node.size))}
                   renderActions={(node) =>
                     node.isDirectory || !node.fileData ? null : (
@@ -621,42 +340,53 @@ export default function GenericArchiveExtractor({
             )}
           </div>
 
-          <div className="space-y-6">
-            {faqs && faqs.length > 0 && <FAQ items={faqs} />}
+          <aside className="space-y-6">
             <RelatedTools tools={relatedList} />
-          </div>
-        </div>
 
-        <Dialog open={pendingPassword !== null} onOpenChange={handlePasswordDismiss}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Enter archive password</DialogTitle>
-              <DialogDescription>{pendingPassword?.message}</DialogDescription>
-            </DialogHeader>
-            <form className="space-y-4" onSubmit={handlePasswordSubmit}>
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 text-sm font-medium text-foreground" htmlFor="archive-password">
-                  <Lock className="h-4 w-4" /> Password
-                </label>
-                <Input
-                  id="archive-password"
-                  type="password"
-                  autoFocus
-                  ref={passwordInputRef}
-                  placeholder="Enter archive password"
-                />
-                {passwordError && <p className="text-xs text-destructive">{passwordError}</p>}
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button type="button" variant="ghost" onClick={handlePasswordDismiss}>
-                  Cancel
-                </Button>
-                <Button type="submit">Unlock</Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+            <FAQ items={faqItems} />
+          </aside>
+        </div>
       </div>
+
+      <Dialog open={Boolean(pendingPassword)} onOpenChange={(open) => !open && dismissPassword()}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Enter archive password</DialogTitle>
+            <DialogDescription>{passwordDialogMessage(pendingPassword)}</DialogDescription>
+          </DialogHeader>
+          <form
+            className="space-y-4"
+            onSubmit={(event) => {
+              event.preventDefault();
+              submitPassword();
+            }}
+          >
+            <label className="flex items-center gap-2 text-sm font-medium text-foreground" htmlFor="archive-password">
+              <Lock className="h-4 w-4 text-muted-foreground" />
+              Password
+            </label>
+            <Input
+              id="archive-password"
+              type="password"
+              ref={passwordInputRef}
+              placeholder="Enter archive password"
+              autoComplete="off"
+              spellCheck={false}
+              aria-invalid={Boolean(passwordError)}
+            />
+            {passwordError && <p className="text-xs text-destructive">{passwordError}</p>}
+            <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+              <Button type="button" variant="ghost" onClick={dismissPassword}>
+                Cancel
+              </Button>
+              <Button type="submit" className="gap-2">
+                <Lock className="h-4 w-4" />
+                Unlock
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }
