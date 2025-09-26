@@ -1,28 +1,39 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  AlertCircle,
+  ChevronDown,
+  ChevronRight,
   Download,
-  X,
+  Eye,
+  File,
   FileArchive,
   FolderOpen,
-  File,
-  AlertCircle,
   Loader2,
+  Lock,
+  Package,
   Shield,
   Zap,
-  Eye,
-  ChevronRight,
-  ChevronDown,
-  Package,
   type LucideIcon,
 } from "lucide-react";
-import type { ArchiveReader as ArchiveReaderType } from "libarchive-wasm";
+
 import { Button } from "../ui/button";
-import { ToolHeader } from "../ui/ToolHeader";
+import { ToolHeader, type Feature } from "../ui/ToolHeader";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { FileDropZone } from "../ui/FileDropZone";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
+import { Input } from "../ui/input";
+
 import { cn } from "../../lib/utils";
 import { captureError } from "../../lib/posthog";
+import { useArchiveExtractor } from "../../hooks/useArchiveExtractor";
+import type {
+  ArchiveEngine,
+  ArchiveFormat,
+  ExtractRequest,
+  ExtractResult,
+  WorkerArchiveEntry,
+} from "../../lib/archive/types";
 
 interface FileNode {
   name: string;
@@ -30,8 +41,7 @@ interface FileNode {
   isDirectory: boolean;
   children: FileNode[];
   size: number;
-  compressedSize: number;
-  lastModified: Date;
+  lastModified?: Date | null;
   fileData?: Uint8Array;
 }
 
@@ -41,11 +51,24 @@ interface GenericArchiveExtractorProps {
   formatDescription: string;
   acceptedExtensions: string;
   icon?: React.ElementType;
+  features?: Feature[];
   faqs?: FAQItem[];
   relatedTools?: RelatedTool[];
 }
 
-const defaultFeatures = [
+interface ExtractionMetadata {
+  engine: ArchiveEngine;
+  format: ArchiveFormat;
+  warnings: string[];
+}
+
+interface PendingPasswordState {
+  file: File;
+  message: string;
+  attempts: number;
+}
+
+const defaultFeatures: Feature[] = [
   {
     icon: Shield,
     text: "Privacy-first",
@@ -80,215 +103,282 @@ const defaultRelatedTools: RelatedTool[] = [
   },
 ];
 
+function formatBytes(bytes: number): string {
+  if (!Number.isFinite(bytes) || bytes < 0) return "-";
+  if (bytes === 0) return "0 B";
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  const exponent = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+  const value = bytes / 1024 ** exponent;
+  return `${value.toFixed(value < 10 && exponent > 0 ? 1 : 0)} ${units[exponent]}`;
+}
+
+function buildFileTree(entries: WorkerArchiveEntry[]): FileNode[] {
+  const root: FileNode[] = [];
+  const nodeMap = new Map<string, FileNode>();
+
+  const sortedEntries = [...entries].sort((a, b) => a.path.localeCompare(b.path));
+
+  for (const entry of sortedEntries) {
+    const normalizedPath = entry.isDirectory && entry.path.endsWith("/") ? entry.path.slice(0, -1) : entry.path;
+    const segments = normalizedPath.split("/").filter(Boolean);
+    let currentLevel = root;
+    let currentPath = "";
+
+    segments.forEach((segment, index) => {
+      currentPath = currentPath ? `${currentPath}/${segment}` : segment;
+      const isLast = index === segments.length - 1;
+      const isDirectory = isLast ? entry.isDirectory : true;
+
+      let node = nodeMap.get(currentPath);
+      if (!node) {
+        node = {
+          name: segment,
+          path: currentPath,
+          isDirectory,
+          children: [],
+          size: isLast && !isDirectory ? entry.size : 0,
+          lastModified: entry.lastModified ? new Date(entry.lastModified) : null,
+          fileData:
+            isLast && !isDirectory && entry.data ? new Uint8Array(entry.data) : undefined,
+        };
+        nodeMap.set(currentPath, node);
+        currentLevel.push(node);
+      }
+
+      if (isLast) {
+        node.size = entry.size;
+        node.lastModified = entry.lastModified ? new Date(entry.lastModified) : node.lastModified ?? null;
+        if (!isDirectory && entry.data) {
+          node.fileData = new Uint8Array(entry.data);
+        }
+        node.isDirectory = isDirectory;
+      }
+
+      if (node.isDirectory) {
+        currentLevel = node.children;
+      }
+    });
+
+    if (segments.length === 0 && entry.path) {
+      // root-level file with no slash
+      const leaf: FileNode = {
+        name: entry.path,
+        path: entry.path,
+        isDirectory: entry.isDirectory,
+        children: [],
+        size: entry.size,
+        lastModified: entry.lastModified ? new Date(entry.lastModified) : null,
+        fileData: !entry.isDirectory && entry.data ? new Uint8Array(entry.data) : undefined,
+      };
+      root.push(leaf);
+      nodeMap.set(entry.path, leaf);
+    }
+  }
+
+  return root;
+}
+
+function flattenFiles(nodes: FileNode[]): FileNode[] {
+  const files: FileNode[] = [];
+  const walk = (items: FileNode[]) => {
+    items.forEach((node) => {
+      if (node.isDirectory) {
+        walk(node.children);
+      } else {
+        files.push(node);
+      }
+    });
+  };
+  walk(nodes);
+  return files;
+}
+
+function engineLabel(engine: ArchiveEngine): string {
+  switch (engine) {
+    case "libarchive":
+      return "libarchive";
+    case "sevenZip":
+      return "7-Zip";
+    case "native":
+      return "Native decoder";
+    default:
+      return engine;
+  }
+}
+
 export default function GenericArchiveExtractor({
   format,
   formatName,
   formatDescription,
   acceptedExtensions,
   icon: Icon = FileArchive,
+  features,
   faqs,
   relatedTools,
 }: GenericArchiveExtractorProps) {
+  const { extract, preload, isReady } = useArchiveExtractor();
+
   const [files, setFiles] = useState<FileNode[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [archiveName, setArchiveName] = useState<string>("");
   const [isDragging, setIsDragging] = useState(false);
   const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set());
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
-  const [archiveName, setArchiveName] = useState<string>("");
-  const [libarchiveMod, setLibarchiveMod] = useState<any>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [metadata, setMetadata] = useState<ExtractionMetadata | null>(null);
+  const [pendingPassword, setPendingPassword] = useState<PendingPasswordState | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
-  const handleFileSelect = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
+  const passwordInputRef = useRef<HTMLInputElement>(null);
 
-      await loadArchive(file);
+  const resetState = useCallback(() => {
+    setFiles([]);
+    setSelectedFiles(new Set());
+    setExpandedPaths(new Set());
+    setMetadata(null);
+  }, []);
+
+  const handleExtractionResult = useCallback(
+    (file: File, result: ExtractResult) => {
+      if (!result.ok) {
+        if (result.code === "PASSWORD_REQUIRED") {
+          setPendingPassword((prev) => ({
+            file,
+            message: result.message,
+            attempts: (prev?.attempts ?? 0) + 1,
+          }));
+          setPasswordError(null);
+        } else {
+          setError(result.message);
+          captureError(new Error(result.message), {
+            tool: "generic-archive-extract",
+            format,
+            fileName: file.name,
+            stage: "extract",
+          });
+        }
+        return;
+      }
+
+      const tree = buildFileTree(result.entries);
+      setFiles(tree);
+      setExpandedPaths(new Set(tree.filter((node) => node.isDirectory).map((node) => node.path)));
+      setSelectedFiles(new Set());
+      setMetadata({ engine: result.engine, format: result.format, warnings: result.warnings });
+      setPendingPassword(null);
+      setPasswordError(null);
     },
-    [],
+    [format],
   );
 
-  const handleFilesSelected = useCallback(async (files: File[]) => {
-    const file = files[0];
-    if (file) {
-      await loadArchive(file);
+  const readFileBuffer = useCallback(async (file: File) => {
+    try {
+      return await file.arrayBuffer();
+    } catch (err) {
+      if (err instanceof DOMException) {
+        if (err.name === "NotReadableError") {
+          throw new Error(
+            "We couldn't read that file. On Windows this usually happens when the file is in use by another application or located in a protected folder. Please close any apps using it or copy it to a local folder and try again.",
+          );
+        }
+        if (err.name === "SecurityError") {
+          throw new Error(
+            "The browser blocked access to this file. Try moving it to a different location on your computer and re-upload.",
+          );
+        }
+      }
+      throw err;
     }
   }, []);
 
-  const loadArchive = async (file: File) => {
-    setIsLoading(true);
-    setError(null);
-    setFiles([]);
-    setArchiveName(file.name);
-    setExpandedPaths(new Set());
-    setSelectedFiles(new Set());
+  const performExtraction = useCallback(
+    async (file: File, password?: string | null) => {
+      setIsLoading(true);
+      setError(null);
+      setArchiveName(file.name);
+      resetState();
 
-    try {
-      const data = await (async () => {
-        try {
-          return await file.arrayBuffer();
-        } catch (readError) {
-          if (readError instanceof DOMException) {
-            if (readError.name === "NotReadableError") {
-              throw new Error(
-                "We couldn't read that file. On Windows this usually happens when the file is in use by another application or located in a protected folder. Please close any apps using it or copy it to a local folder and try again.",
-              );
-            }
-            if (readError.name === "SecurityError") {
-              throw new Error(
-                "The browser blocked access to this file. Try moving it to a different location on your computer and re-upload.",
-              );
-            }
-          }
-          throw readError;
-        }
-      })();
+      try {
+        await preload();
+        const buffer = await readFileBuffer(file);
+        const request: ExtractRequest = {
+          fileName: file.name,
+          buffer,
+          password: password ?? undefined,
+        };
 
-      // Initialize libarchive if not already done
-      let mod = libarchiveMod;
-      if (!mod) {
-        const { libarchiveWasm } = await import("libarchive-wasm");
-        // Configure the module to find the WASM file in the public directory
-        mod = await libarchiveWasm({
-          locateFile: (path: string) => {
-            if (path.endsWith('.wasm')) {
-              return '/libarchive.wasm';
-            }
-            return path;
-          }
+        const result = await extract(request);
+        handleExtractionResult(file, result);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Failed to extract archive";
+        setError(message);
+        captureError(err, {
+          tool: "generic-archive-extract",
+          format,
+          fileName: file.name,
+          stage: "read",
         });
-        setLibarchiveMod(mod);
+      } finally {
+        setIsLoading(false);
       }
+    },
+    [extract, format, handleExtractionResult, preload, readFileBuffer, resetState],
+  );
 
-      // Create archive reader
-      const { ArchiveReader } = await import("libarchive-wasm");
-      const reader = new ArchiveReader(mod, new Uint8Array(data));
-
-      // Extract all entries and build file tree
-      const entries: any[] = [];
-      for (const entry of reader.entries()) {
-        const pathname = entry.getPathname();
-        const size = entry.getSize();
-        const data = entry.readData();
-
-        entries.push({
-          path: pathname,
-          size,
-          compressed_size: size, // libarchive-wasm doesn't expose compressed size
-          last_modified: new Date(), // libarchive-wasm doesn't expose modified time
-          data,
-        });
+  const handleFileSelect = useCallback(
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (file) {
+        void performExtraction(file);
       }
+    },
+    [performExtraction],
+  );
 
-      // Free the reader
-      reader.free();
+  const handleFilesSelected = useCallback(
+    async (selected: File[]) => {
+      const file = selected[0];
+      if (file) {
+        void performExtraction(file);
+      }
+    },
+    [performExtraction],
+  );
 
-      // Build file tree
-      const fileTree = buildFileTree(entries);
-      setFiles(fileTree);
-    } catch (err) {
-      captureError(err, {
-        tool: "generic-archive-extract",
-        format: format,
-        fileName: file.name,
-        stage: "load-archive",
-      });
-      console.error("Archive error:", err);
-      setError(
-        err instanceof Error
-          ? err.message
-          : `Failed to read ${formatName} archive. Make sure it's a valid ${formatName} file.`,
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const buildFileTree = (entries: any[]): FileNode[] => {
-    const root: FileNode[] = [];
-    const nodeMap: Record<string, FileNode> = {};
-
-    // Sort entries by path to ensure parents are created before children
-    entries.sort((a, b) => a.path.localeCompare(b.path));
-
-    entries.forEach((entry) => {
-      const parts = entry.path.split("/").filter(Boolean);
-      let currentLevel = root;
-      let currentPath = "";
-
-      parts.forEach((part: string, index: number) => {
-        currentPath = currentPath ? `${currentPath}/${part}` : part;
-        const isLastPart = index === parts.length - 1;
-        const isDirectory = entry.path.endsWith("/") || !isLastPart;
-
-        if (!nodeMap[currentPath]) {
-          const node: FileNode = {
-            name: part,
-            path: currentPath,
-            isDirectory,
-            children: [],
-            size: isLastPart && !isDirectory ? entry.size : 0,
-            compressedSize:
-              isLastPart && !isDirectory ? entry.compressed_size || 0 : 0,
-            lastModified: new Date(entry.last_modified || Date.now()),
-            fileData: isLastPart && !isDirectory ? entry.data : undefined,
-          };
-
-          nodeMap[currentPath] = node;
-          currentLevel.push(node);
-        }
-
-        if (nodeMap[currentPath].isDirectory) {
-          currentLevel = nodeMap[currentPath].children;
-        }
-      });
-    });
-
-    return root;
-  };
-
-  const toggleExpanded = (path: string) => {
+  const toggleExpanded = useCallback((path: string) => {
     setExpandedPaths((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(path)) {
-        newSet.delete(path);
+      const next = new Set(prev);
+      if (next.has(path)) {
+        next.delete(path);
       } else {
-        newSet.add(path);
+        next.add(path);
       }
-      return newSet;
+      return next;
     });
-  };
+  }, []);
 
-  const toggleSelected = (path: string) => {
+  const toggleSelected = useCallback((path: string) => {
     setSelectedFiles((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(path)) {
-        newSet.delete(path);
+      const next = new Set(prev);
+      if (next.has(path)) {
+        next.delete(path);
       } else {
-        newSet.add(path);
+        next.add(path);
       }
-      return newSet;
+      return next;
     });
-  };
+  }, []);
 
-  const selectAll = () => {
-    const allFiles = new Set<string>();
-    const addFiles = (nodes: FileNode[]) => {
-      nodes.forEach((node) => {
-        if (!node.isDirectory) {
-          allFiles.add(node.path);
-        }
-        if (node.children) {
-          addFiles(node.children);
-        }
-      });
-    };
-    addFiles(files);
-    setSelectedFiles(allFiles);
-  };
+  const selectAll = useCallback(() => {
+    const nodes = flattenFiles(files);
+    setSelectedFiles(new Set(nodes.map((node) => node.path)));
+  }, [files]);
 
-  const downloadFile = async (node: FileNode) => {
+  const clearSelection = useCallback(() => {
+    setSelectedFiles(new Set());
+  }, []);
+
+  const downloadFile = useCallback(async (node: FileNode) => {
     if (!node.fileData) return;
 
     try {
@@ -299,321 +389,326 @@ export default function GenericArchiveExtractor({
       link.click();
       URL.revokeObjectURL(link.href);
     } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to download file";
+      setError(message);
       captureError(err, {
         tool: "generic-archive-extract",
-        format: format,
+        format,
         fileName: node.name,
-        stage: "download-file",
+        stage: "download",
       });
-      setError(err instanceof Error ? err.message : "Failed to download file");
     }
-  };
+  }, [format]);
 
-  const downloadSelected = async () => {
-    const filesToDownload: FileNode[] = [];
-
-    const collectFiles = (nodes: FileNode[]) => {
-      nodes.forEach((node) => {
-        if (selectedFiles.has(node.path) && !node.isDirectory) {
-          filesToDownload.push(node);
-        }
-        if (node.children) {
-          collectFiles(node.children);
-        }
-      });
-    };
-
-    collectFiles(files);
-
-    for (const file of filesToDownload) {
-      await downloadFile(file);
-      // Small delay between downloads to avoid browser blocking
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    }
-  };
-
-  const clearArchive = () => {
-    setFiles([]);
-    setError(null);
-    setSelectedFiles(new Set());
-    setExpandedPaths(new Set());
-    setArchiveName("");
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
-  const formatFileSize = (bytes: number): string => {
-    if (bytes < 1024) return bytes + " B";
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
-    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
-  };
-
-  const renderFileTree = (nodes: FileNode[], level = 0) => {
-    return nodes.map((node) => {
-      const isExpanded = expandedPaths.has(node.path);
-      const isSelected = selectedFiles.has(node.path);
-
-      return (
-        <div key={node.path}>
-          <div
-            className={cn(
-              "flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-secondary/50 cursor-pointer transition-colors",
-              isSelected && !node.isDirectory && "bg-primary/10",
-            )}
-            style={{ paddingLeft: `${level * 20 + 12}px` }}
-          >
-            {node.isDirectory ? (
-              <button
-                onClick={() => toggleExpanded(node.path)}
-                className="p-0.5 hover:bg-secondary rounded"
-              >
-                {isExpanded ? (
-                  <ChevronDown className="w-4 h-4" />
-                ) : (
-                  <ChevronRight className="w-4 h-4" />
-                )}
-              </button>
-            ) : (
-              <input
-                type="checkbox"
-                checked={isSelected}
-                onChange={() => toggleSelected(node.path)}
-                className="rounded border-border"
-                onClick={(e) => e.stopPropagation()}
-              />
-            )}
-
-            {node.isDirectory ? (
-              <FolderOpen className="w-4 h-4 text-amber-500" />
-            ) : (
-              <File className="w-4 h-4 text-muted-foreground" />
-            )}
-
-            <span
-              className="flex-1 text-sm truncate"
-              onClick={() => {
-                if (node.isDirectory) {
-                  toggleExpanded(node.path);
-                } else {
-                  toggleSelected(node.path);
-                }
-              }}
-            >
-              {node.name}
-            </span>
-
-            {!node.isDirectory && (
-              <>
-                <span className="text-xs text-muted-foreground">
-                  {formatFileSize(node.size)}
-                </span>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    downloadFile(node);
-                  }}
-                  className="h-7 px-2"
-                >
-                  <Download className="w-3 h-3" />
-                </Button>
-              </>
-            )}
-          </div>
-
-          {node.isDirectory && isExpanded && node.children.length > 0 && (
-            <div>{renderFileTree(node.children, level + 1)}</div>
-          )}
-        </div>
-      );
+  const downloadSelected = useCallback(() => {
+    const nodes = flattenFiles(files).filter((node) => selectedFiles.has(node.path));
+    nodes.forEach((node) => {
+      void downloadFile(node);
     });
-  };
+  }, [downloadFile, files, selectedFiles]);
 
-  const totalFiles = (() => {
-    let count = 0;
-    const countFiles = (nodes: FileNode[]) => {
-      nodes.forEach((node) => {
-        if (!node.isDirectory) count++;
-        if (node.children) countFiles(node.children);
-      });
+  const metadataSummary = useMemo(() => {
+    if (!metadata) return null;
+    const warnings = metadata.warnings.filter((entry) => entry.trim().length > 0);
+    return {
+      engine: engineLabel(metadata.engine),
+      warnings,
     };
-    countFiles(files);
-    return count;
-  })();
+  }, [metadata]);
 
-  const totalSize = (() => {
-    let size = 0;
-    const calculateSize = (nodes: FileNode[]) => {
-      nodes.forEach((node) => {
-        if (!node.isDirectory) size += node.size;
-        if (node.children) calculateSize(node.children);
-      });
-    };
-    calculateSize(files);
-    return size;
-  })();
+  const handlePasswordSubmit = useCallback(
+    (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      if (!pendingPassword) return;
+      const password = passwordInputRef.current?.value ?? "";
+      if (!password && pendingPassword.attempts > 1) {
+        setPasswordError("Password cannot be empty.");
+        return;
+      }
+      setPasswordError(null);
+      void performExtraction(pendingPassword.file, password);
+    },
+    [pendingPassword, performExtraction],
+  );
+
+  const handlePasswordDismiss = useCallback(() => {
+    setPendingPassword(null);
+    setPasswordError(null);
+  }, []);
+
+  const warmupEngines = useCallback(() => {
+    void preload();
+  }, [preload]);
+
+  useEffect(() => {
+    if (pendingPassword) {
+      if (passwordInputRef.current) {
+        passwordInputRef.current.value = "";
+      }
+    }
+  }, [pendingPassword]);
+
+  const featureList = features ?? defaultFeatures;
+  const relatedList = relatedTools ?? defaultRelatedTools;
 
   return (
-    <div className="min-h-screen w-full">
-      {/* Archive-themed Gradient Effects - Hidden on mobile */}
-      <div className="hidden sm:block fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.01] via-transparent to-accent/[0.01]" />
-        <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-primary/8 rounded-full blur-3xl animate-blob" />
-        <div className="absolute bottom-20 right-1/3 w-72 h-72 bg-accent/5 rounded-full blur-3xl" />
-      </div>
+    <div className="space-y-10">
+      <ToolHeader
+        title={`${formatName} Extractor`}
+        description={formatDescription}
+        icon={Icon as LucideIcon}
+        features={featureList}
+      />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 lg:py-6 py-8 sm:py-12 relative z-10">
-        {/* Hero Section */}
-        <ToolHeader
-          title={{ highlight: "Extract", main: `${formatName} Archives` }}
-          subtitle={formatDescription}
-          badge={{
-            text: `${formatName} Extractor • Online • Free`,
-            icon: (Icon || FileArchive) as LucideIcon,
-          }}
-          features={defaultFeatures}
-        />
-
-        {/* Main Interface */}
+      <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
         <div className="space-y-6">
-          <input
-            ref={fileInputRef}
-            type="file"
-            onChange={handleFileSelect}
-            accept={acceptedExtensions}
-            className="hidden"
-          />
+          <div onPointerEnter={warmupEngines} onFocusCapture={warmupEngines}>
+            <FileDropZone
+              acceptedTypes={acceptedExtensions}
+              isDragging={isDragging}
+              onDragStateChange={setIsDragging}
+              onFilesSelected={handleFilesSelected}
+              onFileInput={handleFileSelect}
+              title={`Drop your ${format.toUpperCase()} archive here`}
+              description="We extract everything directly in your browser."
+            />
+          </div>
 
-          {/* Upload Area */}
-          {files.length === 0 && !isLoading && (
-            <div
-              className="relative animate-fade-in-up"
-              style={{ animationDelay: "0.3s" }}
-            >
-              <FileDropZone
-                onFilesSelected={handleFilesSelected}
-                accept={acceptedExtensions}
-                multiple={false}
-                isDragging={isDragging}
-                onDragStateChange={setIsDragging}
-                title={`Drop your ${formatName} file here or click to browse`}
-                subtitle={`Supports ${formatName} archives`}
-              />
-            </div>
-          )}
-
-          {/* Loading State */}
-          {isLoading && (
-            <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-12 text-center">
-              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
-              <p className="text-lg font-medium">Loading archive...</p>
-              <p className="text-sm text-muted-foreground mt-2">
-                This may take a moment for large files
-              </p>
-            </div>
-          )}
-
-          {/* Archive Content */}
-          {files.length > 0 && !isLoading && (
-            <div
-              className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 overflow-hidden animate-fade-in-up"
-              style={{ animationDelay: "0.4s" }}
-            >
-              {/* Header */}
-              <div className="border-b border-border/50 px-6 py-4 bg-gradient-to-r from-primary/5 to-transparent">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div>
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <Icon className="w-5 h-5 text-primary" />
-                      {archiveName}
-                    </h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {totalFiles} files • {formatFileSize(totalSize)}
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Button
-                      onClick={selectAll}
-                      size="sm"
-                      variant="outline"
-                      className="gap-2"
-                    >
-                      Select All
-                    </Button>
-                    <Button
-                      onClick={downloadSelected}
-                      disabled={selectedFiles.size === 0}
-                      size="sm"
-                      className="gap-2"
-                    >
-                      <Download className="w-4 h-4" />
-                      Download Selected ({selectedFiles.size})
-                    </Button>
-                    <Button
-                      onClick={clearArchive}
-                      size="sm"
-                      variant="ghost"
-                      className="text-destructive hover:text-destructive"
-                    >
-                      Clear
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              {/* File Tree */}
-              <div className="p-6">
-                <div className="max-h-[500px] overflow-y-auto rounded-lg border border-border/50 bg-background/50">
-                  {renderFileTree(files)}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Error Display */}
           {error && (
-            <div className="bg-destructive/10 text-destructive rounded-lg p-4 flex items-start gap-3 animate-fade-in-up">
-              <AlertCircle className="w-5 h-5 mt-0.5" />
-              <div className="flex-1">
-                <p className="font-medium">Error</p>
-                <p className="text-sm mt-1">{error}</p>
+            <div className="flex items-start gap-3 rounded-md border border-destructive/30 bg-destructive/10 p-4 text-sm">
+              <AlertCircle className="mt-0.5 h-5 w-5 text-destructive" />
+              <div>
+                <p className="font-medium text-destructive">Extraction failed</p>
+                <p className="text-muted-foreground">{error}</p>
               </div>
-              <button onClick={() => setError(null)}>
-                <X className="w-4 h-4" />
-              </button>
+            </div>
+          )}
+
+          {isLoading && (
+            <div className="flex items-center gap-3 rounded-md border border-muted bg-card p-4 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>{isReady ? "Extracting archive…" : "Preparing extraction engines…"}</span>
+            </div>
+          )}
+
+          {metadataSummary && (
+            <div className="rounded-md border border-muted bg-card p-4 text-sm text-muted-foreground">
+              <p>
+                Extraction engine: <span className="font-medium text-foreground">{metadataSummary.engine}</span>
+              </p>
+              {metadataSummary.warnings.length > 0 && (
+                <div className="mt-2 space-y-1">
+                  <p className="font-medium text-foreground">Messages</p>
+                  <ul className="space-y-1">
+                    {metadataSummary.warnings.map((warning, idx) => (
+                      <li key={`${warning}-${idx}`} className="text-xs leading-relaxed text-muted-foreground">
+                        {warning}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+
+          {files.length > 0 ? (
+            <div className="rounded-md border border-muted bg-card">
+              <div className="flex items-center justify-between border-b border-muted p-4">
+                <div>
+                  <h2 className="text-base font-semibold">{archiveName}</h2>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedFiles.size > 0
+                      ? `${selectedFiles.size} file${selectedFiles.size === 1 ? "" : "s"} selected`
+                      : "Select files to download"}
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button variant="outline" size="sm" onClick={selectAll}>
+                    Select all
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={clearSelection}>
+                    Clear
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={downloadSelected}
+                    disabled={selectedFiles.size === 0}
+                  >
+                    <Download className="mr-2 h-4 w-4" /> Download selected
+                  </Button>
+                </div>
+              </div>
+
+              <div className="max-h-[480px] overflow-auto text-sm">
+                <ul className="divide-y divide-muted/60">
+                  {files.map((node) => (
+                    <FileNodeRow
+                      key={node.path}
+                      node={node}
+                      depth={0}
+                      expandedPaths={expandedPaths}
+                      selectedFiles={selectedFiles}
+                      onToggleExpand={toggleExpanded}
+                      onToggleSelect={toggleSelected}
+                      onDownload={downloadFile}
+                    />
+                  ))}
+                </ul>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-md border border-dashed border-muted bg-card p-8 text-center text-sm text-muted-foreground">
+              <FolderOpen className="mx-auto mb-3 h-8 w-8" />
+              <p>Drop a {format.toUpperCase()} archive above to see its contents instantly.</p>
             </div>
           )}
         </div>
 
-        {/* Format Details */}
-        <div className="space-y-6 mt-12">
-          <h2 className="text-2xl font-semibold">About {formatName} Format</h2>
-          <div className="bg-card/50 backdrop-blur-sm rounded-xl p-6 border border-border/50">
-            <p className="text-sm text-muted-foreground">
-              {formatName} is supported by libarchive-wasm, allowing you to
-              extract these archives directly in your browser without any server
-              uploads.
+        <div className="space-y-6">
+          {faqs && faqs.length > 0 && <FAQ items={faqs} />}
+          <RelatedTools tools={relatedList} />
+        </div>
+      </div>
+
+      <Dialog open={pendingPassword !== null} onOpenChange={handlePasswordDismiss}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Enter archive password</DialogTitle>
+            <DialogDescription>{pendingPassword?.message}</DialogDescription>
+          </DialogHeader>
+          <form className="space-y-4" onSubmit={handlePasswordSubmit}>
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-foreground" htmlFor="archive-password">
+                <Lock className="h-4 w-4" /> Password
+              </label>
+              <Input
+                id="archive-password"
+                type="password"
+                autoFocus
+                ref={passwordInputRef}
+                placeholder="Enter archive password"
+              />
+              {passwordError && <p className="text-xs text-destructive">{passwordError}</p>}
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="ghost" onClick={handlePasswordDismiss}>
+                Cancel
+              </Button>
+              <Button type="submit">Unlock</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+interface FileNodeRowProps {
+  node: FileNode;
+  depth: number;
+  expandedPaths: Set<string>;
+  selectedFiles: Set<string>;
+  onToggleExpand: (path: string) => void;
+  onToggleSelect: (path: string) => void;
+  onDownload: (node: FileNode) => void;
+}
+
+function FileNodeRow({
+  node,
+  depth,
+  expandedPaths,
+  selectedFiles,
+  onToggleExpand,
+  onToggleSelect,
+  onDownload,
+}: FileNodeRowProps) {
+  const isExpanded = expandedPaths.has(node.path);
+  const isSelected = selectedFiles.has(node.path);
+
+  const handleRowClick = () => {
+    if (node.isDirectory) {
+      onToggleExpand(node.path);
+    } else {
+      onToggleSelect(node.path);
+    }
+  };
+
+  return (
+    <li>
+      <div
+        className={cn(
+          "flex items-center justify-between gap-4 px-4 py-3 transition-colors",
+          isSelected ? "bg-muted" : "hover:bg-muted/70",
+        )}
+        style={{ paddingLeft: `${16 + depth * 20}px` }}
+        onClick={handleRowClick}
+        role="button"
+        tabIndex={0}
+        onKeyPress={(event) => {
+          if (event.key === "Enter" || event.key === " ") handleRowClick();
+        }}
+      >
+        <div className="flex flex-1 items-center gap-3">
+          {node.isDirectory ? (
+            <ChevronIcon expanded={isExpanded} />
+          ) : (
+            <span className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-muted-foreground/40 text-[10px] leading-[10px] text-muted-foreground">
+              {isSelected ? "•" : ""}
+            </span>
+          )}
+          {node.isDirectory ? (
+            <FolderOpen className="h-4 w-4 text-primary" />
+          ) : (
+            <File className="h-4 w-4 text-primary" />
+          )}
+          <div>
+            <p className="text-sm font-medium text-foreground">{node.name}</p>
+            <p className="text-xs text-muted-foreground">
+              {node.isDirectory ? "Directory" : formatBytes(node.size)}
             </p>
           </div>
         </div>
 
-        {/* Related Tools */}
-        <div className="mt-12 space-y-6">
-          <RelatedTools
-            tools={relatedTools || defaultRelatedTools}
-            direction="responsive"
-          />
-        </div>
-
-        {/* FAQ Section */}
-        {faqs && faqs.length > 0 && (
-          <div className="mt-12 space-y-6">
-            <FAQ items={faqs} />
-          </div>
+        {!node.isDirectory && node.fileData && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8"
+            onClick={(event) => {
+              event.stopPropagation();
+              onDownload(node);
+            }}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Save
+          </Button>
         )}
       </div>
-    </div>
+
+      {node.isDirectory && isExpanded && node.children.length > 0 && (
+        <ul className="divide-y divide-muted/40">
+          {node.children.map((child) => (
+            <FileNodeRow
+              key={child.path}
+              node={child}
+              depth={depth + 1}
+              expandedPaths={expandedPaths}
+              selectedFiles={selectedFiles}
+              onToggleExpand={onToggleExpand}
+              onToggleSelect={onToggleSelect}
+              onDownload={onDownload}
+            />
+          ))}
+        </ul>
+      )}
+    </li>
+  );
+}
+
+function ChevronIcon({ expanded }: { expanded: boolean }) {
+  return expanded ? (
+    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+  ) : (
+    <ChevronRight className="h-4 w-4 text-muted-foreground" />
   );
 }

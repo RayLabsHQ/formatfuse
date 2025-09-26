@@ -19,6 +19,7 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
+    "7z-wasm": "^1.2.0",
     "@astrojs/mdx": "^4.3.4",
     "@astrojs/partytown": "^2.1.4",
     "@astrojs/react": "^4.3.0",
@@ -104,6 +105,7 @@
     "happy-dom": "^18.0.1",
     "jsdom": "^26.1.0",
     "react": "^19.1.1",
+    "rollup-plugin-visualizer": "^6.0.3",
     "tar": "^7.4.3",
     "tsx": "^4.20.5",
     "tw-animate-css": "^1.3.7",

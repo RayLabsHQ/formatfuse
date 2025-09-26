@@ -89,6 +89,10 @@ pnpm astro [command]
     └── Layout.astro        # Base layout template
 ```
 
+## Documentation
+
+- [Archive Extraction Pipeline](docs/ARCHIVE-EXTRACTION-PIPELINE.md) – architecture, worker flow, testing, and maintenance guidance for the archive tools.
+
 ## Features Implemented
 
 ### Core Features

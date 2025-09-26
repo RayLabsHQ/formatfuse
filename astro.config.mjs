@@ -1,14 +1,15 @@
 // @ts-check
 import { defineConfig } from "astro/config";
-import tailwindcss from "@tailwindcss/vite";
 import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";
 import opengraphImages from "astro-opengraph-images";
 import { toolOGImage } from "./src/og-image-renderer.tsx";
 import partytown from "@astrojs/partytown";
-import llmsTxt from "./src/integrations/llms-txt.ts";
 import AstroPWA from "@vite-pwa/astro";
 import fs from "fs";
+import tailwindcss from "@tailwindcss/vite";
+import llmsTxt from "./src/integrations/llms-txt.ts";
+import { visualizer } from "rollup-plugin-visualizer";
 
 // https://astro.build/config
 export default defineConfig({
@@ -227,6 +228,14 @@ export default defineConfig({
             "ui-libs": ["@radix-ui/react-dialog", "@radix-ui/react-select"],
           },
         },
+        plugins: [
+          visualizer({
+            filename: "dist/rollup-stats.html",
+            template: "treemap",
+            gzipSize: true,
+            brotliSize: true,
+          }),
+        ],
       },
     },
     assetsInclude: ["**/*.wasm"],
