@@ -5,10 +5,10 @@ describe("Archive Tools Test Suite", () => {
     // This is a meta test to ensure all archive tests are present
     const expectedTests = [
       "./zip-extract.test",
-      "./zip-create.test", 
+      "./zip-create.test",
       "./tar-extract.test",
       "./tar-create.test",
-      "./libarchive-extract.test",
+      "./archive-extractor.worker.test",
     ];
 
     // Just check that imports don't throw
@@ -27,9 +27,9 @@ describe("Archive Tools Test Suite", () => {
         { format: "TAR.BZ2", library: "tar-js + bzip2", supported: true },
         
         // Advanced formats (via libarchive-wasm)
-        { format: "7Z", library: "libarchive-wasm", supported: true },
-        { format: "RAR", library: "libarchive-wasm", supported: true },
-        { format: "ISO", library: "libarchive-wasm", supported: true },
+        { format: "7Z", library: "7z-wasm", supported: true },
+        { format: "RAR", library: "7z-wasm", supported: true },
+        { format: "ISO", library: "7z-wasm", supported: true },
         { format: "CAB", library: "libarchive-wasm", supported: true },
         { format: "AR", library: "libarchive-wasm", supported: true },
         { format: "CPIO", library: "libarchive-wasm", supported: true },

@@ -1,11 +1,5 @@
 import React, { useState, useCallback } from "react";
-import {
-  FileArchive,
-  Shield,
-  Zap,
-  Sparkles,
-  Package,
-} from "lucide-react";
+import { FileArchive, Shield, Zap, Package, Lock, Eye, EyeOff } from "lucide-react";
 import JSZip from "jszip";
 import { cn } from "../../lib/utils";
 import {
@@ -14,7 +8,12 @@ import {
 } from "./ArchiveTool";
 import { type FAQItem } from "../ui/FAQ";
 import { type RelatedTool } from "../ui/RelatedTools";
-import { captureError } from "../../lib/posthog";
+import { captureError, captureEvent } from "../../lib/posthog";
+import type { CreateArchiveRequest } from "../../lib/archive/types";
+import { Switch } from "../ui/switch";
+import { Input } from "../ui/input";
+import { Button } from "../ui/button";
+import { useArchiveCreator } from "../../hooks/useArchiveCreator";
 
 const features = [
   {
@@ -24,9 +23,9 @@ const features = [
   },
   { icon: Zap, text: "Lightning fast", description: "Create ZIP instantly" },
   {
-    icon: Sparkles,
-    text: "Compression",
-    description: "Reduce file sizes",
+    icon: Lock,
+    text: "AES-256 encryption",
+    description: "Protect archives with strong passwords",
   },
 ];
 
@@ -54,7 +53,7 @@ const faqs: FAQItem[] = [
   {
     question: "Can I create password-protected ZIP files?",
     answer:
-      "Currently, this tool doesn't support password protection. We're working on adding encryption features in a future update.",
+      "Yes. Enable password protection to encrypt the archive with AES-256 entirely in your browser.",
   },
   {
     question: "What compression levels are available?",
@@ -104,6 +103,11 @@ export default function CreateZip() {
   const [compressionLevel, setCompressionLevel] = useState<CompressionOption>(
     compressionOptions[2],
   );
+  const [enablePassword, setEnablePassword] = useState(false);
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
+  const { create, preload, isReady: isCreatorReady } = useArchiveCreator();
 
   const handleFiles = useCallback((selectedFiles: File[]) => {
     const newFiles: FileItem[] = selectedFiles.map((file) => ({
@@ -128,23 +132,110 @@ export default function CreateZip() {
     );
   }, []);
 
+  const updateFileStatus = useCallback(
+    (index: number, status: FileItem["status"], progress: number) => {
+      setFiles((prev) =>
+        prev.map((current, idx) =>
+          idx === index ? { ...current, status, progress } : current,
+        ),
+      );
+    },
+    [],
+  );
+
   const createZip = useCallback(async () => {
     if (files.length === 0) return;
 
     setIsCreating(true);
     setError(null);
 
+    const trimmedPassword = password.trim();
+    const totalBytes = files.reduce((sum, fileItem) => sum + fileItem.file.size, 0);
+
+    if (enablePassword && trimmedPassword.length === 0) {
+      setError("Enter a password to encrypt the archive.");
+      setIsCreating(false);
+      return;
+    }
+
+    if (enablePassword) {
+      try {
+        await preload();
+
+        const payload: CreateArchiveRequest["files"] = [];
+        for (let i = 0; i < files.length; i += 1) {
+          updateFileStatus(i, "processing", 0);
+          const fileItem = files[i];
+          const buffer = await fileItem.file.arrayBuffer();
+          payload.push({
+            path: fileItem.path,
+            data: buffer,
+            lastModified: fileItem.file.lastModified ?? undefined,
+          });
+          updateFileStatus(i, "completed", 100);
+        }
+
+        const result = await create({
+          format: "zip",
+          files: payload,
+          password: trimmedPassword,
+        });
+
+        if (!result.ok) {
+          captureEvent("zip_create_failed", {
+            encrypted: true,
+            reason: result.code,
+            fileCount: files.length,
+            totalBytes,
+          });
+          setError(result.message);
+          return;
+        }
+
+        const blob = new Blob([result.data], { type: "application/zip" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `${archiveName}.zip`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+
+        captureEvent("zip_create_succeeded", {
+          encrypted: true,
+          fileCount: files.length,
+          totalBytes,
+        });
+
+        setTimeout(() => {
+          setFiles([]);
+        }, 800);
+      } catch (err) {
+        captureError(err, {
+          tool: "create-zip",
+          fileCount: files.length,
+          compression: compressionLevel.name,
+          encryption: true,
+        });
+        const message = err instanceof Error ? err.message : "Failed to create ZIP file";
+        captureEvent("zip_create_failed", {
+          encrypted: true,
+          reason: "exception",
+          fileCount: files.length,
+          totalBytes,
+        });
+        setError(message);
+      } finally {
+        setIsCreating(false);
+      }
+      return;
+    }
+
     try {
       const zip = new JSZip();
 
-      for (let i = 0; i < files.length; i++) {
+      for (let i = 0; i < files.length; i += 1) {
         const fileItem = files[i];
 
-        setFiles((prev) =>
-          prev.map((current, idx) =>
-            idx === i ? { ...current, status: "processing" as const } : current,
-          ),
-        );
+        updateFileStatus(i, "processing", 0);
 
         const content = await fileItem.file.arrayBuffer();
 
@@ -157,13 +248,7 @@ export default function CreateZip() {
 
         zip.file(fileItem.path, content, options);
 
-        setFiles((prev) =>
-          prev.map((current, idx) =>
-            idx === i
-              ? { ...current, status: "completed" as const, progress: 100 }
-              : current,
-          ),
-        );
+        updateFileStatus(i, "completed", 100);
       }
 
       const blob = await zip.generateAsync({
@@ -181,24 +266,40 @@ export default function CreateZip() {
       link.click();
       URL.revokeObjectURL(link.href);
 
+      captureEvent("zip_create_succeeded", {
+        encrypted: false,
+        fileCount: files.length,
+        totalBytes,
+      });
+
       setTimeout(() => {
         setFiles([]);
-        setIsCreating(false);
-      }, 1000);
+      }, 800);
     } catch (err) {
       captureError(err, {
         tool: "create-zip",
         fileCount: files.length,
         compression: compressionLevel.name,
+        encryption: false,
+      });
+      captureEvent("zip_create_failed", {
+        encrypted: false,
+        reason: "exception",
+        fileCount: files.length,
+        totalBytes,
       });
       setError(err instanceof Error ? err.message : "Failed to create ZIP file");
+    } finally {
       setIsCreating(false);
     }
-  }, [files, archiveName, compressionLevel]);
+  }, [archiveName, compressionLevel, create, enablePassword, files, password, preload, updateFileStatus]);
 
   const clearAll = useCallback(() => {
     setFiles([]);
     setError(null);
+    setEnablePassword(false);
+    setPassword("");
+    setShowPassword(false);
   }, []);
 
   const archiveNameSuffix = (
@@ -208,29 +309,91 @@ export default function CreateZip() {
   );
 
   const additionalSettings = (
-    <div className="space-y-3">
-      <label className="text-sm font-medium flex items-center gap-2">
-        <Package className="w-4 h-4 text-muted-foreground" />
-        Compression Level
-      </label>
-      <div className="grid grid-cols-3 gap-2">
-        {compressionOptions.map((option) => (
-          <button
-            key={option.name}
-            onClick={() => setCompressionLevel(option)}
-            className={cn(
-              "px-4 py-3 rounded-xl border-2 transition-all duration-200",
-              compressionLevel.name === option.name
-                ? "border-primary bg-primary/10"
-                : "border-border/50 hover:border-primary/50 bg-card/50",
+    <div className="space-y-6">
+      <div className="space-y-3">
+        <label className="text-sm font-medium flex items-center gap-2">
+          <Package className="w-4 h-4 text-muted-foreground" />
+          Compression Level
+        </label>
+        <div className="grid grid-cols-3 gap-2">
+          {compressionOptions.map((option) => (
+            <button
+              key={option.name}
+              onClick={() => setCompressionLevel(option)}
+              className={cn(
+                "px-4 py-3 rounded-xl border-2 transition-all duration-200",
+                compressionLevel.name === option.name
+                  ? "border-primary bg-primary/10"
+                  : "border-border/50 hover:border-primary/50 bg-card/50",
+              )}
+            >
+              <div className="text-sm font-medium">{option.name}</div>
+              <div className="text-xs text-muted-foreground mt-0.5">
+                {option.description}
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-3 border-t border-border/40 pt-4">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-medium flex items-center gap-2">
+              <Lock className="w-4 h-4 text-muted-foreground" />
+              Password protect
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Encrypt the archive with AES-256. Everything stays on your device.
+            </p>
+            {enablePassword && !isCreatorReady && (
+              <p className="mt-2 text-xs text-muted-foreground">Preparing encryption engine…</p>
             )}
-          >
-            <div className="text-sm font-medium">{option.name}</div>
-            <div className="text-xs text-muted-foreground mt-0.5">
-              {option.description}
-            </div>
-          </button>
-        ))}
+          </div>
+          <Switch
+            checked={enablePassword}
+            onCheckedChange={(checked) => {
+              setEnablePassword(checked);
+              if (checked) {
+                if (!isCreatorReady) {
+                  void preload();
+                }
+              } else {
+                setPassword("");
+                setShowPassword(false);
+              }
+            }}
+          />
+        </div>
+
+        {enablePassword && (
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <Input
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="Enter archive password"
+              className="sm:flex-1"
+              autoComplete="new-password"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              className="sm:w-auto"
+              onClick={() => setShowPassword((prev) => !prev)}
+            >
+              {showPassword ? (
+                <span className="flex items-center gap-2 text-sm">
+                  <EyeOff className="h-4 w-4" /> Hide
+                </span>
+              ) : (
+                <span className="flex items-center gap-2 text-sm">
+                  <Eye className="h-4 w-4" /> Show
+                </span>
+              )}
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -242,7 +405,7 @@ export default function CreateZip() {
     },
     {
       title: "Configure settings",
-      description: "Choose compression level and organize file paths",
+      description: "Choose compression level and optionally add a password",
     },
     {
       title: "Download ZIP",

@@ -19,6 +19,7 @@ interface FileDropZoneProps {
   disabled?: boolean;
   allowFolders?: boolean;
   showButtons?: boolean;
+  primaryButtonLabel?: string;
   onAddFilesClick?: () => void;
   onAddFolderClick?: () => void;
   customInfoContent?: React.ReactNode;
@@ -38,6 +39,7 @@ export function FileDropZone({
   disabled = false,
   allowFolders = false,
   showButtons = false,
+  primaryButtonLabel = "Browse files",
   onAddFilesClick,
   onAddFolderClick,
   customInfoContent,
@@ -202,6 +204,23 @@ export function FileDropZone({
             <p className="text-sm sm:text-base text-muted-foreground mb-4">
               {subtitle}
             </p>
+          )}
+
+          {!showButtons && (
+            <Button
+              type="button"
+              size="lg"
+              variant="default"
+              className="mt-3"
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                handleClick();
+              }}
+              disabled={disabled}
+            >
+              {primaryButtonLabel}
+            </Button>
           )}
           
           {showButtons && (
