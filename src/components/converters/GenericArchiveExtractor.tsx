@@ -354,24 +354,24 @@ export default function GenericArchiveExtractor({
     [extract, format, handleExtractionResult, preload, readFileBuffer, resetState],
   );
 
-  const handleFileSelect = useCallback(
-    async (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      if (file) {
-        void performExtraction(file);
-      }
-    },
-    [performExtraction],
-  );
-
   const handleFilesSelected = useCallback(
     async (selected: File[]) => {
+      if (selected.length > 1) {
+        setError("Please choose a single archive to extract at a time.");
+        captureEvent("archive_multiple_files_selected", {
+          tool: "generic-archive-extract",
+          format,
+          fileCount: selected.length,
+        });
+        return;
+      }
+
       const file = selected[0];
       if (file) {
         void performExtraction(file);
       }
     },
-    [performExtraction],
+    [format, performExtraction],
   );
 
   const toggleExpanded = useCallback((path: string) => {
@@ -517,11 +517,11 @@ export default function GenericArchiveExtractor({
           <div className="space-y-6">
             <div onPointerEnter={warmupEngines} onFocusCapture={warmupEngines}>
               <FileDropZone
-                acceptedTypes={acceptedExtensions}
+                accept={acceptedExtensions}
+                multiple={false}
                 isDragging={isDragging}
                 onDragStateChange={setIsDragging}
                 onFilesSelected={handleFilesSelected}
-                onFileInput={handleFileSelect}
                 title={`Drop your ${format.toUpperCase()} archive here`}
                 description="We extract everything directly in your browser."
               />
