@@ -206,76 +206,75 @@ export function FileDropZone({
             </p>
           )}
 
-          {!showButtons && (
-            <Button
-              type="button"
-              size="lg"
-              variant="default"
-              className="mt-3"
-              onClick={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                handleClick();
-              }}
-              disabled={disabled}
-            >
-              {primaryButtonLabel}
-            </Button>
-          )}
-          
-          {showButtons && (
-            <div className="flex items-center justify-center gap-4 mt-6 mb-6">
+          <div className="mt-6 flex flex-col items-center gap-4">
+            {!showButtons ? (
               <Button
-                size="sm"
-                variant="outline"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (onAddFilesClick) {
-                    onAddFilesClick();
-                  } else {
-                    fileInputRef.current?.click();
-                  }
+                type="button"
+                size="lg"
+                variant="default"
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  handleClick();
                 }}
                 disabled={disabled}
-                className="gap-2"
               >
-                <Plus className="w-4 h-4" />
-                Add Files
+                {primaryButtonLabel}
               </Button>
-              {allowFolders && (
+            ) : (
+              <div className="flex flex-wrap items-center justify-center gap-4">
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (onAddFolderClick) {
-                      onAddFolderClick();
+                    if (onAddFilesClick) {
+                      onAddFilesClick();
                     } else {
-                      folderInputRef.current?.click();
+                      fileInputRef.current?.click();
                     }
                   }}
                   disabled={disabled}
                   className="gap-2"
                 >
-                  <FolderPlus className="w-4 h-4" />
-                  Add Folder
+                  <Plus className="w-4 h-4" />
+                  Add Files
                 </Button>
-              )}
-            </div>
-          )}
-          
-          {customInfoContent ? (
-            customInfoContent
-          ) : (
-            infoMessage && (
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-muted/50">
-                <Info className="w-4 h-4 text-primary" />
-                <span className="text-sm text-muted-foreground">
-                  {infoMessage}
-                </span>
+                {allowFolders && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (onAddFolderClick) {
+                        onAddFolderClick();
+                      } else {
+                        folderInputRef.current?.click();
+                      }
+                    }}
+                    disabled={disabled}
+                    className="gap-2"
+                  >
+                    <FolderPlus className="w-4 h-4" />
+                    Add Folder
+                  </Button>
+                )}
               </div>
-            )
-          )}
+            )}
+
+            {customInfoContent ? (
+              customInfoContent
+            ) : (
+              infoMessage && (
+                <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-muted/50">
+                  <Info className="w-4 h-4 text-primary" />
+                  <span className="text-sm text-muted-foreground">
+                    {infoMessage}
+                  </span>
+                </div>
+              )
+            )}
+          </div>
           {secondaryInfo && (
             <p className="text-xs text-muted-foreground mt-3">
               {secondaryInfo}
