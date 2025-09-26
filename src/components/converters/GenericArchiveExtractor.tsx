@@ -23,6 +23,7 @@ import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { FileDropZone } from "../ui/FileDropZone";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Input } from "../ui/input";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 
 import { cn } from "../../lib/utils";
 import { captureError, captureEvent } from "../../lib/posthog";
@@ -705,9 +706,28 @@ function FileNodeRow({
           {node.isDirectory ? (
             <ChevronIcon expanded={isExpanded} />
           ) : (
-            <span className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-muted-foreground/40 text-[10px] leading-[10px] text-muted-foreground">
-              {isSelected ? "•" : ""}
-            </span>
+            <RadioGroup
+              aria-label={`Selection toggle for ${node.name}`}
+              value={isSelected ? "selected" : "unselected"}
+              onValueChange={(value) => {
+                if (value === "selected" && !isSelected) {
+                  onToggleSelect(node.path);
+                }
+              }}
+              className="grid place-items-center gap-0"
+            >
+              <RadioGroupItem
+                value="selected"
+                aria-label={isSelected ? "Deselect file" : "Select file"}
+                className="size-4 border-muted-foreground/50 bg-background/70 text-primary data-[state=unchecked]:border-muted-foreground/60 data-[state=unchecked]:bg-background/60 data-[state=checked]:border-primary data-[state=checked]:bg-primary/15 dark:border-muted-foreground/50 dark:data-[state=unchecked]:border-muted-foreground/40"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  if (isSelected) {
+                    onToggleSelect(node.path);
+                  }
+                }}
+              />
+            </RadioGroup>
           )}
           {node.isDirectory ? (
             <FolderOpen className="h-4 w-4 text-primary" />
