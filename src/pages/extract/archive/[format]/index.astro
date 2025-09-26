@@ -1,0 +1,29 @@
+---
+import ArchiveExtractionPage from '@/components/seo/ArchiveExtractionPage.astro';
+import {
+  archiveFormatsList,
+  type ArchiveFormatMeta,
+} from '@/pages/extract/archive/page-data';
+import type { SupportedArchiveFormat } from '@/data/archiveFormats';
+
+interface PageProps {
+  format: SupportedArchiveFormat;
+  formatMeta: ArchiveFormatMeta;
+}
+
+export const prerender = true;
+
+export async function getStaticPaths() {
+  return archiveFormatsList.map((formatMeta) => ({
+    params: { format: formatMeta.id },
+    props: {
+      format: formatMeta.id,
+      formatMeta,
+    },
+  }));
+}
+
+const { format, formatMeta } = Astro.props as PageProps;
+---
+
+<ArchiveExtractionPage format={format} formatMeta={formatMeta} />

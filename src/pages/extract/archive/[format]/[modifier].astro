@@ -1,0 +1,48 @@
+---
+import ArchiveExtractionPage from '@/components/seo/ArchiveExtractionPage.astro';
+import {
+  archiveFormatsList,
+  archiveModifiersList,
+  isArchiveModifierApplicable,
+  type ArchiveFormatMeta,
+} from '@/pages/extract/archive/page-data';
+import type {
+  ArchiveIntentModifier,
+  SupportedArchiveFormat,
+} from '@/data/archiveFormats';
+
+interface PageProps {
+  format: SupportedArchiveFormat;
+  formatMeta: ArchiveFormatMeta;
+  modifier: ArchiveIntentModifier;
+}
+
+export const prerender = true;
+
+export async function getStaticPaths() {
+  const paths: Array<{
+    params: { format: string; modifier: string };
+    props: PageProps;
+  }> = [];
+
+  for (const formatMeta of archiveFormatsList) {
+    for (const modifier of archiveModifiersList) {
+      if (!isArchiveModifierApplicable(modifier, formatMeta.id)) continue;
+      paths.push({
+        params: { format: formatMeta.id, modifier: modifier.slug },
+        props: {
+          format: formatMeta.id,
+          formatMeta,
+          modifier,
+        },
+      });
+    }
+  }
+
+  return paths;
+}
+
+const { format, formatMeta, modifier } = Astro.props as PageProps;
+---
+
+<ArchiveExtractionPage format={format} formatMeta={formatMeta} modifier={modifier} />

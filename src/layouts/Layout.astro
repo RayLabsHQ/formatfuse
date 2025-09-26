@@ -36,12 +36,34 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 const pageTitle = title;
 
 // Generate OG image path
-const generatedOgImageUrl = getImagePath({
-  url: Astro.url,
-  site: Astro.site
-});
+const supportsGeneratedOg =
+  Astro.url.pathname === '/tools' ||
+  Astro.url.pathname === '/tools/' ||
+  Astro.url.pathname.startsWith('/tools/');
 
-const finalOgImage = ogImage || generatedOgImageUrl;
+const generatedOgImageUrl = supportsGeneratedOg
+  ? getImagePath({
+      url: Astro.url,
+      site: Astro.site
+    })
+  : undefined;
+
+const fallbackOgByToolType: Record<string, string> = {
+  image: '/tools/image-converter/index.png',
+  archive: '/tools/multi-extract/index.png',
+  pdf: '/tools/create-archive/index.png',
+  text: '/tools/text-diff-checker/index.png'
+};
+
+const fallbackOgImage = toolType ? fallbackOgByToolType[toolType] : undefined;
+
+const finalOgImagePath =
+  ogImage ||
+  generatedOgImageUrl ||
+  fallbackOgImage ||
+  '/tools/image-converter/index.png';
+
+const finalOgImage = new URL(finalOgImagePath, Astro.site);
 ---
 
 <!DOCTYPE html>

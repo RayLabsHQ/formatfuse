@@ -62,6 +62,27 @@ const example = getExampleConversion(fromKey, toKey);
 const defaultInputColor = getDefaultColor(fromKey);
 const targetExampleColor = getDefaultColor(toKey);
 
+const canonicalToolSlugMap: Record<SupportedFormat, string> = {
+  hex: 'color-converter',
+  rgb: 'color-converter',
+  hsl: 'color-converter',
+  hsv: 'color-converter',
+  hwb: 'color-converter',
+  lab: 'color-converter',
+  lch: 'color-converter',
+  oklab: 'color-converter',
+  oklch: 'color-converter',
+  p3: 'color-converter',
+  rec2020: 'color-converter',
+  prophoto: 'color-converter',
+  a98rgb: 'color-converter',
+  xyz: 'color-converter',
+  'xyz-d50': 'color-converter',
+};
+
+const canonicalToolSlug = canonicalToolSlugMap[toKey];
+const ogImagePath = canonicalToolSlug ? `/tools/${canonicalToolSlug}/index.png` : undefined;
+
 const structuredPath = Astro.url.pathname.endsWith('/')
   ? Astro.url.pathname
   : `${Astro.url.pathname}/`;
@@ -215,6 +236,7 @@ const relatedLinks = Array.from(relatedLinkMap.values()).slice(0, 4);
   title={title}
   description={description}
   keywords={keywords}
+  ogImage={ogImagePath}
   sourceFormat={fromFormat.name}
   targetFormat={toFormat.name}
 >

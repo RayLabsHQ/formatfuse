@@ -2,8 +2,8 @@
 import { defineConfig } from "astro/config";
 import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";
-import opengraphImages from "astro-opengraph-images";
 import { toolOGImage } from "./src/og-image-renderer.tsx";
+import limitedOpenGraphImages from "./src/integrations/limitedOpenGraphImages.js";
 import partytown from "@astrojs/partytown";
 import AstroPWA from "@vite-pwa/astro";
 import fs from "fs";
@@ -19,7 +19,7 @@ export default defineConfig({
     sitemap({
       filter: (page) => !page.includes("/404"),
     }),
-    opengraphImages({
+    limitedOpenGraphImages({
       options: {
         fonts: [
           {
@@ -47,8 +47,16 @@ export default defineConfig({
             ),
           },
         ],
+        verbose: false,
       },
       render: toolOGImage,
+      include: (pathname) =>
+        pathname === "/tools" ||
+        pathname === "/tools/" ||
+        pathname === "tools" ||
+        pathname === "tools/" ||
+        pathname.startsWith("/tools/") ||
+        pathname.startsWith("tools/"),
     }),
     partytown({
       // GTM-MJKP526Z configuration
