@@ -1,11 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertCircle,
-  ChevronDown,
-  ChevronRight,
   Download,
   Eye,
-  File,
   FileArchive,
   FolderOpen,
   Loader2,
@@ -23,9 +20,7 @@ import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { FileDropZone } from "../ui/FileDropZone";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Input } from "../ui/input";
-import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
-
-import { cn } from "../../lib/utils";
+import ArchiveFileTree, { type ArchiveFileNode } from "./ArchiveFileTree";
 import { captureError, captureEvent } from "../../lib/posthog";
 import { useArchiveExtractor } from "../../hooks/useArchiveExtractor";
 import type {
@@ -36,10 +31,7 @@ import type {
   WorkerArchiveEntry,
 } from "../../lib/archive/types";
 
-interface FileNode {
-  name: string;
-  path: string;
-  isDirectory: boolean;
+interface FileNode extends Omit<ArchiveFileNode, "children"> {
   children: FileNode[];
   size: number;
   lastModified?: Date | null;
@@ -386,13 +378,15 @@ export default function GenericArchiveExtractor({
     });
   }, []);
 
-  const toggleSelected = useCallback((path: string) => {
+  const toggleSelected = useCallback((node: FileNode) => {
+    if (node.isDirectory) return;
+
     setSelectedFiles((prev) => {
       const next = new Set(prev);
-      if (next.has(path)) {
-        next.delete(path);
+      if (next.has(node.path)) {
+        next.delete(node.path);
       } else {
-        next.add(path);
+        next.add(node.path);
       }
       return next;
     });
@@ -592,22 +586,32 @@ export default function GenericArchiveExtractor({
                   </div>
                 </div>
 
-                <div className="max-h-[480px] overflow-auto text-sm">
-                  <ul className="divide-y divide-muted/60">
-                    {files.map((node) => (
-                      <FileNodeRow
-                        key={node.path}
-                        node={node}
-                        depth={0}
-                        expandedPaths={expandedPaths}
-                        selectedFiles={selectedFiles}
-                        onToggleExpand={toggleExpanded}
-                        onToggleSelect={toggleSelected}
-                        onDownload={downloadFile}
-                      />
-                    ))}
-                  </ul>
-                </div>
+                <ArchiveFileTree
+                  nodes={files}
+                  expandedPaths={expandedPaths}
+                  selectedPaths={selectedFiles}
+                  onToggleExpand={toggleExpanded}
+                  onToggleSelect={toggleSelected}
+                  getNodeMeta={(node) => (node.isDirectory ? "Directory" : formatBytes(node.size))}
+                  renderActions={(node) =>
+                    node.isDirectory || !node.fileData ? null : (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 gap-2"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          void downloadFile(node);
+                        }}
+                      >
+                        <Download className="h-4 w-4" />
+                        Save
+                      </Button>
+                    )
+                  }
+                  className="max-h-[480px] text-sm"
+                  onDownload={downloadFile}
+                />
               </div>
             ) : (
               <div className="rounded-md border border-dashed border-muted bg-card p-8 text-center text-sm text-muted-foreground">
@@ -654,134 +658,5 @@ export default function GenericArchiveExtractor({
         </Dialog>
       </div>
     </section>
-  );
-}
-
-interface FileNodeRowProps {
-  node: FileNode;
-  depth: number;
-  expandedPaths: Set<string>;
-  selectedFiles: Set<string>;
-  onToggleExpand: (path: string) => void;
-  onToggleSelect: (path: string) => void;
-  onDownload: (node: FileNode) => void;
-}
-
-function FileNodeRow({
-  node,
-  depth,
-  expandedPaths,
-  selectedFiles,
-  onToggleExpand,
-  onToggleSelect,
-  onDownload,
-}: FileNodeRowProps) {
-  const isExpanded = expandedPaths.has(node.path);
-  const isSelected = selectedFiles.has(node.path);
-
-  const handleRowClick = () => {
-    if (node.isDirectory) {
-      onToggleExpand(node.path);
-    } else {
-      onToggleSelect(node.path);
-    }
-  };
-
-  return (
-    <li>
-      <div
-        className={cn(
-          "flex items-center justify-between gap-4 px-4 py-3 transition-colors",
-          isSelected ? "bg-muted" : "hover:bg-muted/70",
-        )}
-        style={{ paddingLeft: `${16 + depth * 20}px` }}
-        onClick={handleRowClick}
-        role="button"
-        tabIndex={0}
-        onKeyPress={(event) => {
-          if (event.key === "Enter" || event.key === " ") handleRowClick();
-        }}
-      >
-        <div className="flex flex-1 items-center gap-3">
-          {node.isDirectory ? (
-            <ChevronIcon expanded={isExpanded} />
-          ) : (
-            <RadioGroup
-              aria-label={`Selection toggle for ${node.name}`}
-              value={isSelected ? "selected" : "unselected"}
-              onValueChange={(value) => {
-                if (value === "selected" && !isSelected) {
-                  onToggleSelect(node.path);
-                }
-              }}
-              className="grid place-items-center gap-0"
-            >
-              <RadioGroupItem
-                value="selected"
-                aria-label={isSelected ? "Deselect file" : "Select file"}
-                className="size-4 border-muted-foreground/50 bg-background/70 text-primary data-[state=unchecked]:border-muted-foreground/60 data-[state=unchecked]:bg-background/60 data-[state=checked]:border-primary data-[state=checked]:bg-primary/15 dark:border-muted-foreground/50 dark:data-[state=unchecked]:border-muted-foreground/40"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  if (isSelected) {
-                    onToggleSelect(node.path);
-                  }
-                }}
-              />
-            </RadioGroup>
-          )}
-          {node.isDirectory ? (
-            <FolderOpen className="h-4 w-4 text-primary" />
-          ) : (
-            <File className="h-4 w-4 text-primary" />
-          )}
-          <div>
-            <p className="text-sm font-medium text-foreground">{node.name}</p>
-            <p className="text-xs text-muted-foreground">
-              {node.isDirectory ? "Directory" : formatBytes(node.size)}
-            </p>
-          </div>
-        </div>
-
-        {!node.isDirectory && node.fileData && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8"
-            onClick={(event) => {
-              event.stopPropagation();
-              onDownload(node);
-            }}
-          >
-            <Download className="mr-2 h-4 w-4" />
-            Save
-          </Button>
-        )}
-      </div>
-
-      {node.isDirectory && isExpanded && node.children.length > 0 && (
-        <ul className="divide-y divide-muted/40">
-          {node.children.map((child) => (
-            <FileNodeRow
-              key={child.path}
-              node={child}
-              depth={depth + 1}
-              expandedPaths={expandedPaths}
-              selectedFiles={selectedFiles}
-              onToggleExpand={onToggleExpand}
-              onToggleSelect={onToggleSelect}
-              onDownload={onDownload}
-            />
-          ))}
-        </ul>
-      )}
-    </li>
-  );
-}
-
-function ChevronIcon({ expanded }: { expanded: boolean }) {
-  return expanded ? (
-    <ChevronDown className="h-4 w-4 text-muted-foreground" />
-  ) : (
-    <ChevronRight className="h-4 w-4 text-muted-foreground" />
   );
 }

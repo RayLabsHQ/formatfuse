@@ -3,15 +3,11 @@ import {
   Download,
   X,
   FileArchive,
-  FolderOpen,
-  File,
   AlertCircle,
   Loader2,
   Shield,
   Zap,
   Sparkles,
-  ChevronRight,
-  ChevronDown,
   Package,
   DownloadIcon,
 } from "lucide-react";
@@ -21,17 +17,13 @@ import { ToolHeader } from "../ui/ToolHeader";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { FileDropZone } from "../ui/FileDropZone";
-import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
-import { cn } from "../../lib/utils";
 import { captureError } from "../../lib/posthog";
+import ArchiveFileTree, { type ArchiveFileNode } from "./ArchiveFileTree";
 
-interface ExtractedFile {
-  name: string;
-  path: string;
+interface ExtractedFile extends ArchiveFileNode {
   size: number;
   compressedSize: number;
   lastModified: Date;
-  isDirectory: boolean;
   content?: Blob;
   children?: ExtractedFile[];
 }
@@ -234,17 +226,17 @@ export default function ZipExtract() {
     });
   }, []);
 
-  const toggleSelect = useCallback((path: string, isDirectory: boolean) => {
-    if (isDirectory) return; // Don't select directories
+  const toggleSelect = useCallback((node: ExtractedFile) => {
+    if (node.isDirectory) return;
 
     setSelectedFiles((prev) => {
-      const newSelection = new Set(prev);
-      if (newSelection.has(path)) {
-        newSelection.delete(path);
+      const next = new Set(prev);
+      if (next.has(node.path)) {
+        next.delete(node.path);
       } else {
-        newSelection.add(path);
+        next.add(node.path);
       }
-      return newSelection;
+      return next;
     });
   }, []);
 
@@ -368,99 +360,6 @@ export default function ZipExtract() {
     if (bytes < 1024) return bytes + " B";
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
     return (bytes / (1024 * 1024)).toFixed(1) + " MB";
-  };
-
-  const renderFileTree = (files: ExtractedFile[], level = 0) => {
-    return files.map((entry) => {
-      const isExpanded = expandedPaths.has(entry.path);
-      const isSelected = selectedFiles.has(entry.path);
-      const indent = level * 20;
-
-      return (
-        <div key={entry.path} className="border-b border-border/20 last:border-b-0">
-          <div
-            className={cn(
-              "flex items-center gap-3 px-4 py-3 transition-colors",
-              entry.isDirectory ? "cursor-pointer hover:bg-muted/40" : "cursor-pointer hover:bg-muted/40",
-              isSelected && !entry.isDirectory && "bg-primary/10",
-            )}
-            onClick={() => {
-              if (entry.isDirectory) {
-                toggleExpand(entry.path);
-              } else {
-                toggleSelect(entry.path, entry.isDirectory);
-              }
-            }}
-          >
-            {entry.isDirectory ? (
-              <>
-                <button
-                  type="button"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    toggleExpand(entry.path);
-                  }}
-                  className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground hover:bg-muted/60"
-                >
-                  {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                </button>
-                <FolderOpen className="h-4 w-4 text-primary" />
-              </>
-            ) : (
-              <>
-                <RadioGroup
-                  aria-label={`Selection toggle for ${entry.name}`}
-                  value={isSelected ? "selected" : "unselected"}
-                  onValueChange={(value) => {
-                    if (value === "selected" && !isSelected) {
-                      toggleSelect(entry.path, entry.isDirectory);
-                    }
-                  }}
-                  className="grid place-items-center"
-                >
-                  <RadioGroupItem
-                    value="selected"
-                    className="size-4 border-muted-foreground/50 bg-background/70 text-primary data-[state=unchecked]:border-muted-foreground/60 data-[state=unchecked]:bg-background/60 data-[state=checked]:border-primary data-[state=checked]:bg-primary/15"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      if (isSelected) {
-                        toggleSelect(entry.path, entry.isDirectory);
-                      }
-                    }}
-                  />
-                </RadioGroup>
-                <File className="h-4 w-4 text-muted-foreground" />
-              </>
-            )}
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-foreground">{entry.name}</p>
-              {entry.isDirectory ? (
-                <p className="text-xs text-muted-foreground">Directory</p>
-              ) : (
-                <p className="text-xs text-muted-foreground">{formatFileSize(entry.size)}</p>
-              )}
-            </div>
-            {!entry.isDirectory && (
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-8 gap-2"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  downloadFile(entry);
-                }}
-              >
-                <Download className="h-4 w-4" />
-                Save
-              </Button>
-            )}
-          </div>
-          {entry.isDirectory && isExpanded && entry.children && entry.children.length > 0 && (
-            <div>{renderFileTree(entry.children, level + 1)}</div>
-          )}
-        </div>
-      );
-    });
   };
 
   const stats = useMemo(() => {
@@ -628,9 +527,16 @@ export default function ZipExtract() {
                   </div>
                 </div>
 
-                <div className="max-h-[520px] overflow-auto rounded-md border border-border/30">
-                  {renderFileTree(extractedFiles)}
-                </div>
+                <ArchiveFileTree
+                  nodes={extractedFiles}
+                  expandedPaths={expandedPaths}
+                  selectedPaths={selectedFiles}
+                  onToggleExpand={toggleExpand}
+                  onToggleSelect={toggleSelect}
+                  getNodeMeta={(entry) => (entry.isDirectory ? "Directory" : formatFileSize(entry.size))}
+                  onDownload={downloadFile}
+                  className="max-h-[520px] rounded-md border border-border/30"
+                />
               </div>
             </div>
           )}

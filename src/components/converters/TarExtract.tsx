@@ -4,15 +4,12 @@ import {
   X,
   FileArchive,
   FolderOpen,
-  File,
   AlertCircle,
   CheckCircle2,
   Loader2,
   Shield,
   Zap,
   Sparkles,
-  ChevronRight,
-  ChevronDown,
   Package,
   DownloadIcon,
 } from "lucide-react";
@@ -22,15 +19,12 @@ import { ToolHeader } from "../ui/ToolHeader";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { FileDropZone } from "../ui/FileDropZone";
-import { cn } from "../../lib/utils";
 import { captureError } from "../../lib/posthog";
+import ArchiveFileTree, { type ArchiveFileNode } from "./ArchiveFileTree";
 
-interface ExtractedFile {
-  name: string;
-  path: string;
+interface ExtractedFile extends ArchiveFileNode {
   size: number;
   lastModified: Date;
-  isDirectory: boolean;
   content?: Uint8Array;
   children?: ExtractedFile[];
 }
@@ -343,17 +337,17 @@ export default function TarExtract() {
     });
   }, []);
 
-  const toggleSelect = useCallback((path: string, isDirectory: boolean) => {
-    if (isDirectory) return;
+  const toggleSelect = useCallback((entry: ExtractedFile) => {
+    if (entry.isDirectory) return;
 
     setSelectedFiles((prev) => {
-      const newSelection = new Set(prev);
-      if (newSelection.has(path)) {
-        newSelection.delete(path);
+      const next = new Set(prev);
+      if (next.has(entry.path)) {
+        next.delete(entry.path);
       } else {
-        newSelection.add(path);
+        next.add(entry.path);
       }
-      return newSelection;
+      return next;
     });
   }, []);
 
@@ -466,78 +460,6 @@ export default function TarExtract() {
     if (bytes < 1024) return bytes + " B";
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
     return (bytes / (1024 * 1024)).toFixed(1) + " MB";
-  };
-
-  const renderFileTree = (files: ExtractedFile[], level = 0) => {
-    return files.map((file) => {
-      const isExpanded = expandedPaths.has(file.path);
-      const isSelected = selectedFiles.has(file.path);
-
-      return (
-        <div key={file.path}>
-          <div
-            className={cn(
-              "flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-secondary/50 transition-colors cursor-pointer",
-              isSelected && !file.isDirectory && "bg-primary/10",
-            )}
-            style={{ paddingLeft: `${level * 20 + 12}px` }}
-            onClick={() => {
-              if (file.isDirectory) {
-                toggleExpand(file.path);
-              } else {
-                toggleSelect(file.path, file.isDirectory);
-              }
-            }}
-          >
-            {file.isDirectory ? (
-              <>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleExpand(file.path);
-                  }}
-                  className="p-0.5 hover:bg-secondary rounded"
-                >
-                  {isExpanded ? (
-                    <ChevronDown className="w-4 h-4" />
-                  ) : (
-                    <ChevronRight className="w-4 h-4" />
-                  )}
-                </button>
-                <FolderOpen className="w-4 h-4 text-amber-500" />
-              </>
-            ) : (
-              <>
-                <div className="w-5" />
-                <File className="w-4 h-4 text-muted-foreground" />
-              </>
-            )}
-            <span className="flex-1 text-sm truncate">{file.name}</span>
-            {!file.isDirectory && (
-              <>
-                <span className="text-xs text-muted-foreground">
-                  {formatFileSize(file.size)}
-                </span>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-7 w-7"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    downloadFile(file);
-                  }}
-                >
-                  <Download className="w-3 h-3" />
-                </Button>
-              </>
-            )}
-          </div>
-          {file.isDirectory && isExpanded && file.children && (
-            <div>{renderFileTree(file.children, level + 1)}</div>
-          )}
-        </div>
-      );
-    });
   };
 
   const getTotalStats = () => {
@@ -711,8 +633,34 @@ export default function TarExtract() {
               </div>
 
               {/* File Tree */}
-              <div className="p-4 max-h-[500px] overflow-y-auto">
-                {renderFileTree(extractedFiles)}
+              <div className="p-4">
+                <ArchiveFileTree
+                  nodes={extractedFiles}
+                  expandedPaths={expandedPaths}
+                  selectedPaths={selectedFiles}
+                  onToggleExpand={toggleExpand}
+                  onToggleSelect={toggleSelect}
+                  getNodeMeta={(entry) => (entry.isDirectory ? "Directory" : formatFileSize(entry.size))}
+                  renderActions={(entry) =>
+                    entry.isDirectory
+                      ? null
+                      : (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              downloadFile(entry);
+                            }}
+                          >
+                            <Download className="w-3 h-3" />
+                          </Button>
+                        )
+                  }
+                  className="max-h-[500px] rounded-lg border border-border/30 bg-card/50 text-sm"
+                  onDownload={downloadFile}
+                />
               </div>
             </div>
           )}
