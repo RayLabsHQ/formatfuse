@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import {
   Download,
   X,
@@ -21,6 +21,7 @@ import { ToolHeader } from "../ui/ToolHeader";
 import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { FileDropZone } from "../ui/FileDropZone";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { cn } from "../../lib/utils";
 import { captureError } from "../../lib/posthog";
 
@@ -101,23 +102,6 @@ export default function ZipExtract() {
   const [isDragging, setIsDragging] = useState(false);
   const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set());
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileSelect = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const selectedFile = e.target.files?.[0];
-      if (selectedFile && selectedFile.name.toLowerCase().endsWith(".zip")) {
-        setFile(selectedFile);
-        setError(null);
-        setExtractedFiles([]);
-        setExpandedPaths(new Set());
-        setSelectedFiles(new Set());
-      } else {
-        setError("Please select a valid ZIP file");
-      }
-    },
-    [],
-  );
 
   const handleFilesSelected = useCallback((files: File[]) => {
     const selectedFile = files[0];
@@ -397,164 +381,168 @@ export default function ZipExtract() {
   };
 
   const renderFileTree = (files: ExtractedFile[], level = 0) => {
-    return files.map((file) => {
-      const isExpanded = expandedPaths.has(file.path);
-      const isSelected = selectedFiles.has(file.path);
+    return files.map((entry) => {
+      const isExpanded = expandedPaths.has(entry.path);
+      const isSelected = selectedFiles.has(entry.path);
+      const indent = level * 20;
 
       return (
-        <div key={file.path}>
+        <div key={entry.path} className="border-b border-border/20 last:border-b-0">
           <div
             className={cn(
-              "flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-secondary/50 transition-colors cursor-pointer",
-              isSelected && !file.isDirectory && "bg-primary/10",
+              "flex items-center gap-3 px-4 py-3 transition-colors",
+              entry.isDirectory ? "cursor-pointer hover:bg-muted/40" : "cursor-pointer hover:bg-muted/40",
+              isSelected && !entry.isDirectory && "bg-primary/10",
             )}
-            style={{ paddingLeft: `${level * 20 + 12}px` }}
             onClick={() => {
-              if (file.isDirectory) {
-                toggleExpand(file.path);
+              if (entry.isDirectory) {
+                toggleExpand(entry.path);
               } else {
-                toggleSelect(file.path, file.isDirectory);
+                toggleSelect(entry.path, entry.isDirectory);
               }
             }}
           >
-            {file.isDirectory ? (
+            {entry.isDirectory ? (
               <>
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleExpand(file.path);
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    toggleExpand(entry.path);
                   }}
-                  className="p-0.5 hover:bg-secondary rounded"
+                  className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground hover:bg-muted/60"
                 >
-                  {isExpanded ? (
-                    <ChevronDown className="w-4 h-4" />
-                  ) : (
-                    <ChevronRight className="w-4 h-4" />
-                  )}
+                  {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                 </button>
-                <FolderOpen className="w-4 h-4 text-amber-500" />
+                <FolderOpen className="h-4 w-4 text-primary" />
               </>
             ) : (
               <>
-                <div className="w-5" /> {/* Spacer for alignment */}
-                <File className="w-4 h-4 text-muted-foreground" />
+                <RadioGroup
+                  aria-label={`Selection toggle for ${entry.name}`}
+                  value={isSelected ? "selected" : "unselected"}
+                  onValueChange={(value) => {
+                    if (value === "selected" && !isSelected) {
+                      toggleSelect(entry.path, entry.isDirectory);
+                    }
+                  }}
+                  className="grid place-items-center"
+                >
+                  <RadioGroupItem
+                    value="selected"
+                    className="size-4 border-muted-foreground/50 bg-background/70 text-primary data-[state=unchecked]:border-muted-foreground/60 data-[state=unchecked]:bg-background/60 data-[state=checked]:border-primary data-[state=checked]:bg-primary/15"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      if (isSelected) {
+                        toggleSelect(entry.path, entry.isDirectory);
+                      }
+                    }}
+                  />
+                </RadioGroup>
+                <File className="h-4 w-4 text-muted-foreground" />
               </>
             )}
-            <span className="flex-1 text-sm truncate">{file.name}</span>
-            {!file.isDirectory && (
-              <>
-                <span className="text-xs text-muted-foreground">
-                  {formatFileSize(file.size)}
-                </span>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-7 w-7"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    downloadFile(file);
-                  }}
-                >
-                  <Download className="w-3 h-3" />
-                </Button>
-              </>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium text-foreground">{entry.name}</p>
+              {entry.isDirectory ? (
+                <p className="text-xs text-muted-foreground">Directory</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">{formatFileSize(entry.size)}</p>
+              )}
+            </div>
+            {!entry.isDirectory && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 gap-2"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  downloadFile(entry);
+                }}
+              >
+                <Download className="h-4 w-4" />
+                Save
+              </Button>
             )}
           </div>
-          {file.isDirectory && isExpanded && file.children && (
-            <div>{renderFileTree(file.children, level + 1)}</div>
+          {entry.isDirectory && isExpanded && entry.children && entry.children.length > 0 && (
+            <div>{renderFileTree(entry.children, level + 1)}</div>
           )}
         </div>
       );
     });
   };
 
-  const getTotalStats = () => {
+  const stats = useMemo(() => {
     let totalFiles = 0;
     let totalSize = 0;
     let totalCompressed = 0;
 
     const countFiles = (files: ExtractedFile[]) => {
-      files.forEach((file) => {
-        if (!file.isDirectory) {
-          totalFiles++;
-          totalSize += file.size;
-          totalCompressed += file.compressedSize;
+      files.forEach((entry) => {
+        if (!entry.isDirectory) {
+          totalFiles += 1;
+          totalSize += entry.size;
+          totalCompressed += entry.compressedSize;
         }
-        if (file.children) {
-          countFiles(file.children);
+        if (entry.children) {
+          countFiles(entry.children);
         }
       });
     };
 
     countFiles(extractedFiles);
-    return { totalFiles, totalSize, totalCompressed };
-  };
 
-  const stats = getTotalStats();
+    const compressionRatio = totalSize > 0
+      ? Math.max(0, Math.round(((totalSize - totalCompressed) / totalSize) * 100))
+      : null;
+
+    return { totalFiles, totalSize, totalCompressed, compressionRatio };
+  }, [extractedFiles]);
 
   return (
-    <div className="min-h-screen w-full">
-      {/* Archive-themed Gradient Effects - Hidden on mobile */}
-      <div className="hidden sm:block fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.01] via-transparent to-accent/[0.01]" />
-        <div className="absolute top-20 right-1/3 w-72 h-72 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/3 left-10 w-80 h-80 bg-accent/5 rounded-full blur-3xl animate-blob animation-delay-2000" />
+    <section className="relative min-h-screen w-full">
+      <div className="hidden sm:block fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.02] via-transparent to-accent/[0.02]" />
+        <div className="absolute top-20 right-1/3 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
+        <div className="absolute bottom-24 left-10 h-80 w-80 rounded-full bg-accent/8 blur-3xl animate-blob animation-delay-2000" />
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 lg:py-6 py-8 sm:py-12 relative z-10">
-        {/* Hero Section with Features */}
+      <div className="relative z-10 mx-auto flex max-w-6xl flex-col gap-10 px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
         <ToolHeader
           title={{ highlight: "Extract", main: "ZIP Files" }}
-          subtitle="Extract and download files from ZIP archives instantly in your browser. No uploads, no installations - 100% client-side processing."
+          subtitle="Extract and download files from ZIP archives instantly in your browser. No uploads, no installs — everything runs locally."
           badge={{
-            text: "ZIP Extractor • Online • Free • Unzip",
+            text: "ZIP Extractor • Online • Free",
             icon: FileArchive,
           }}
           features={features}
         />
 
-        {/* Main Interface */}
-        <div className="space-y-6">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".zip"
-            onChange={handleFileSelect}
-            className="hidden"
-          />
-
-          {/* File Upload Area */}
+        <div className="space-y-8">
           {!file && (
-            <div
-              className="relative animate-fade-in-up"
-              style={{ animationDelay: "0.3s" }}
-            >
+            <div className="relative animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
               <FileDropZone
-                onFilesSelected={handleFilesSelected}
                 accept=".zip"
                 multiple={false}
                 isDragging={isDragging}
                 onDragStateChange={setIsDragging}
-                title="Drop your ZIP file here or click to browse"
-                subtitle="Extract files from ZIP archives instantly"
+                onFilesSelected={handleFilesSelected}
+                title="Drop your ZIP archive"
+                subtitle="Or tap the button to browse a ZIP file from your device."
+                primaryButtonLabel="Browse ZIP file"
               />
             </div>
           )}
 
-          {/* File Info & Extract Button */}
-          {file && !extractedFiles.length && (
-            <div
-              className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-6 animate-fade-in-up"
-              style={{ animationDelay: "0.3s" }}
-            >
-              <div className="flex items-center justify-between mb-4">
+          {file && extractedFiles.length === 0 && (
+            <div className="space-y-4 rounded-2xl border border-border/40 bg-card/80 p-6 backdrop-blur animate-fade-in-up" style={{ animationDelay: "0.25s" }}>
+              <div className="flex items-start justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <FileArchive className="w-8 h-8 text-primary" />
+                  <FileArchive className="h-8 w-8 text-primary" />
                   <div>
-                    <p className="font-medium">{file.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {formatFileSize(file.size)}
-                    </p>
+                    <p className="font-medium text-foreground">{file.name}</p>
+                    <p className="text-sm text-muted-foreground">{formatFileSize(file.size)}</p>
                   </div>
                 </div>
                 <Button
@@ -563,72 +551,52 @@ export default function ZipExtract() {
                   onClick={() => {
                     setFile(null);
                     setExtractedFiles([]);
+                    setSelectedFiles(new Set());
+                    setExpandedPaths(new Set());
                   }}
                 >
-                  <X className="w-4 h-4" />
+                  <X className="h-4 w-4" />
                 </Button>
               </div>
-              <Button
-                onClick={extractZip}
-                disabled={isExtracting}
-                className="w-full"
-                size="lg"
-              >
+              <Button onClick={extractZip} disabled={isExtracting} className="w-full" size="lg">
                 {isExtracting ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Extracting...
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Extracting…
                   </>
                 ) : (
                   <>
-                    <Package className="w-4 h-4 mr-2" />
-                    Extract Files
+                    <Package className="mr-2 h-4 w-4" />
+                    Extract files
                   </>
                 )}
               </Button>
             </div>
           )}
 
-          {/* Extracted Files */}
           {extractedFiles.length > 0 && (
-            <div
-              className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 overflow-hidden animate-fade-in-up"
-              style={{ animationDelay: "0.4s" }}
-            >
-              {/* Header */}
-              <div className="border-b border-border/50 px-6 py-4 bg-gradient-to-r from-primary/5 to-transparent">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="space-y-4 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
+              <div className="flex flex-col gap-4 rounded-2xl border border-border/40 bg-card/80 p-6 backdrop-blur">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <FolderOpen className="w-5 h-5 text-primary" />
-                      Extracted Files
-                    </h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {stats.totalFiles} files •{" "}
-                      {formatFileSize(stats.totalSize)} uncompressed •{" "}
-                      {Math.round(
-                        ((stats.totalSize - stats.totalCompressed) /
-                          stats.totalSize) *
-                          100,
+                    <h2 className="text-lg font-semibold text-foreground">Extracted files</h2>
+                    <p className="text-sm text-muted-foreground">
+                      {stats.totalFiles} files • {formatFileSize(stats.totalSize)} total
+                      {typeof stats.compressionRatio === "number" && (
+                        <span> • {stats.compressionRatio}% compression</span>
                       )}
-                      % compression
                     </p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     {selectedFiles.size > 0 && (
-                      <Button
-                        onClick={downloadSelected}
-                        size="sm"
-                        variant="outline"
-                        className="gap-2"
-                      >
-                        <Download className="w-4 h-4" />
-                        Download {selectedFiles.size} selected
+                      <Button onClick={downloadSelected} variant="outline" className="gap-2">
+                        <DownloadIcon className="h-4 w-4" />
+                        Download selected ({selectedFiles.size})
                       </Button>
                     )}
-                    <Button onClick={downloadAll} size="sm" className="gap-2">
-                      <DownloadIcon className="w-4 h-4" />
-                      Download All
+                    <Button onClick={downloadAll} variant="secondary" className="gap-2">
+                      <DownloadIcon className="h-4 w-4" />
+                      Download all
                     </Button>
                     <Button
                       onClick={() => {
@@ -637,87 +605,43 @@ export default function ZipExtract() {
                         setSelectedFiles(new Set());
                         setExpandedPaths(new Set());
                       }}
-                      size="sm"
                       variant="ghost"
                     >
-                      Clear
+                      Reset
                     </Button>
                   </div>
                 </div>
-              </div>
 
-              {/* File Tree */}
-              <div className="p-4 max-h-[500px] overflow-y-auto">
-                {renderFileTree(extractedFiles)}
+                <div className="max-h-[520px] overflow-auto rounded-md border border-border/30">
+                  {renderFileTree(extractedFiles)}
+                </div>
               </div>
             </div>
           )}
 
-          {/* Error Display */}
           {error && (
-            <div className="bg-destructive/10 text-destructive rounded-lg p-4 flex items-start gap-3 animate-fade-in-up">
-              <AlertCircle className="w-5 h-5 mt-0.5" />
-              <div className="flex-1">
-                <p className="font-medium">Error</p>
-                <p className="text-sm mt-1">{error}</p>
+            <div className="flex items-start gap-3 rounded-md border border-destructive/30 bg-destructive/10 p-4 text-sm">
+              <AlertCircle className="h-5 w-5 text-destructive" />
+              <div>
+                <p className="font-semibold text-destructive">Extraction failed</p>
+                <p className="text-muted-foreground">{error}</p>
               </div>
-              <button onClick={() => setError(null)}>
-                <X className="w-4 h-4" />
-              </button>
             </div>
           )}
-        </div>
 
-        {/* How it works */}
-        <div className="space-y-6 mt-12">
-          <h2 className="text-2xl font-semibold">How It Works</h2>
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="bg-card/50 backdrop-blur-sm rounded-xl p-6 border border-border/50">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
-                  1
-                </span>
-                <h3 className="font-semibold">Upload ZIP file</h3>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Select or drag and drop your ZIP archive
-              </p>
+          {isExtracting && !extractedFiles.length && (
+            <div className="flex items-center gap-3 rounded-md border border-border/30 bg-card/70 p-4 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Processing ZIP archive…</span>
             </div>
-            <div className="bg-card/50 backdrop-blur-sm rounded-xl p-6 border border-border/50">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
-                  2
-                </span>
-                <h3 className="font-semibold">Extract contents</h3>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Browse the file structure and preview contents
-              </p>
-            </div>
-            <div className="bg-card/50 backdrop-blur-sm rounded-xl p-6 border border-border/50">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
-                  3
-                </span>
-                <h3 className="font-semibold">Download files</h3>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Download individual files or all at once
-              </p>
-            </div>
+          )}
+
+          <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
+            <FAQ items={faqs} />
+            <RelatedTools tools={relatedTools} />
           </div>
         </div>
-
-        {/* Related Tools */}
-        <div className="mt-12 space-y-6">
-          <RelatedTools tools={relatedTools} direction="responsive" />
-        </div>
-
-        {/* FAQ Section */}
-        <div className="mt-12 space-y-6">
-          <FAQ items={faqs} />
-        </div>
       </div>
-    </div>
+    </section>
   );
 }
