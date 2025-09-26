@@ -56,7 +56,8 @@ export function useArchiveExtractor() {
   const extract = useCallback(
     async (request: ExtractRequest) => {
       const remote = await ensureRemote();
-      return remote.extract(request);
+      const transferableRequest = Comlink.transfer(request, [request.buffer]);
+      return remote.extract(transferableRequest);
     },
     [ensureRemote],
   );

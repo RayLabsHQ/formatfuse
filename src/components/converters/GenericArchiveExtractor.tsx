@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from "react";
 import {
   AlertCircle,
+  AlertTriangle,
   Download,
   Eye,
   FileArchive,
@@ -138,6 +139,7 @@ export default function GenericArchiveExtractor({
       pendingPassword,
       passwordError,
       stats,
+      processingWarning,
     },
     passwordInputRef,
     actions: {
@@ -240,6 +242,18 @@ export default function GenericArchiveExtractor({
                 <div>
                   <p className="font-medium text-destructive">Extraction failed</p>
                   <p className="text-muted-foreground">{error}</p>
+                </div>
+              </div>
+            )}
+
+            {processingWarning && (
+              <div className="flex items-start gap-3 rounded-md border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-700 shadow-sm dark:rounded-lg dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-100 dark:shadow-lg dark:backdrop-blur-sm">
+                <AlertTriangle className="mt-0.5 h-5 w-5 text-amber-500 dark:text-amber-200" />
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-amber-700 dark:text-xs dark:font-semibold dark:uppercase dark:tracking-wide dark:text-amber-100/90">
+                    Large archive detected
+                  </p>
+                  <p className="text-amber-600/90 dark:text-amber-100/80">{processingWarning}</p>
                 </div>
               </div>
             )}

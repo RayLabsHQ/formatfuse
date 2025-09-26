@@ -12,6 +12,8 @@ import {
 } from "../lib/archive/fileTree";
 import { useArchiveExtractor } from "./useArchiveExtractor";
 
+const LARGE_FILE_WARNING_THRESHOLD_BYTES = 1.5 * 1024 * 1024 * 1024; // ~1.5 GB
+
 export interface ExtractionMetadata {
   engine: ArchiveEngine;
   format: ArchiveFormat;
@@ -47,6 +49,7 @@ export interface ArchiveExtractionControllerState {
   pendingPassword: PendingPasswordState | null;
   passwordError: string | null;
   stats: ArchiveStats | null;
+  processingWarning: string | null;
 }
 
 export interface ArchiveExtractionControllerReturn {
@@ -100,6 +103,7 @@ export function useArchiveExtractionController(
   const [metadata, setMetadata] = useState<ExtractionMetadata | null>(null);
   const [pendingPassword, setPendingPassword] = useState<PendingPasswordState | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [processingWarning, setProcessingWarning] = useState<string | null>(null);
 
   const passwordInputRef = useRef<HTMLInputElement>(null);
   const lastSuccessfulPasswordRef = useRef<string | null>(null);
@@ -113,6 +117,7 @@ export function useArchiveExtractionController(
     setPendingPassword(null);
     setPasswordError(null);
     setSourceFileSize(null);
+    setProcessingWarning(null);
     lastSuccessfulPasswordRef.current = null;
     lastFileNameRef.current = null;
   }, []);
@@ -182,9 +187,10 @@ export function useArchiveExtractionController(
       });
       setPendingPassword(null);
       setPasswordError(null);
+      setProcessingWarning(null);
       lastFileNameRef.current = file.name;
     },
-    [format, toolId],
+    [format, toolId, setProcessingWarning],
   );
 
   const readFileBuffer = useCallback(async (file: File) => {
@@ -194,7 +200,7 @@ export function useArchiveExtractionController(
       if (err instanceof DOMException) {
         if (err.name === "NotReadableError") {
           throw new Error(
-            "We couldn't read that file. On Windows this usually happens when the file is in use by another application or located in a protected folder. Please close any apps using it or copy it to a local folder and try again.",
+            "We couldn't read that file. This usually happens when another app is using it or it's stored in a protected location. Close any apps using it or copy the archive to a local folder and try again.",
           );
         }
         if (err.name === "SecurityError") {
@@ -220,6 +226,13 @@ export function useArchiveExtractionController(
 
       try {
         await preload();
+        if (file.size >= LARGE_FILE_WARNING_THRESHOLD_BYTES) {
+          setProcessingWarning(
+            "This archive is quite large. Browsers usually handle up to about 2–3 GB; if extraction fails, try closing other apps or splitting the archive.",
+          );
+        } else {
+          setProcessingWarning(null);
+        }
         const buffer = await readFileBuffer(file);
         const request: ExtractRequest = {
           fileName: file.name,
@@ -246,7 +259,15 @@ export function useArchiveExtractionController(
         setIsLoading(false);
       }
     },
-    [extract, format, handleExtractionSuccess, preload, readFileBuffer, toolId],
+    [
+      extract,
+      format,
+      handleExtractionSuccess,
+      preload,
+      readFileBuffer,
+      toolId,
+      setProcessingWarning,
+    ],
   );
 
   const handleFilesSelected = useCallback(
@@ -370,6 +391,7 @@ export function useArchiveExtractionController(
       pendingPassword,
       passwordError,
       stats,
+      processingWarning,
     },
     passwordInputRef,
     actions: {
