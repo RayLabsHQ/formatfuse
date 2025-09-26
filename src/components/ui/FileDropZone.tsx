@@ -209,7 +209,7 @@ export function FileDropZone({
           {!showButtons && (
             <Button
               type="button"
-              size="sm"
+              size="lg"
               variant="default"
               className="mt-3"
               onClick={(event) => {

@@ -103,34 +103,22 @@ export default function ZipExtract() {
   const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set());
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
 
-  const handleFilesSelected = useCallback((files: File[]) => {
-    const selectedFile = files[0];
-    if (selectedFile && selectedFile.name.toLowerCase().endsWith(".zip")) {
-      setFile(selectedFile);
-      setError(null);
-      setExtractedFiles([]);
-      setExpandedPaths(new Set());
-      setSelectedFiles(new Set());
-    } else {
-      setError("Please select a valid ZIP file");
-    }
-  }, []);
-
-  const extractZip = useCallback(async () => {
-    if (!file) return;
-
-    setIsExtracting(true);
+  const startExtraction = useCallback(async (zipFile: File) => {
+    setFile(zipFile);
     setError(null);
+    setExtractedFiles([]);
+    setExpandedPaths(new Set());
+    setSelectedFiles(new Set());
+    setIsExtracting(true);
 
     try {
       const zip = new JSZip();
-      const zipData = await file.arrayBuffer();
+      const zipData = await zipFile.arrayBuffer();
       await zip.loadAsync(zipData);
 
       const files: ExtractedFile[] = [];
       const directories: Map<string, ExtractedFile> = new Map();
 
-      // First pass: create all directories
       Object.keys(zip.files).forEach((path) => {
         const parts = path.split("/").filter(Boolean);
         let currentPath = "";
@@ -139,7 +127,6 @@ export default function ZipExtract() {
           currentPath = currentPath ? `${currentPath}/${part}` : part;
 
           if (index < parts.length - 1 || path.endsWith("/")) {
-            // This is a directory
             if (!directories.has(currentPath)) {
               directories.set(currentPath, {
                 name: part,
@@ -155,7 +142,6 @@ export default function ZipExtract() {
         });
       });
 
-      // Second pass: process files and link to directories
       for (const [path, zipEntry] of Object.entries(zip.files)) {
         if (!zipEntry.dir) {
           const parts = path.split("/").filter(Boolean);
@@ -164,19 +150,17 @@ export default function ZipExtract() {
 
           const fileEntry: ExtractedFile = {
             name: fileName,
-            path: path,
+            path,
             size: content.size,
-            compressedSize: 0, // JSZip doesn't expose compressed size directly
+            compressedSize: 0,
             lastModified: zipEntry.date,
             isDirectory: false,
-            content: content,
+            content,
           };
 
           if (parts.length === 1) {
-            // Root level file
             files.push(fileEntry);
           } else {
-            // File in a directory
             const parentPath = parts.slice(0, -1).join("/");
             const parent = directories.get(parentPath);
             if (parent) {
@@ -186,14 +170,11 @@ export default function ZipExtract() {
         }
       }
 
-      // Third pass: link directories to their parents
       directories.forEach((dir, path) => {
         const parts = path.split("/").filter(Boolean);
         if (parts.length === 1) {
-          // Root level directory
           files.push(dir);
         } else {
-          // Subdirectory
           const parentPath = parts.slice(0, -1).join("/");
           const parent = directories.get(parentPath);
           if (parent) {
@@ -202,7 +183,6 @@ export default function ZipExtract() {
         }
       });
 
-      // Sort files and directories
       const sortEntries = (entries: ExtractedFile[]) => {
         entries.sort((a, b) => {
           if (a.isDirectory && !b.isDirectory) return -1;
@@ -221,16 +201,26 @@ export default function ZipExtract() {
     } catch (err) {
       captureError(err, {
         tool: "zip-extract",
-        fileName: file.name,
+        fileName: zipFile.name,
         stage: "extract",
       });
-      setError(
-        err instanceof Error ? err.message : "Failed to extract ZIP file",
-      );
+      setError(err instanceof Error ? err.message : "Failed to extract ZIP file");
     } finally {
       setIsExtracting(false);
     }
-  }, [file]);
+  }, [captureError]);
+
+  const handleFilesSelected = useCallback(
+    (files: File[]) => {
+      const selectedFile = files[0];
+      if (selectedFile && selectedFile.name.toLowerCase().endsWith(".zip")) {
+        void startExtraction(selectedFile);
+      } else {
+        setError("Please select a valid ZIP file");
+      }
+    },
+    [startExtraction],
+  );
 
   const toggleExpand = useCallback((path: string) => {
     setExpandedPaths((prev) => {
@@ -536,7 +526,10 @@ export default function ZipExtract() {
           )}
 
           {file && extractedFiles.length === 0 && (
-            <div className="space-y-4 rounded-2xl border border-border/40 bg-card/80 p-6 backdrop-blur animate-fade-in-up" style={{ animationDelay: "0.25s" }}>
+            <div
+              className="space-y-4 rounded-2xl border border-border/40 bg-card/80 p-6 backdrop-blur animate-fade-in-up"
+              style={{ animationDelay: "0.25s" }}
+            >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <FileArchive className="h-8 w-8 text-primary" />
@@ -553,24 +546,47 @@ export default function ZipExtract() {
                     setExtractedFiles([]);
                     setSelectedFiles(new Set());
                     setExpandedPaths(new Set());
+                    setError(null);
                   }}
                 >
                   <X className="h-4 w-4" />
                 </Button>
               </div>
-              <Button onClick={extractZip} disabled={isExtracting} className="w-full" size="lg">
-                {isExtracting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Extracting…
-                  </>
-                ) : (
-                  <>
-                    <Package className="mr-2 h-4 w-4" />
-                    Extract files
-                  </>
-                )}
-              </Button>
+
+              {isExtracting ? (
+                <div className="flex items-center gap-3 rounded-md border border-border/30 bg-background/40 p-4 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  <span>Extracting archive…</span>
+                </div>
+              ) : (
+                error && (
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      onClick={() => {
+                        if (file) {
+                          void startExtraction(file);
+                        }
+                      }}
+                      className="gap-2"
+                    >
+                      <DownloadIcon className="h-4 w-4" />
+                      Retry extraction
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setFile(null);
+                        setExtractedFiles([]);
+                        setSelectedFiles(new Set());
+                        setExpandedPaths(new Set());
+                        setError(null);
+                      }}
+                    >
+                      Choose another file
+                    </Button>
+                  </div>
+                )
+              )}
             </div>
           )}
 
