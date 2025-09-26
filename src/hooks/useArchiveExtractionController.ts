@@ -129,6 +129,7 @@ export function useArchiveExtractionController(
               format,
               fileName: file.name,
               attempts,
+              engine: result.engine ?? undefined,
               reason,
             });
             return {
@@ -147,6 +148,7 @@ export function useArchiveExtractionController(
             stage: "extract",
             code: result.code,
             recoverable: !!result.recoverable,
+            engine: result.engine ?? undefined,
           };
           captureEvent("archive_extract_failed", failureProps);
           captureError(new Error(result.message), failureProps);

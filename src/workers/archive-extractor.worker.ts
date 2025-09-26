@@ -304,6 +304,7 @@ export class ArchiveExtractorWorker {
         message: "The password you entered is incorrect. Try again.",
         recoverable: true,
         format,
+        engine: "libarchive",
       };
     }
 
@@ -314,6 +315,7 @@ export class ArchiveExtractorWorker {
         message: "This archive is encrypted. Provide a password to continue.",
         recoverable: true,
         format,
+        engine: "libarchive",
       };
     }
 
@@ -324,6 +326,7 @@ export class ArchiveExtractorWorker {
         message: "This archive type isn\'t supported by the libarchive engine.",
         recoverable: true,
         format,
+        engine: "libarchive",
       };
     }
 
@@ -333,6 +336,7 @@ export class ArchiveExtractorWorker {
       message,
       recoverable: true,
       format,
+      engine: "libarchive",
     };
   }
 
@@ -380,6 +384,7 @@ export class ArchiveExtractorWorker {
           message: this.lastSevenZipStderr.join("\n") || "7-Zip did not produce any files.",
           recoverable: true,
           format,
+          engine: "sevenZip",
         };
         this.cleanupSevenZip(module, archiveName, outputDir);
         return failure;
@@ -478,6 +483,7 @@ export class ArchiveExtractorWorker {
         message: "The password you entered is incorrect. Try again.",
         recoverable: true,
         format,
+        engine: "sevenZip",
       };
     }
 
@@ -488,6 +494,7 @@ export class ArchiveExtractorWorker {
         message: "7-Zip could not handle this archive format.",
         recoverable: true,
         format,
+        engine: "sevenZip",
       };
     }
 
@@ -497,6 +504,7 @@ export class ArchiveExtractorWorker {
       message: error.message || "7-Zip failed to extract this archive.",
       recoverable: true,
       format,
+      engine: "sevenZip",
     };
   }
 
@@ -514,6 +522,7 @@ export class ArchiveExtractorWorker {
         message: "The password you entered is incorrect. Try again.",
         recoverable: true,
         format,
+        engine: "sevenZip",
       };
     }
 
@@ -524,6 +533,7 @@ export class ArchiveExtractorWorker {
         message: this.lastSevenZipStderr.join("\n") || "7-Zip failed to extract this archive.",
         recoverable: true,
         format,
+        engine: "sevenZip",
       };
     }
 

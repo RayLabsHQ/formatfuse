@@ -33,6 +33,8 @@ export default function Navigation() {
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   const [isMac, setIsMac] = React.useState(true);
   const [selectedIndex, setSelectedIndex] = React.useState(-1);
+  const trimmedQuery = searchQuery.trim();
+  const hasSearchQuery = trimmedQuery.length > 0;
 
   React.useEffect(() => {
     setIsDark(document.documentElement.classList.contains("dark"));
@@ -73,9 +75,9 @@ export default function Navigation() {
 
   // Get search results
   const searchResults = React.useMemo(() => {
-    if (!searchQuery) return [];
+    if (!hasSearchQuery) return [];
 
-    const matchedTools = searchTools(searchQuery);
+    const matchedTools = searchTools(trimmedQuery);
     const results: Array<{ tool: Tool; category: (typeof categories)[0] }> = [];
 
     matchedTools.forEach((tool) => {
@@ -86,12 +88,29 @@ export default function Navigation() {
     });
 
     return results.slice(0, 8); // Limit to 8 results
-  }, [searchQuery]);
+  }, [hasSearchQuery, trimmedQuery]);
+
+  const defaultResults = React.useMemo(() => {
+    return allTools
+      .filter((tool) => tool.isPopular)
+      .slice(0, 6)
+      .map((tool) => {
+        const category = categories.find((cat) => cat.id === tool.category);
+        if (!category) return null;
+        return { tool, category };
+      })
+      .filter(Boolean) as Array<{ tool: Tool; category: (typeof categories)[0] }>;
+  }, []);
+
+  const displayedResults = hasSearchQuery ? searchResults : defaultResults;
+  const displayedResultsLength = displayedResults.length;
+  const showViewAllOption = true;
+  const totalResultItems = displayedResultsLength + (showViewAllOption ? 1 : 0);
 
   // Reset selected index when search results change
   React.useEffect(() => {
     setSelectedIndex(-1);
-  }, [searchResults]);
+  }, [displayedResultsLength, hasSearchQuery]);
 
   // Keyboard shortcuts
   React.useEffect(() => {
@@ -111,29 +130,40 @@ export default function Navigation() {
         setSelectedIndex(-1);
       }
       // Arrow navigation
-      if (showSearchResults && searchResults.length > 0) {
+      if (showSearchResults && totalResultItems > 0) {
         if (e.key === "ArrowDown") {
           e.preventDefault();
           setSelectedIndex((prev) =>
-            prev < searchResults.length - 1 ? prev + 1 : 0,
+            prev < totalResultItems - 1 ? prev + 1 : 0,
           );
         } else if (e.key === "ArrowUp") {
           e.preventDefault();
           setSelectedIndex((prev) =>
-            prev > 0 ? prev - 1 : searchResults.length - 1,
+            prev > 0 ? prev - 1 : totalResultItems - 1,
           );
         } else if (e.key === "Enter" && selectedIndex >= 0) {
           e.preventDefault();
-          const { tool } = searchResults[selectedIndex];
-          const url = tool.route || `/convert/${tool.id}`;
-          window.location.href = url;
+          if (showViewAllOption && selectedIndex === displayedResultsLength) {
+            window.location.href = "/tools";
+          } else if (selectedIndex < displayedResultsLength) {
+            const { tool } = displayedResults[selectedIndex];
+            const url = tool.route || `/convert/${tool.id}`;
+            window.location.href = url;
+          }
         }
       }
     };
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [showSearchResults, searchResults, selectedIndex]);
+  }, [
+    showSearchResults,
+    displayedResults,
+    displayedResultsLength,
+    selectedIndex,
+    showViewAllOption,
+    totalResultItems,
+  ]);
 
   return (
     <nav className="sticky top-0 z-50 bg-background border-b">
@@ -269,18 +299,69 @@ export default function Navigation() {
                 {/* Search Results Dropdown */}
                 {showSearchResults && (
                   <div className="absolute top-full mt-2 w-80 bg-card rounded-lg shadow-lg border p-2 z-[100]">
-                    {searchQuery ? (
+                    {hasSearchQuery ? (
                       <>
                         <div className="flex items-center justify-between text-xs text-muted-foreground px-2 py-1 mb-1">
-                          <span>{searchResults.length} results</span>
-                          <span className="flex items-center gap-1">
-                            <kbd className="px-1 py-0.5 rounded bg-muted text-[10px]">
-                              ↑↓
-                            </kbd>
-                            <span>to navigate</span>
-                          </span>
+                          <span>{displayedResultsLength} results</span>
+                          {totalResultItems > 0 && (
+                            <span className="flex items-center gap-1">
+                              <kbd className="px-1 py-0.5 rounded bg-muted text-[10px]">
+                                ↑↓
+                              </kbd>
+                              <span>to navigate</span>
+                            </span>
+                          )}
                         </div>
-                        {searchResults.map(({ tool, category }, index) => (
+                        {displayedResultsLength > 0 ? (
+                          displayedResults.map(({ tool, category }, index) => (
+                            <a
+                              key={`${tool.id}-${index}`}
+                              href={tool.route || `/convert/${tool.id}`}
+                              className={`flex items-center gap-3 p-2 rounded-md ff-transition ${
+                                selectedIndex === index
+                                  ? "bg-secondary/70 dark:bg-secondary"
+                                  : "hover:bg-secondary/70 dark:hover:bg-secondary"
+                              }`}
+                              onMouseEnter={() => setSelectedIndex(index)}
+                            >
+                              <div
+                                className={`p-1.5 rounded ${category.bgColor} ${category.color}`}
+                              >
+                                <tool.icon className="w-4 h-4" />
+                              </div>
+                              <div className="flex-1">
+                                <div className="text-sm font-medium">
+                                  {tool.name}
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  {category.name}
+                                </div>
+                              </div>
+                              {tool.isPopular && (
+                                <TrendingUp className="w-3 h-3 text-primary" />
+                              )}
+                              {tool.isNew && (
+                                <Sparkles className="w-3 h-3 text-accent" />
+                              )}
+                              {tool.isBeta && (
+                                <span className="text-xs bg-amber-500/20 text-amber-700 dark:text-amber-400 px-1 py-0.5 rounded">
+                                  Beta
+                                </span>
+                              )}
+                            </a>
+                          ))
+                        ) : (
+                          <div className="px-2 py-4 text-sm text-muted-foreground">
+                            No tools found. Try different keywords or view all tools below.
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-xs text-muted-foreground px-2 py-1 mb-1">
+                          Popular tools
+                        </div>
+                        {displayedResults.map(({ tool, category }, index) => (
                           <a
                             key={`${tool.id}-${index}`}
                             href={tool.route || `/convert/${tool.id}`}
@@ -318,49 +399,27 @@ export default function Navigation() {
                           </a>
                         ))}
                       </>
-                    ) : (
-                      /* Popular tools when no search */
-                      <>
-                        <div className="text-xs text-muted-foreground px-2 py-1 mb-1">
-                          Popular tools
+                    )}
+                    {showViewAllOption && (
+                      <a
+                        href="/tools"
+                        className={`flex items-center gap-3 p-2 rounded-md ff-transition ${
+                          selectedIndex === displayedResultsLength
+                            ? "bg-secondary/70 dark:bg-secondary"
+                            : "hover:bg-secondary/70 dark:hover:bg-secondary"
+                        }`}
+                        onMouseEnter={() => setSelectedIndex(displayedResultsLength)}
+                      >
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-primary">
+                            View all tools
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Browse the complete FormatFuse library
+                          </div>
                         </div>
-                        {allTools
-                          .filter((tool) => tool.isPopular)
-                          .slice(0, 6)
-                          .map((tool, index) => {
-                            const category = categories.find(
-                              (cat) => cat.id === tool.category,
-                            );
-                            if (!category) return null;
-                            return (
-                              <a
-                                key={tool.id}
-                                href={tool.route || `/convert/${tool.id}`}
-                                className={`flex items-center gap-3 p-2 rounded-md ff-transition ${
-                                  selectedIndex === index
-                                    ? "bg-secondary/70 dark:bg-secondary"
-                                    : "hover:bg-secondary/70 dark:hover:bg-secondary"
-                                }`}
-                                onMouseEnter={() => setSelectedIndex(index)}
-                              >
-                                <div
-                                  className={`p-1.5 rounded ${category.bgColor} ${category.color}`}
-                                >
-                                  <tool.icon className="w-4 h-4" />
-                                </div>
-                                <div className="flex-1">
-                                  <div className="text-sm font-medium">
-                                    {tool.name}
-                                  </div>
-                                  <div className="text-xs text-muted-foreground">
-                                    {category.name}
-                                  </div>
-                                </div>
-                                <TrendingUp className="w-3 h-3 text-primary" />
-                              </a>
-                            );
-                          })}
-                      </>
+                        <ArrowRight className="w-3 h-3 text-primary" />
+                      </a>
                     )}
                   </div>
                 )}
@@ -415,32 +474,59 @@ export default function Navigation() {
             </div>
 
             {/* Mobile Search Results or Categories */}
-            {searchQuery && searchResults.length > 0 ? (
-              <div className="space-y-1">
-                <div className="text-xs text-muted-foreground px-3 py-1">
-                  {searchResults.length} results
-                </div>
-                {searchResults.map(({ tool, category }, index) => (
-                  <a
-                    key={`${tool.id}-${index}`}
-                    href={tool.route || `/convert/${tool.id}`}
-                    className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-secondary/70 active:bg-secondary/50 dark:hover:bg-secondary dark:active:bg-secondary/80 ff-transition touch-manipulation min-h-[48px]"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    <tool.icon className={`w-4 h-4 ${category.color}`} />
-                    <div className="flex-1">
-                      <span className="text-sm">{tool.name}</span>
-                      <span className="text-xs text-muted-foreground ml-2">
-                        {category.name}
+            {hasSearchQuery ? (
+              displayedResultsLength > 0 ? (
+                <div className="space-y-1">
+                  <div className="text-xs text-muted-foreground px-3 py-1">
+                    {displayedResultsLength} results
+                  </div>
+                  {displayedResults.map(({ tool, category }, index) => (
+                    <a
+                      key={`${tool.id}-${index}`}
+                      href={tool.route || `/convert/${tool.id}`}
+                      className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-secondary/70 active:bg-secondary/50 dark:hover:bg-secondary dark:active:bg-secondary/80 ff-transition touch-manipulation min-h-[48px]"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <tool.icon className={`w-4 h-4 ${category.color}`} />
+                      <div className="flex-1">
+                        <span className="text-sm">{tool.name}</span>
+                        <span className="text-xs text-muted-foreground ml-2">
+                          {category.name}
+                        </span>
+                      </div>
+                      {tool.isPopular && (
+                        <TrendingUp className="w-3 h-3 text-primary" />
+                      )}
+                      {tool.isNew && <Sparkles className="w-3 h-3 text-accent" />}
+                    </a>
+                  ))}
+                  {showViewAllOption && (
+                    <a
+                      href="/tools"
+                      className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-secondary/70 active:bg-secondary/50 dark:hover:bg-secondary dark:active:bg-secondary/80 ff-transition touch-manipulation min-h-[48px]"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <span className="text-sm font-medium text-primary">
+                        View all tools
                       </span>
-                    </div>
-                    {tool.isPopular && (
-                      <TrendingUp className="w-3 h-3 text-primary" />
-                    )}
-                    {tool.isNew && <Sparkles className="w-3 h-3 text-accent" />}
-                  </a>
-                ))}
-              </div>
+                      <ArrowRight className="w-4 h-4 text-primary ml-auto" />
+                    </a>
+                  )}
+                </div>
+              ) : (
+                <div className="px-4 py-3 text-sm text-muted-foreground">
+                  No tools found. Try different keywords or view all tools below.
+                  {showViewAllOption && (
+                    <a
+                      href="/tools"
+                      className="mt-2 block text-primary font-medium"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      Browse all tools
+                    </a>
+                  )}
+                </div>
+              )
             ) : (
               /* Mobile Categories */
               categories.map((category) => (

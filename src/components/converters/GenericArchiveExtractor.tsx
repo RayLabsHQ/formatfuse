@@ -251,16 +251,13 @@ export default function GenericArchiveExtractor({
               </div>
             )}
 
-            {metadataSummary && (
+            {metadataSummary && (metadataSummary.encrypted || metadataSummary.warnings.length > 0) && (
               <div className="rounded-md border border-muted bg-card p-4 text-sm text-muted-foreground">
-                <p>
-                  Extraction engine: <span className="font-medium text-foreground">{metadataSummary.engine}</span>
-                </p>
                 {metadataSummary.encrypted && (
-                  <p className="mt-1 text-xs text-foreground/80">Password protected archive unlocked securely in your browser.</p>
+                  <p className="text-xs text-foreground/80">Password protected archive unlocked securely in your browser.</p>
                 )}
                 {metadataSummary.warnings.length > 0 && (
-                  <div className="mt-2 space-y-1">
+                  <div className="space-y-1">
                     <p className="font-medium text-foreground">Messages</p>
                     <ul className="space-y-1">
                       {metadataSummary.warnings.map((warning, idx) => (

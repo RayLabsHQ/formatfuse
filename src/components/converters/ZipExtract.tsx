@@ -289,7 +289,7 @@ export default function ZipExtract() {
                     <h2 className="text-lg font-semibold text-foreground">Extracted files</h2>
                     <p className="text-sm text-muted-foreground">
                       {stats && `${stats.totalFiles} files • ${formatBytes(stats.totalSize)} total`}
-                      {compressionSummary?.ratio !== null && (
+                      {compressionSummary && compressionSummary.ratio !== null && compressionSummary.ratio > 0 && (
                         <span>
                           {` • Archive reduced size by ${compressionSummary.ratio}%`}
                         </span>
@@ -321,12 +321,13 @@ export default function ZipExtract() {
                   </div>
                 </div>
 
-                {metadata && (
+                {metadata && (metadata.encrypted || metadata.warnings.length > 0) && (
                   <div className="mt-3 rounded-md border border-border/40 bg-background/60 p-3 text-xs text-muted-foreground">
-                    <p>
-                      Engine: <span className="font-medium text-foreground">{metadata.engine}</span>
-                      {metadata.encrypted && <span className="ml-1 text-emerald-500">(password applied)</span>}
-                    </p>
+                    {metadata.encrypted && (
+                      <p className="text-foreground/80">
+                        Password protected archive unlocked securely in your browser.
+                      </p>
+                    )}
                     {metadata.warnings.length > 0 && (
                       <ul className="mt-2 space-y-1">
                         {metadata.warnings.map((warning, idx) => (

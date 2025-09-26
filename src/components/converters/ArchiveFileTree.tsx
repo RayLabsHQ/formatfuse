@@ -192,7 +192,10 @@ export function ArchiveFileTree<T extends ArchiveFileNode>({
                       className="size-4 border-muted-foreground/50 bg-background/70 text-primary data-[state=unchecked]:border-muted-foreground/60 data-[state=unchecked]:bg-background/60 data-[state=checked]:border-primary data-[state=checked]:bg-primary/15"
                       onClick={(event) => {
                         event.stopPropagation();
-                        if (selectable) {
+                        if (!selectable) {
+                          return;
+                        }
+                        if (isSelected) {
                           onToggleSelect(node);
                         }
                       }}

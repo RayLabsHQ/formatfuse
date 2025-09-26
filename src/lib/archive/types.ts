@@ -59,6 +59,7 @@ export interface ExtractFailure {
   message: string;
   recoverable?: boolean;
   format?: ArchiveFormat;
+  engine?: ArchiveEngine;
 }
 
 export type ExtractResult = ExtractSuccess | ExtractFailure;

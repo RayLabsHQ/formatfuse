@@ -19,6 +19,7 @@ import {
   Package,
   Palette,
 } from "lucide-react";
+import uFuzzy from "@leeoniya/ufuzzy";
 
 export interface Tool {
   id: string;
@@ -702,115 +703,216 @@ export const categories = [
   },
 ].filter((cat) => cat.tools.length > 0); // Only show categories with tools
 
-// Search function for tools
-export function searchTools(query: string): Tool[] {
-  // Combine regular tools with color conversions for search
-  const searchableTools = [...allTools, ...colorConversions];
-  
-  if (!query) return searchableTools;
+const categoryNameMap = new Map(categories.map((cat) => [cat.id, cat.name]));
+
+const searchableToolsForSearch: Tool[] = [...allTools, ...colorConversions];
+
+const fuzzySearch = new uFuzzy({
+  intraMode: 1,
+  intraIns: 1,
+  intraSub: 1,
+  intraTrn: 1,
+  intraDel: 1,
+});
+
+const FUZZY_INFO_THRESHOLD = 1_000;
+const MAX_FUZZY_RESULTS = 400;
+
+const fuzzyHaystack = searchableToolsForSearch.map((tool) =>
+  buildSearchDocument(tool),
+);
+
+function buildSearchDocument(tool: Tool): string {
+  const parts: string[] = [tool.name, tool.id.replace(/-/g, " "), tool.description];
+  if (tool.searches) {
+    parts.push(tool.searches);
+  }
+  const categoryName = categoryNameMap.get(tool.category);
+  if (categoryName) {
+    parts.push(categoryName);
+  }
+  return parts.join(" | ");
+}
+
+function rankTools(
+  tools: Tool[],
+  query: string,
+  fuzzyOrder: Map<string, number>,
+): Tool[] {
+  if (tools.length === 0) return [];
 
   const lowerQuery = query.toLowerCase();
+  const normalizedQuery = lowerQuery.replace(/\s+/g, "");
+  const searchTerms = lowerQuery.split(/\s+/).filter((term) => term.length > 0);
 
-  // Score and filter tools
-  const scoredResults = searchableTools
-    .map((tool) => {
-      let score = 0;
-      let matches = false;
+  return tools
+    .map((tool, index) => {
+      const nameLower = tool.name.toLowerCase();
+      const descriptionLower = tool.description.toLowerCase();
+      const idLower = tool.id.toLowerCase();
+      const searchesLower = tool.searches ? tool.searches.toLowerCase() : "";
+      const categoryLower = categoryNameMap.get(tool.category)?.toLowerCase();
+      const baseScore = Math.max(
+        0,
+        tools.length - (fuzzyOrder.get(tool.id) ?? tools.length + index),
+      ) * 5;
 
-      // Exact name match (highest priority)
-      if (tool.name.toLowerCase() === lowerQuery) {
-        score += 100;
-        matches = true;
-      }
-      // Name contains query
-      else if (tool.name.toLowerCase().includes(lowerQuery)) {
-        score += 50;
-        matches = true;
-      }
+      let score = baseScore;
 
-      // Check tool description
-      if (tool.description.toLowerCase().includes(lowerQuery)) {
-        score += 20;
-        matches = true;
-      }
-
-      // Check tool id (for direct searches like "png-to-jpg")
-      if (tool.id.toLowerCase().includes(lowerQuery)) {
-        score += 30;
-        matches = true;
+      if (nameLower === lowerQuery) {
+        score += 200;
+      } else if (nameLower.includes(lowerQuery)) {
+        score += 120;
       }
 
-      // Check acronyms (e.g., "pdf" matches "PDF to Word")
+      if (idLower === lowerQuery) {
+        score += 160;
+      } else if (idLower.includes(lowerQuery)) {
+        score += 90;
+      }
+
+      if (searchesLower && searchesLower.includes(lowerQuery)) {
+        score += 110;
+      }
+
+      if (descriptionLower.includes(lowerQuery)) {
+        score += 40;
+      }
+
+      if (categoryLower && categoryLower.includes(lowerQuery)) {
+        score += 35;
+      }
+
       const acronym = tool.name
-        .split(" ")
-        .map((word) => word[0])
-        .join("")
-        .toLowerCase();
-      if (acronym.includes(lowerQuery)) {
-        score += 15;
-        matches = true;
+        .split(/[\s/-]+/)
+        .map((word) => word[0]?.toLowerCase() ?? "")
+        .join("");
+      if (normalizedQuery && acronym.includes(normalizedQuery)) {
+        score += 50;
       }
 
-      // Special handling for color format searches
       if (tool.id.startsWith("color-")) {
-        // Extract source and target formats from color converter ID
         const colorIdMatch = tool.id.match(/^color-(.+)-to-(.+)$/);
         if (colorIdMatch) {
           const [, sourceFormat, targetFormat] = colorIdMatch;
-          
-          // Check if search query contains both formats
-          const searchTerms = lowerQuery.split(/\s+/).filter((t) => t.length > 0);
-          const hasSourceFormat = searchTerms.some(term => sourceFormat === term || sourceFormat.includes(term));
-          const hasTargetFormat = searchTerms.some(term => targetFormat === term || targetFormat.includes(term));
-          
-          // Exact match for "X to Y" searches (highest priority for color)
+          const hasSourceFormat = searchTerms.some(
+            (term) =>
+              sourceFormat === term ||
+              sourceFormat.includes(term) ||
+              term.includes(sourceFormat),
+          );
+          const hasTargetFormat = searchTerms.some(
+            (term) =>
+              targetFormat === term ||
+              targetFormat.includes(term) ||
+              term.includes(targetFormat),
+          );
+
           if (hasSourceFormat && hasTargetFormat && lowerQuery.includes("to")) {
             score += 90;
-            matches = true;
-          }
-          // Both formats mentioned
-          else if (hasSourceFormat && hasTargetFormat) {
+          } else if (hasSourceFormat && hasTargetFormat) {
             score += 70;
-            matches = true;
-          }
-          // Match source or target format
-          else if (searchTerms.some(term => sourceFormat === term || targetFormat === term)) {
-            score += 40;
-            matches = true;
-          }
-          // Partial match
-          else if (lowerQuery.includes(sourceFormat) || lowerQuery.includes(targetFormat)) {
-            score += 25;
-            matches = true;
-          }
-        }
-        
-        // Generic color search
-        if (lowerQuery.includes("color")) {
-          score += 10;
-          matches = true;
-        }
-      } else {
-        // Check format searches for non-color tools (e.g., "png jpg" matches "PNG to JPG")
-        const formats = tool.id.split("-to-");
-        if (formats.length === 2) {
-          const searchTerms = lowerQuery.split(/\s+/).filter((t) => t.length > 0);
-          if (
-            searchTerms.every((term) =>
-              formats.some((format) => format.includes(term)),
+          } else if (
+            searchTerms.some(
+              (term) => sourceFormat === term || targetFormat === term,
             )
           ) {
             score += 40;
-            matches = true;
+          } else if (
+            lowerQuery.includes(sourceFormat) || lowerQuery.includes(targetFormat)
+          ) {
+            score += 25;
+          }
+        }
+
+        if (lowerQuery.includes("color")) {
+          score += 20;
+        }
+      } else {
+        const formats = tool.id.split("-to-");
+        if (formats.length === 2 && searchTerms.length > 0) {
+          const matchesFormats = searchTerms.every((term) =>
+            formats.some((format) => format.includes(term) || term.includes(format)),
+          );
+          if (matchesFormats) {
+            score += 60;
           }
         }
       }
 
-      return { tool, score, matches };
-    })
-    .filter(result => result.matches)
-    .sort((a, b) => b.score - a.score)
-    .map(result => result.tool);
+      if (tool.isPopular) {
+        score += 15;
+      }
+      if (tool.isNew) {
+        score += 10;
+      }
+      if (tool.isBeta) {
+        score += 5;
+      }
 
-  return scoredResults;
+      return {
+        tool,
+        score,
+        fuzzyIndex: fuzzyOrder.get(tool.id) ?? tools.length + index,
+      };
+    })
+    .sort((a, b) => {
+      if (b.score === a.score) {
+        return a.fuzzyIndex - b.fuzzyIndex;
+      }
+      return b.score - a.score;
+    })
+    .map(({ tool }) => tool);
+}
+
+// Search function for tools
+export function searchTools(query: string): Tool[] {
+  const trimmedQuery = query.trim();
+
+  if (!trimmedQuery) {
+    return [...searchableToolsForSearch];
+  }
+
+  const [idxs, info, order] = fuzzySearch.search(
+    fuzzyHaystack,
+    trimmedQuery,
+    1,
+    FUZZY_INFO_THRESHOLD,
+  );
+
+  if (!idxs || idxs.length === 0) {
+    return [];
+  }
+
+  let orderedIdxs: number[] = idxs;
+
+  if (info && order) {
+    orderedIdxs = order.map((infoIdx) => info.idx[infoIdx]);
+  }
+
+  const seen = new Set<number>();
+  const uniqueIndices: number[] = [];
+
+  for (const idx of orderedIdxs) {
+    if (!seen.has(idx)) {
+      seen.add(idx);
+      uniqueIndices.push(idx);
+      if (uniqueIndices.length >= MAX_FUZZY_RESULTS) {
+        break;
+      }
+    }
+  }
+
+  const candidates = uniqueIndices.map((searchIndex) =>
+    searchableToolsForSearch[searchIndex],
+  );
+
+  const fuzzyOrder = new Map<string, number>();
+  candidates.forEach((tool, index) => {
+    if (!fuzzyOrder.has(tool.id)) {
+      fuzzyOrder.set(tool.id, index);
+    }
+  });
+
+  return rankTools(candidates, trimmedQuery, fuzzyOrder);
 }
