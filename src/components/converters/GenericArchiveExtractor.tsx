@@ -25,7 +25,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "../ui/input";
 
 import { cn } from "../../lib/utils";
-import { captureError } from "../../lib/posthog";
+import { captureError, captureEvent } from "../../lib/posthog";
 import { useArchiveExtractor } from "../../hooks/useArchiveExtractor";
 import type {
   ArchiveEngine,
@@ -239,26 +239,54 @@ export default function GenericArchiveExtractor({
   }, []);
 
   const handleExtractionResult = useCallback(
-    (file: File, result: ExtractResult) => {
+    (file: File, result: ExtractResult, attempt: { passwordUsed: boolean }) => {
+      const extractFormat = (fmt?: ArchiveFormat) => {
+        if (!fmt) return format;
+        return fmt.format;
+      };
+
       if (!result.ok) {
         if (result.code === "PASSWORD_REQUIRED") {
-          setPendingPassword((prev) => ({
-            file,
-            message: result.message,
-            attempts: (prev?.attempts ?? 0) + 1,
-          }));
+          setPendingPassword((prev) => {
+            const attempts = (prev?.attempts ?? 0) + 1;
+            captureEvent("archive_password_prompted", {
+              tool: "generic-archive-extract",
+              format: extractFormat(result.format),
+              fileName: file.name,
+              attempts,
+            });
+            return {
+              file,
+              message: result.message,
+              attempts,
+            };
+          });
           setPasswordError(null);
         } else {
-          setError(result.message);
-          captureError(new Error(result.message), {
+          const failureProps = {
             tool: "generic-archive-extract",
-            format,
+            format: extractFormat(result.format),
             fileName: file.name,
             stage: "extract",
-          });
+            code: result.code,
+            recoverable: !!result.recoverable,
+          };
+          captureEvent("archive_extract_failed", failureProps);
+          setError(result.message);
+          captureError(new Error(result.message), failureProps);
         }
         return;
       }
+
+      captureEvent("archive_extract_succeeded", {
+        tool: "generic-archive-extract",
+        format: extractFormat(result.format),
+        engine: result.engine,
+        warnings: result.warnings.length,
+        passwordUsed: attempt.passwordUsed,
+        fileName: file.name,
+        fileSize: file.size,
+      });
 
       const tree = buildFileTree(result.entries);
       setFiles(tree);
@@ -308,7 +336,7 @@ export default function GenericArchiveExtractor({
         };
 
         const result = await extract(request);
-        handleExtractionResult(file, result);
+        handleExtractionResult(file, result, { passwordUsed: !!password });
       } catch (err) {
         const message = err instanceof Error ? err.message : "Failed to extract archive";
         setError(message);
@@ -426,15 +454,29 @@ export default function GenericArchiveExtractor({
         return;
       }
       setPasswordError(null);
+      captureEvent("archive_password_submitted", {
+        tool: "generic-archive-extract",
+        format,
+        fileName: pendingPassword.file.name,
+        attempts: pendingPassword.attempts,
+      });
       void performExtraction(pendingPassword.file, password);
     },
-    [pendingPassword, performExtraction],
+    [format, pendingPassword, performExtraction],
   );
 
   const handlePasswordDismiss = useCallback(() => {
+    if (pendingPassword) {
+      captureEvent("archive_password_dismissed", {
+        tool: "generic-archive-extract",
+        format,
+        fileName: pendingPassword.file.name,
+        attempts: pendingPassword.attempts,
+      });
+    }
     setPendingPassword(null);
     setPasswordError(null);
-  }, []);
+  }, [format, pendingPassword]);
 
   const warmupEngines = useCallback(() => {
     void preload();
@@ -452,154 +494,165 @@ export default function GenericArchiveExtractor({
   const relatedList = relatedTools ?? defaultRelatedTools;
 
   return (
-    <div className="space-y-10">
-      <ToolHeader
-        title={`${formatName} Extractor`}
-        description={formatDescription}
-        icon={Icon as LucideIcon}
-        features={featureList}
-      />
+    <section className="relative min-h-screen w-full">
+      <div className="hidden sm:block fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.03] via-transparent to-accent/[0.02]" />
+        <div className="absolute top-16 right-1/3 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
+        <div className="absolute bottom-24 left-1/4 h-80 w-80 rounded-full bg-accent/10 blur-3xl" />
+      </div>
 
-      <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
-        <div className="space-y-6">
-          <div onPointerEnter={warmupEngines} onFocusCapture={warmupEngines}>
-            <FileDropZone
-              acceptedTypes={acceptedExtensions}
-              isDragging={isDragging}
-              onDragStateChange={setIsDragging}
-              onFilesSelected={handleFilesSelected}
-              onFileInput={handleFileSelect}
-              title={`Drop your ${format.toUpperCase()} archive here`}
-              description="We extract everything directly in your browser."
-            />
-          </div>
+      <div className="relative z-10 mx-auto flex max-w-6xl flex-col gap-10 px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
+        <ToolHeader
+          title={{ highlight: "Extract", main: `${formatName} Archives` }}
+          subtitle={formatDescription}
+          badge={{
+            text: `${formatName} Extractor • Online • Free`,
+            icon: Icon as LucideIcon,
+          }}
+          features={featureList}
+        />
 
-          {error && (
-            <div className="flex items-start gap-3 rounded-md border border-destructive/30 bg-destructive/10 p-4 text-sm">
-              <AlertCircle className="mt-0.5 h-5 w-5 text-destructive" />
-              <div>
-                <p className="font-medium text-destructive">Extraction failed</p>
-                <p className="text-muted-foreground">{error}</p>
+        <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
+          <div className="space-y-6">
+            <div onPointerEnter={warmupEngines} onFocusCapture={warmupEngines}>
+              <FileDropZone
+                acceptedTypes={acceptedExtensions}
+                isDragging={isDragging}
+                onDragStateChange={setIsDragging}
+                onFilesSelected={handleFilesSelected}
+                onFileInput={handleFileSelect}
+                title={`Drop your ${format.toUpperCase()} archive here`}
+                description="We extract everything directly in your browser."
+              />
+            </div>
+
+            {error && (
+              <div className="flex items-start gap-3 rounded-md border border-destructive/30 bg-destructive/10 p-4 text-sm">
+                <AlertCircle className="mt-0.5 h-5 w-5 text-destructive" />
+                <div>
+                  <p className="font-medium text-destructive">Extraction failed</p>
+                  <p className="text-muted-foreground">{error}</p>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {isLoading && (
-            <div className="flex items-center gap-3 rounded-md border border-muted bg-card p-4 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span>{isReady ? "Extracting archive…" : "Preparing extraction engines…"}</span>
-            </div>
-          )}
+            {isLoading && (
+              <div className="flex items-center gap-3 rounded-md border border-muted bg-card p-4 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>{isReady ? "Extracting archive…" : "Preparing extraction engines…"}</span>
+              </div>
+            )}
 
-          {metadataSummary && (
-            <div className="rounded-md border border-muted bg-card p-4 text-sm text-muted-foreground">
-              <p>
-                Extraction engine: <span className="font-medium text-foreground">{metadataSummary.engine}</span>
-              </p>
-              {metadataSummary.warnings.length > 0 && (
-                <div className="mt-2 space-y-1">
-                  <p className="font-medium text-foreground">Messages</p>
-                  <ul className="space-y-1">
-                    {metadataSummary.warnings.map((warning, idx) => (
-                      <li key={`${warning}-${idx}`} className="text-xs leading-relaxed text-muted-foreground">
-                        {warning}
-                      </li>
+            {metadataSummary && (
+              <div className="rounded-md border border-muted bg-card p-4 text-sm text-muted-foreground">
+                <p>
+                  Extraction engine: <span className="font-medium text-foreground">{metadataSummary.engine}</span>
+                </p>
+                {metadataSummary.warnings.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    <p className="font-medium text-foreground">Messages</p>
+                    <ul className="space-y-1">
+                      {metadataSummary.warnings.map((warning, idx) => (
+                        <li key={`${warning}-${idx}`} className="text-xs leading-relaxed text-muted-foreground">
+                          {warning}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {files.length > 0 ? (
+              <div className="rounded-md border border-muted bg-card">
+                <div className="flex items-center justify-between border-b border-muted p-4">
+                  <div>
+                    <h2 className="text-base font-semibold">{archiveName}</h2>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedFiles.size > 0
+                        ? `${selectedFiles.size} file${selectedFiles.size === 1 ? "" : "s"} selected`
+                        : "Select files to download"}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button variant="outline" size="sm" onClick={selectAll}>
+                      Select all
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={clearSelection}>
+                      Clear
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={downloadSelected}
+                      disabled={selectedFiles.size === 0}
+                    >
+                      <Download className="mr-2 h-4 w-4" /> Download selected
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="max-h-[480px] overflow-auto text-sm">
+                  <ul className="divide-y divide-muted/60">
+                    {files.map((node) => (
+                      <FileNodeRow
+                        key={node.path}
+                        node={node}
+                        depth={0}
+                        expandedPaths={expandedPaths}
+                        selectedFiles={selectedFiles}
+                        onToggleExpand={toggleExpanded}
+                        onToggleSelect={toggleSelected}
+                        onDownload={downloadFile}
+                      />
                     ))}
                   </ul>
                 </div>
-              )}
-            </div>
-          )}
-
-          {files.length > 0 ? (
-            <div className="rounded-md border border-muted bg-card">
-              <div className="flex items-center justify-between border-b border-muted p-4">
-                <div>
-                  <h2 className="text-base font-semibold">{archiveName}</h2>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedFiles.size > 0
-                      ? `${selectedFiles.size} file${selectedFiles.size === 1 ? "" : "s"} selected`
-                      : "Select files to download"}
-                  </p>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Button variant="outline" size="sm" onClick={selectAll}>
-                    Select all
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={clearSelection}>
-                    Clear
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={downloadSelected}
-                    disabled={selectedFiles.size === 0}
-                  >
-                    <Download className="mr-2 h-4 w-4" /> Download selected
-                  </Button>
-                </div>
               </div>
-
-              <div className="max-h-[480px] overflow-auto text-sm">
-                <ul className="divide-y divide-muted/60">
-                  {files.map((node) => (
-                    <FileNodeRow
-                      key={node.path}
-                      node={node}
-                      depth={0}
-                      expandedPaths={expandedPaths}
-                      selectedFiles={selectedFiles}
-                      onToggleExpand={toggleExpanded}
-                      onToggleSelect={toggleSelected}
-                      onDownload={downloadFile}
-                    />
-                  ))}
-                </ul>
+            ) : (
+              <div className="rounded-md border border-dashed border-muted bg-card p-8 text-center text-sm text-muted-foreground">
+                <FolderOpen className="mx-auto mb-3 h-8 w-8" />
+                <p>Drop a {format.toUpperCase()} archive above to see its contents instantly.</p>
               </div>
-            </div>
-          ) : (
-            <div className="rounded-md border border-dashed border-muted bg-card p-8 text-center text-sm text-muted-foreground">
-              <FolderOpen className="mx-auto mb-3 h-8 w-8" />
-              <p>Drop a {format.toUpperCase()} archive above to see its contents instantly.</p>
-            </div>
-          )}
+            )}
+          </div>
+
+          <div className="space-y-6">
+            {faqs && faqs.length > 0 && <FAQ items={faqs} />}
+            <RelatedTools tools={relatedList} />
+          </div>
         </div>
 
-        <div className="space-y-6">
-          {faqs && faqs.length > 0 && <FAQ items={faqs} />}
-          <RelatedTools tools={relatedList} />
-        </div>
+        <Dialog open={pendingPassword !== null} onOpenChange={handlePasswordDismiss}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Enter archive password</DialogTitle>
+              <DialogDescription>{pendingPassword?.message}</DialogDescription>
+            </DialogHeader>
+            <form className="space-y-4" onSubmit={handlePasswordSubmit}>
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm font-medium text-foreground" htmlFor="archive-password">
+                  <Lock className="h-4 w-4" /> Password
+                </label>
+                <Input
+                  id="archive-password"
+                  type="password"
+                  autoFocus
+                  ref={passwordInputRef}
+                  placeholder="Enter archive password"
+                />
+                {passwordError && <p className="text-xs text-destructive">{passwordError}</p>}
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button type="button" variant="ghost" onClick={handlePasswordDismiss}>
+                  Cancel
+                </Button>
+                <Button type="submit">Unlock</Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
-
-      <Dialog open={pendingPassword !== null} onOpenChange={handlePasswordDismiss}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Enter archive password</DialogTitle>
-            <DialogDescription>{pendingPassword?.message}</DialogDescription>
-          </DialogHeader>
-          <form className="space-y-4" onSubmit={handlePasswordSubmit}>
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm font-medium text-foreground" htmlFor="archive-password">
-                <Lock className="h-4 w-4" /> Password
-              </label>
-              <Input
-                id="archive-password"
-                type="password"
-                autoFocus
-                ref={passwordInputRef}
-                placeholder="Enter archive password"
-              />
-              {passwordError && <p className="text-xs text-destructive">{passwordError}</p>}
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="ghost" onClick={handlePasswordDismiss}>
-                Cancel
-              </Button>
-              <Button type="submit">Unlock</Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
-    </div>
+    </section>
   );
 }
 

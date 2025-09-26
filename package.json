@@ -16,14 +16,15 @@
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "check:bundle": "node scripts/check-archive-bundle.mjs"
   },
   "dependencies": {
     "7z-wasm": "^1.2.0",
-    "@astrojs/mdx": "^4.3.4",
+    "@astrojs/mdx": "^4.3.6",
     "@astrojs/partytown": "^2.1.4",
-    "@astrojs/react": "^4.3.0",
-    "@astrojs/sitemap": "^3.5.1",
+    "@astrojs/react": "^4.4.0",
+    "@astrojs/sitemap": "^3.6.0",
     "@jsquash/avif": "^2.1.1",
     "@jsquash/jpeg": "^1.6.0",
     "@jsquash/png": "^3.1.1",
@@ -54,7 +55,7 @@
     "@tanstack/react-virtual": "^3.13.12",
     "@types/canvas-confetti": "^1.9.0",
     "@types/js-yaml": "^4.0.9",
-    "astro": "^5.13.4",
+    "astro": "^5.14.0",
     "astro-opengraph-images": "^1.13.1",
     "canvas-confetti": "^1.9.3",
     "class-variance-authority": "^0.7.1",

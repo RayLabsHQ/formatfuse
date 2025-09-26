@@ -40,3 +40,11 @@ export function captureError(error: unknown, props: AnyRecord = {}): void {
   }
 }
 
+
+export function captureEvent(event: string, props: AnyRecord = {}): void {
+  if (typeof window === 'undefined') return;
+  const ph: any = (window as any).posthog;
+  if (ph && typeof ph.capture === 'function') {
+    ph.capture(event, props);
+  }
+}

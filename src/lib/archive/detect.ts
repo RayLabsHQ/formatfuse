@@ -27,6 +27,8 @@ const TAR_KNOWN_EXTENSIONS = [
   ".tbz2",
   ".tar.xz",
   ".txz",
+  ".tar.zst",
+  ".tzst",
   ".tar.z",
 ];
 
@@ -71,11 +73,13 @@ function stripCompressionExtensions(fileName: string): string {
     ".tar.gz": 7,
     ".tar.bz2": 8,
     ".tar.xz": 7,
+    ".tar.zst": 8,
     ".tar.z": 6,
     ".tgz": 4,
     ".tbz": 4,
     ".tbz2": 5,
     ".txz": 4,
+    ".tzst": 5,
     ".gz": 3,
     ".bz2": 4,
     ".xz": 3,
@@ -104,6 +108,9 @@ function formatFromExtension(fileName: string): ArchiveFormat | null {
   }
   if (lower.endsWith(".tar.xz") || lower.endsWith(".txz")) {
     return { kind: "archive", format: "tarXz" };
+  }
+  if (lower.endsWith(".tar.zst") || lower.endsWith(".tzst")) {
+    return { kind: "archive", format: "tarZst" };
   }
   if (lower.endsWith(".tar")) {
     return { kind: "archive", format: "tar" };
@@ -190,6 +197,9 @@ function downgradeSingleIfTar(fileName: string, format: ArchiveFormat): ArchiveF
     }
     if (lower.endsWith(".tar.xz") || lower.endsWith(".txz")) {
       return { kind: "archive", format: "tarXz" };
+    }
+    if (lower.endsWith(".tar.zst") || lower.endsWith(".tzst")) {
+      return { kind: "archive", format: "tarZst" };
     }
     if (lower.endsWith(".tar")) {
       return { kind: "archive", format: "tar" };

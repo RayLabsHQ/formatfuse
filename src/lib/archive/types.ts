@@ -8,6 +8,7 @@ export type ArchiveContainerFormat =
   | "tarGz"
   | "tarBz2"
   | "tarXz"
+  | "tarZst"
   | "iso"
   | "cab"
   | "ar"
