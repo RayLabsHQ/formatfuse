@@ -1,8 +1,13 @@
 import type { APIRoute } from "astro";
+import {
+  colorIntentModifiers,
+  isModifierApplicable,
+  type SupportedFormat,
+} from "../data/colorModifiers";
 
 export const GET: APIRoute = ({ site }) => {
   // All color formats
-  const formats = [
+  const formats: SupportedFormat[] = [
     "hex",
     "rgb",
     "hsl",
@@ -27,16 +32,23 @@ export const GET: APIRoute = ({ site }) => {
     for (const to of formats) {
       if (from !== to) {
         colorPages.push(`/convert/color/${from}-to-${to}/`);
+        for (const modifier of colorIntentModifiers) {
+          if (isModifierApplicable(modifier, from, to)) {
+            colorPages.push(`/convert/color/${from}-to-${to}/${modifier.slug}/`);
+          }
+        }
       }
     }
   }
 
+  const uniquePages = Array.from(new Set(colorPages));
+
   // Sort alphabetically for consistency
-  colorPages.sort();
+  uniquePages.sort();
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${colorPages
+${uniquePages
   .map(
     (url) => `  <url>
     <loc>${site}${url.startsWith("/") ? url.slice(1) : url}</loc>

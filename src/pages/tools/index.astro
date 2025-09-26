@@ -1,0 +1,42 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import GridBackground from "../../components/GridBackground.astro";
+import AllToolsGrid from "../../components/AllToolsGrid.tsx";
+
+const title = "Explore All Tools - FormatFuse";
+const description =
+  "Browse every FormatFuse converter and utility in one place. Use fuzzy search to jump to the exact PDF, image, developer, document, or archive tool you need.";
+const keywords =
+  "formatfuse tools, pdf tools, image converters, developer utilities, document converters, archive extractors, fuzzy search";
+---
+
+<Layout title={title} description={description} keywords={keywords}>
+  <main class="relative">
+    <section class="relative overflow-hidden border-b border-border/40">
+      <GridBackground />
+      <div class="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10" aria-hidden="true"></div>
+
+      <div class="relative mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-20 text-center">
+        <span class="inline-flex items-center justify-center rounded-full border border-primary/20 bg-primary/10 px-4 py-1 text-sm font-medium text-primary">
+          All FormatFuse tools
+        </span>
+        <h1 class="mt-6 text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
+          Find the right converter faster
+        </h1>
+        <p class="mt-4 text-lg text-muted-foreground">
+          Explore every PDF, image, developer, document, and archive tool across FormatFuse. Start typing below to use the same fuzzy search that powers the quick launcher in the navigation.
+        </p>
+        <div class="mt-6 flex flex-wrap items-center justify-center gap-3 text-sm text-muted-foreground">
+          <span class="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card px-4 py-2">
+            Tip: press Cmd+K or Ctrl+K anywhere to open quick search instantly.
+          </span>
+          <span class="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card px-4 py-2">
+            Browse categories or combine keywords like "png to webp".
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <AllToolsGrid client:load />
+  </main>
+</Layout>

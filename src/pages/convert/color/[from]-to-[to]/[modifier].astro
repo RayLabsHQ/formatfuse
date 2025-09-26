@@ -1,0 +1,59 @@
+---
+import ColorConversionPage from '@/components/seo/ColorConversionPage.astro';
+import {
+  colorFormatMeta,
+  colorIntentModifiers,
+  isModifierApplicable,
+  type ColorFormatMeta,
+  type ColorIntentModifier,
+  type SupportedFormat,
+} from '@/data/colorModifiers';
+
+interface PageProps {
+  fromFormat: ColorFormatMeta;
+  toFormat: ColorFormatMeta;
+  fromKey: SupportedFormat;
+  toKey: SupportedFormat;
+  modifier: ColorIntentModifier;
+}
+
+export const prerender = true;
+
+export async function getStaticPaths() {
+  const paths: Array<{
+    params: { from: string; to: string; modifier: string };
+    props: PageProps;
+  }> = [];
+
+  for (const from of colorFormatMeta) {
+    for (const to of colorFormatMeta) {
+      if (from.key === to.key) continue;
+      for (const modifier of colorIntentModifiers) {
+        if (!isModifierApplicable(modifier, from.key, to.key)) continue;
+        paths.push({
+          params: { from: from.key, to: to.key, modifier: modifier.slug },
+          props: {
+            fromFormat: from,
+            toFormat: to,
+            fromKey: from.key,
+            toKey: to.key,
+            modifier,
+          },
+        });
+      }
+    }
+  }
+
+  return paths;
+}
+
+const { fromFormat, toFormat, fromKey, toKey, modifier } = Astro.props as PageProps;
+---
+
+<ColorConversionPage
+  fromFormat={fromFormat}
+  toFormat={toFormat}
+  fromKey={fromKey}
+  toKey={toKey}
+  modifier={modifier}
+/>

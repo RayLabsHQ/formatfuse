@@ -129,69 +129,75 @@ export default function AllToolsGrid() {
               <div key={category.id} id={category.id}>
                 <h2 className="text-2xl font-bold mb-6">{category.name}</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {categoryTools.map((tool) => (
-                    <a
-                      key={tool.id}
-                      href={tool.route || `/convert/${tool.id}`}
-                      className="group relative block"
-                    >
-                      <div className="relative h-full bg-card rounded-2xl p-6 border border-border transition-all duration-200 hover:scale-[1.02] hover:border-primary/20 hover:shadow-lg">
-                        {/* Color accent bar */}
-                        <div
-                          className={`absolute top-0 left-6 right-6 h-1 rounded-b-full ${category.bgColor} opacity-60`}
-                        />
+                  {categoryTools.map((tool) => {
+                    const showBadges = Boolean(
+                      tool.isNew || tool.isPopular || tool.isBeta,
+                    );
 
-                        {/* Header */}
-                        <div className="flex items-start justify-between mb-4">
+                    return (
+                      <a
+                        key={tool.id}
+                        href={tool.route || `/convert/${tool.id}`}
+                        className="group relative block"
+                      >
+                        <div className="relative h-full bg-card rounded-2xl p-6 border border-border transition-all duration-200 hover:scale-[1.02] hover:border-primary/20 hover:shadow-lg">
+                          {/* Color accent bar */}
                           <div
-                            className={`w-12 h-12 rounded-xl flex items-center justify-center ${category.bgColor}`}
-                          >
-                            <tool.icon
-                              className={`w-6 h-6 ${category.color.split(" ")[1]}`}
-                            />
+                            className={`absolute top-0 left-6 right-6 h-1 rounded-b-full ${category.bgColor} opacity-60`}
+                          />
+
+                          {/* Header */}
+                          <div className="flex items-start justify-between gap-4 mb-5">
+                            <div className="flex items-start gap-3">
+                              <div
+                                className={`w-12 h-12 rounded-xl flex items-center justify-center ${category.bgColor}`}
+                              >
+                                <tool.icon
+                                  className={`w-6 h-6 ${category.color.split(" ")[1]}`}
+                                />
+                              </div>
+
+                              {showBadges && (
+                                <div className="flex flex-wrap items-center gap-2 pt-1">
+                                  {tool.isNew && (
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-accent/10 text-accent text-xs font-medium rounded-full">
+                                      <Sparkles className="w-3 h-3" />
+                                      New
+                                    </span>
+                                  )}
+                                  {tool.isPopular && (
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">
+                                      <TrendingUp className="w-3 h-3" />
+                                      Hot
+                                    </span>
+                                  )}
+                                  {tool.isBeta && (
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-500/20 text-amber-700 dark:text-amber-400 text-xs font-medium rounded-full">
+                                      Beta
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="inline-flex items-center gap-1 text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                              <span>Try now</span>
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </div>
                           </div>
 
-                          {/* Badges */}
-                          <div className="flex gap-2">
-                            {tool.isNew && (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-accent/10 text-accent text-xs font-medium rounded-full">
-                                <Sparkles className="w-3 h-3" />
-                                New
-                              </span>
-                            )}
-                            {tool.isPopular && (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">
-                                <TrendingUp className="w-3 h-3" />
-                                Hot
-                              </span>
-                            )}
-                            {tool.isBeta && (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-500/20 text-amber-700 dark:text-amber-400 text-xs font-medium rounded-full">
-                                Beta
-                              </span>
-                            )}
-                          </div>
+                          {/* Content */}
+                          <h3 className="text-lg font-semibold mb-2 group-hover:text-primary transition-colors">
+                            {tool.name}
+                          </h3>
+
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {tool.description}
+                          </p>
                         </div>
-
-                        {/* Content */}
-                        <h3 className="text-lg font-semibold mb-2 group-hover:text-primary transition-colors">
-                          {tool.name}
-                        </h3>
-
-                        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                          {tool.description}
-                        </p>
-
-                        {/* Footer */}
-                        <div className="flex items-center justify-end pt-4 border-t border-border/50">
-                          <div className="flex items-center gap-1 text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                            <span>Try now</span>
-                            <ArrowRight className="w-3.5 h-3.5" />
-                          </div>
-                        </div>
-                      </div>
-                    </a>
-                  ))}
+                      </a>
+                    );
+                  })}
                 </div>
               </div>
             );

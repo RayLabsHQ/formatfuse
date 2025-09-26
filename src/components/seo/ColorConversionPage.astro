@@ -1,0 +1,427 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import { ColorConverter } from '@/components/converters/ColorConverter.tsx';
+import {
+  buildDefaultContent,
+  colorFormatMeta,
+  colorIntentModifiers,
+  getDefaultColor,
+  getExampleConversion,
+  isModifierApplicable,
+} from '@/pages/convert/color/page-data';
+import type {
+  ColorFormatMeta,
+  ColorIntentModifier,
+  SupportedFormat,
+} from '@/data/colorModifiers';
+
+interface Props {
+  fromFormat: ColorFormatMeta;
+  toFormat: ColorFormatMeta;
+  fromKey: SupportedFormat;
+  toKey: SupportedFormat;
+  modifier?: ColorIntentModifier;
+}
+
+const { fromFormat, toFormat, fromKey, toKey, modifier } = Astro.props as Props;
+const isModifierPage = Boolean(modifier);
+
+const defaultContent = buildDefaultContent(fromFormat, toFormat);
+const activeContent = modifier?.content ?? defaultContent;
+const heroTagline = modifier?.heroTagline ?? `Translate ${fromFormat.name} colors into ${toFormat.name} values with professional-grade color science and live previews.`;
+
+const title = modifier
+  ? `${toFormat.name} Converter ${modifier.titleSuffix} - Convert from ${fromFormat.name}`
+  : `${toFormat.name} Converter - Convert from ${fromFormat.name}`;
+
+const description = modifier
+  ? `${modifier.metaDescription} Convert ${fromFormat.name} (${fromFormat.description}) colors to ${toFormat.name} (${toFormat.description}) with Color.js precision and instant previews.`
+  : `Convert ${fromFormat.name} (${fromFormat.description}) colors to ${toFormat.name} (${toFormat.description}) format instantly with Color.js accuracy. Works offline in your browser with clipboard-ready results.`;
+
+const keywordPool = new Set<string>([
+  `${fromFormat.name} to ${toFormat.name}`,
+  `${fromKey} to ${toKey}`,
+  'color converter',
+  'color space conversion',
+  fromFormat.description,
+  toFormat.description,
+  'online color tool',
+  'design colors',
+  'color conversion utility',
+]);
+
+activeContent.seoKeywords.forEach((keyword) => keywordPool.add(keyword));
+if (modifier) {
+  keywordPool.add(`${modifier.label.toLowerCase()} color converter`);
+  keywordPool.add(modifier.slug.replace(/-/g, ' '));
+}
+
+const keywords = Array.from(keywordPool).join(', ');
+
+const example = getExampleConversion(fromKey, toKey);
+const defaultInputColor = getDefaultColor(fromKey);
+const targetExampleColor = getDefaultColor(toKey);
+
+const structuredPath = Astro.url.pathname.endsWith('/')
+  ? Astro.url.pathname
+  : `${Astro.url.pathname}/`;
+
+const structuredDataAudience = modifier?.label ?? 'Designers and developers';
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: title,
+  description,
+  url: `${Astro.site?.origin ?? 'https://formatfuse.com'}${structuredPath}`,
+  applicationCategory: 'UtilitiesApplication',
+  operatingSystem: 'Any',
+  audience: structuredDataAudience,
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD',
+  },
+  featureList: [
+    `${fromFormat.name} → ${toFormat.name} converter`,
+    ...activeContent.valueProps,
+    'Color.js engine for perceptual accuracy',
+    'Offline-friendly operation with zero uploads',
+  ],
+  howTo: {
+    '@type': 'HowTo',
+    name: `How to convert ${fromFormat.name} to ${toFormat.name}${modifier ? ` for ${modifier.label}` : ''}`,
+    step: activeContent.workflowSteps.map((text, index) => ({
+      '@type': 'HowToStep',
+      position: index + 1,
+      text,
+      name: `Step ${index + 1}`,
+    })),
+  },
+};
+
+const baseFaqEntities = [
+  {
+    '@type': 'Question',
+    name: `How do I convert ${fromFormat.name} to ${toFormat.name}?`,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: `Paste your ${fromFormat.name} color (for example ${example.input}) into the converter. The Color.js engine instantly translates it to ${toFormat.name} (e.g., ${example.output}) with preview swatches and copy-ready output.`,
+    },
+  },
+  {
+    '@type': 'Question',
+    name: `What is the difference between ${fromFormat.name} and ${toFormat.name}?`,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: `${fromFormat.name} (${fromFormat.description}) and ${toFormat.name} (${toFormat.description}) are different color representation systems. Each has its own advantages for specific use cases in design, web development, and color science.`,
+    },
+  },
+];
+
+const faqData = {
+  '@type': 'FAQPage',
+  mainEntity: [
+    ...baseFaqEntities,
+    ...activeContent.faq.map((item) => ({
+      '@type': 'Question',
+      name: item.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.answer,
+      },
+    })),
+  ],
+};
+
+const breadcrumbItems = [
+  {
+    '@type': 'ListItem',
+    position: 1,
+    name: 'FormatFuse',
+    item: 'https://formatfuse.com/',
+  },
+  {
+    '@type': 'ListItem',
+    position: 2,
+    name: 'Color Converter',
+    item: 'https://formatfuse.com/tools/color-converter/',
+  },
+  {
+    '@type': 'ListItem',
+    position: 3,
+    name: `${fromFormat.name} to ${toFormat.name}`,
+    item: `https://formatfuse.com/convert/color/${fromKey}-to-${toKey}/`,
+  },
+];
+
+if (modifier) {
+  breadcrumbItems.push({
+    '@type': 'ListItem',
+    position: 4,
+    name: `${modifier.label} workflow`,
+    item: `https://formatfuse.com${structuredPath}`,
+  });
+}
+
+const breadcrumbData = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: breadcrumbItems,
+};
+
+const pageFaqItems = [
+  {
+    question: `How do I convert ${fromFormat.name} to ${toFormat.name}?`,
+    answer: `Paste your ${fromFormat.name} value (for example ${example.input}) into the converter. It instantly shows the ${toFormat.name} result (${example.output}) alongside preview swatches you can copy.`,
+  },
+  {
+    question: `What is the difference between ${fromFormat.name} and ${toFormat.name}?`,
+    answer: `${fromFormat.name} (${fromFormat.description}) represents colors differently than ${toFormat.name} (${toFormat.description}). Converting between them keeps visuals consistent across design, code, and production workflows.`,
+  },
+  ...activeContent.faq,
+];
+
+const relatedLinkMap = new Map<string, { href: string; label: string }>();
+const addRelatedLink = (href: string, label: string) => {
+  if (!relatedLinkMap.has(href)) {
+    relatedLinkMap.set(href, { href, label });
+  }
+};
+
+addRelatedLink(`/convert/color/${toKey}-to-${fromKey}/`, `${toFormat.name} to ${fromFormat.name}`);
+
+const sameFromAlternatives = colorFormatMeta
+  .filter((format) => format.key !== fromKey && format.key !== toKey)
+  .slice(0, 2);
+
+sameFromAlternatives.forEach((format) => {
+  addRelatedLink(`/convert/color/${fromKey}-to-${format.key}/`, `${fromFormat.name} to ${format.name}`);
+});
+
+if (modifier) {
+  addRelatedLink(`/convert/color/${fromKey}-to-${toKey}/`, `${fromFormat.name} to ${toFormat.name} (all workflows)`);
+  const otherModifiers = colorIntentModifiers
+    .filter((item) => item.slug !== modifier.slug && isModifierApplicable(item, fromKey, toKey))
+    .slice(0, 2);
+  otherModifiers.forEach((item) => {
+    addRelatedLink(`/convert/color/${fromKey}-to-${toKey}/${item.slug}/`, `${item.label} workflow`);
+  });
+}
+
+const relatedLinks = Array.from(relatedLinkMap.values()).slice(0, 4);
+---
+
+<Layout
+  title={title}
+  description={description}
+  keywords={keywords}
+  sourceFormat={fromFormat.name}
+  targetFormat={toFormat.name}
+>
+  <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqData)} />
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbData)} />
+
+  <main>
+    <div class="container mx-auto px-4 py-10 lg:py-14">
+      <div class="text-center max-w-3xl mx-auto">
+        {isModifierPage && (
+          <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 8v4l3 3" />
+            </svg>
+            {modifier!.label} Workflow
+          </span>
+        )}
+        <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4">
+          {toFormat.name} Converter
+          {isModifierPage ? (
+            <span class="block text-xl sm:text-2xl font-semibold text-muted-foreground mt-2">
+              Optimized for {modifier!.label.toLowerCase()}
+            </span>
+          ) : (
+            <span class="block text-xl sm:text-2xl font-semibold text-muted-foreground mt-2">
+              Convert {fromFormat.name} to {toFormat.name} without leaving your browser
+            </span>
+          )}
+        </h1>
+        <p class="text-lg text-muted-foreground mb-2">
+          {heroTagline}
+        </p>
+        <p class="text-sm text-muted-foreground">
+          Paste any supported color format, switch outputs instantly, and copy results with a click. Powered by Color.js for trustworthy math.
+        </p>
+      </div>
+
+      <div class="mt-10 lg:mt-14">
+        <ColorConverter
+          client:load
+          initialColor={defaultInputColor}
+          hideHeader={true}
+          targetFormat={toKey as any}
+          autoCopy={true}
+        />
+      </div>
+
+      <section class="mt-16 lg:mt-20 max-w-5xl mx-auto">
+        <div class="border border-border rounded-3xl p-6 sm:p-10 bg-card/60 backdrop-blur">
+          <div class="grid gap-6">
+            <div class="text-left sm:text-center max-w-3xl mx-auto">
+              <p class="text-lg text-muted-foreground leading-relaxed">
+                {activeContent.summary}
+              </p>
+            </div>
+
+            <div class="bg-muted/30 rounded-2xl p-6 sm:p-8">
+              <h2 class="text-xl font-semibold flex items-center gap-2 mb-5">
+                <svg class="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 7h16M4 17h16M10 11h4" />
+                </svg>
+                Example: {fromFormat.name} → {toFormat.name}
+              </h2>
+              <div class="grid sm:grid-cols-2 gap-4">
+                <div class="bg-background rounded-xl p-4 border border-border">
+                  <p class="text-sm text-muted-foreground mb-2">Input ({fromFormat.name})</p>
+                  <code class="text-base font-mono font-semibold break-all">{defaultInputColor}</code>
+                </div>
+                <div class="bg-background rounded-xl p-4 border border-primary/30">
+                  <p class="text-sm text-muted-foreground mb-2">Output ({toFormat.name})</p>
+                  <code class="text-base font-mono font-semibold text-primary break-all">{targetExampleColor}</code>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-5">
+              <div class="bg-background/50 border border-border rounded-xl p-6">
+                <h3 class="text-lg font-semibold mb-3">Why teams use this converter</h3>
+                <ul class="space-y-3 text-sm text-muted-foreground">
+                  {activeContent.valueProps.map((item) => (
+                    <li class="flex items-start gap-3">
+                      <svg class="w-4 h-4 text-primary mt-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 12l5 5l10 -10" />
+                      </svg>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div class="bg-background/50 border border-border rounded-xl p-6">
+                <h3 class="text-lg font-semibold mb-3">Workflow in {activeContent.workflowSteps.length} steps</h3>
+                <ol class="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
+                  {activeContent.workflowSteps.map((step) => (
+                    <li>{step}</li>
+                  ))}
+                </ol>
+              </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-5">
+              <div class="border border-border rounded-xl p-6 bg-background/40">
+                <h3 class="text-lg font-semibold mb-3">About {fromFormat.name}</h3>
+                <p class="text-sm text-muted-foreground">
+                  {fromFormat.description}.
+                </p>
+                <p class="text-sm text-muted-foreground mt-2">
+                  Commonly used for {
+                    fromKey === 'hex' || fromKey === 'rgb'
+                      ? 'web and product interfaces'
+                      : fromKey === 'hsl' || fromKey === 'hsv'
+                      ? 'interactive controls and gradient design'
+                      : fromKey === 'lab' || fromKey === 'oklab'
+                      ? 'perceptual color work and accessibility tweaks'
+                      : fromKey === 'p3' || fromKey === 'rec2020'
+                      ? 'wide-gamut video and motion workflows'
+                      : 'specialized color science tasks'
+                  }.
+                </p>
+              </div>
+              <div class="border border-border rounded-xl p-6 bg-background/40">
+                <h3 class="text-lg font-semibold mb-3">About {toFormat.name}</h3>
+                <p class="text-sm text-muted-foreground">
+                  {toFormat.description}.
+                </p>
+                <p class="text-sm text-muted-foreground mt-2">
+                  Ideal when you need {
+                    toKey === 'hex' || toKey === 'rgb'
+                      ? 'browser-safe color tokens'
+                      : toKey === 'hsl' || toKey === 'hsv'
+                      ? 'intuitive hue and saturation controls'
+                      : toKey === 'lab' || toKey === 'oklab' || toKey === 'oklch'
+                      ? 'perceptual consistency across gradients and accessibility states'
+                      : toKey === 'p3' || toKey === 'rec2020' || toKey === 'prophoto'
+                      ? 'wide-gamut storytelling for motion and photography'
+                      : 'color-managed production handoffs'
+                  }.
+                </p>
+              </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-5">
+              <div class="border border-destructive/40 bg-destructive/10 rounded-xl p-6">
+                <h3 class="text-lg font-semibold mb-3 text-destructive">Pitfalls to watch</h3>
+                <ul class="space-y-2 text-sm text-destructive-foreground/90">
+                  {activeContent.pitfalls.map((item) => (
+                    <li class="flex items-start gap-3">
+                      <svg class="w-4 h-4 mt-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 9v4" />
+                        <path d="M12 17h.01" />
+                        <path d="M10 3h4l7 7l-7 11h-4L3 10z" />
+                      </svg>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div class="border border-primary/40 bg-primary/10 rounded-xl p-6">
+                <h3 class="text-lg font-semibold mb-3 text-primary">Use cases we see most</h3>
+                <ul class="space-y-2 text-sm text-primary-foreground/80">
+                  {activeContent.useCases.map((item) => (
+                    <li class="flex items-start gap-3">
+                      <svg class="w-4 h-4 mt-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 11l3 3L22 4" />
+                        <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2" />
+                      </svg>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            <div class="border border-border rounded-xl p-6 bg-background/50">
+              <h3 class="text-lg font-semibold mb-3">Related conversions</h3>
+              <div class="flex flex-wrap gap-3">
+                {relatedLinks.map(({ href, label }) => (
+                  <a class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border hover:border-primary/60 hover:text-primary text-sm transition-colors" href={href}>
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M5 12h14" />
+                      <path d="M12 5l7 7-7 7" />
+                    </svg>
+                    {label}
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            <div class="border border-border rounded-xl p-6 bg-background/60">
+              <h3 class="text-lg font-semibold mb-4">Questions teams ask</h3>
+              <div class="space-y-4">
+                {pageFaqItems.map((item) => (
+                  <div class="border border-border rounded-lg p-4 bg-background/40" role="region">
+                    <p class="font-medium text-base mb-2">{item.question}</p>
+                    <p class="text-sm text-muted-foreground leading-relaxed">{item.answer}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div class="border border-primary/40 bg-primary/10 rounded-2xl p-6 sm:p-8 text-center">
+              <h3 class="text-2xl font-semibold mb-3 text-primary">{activeContent.ctaTitle}</h3>
+              <p class="text-base text-primary-foreground/80 max-w-2xl mx-auto">{activeContent.ctaBody}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+</Layout>
