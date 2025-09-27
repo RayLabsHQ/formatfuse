@@ -22,6 +22,7 @@ type HeaderFeatureArray = NonNullable<ResolvedHeaderOverrides['features']>;
 type HeaderFeature = HeaderFeatureArray[number];
 type HeaderBadge = NonNullable<ResolvedHeaderOverrides['badge']>;
 type TargetFormat = ColorConverterProps['targetFormat'];
+type RelatedToolOverride = NonNullable<ColorConverterProps['relatedToolsOverrides']>[number];
 
 interface Props {
   fromFormat: ColorFormatMeta;
@@ -289,6 +290,35 @@ const headerOverrides: ResolvedHeaderOverrides = {
 
 const targetFormatForConverter: TargetFormat = toKey;
 
+const getRelatedToolDescription = (label: string): string => {
+  const lowerLabel = label.toLowerCase();
+  if (lowerLabel.includes('workflow')) {
+    return 'Jump into a workflow-tailored version of this converter.';
+  }
+
+  if (lowerLabel.includes(' to ')) {
+    return `Swap ${label.toLowerCase()} in one click.`;
+  }
+
+  return 'Explore another color conversion without losing context.';
+};
+
+const getRelatedToolIcon = (label: string): RelatedToolOverride['icon'] => {
+  return label.toLowerCase().includes('workflow') ? 'sparkles' : 'arrow-left-right';
+};
+
+const sanitizeToolId = (href: string): string => {
+  return href.replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '').toLowerCase();
+};
+
+const relatedConverterTools: RelatedToolOverride[] = relatedLinks.map((link, index) => ({
+  id: sanitizeToolId(`${link.href}-${index}`),
+  name: link.label,
+  description: getRelatedToolDescription(link.label),
+  icon: getRelatedToolIcon(link.label),
+  href: link.href,
+}));
+
 const getSourceUsage = (format: SupportedFormat): string => {
   if (['hex', 'rgb', 'hsl', 'hsv', 'hwb'].includes(format)) {
     return 'digital design and interface work';
@@ -343,13 +373,15 @@ const getTargetUsage = (format: SupportedFormat): string => {
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbData)} />
 
   <main>
-    <div class="container mx-auto px-4 py-10 lg:py-14">
+    <div class="container mx-auto px-4 pb-10 lg:pb-14">
       <ColorConverter
         client:load
         initialColor={defaultInputColor}
         targetFormat={targetFormatForConverter}
         autoCopy={true}
         headerOverrides={headerOverrides}
+        relatedToolsOverrides={relatedConverterTools}
+        relatedToolsTitle="Related color converters"
       />
 
       <section class="mt-16 max-w-4xl mx-auto px-4 sm:px-0">

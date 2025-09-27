@@ -100,7 +100,11 @@ const defaultHeaderFeatures: FeatureInput[] = [
   },
 ];
 
-const relatedTools: RelatedTool[] = [
+type RelatedToolInput = Omit<RelatedTool, 'icon'> & {
+  icon?: LucideIcon | IconKey | null;
+};
+
+const defaultRelatedTools: RelatedTool[] = [
   {
     id: "image-converter",
     name: "Image Converter",
@@ -464,6 +468,8 @@ interface ColorConverterProps {
   targetFormat?: ColorFormat;
   autoCopy?: boolean;
   headerOverrides?: HeaderOverrides;
+  relatedToolsOverrides?: RelatedToolInput[] | null;
+  relatedToolsTitle?: string;
 }
 
 export function ColorConverter({
@@ -472,6 +478,8 @@ export function ColorConverter({
   targetFormat,
   autoCopy = false,
   headerOverrides,
+  relatedToolsOverrides,
+  relatedToolsTitle,
 }: ColorConverterProps) {
   const [inputValue, setInputValue] = useState("");
   const [colorValues, setColorValues] = useState<ColorValues | null>(null);
@@ -486,6 +494,35 @@ export function ColorConverter({
 
   // Debounce the input value for auto-conversion
   const debouncedInputValue = useDebounce(inputValue, 300);
+
+  const fallbackRelatedToolIcon = getIcon('arrow-right', ArrowRight);
+
+  const resolveRelatedTools = (
+    tools: RelatedToolInput[],
+  ): RelatedTool[] =>
+    tools.map((tool) => ({
+      ...tool,
+      icon: getIcon(tool.icon, fallbackRelatedToolIcon),
+    }));
+
+  const relatedToolsData: RelatedTool[] = (() => {
+    if (relatedToolsOverrides === undefined) {
+      return defaultRelatedTools;
+    }
+
+    if (relatedToolsOverrides === null) {
+      return [];
+    }
+
+    return resolveRelatedTools(relatedToolsOverrides);
+  })();
+
+  const shouldRenderRelatedTools =
+    relatedToolsOverrides === null
+      ? false
+      : relatedToolsData.length > 0;
+
+  const resolvedRelatedToolsTitle = relatedToolsTitle ?? "Related Tools";
 
   const parseInput = (value: string, format: ColorFormat): Color | null => {
     try {
@@ -1274,7 +1311,12 @@ export function ColorConverter({
         {/* FAQ and Related Tools */}
         <div className="mt-12 space-y-12 px-4 sm:px-0">
           <FAQ items={faqs} />
-          <RelatedTools tools={relatedTools} />
+          {shouldRenderRelatedTools && (
+            <RelatedTools
+              tools={relatedToolsData}
+              title={resolvedRelatedToolsTitle}
+            />
+          )}
         </div>
       </section>
     </div>
