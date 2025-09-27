@@ -18,6 +18,7 @@ import {
   Copy,
   Hash,
   ListOrdered,
+  Image,
 } from "lucide-react";
 import {
   Select,
@@ -99,16 +100,16 @@ const features = [
 
 const relatedTools: RelatedTool[] = [
   {
-    id: "text-to-pdf",
-    name: "Text to PDF",
-    description: "Convert plain text to PDF",
+    id: "pdf-to-markdown",
+    name: "PDF to Markdown",
+    description: "Convert PDFs back into Markdown",
     icon: FileText,
   },
   {
-    id: "html-to-pdf",
-    name: "HTML to PDF",
-    description: "Convert HTML documents to PDF",
-    icon: Code,
+    id: "jpg-to-pdf",
+    name: "JPG to PDF",
+    description: "Create PDFs from image files",
+    icon: Image,
   },
   {
     id: "pdf-merge",

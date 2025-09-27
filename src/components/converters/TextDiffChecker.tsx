@@ -87,9 +87,9 @@ const relatedTools: RelatedTool[] = [
     icon: FileJson,
   },
   {
-    id: "code-minifier",
-    name: "Code Minifier",
-    description: "Minify JS, CSS, HTML",
+    id: "json-yaml-converter",
+    name: "JSON ↔ YAML Converter",
+    description: "Convert between JSON and YAML",
     icon: Code,
   },
   {

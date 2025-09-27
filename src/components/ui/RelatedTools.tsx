@@ -8,6 +8,7 @@ export interface RelatedTool {
   name: string;
   description: string;
   icon: LucideIcon | React.ComponentType<{ className?: string }>;
+  href?: string;
 }
 
 type Direction = "vertical" | "horizontal" | "responsive";
@@ -47,10 +48,11 @@ export function RelatedTools({
       <div className={getGridClasses()}>
         {tools.map((tool) => {
           const Icon = tool.icon;
+          const href = tool.href ?? getToolRoute(tool.id);
           return (
             <a
               key={tool.id}
-              href={getToolRoute(tool.id)}
+              href={href}
               className="flex items-center gap-3 p-3 rounded-lg bg-card/30 border border-border/30 hover:bg-card/50 hover:border-primary/30 transition-all duration-300 group"
             >
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">

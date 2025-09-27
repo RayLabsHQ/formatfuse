@@ -7,14 +7,13 @@ import { allTools } from "../data/tools";
  */
 export function getToolRoute(toolId: string): string {
   const tool = allTools.find((t) => t.id === toolId);
-  
+
   if (!tool) {
-    // Default fallback for tools not in registry
-    return `/tools/${toolId}`;
+    // Fallback to the tools directory when we don't recognize the id
+    return "/tools";
   }
-  
-  // Use the tool's route if defined, otherwise check href, 
-  // otherwise default to /tools/{id}
+
+  // Prefer explicit routes and hrefs, otherwise fall back to the canonical tools path
   return tool.route || tool.href || `/tools/${toolId}`;
 }
 
