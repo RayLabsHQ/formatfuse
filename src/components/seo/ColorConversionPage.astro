@@ -14,6 +14,14 @@ import type {
   ColorIntentModifier,
   SupportedFormat,
 } from '@/data/colorModifiers';
+import type { ComponentProps } from 'react';
+
+type ColorConverterProps = ComponentProps<typeof ColorConverter>;
+type ResolvedHeaderOverrides = NonNullable<ColorConverterProps['headerOverrides']>;
+type HeaderFeatureArray = NonNullable<ResolvedHeaderOverrides['features']>;
+type HeaderFeature = HeaderFeatureArray[number];
+type HeaderBadge = NonNullable<ResolvedHeaderOverrides['badge']>;
+type TargetFormat = ColorConverterProps['targetFormat'];
 
 interface Props {
   fromFormat: ColorFormatMeta;
@@ -24,7 +32,6 @@ interface Props {
 }
 
 const { fromFormat, toFormat, fromKey, toKey, modifier } = Astro.props as Props;
-const isModifierPage = Boolean(modifier);
 
 const defaultContent = buildDefaultContent(fromFormat, toFormat);
 const activeContent = modifier?.content ?? defaultContent;
@@ -32,7 +39,7 @@ const heroTagline = modifier?.heroTagline ?? `Translate ${fromFormat.name} color
 
 const title = modifier
   ? `${toFormat.name} Converter ${modifier.titleSuffix} - Convert from ${fromFormat.name}`
-  : `${toFormat.name} Converter - Convert from ${fromFormat.name}`;
+  : `Convert ${fromFormat.name} to ${toFormat.name} - Instant Color Converter`;
 
 const description = modifier
   ? `${modifier.metaDescription} Convert ${fromFormat.name} (${fromFormat.description}) colors to ${toFormat.name} (${toFormat.description}) with Color.js precision and instant previews.`
@@ -190,18 +197,6 @@ const breadcrumbData = {
   itemListElement: breadcrumbItems,
 };
 
-const pageFaqItems = [
-  {
-    question: `How do I convert ${fromFormat.name} to ${toFormat.name}?`,
-    answer: `Paste your ${fromFormat.name} value (for example ${example.input}) into the converter. It instantly shows the ${toFormat.name} result (${example.output}) alongside preview swatches you can copy.`,
-  },
-  {
-    question: `What is the difference between ${fromFormat.name} and ${toFormat.name}?`,
-    answer: `${fromFormat.name} (${fromFormat.description}) represents colors differently than ${toFormat.name} (${toFormat.description}). Converting between them keeps visuals consistent across design, code, and production workflows.`,
-  },
-  ...activeContent.faq,
-];
-
 const relatedLinkMap = new Map<string, { href: string; label: string }>();
 const addRelatedLink = (href: string, label: string) => {
   if (!relatedLinkMap.has(href)) {
@@ -230,6 +225,109 @@ if (modifier) {
 }
 
 const relatedLinks = Array.from(relatedLinkMap.values()).slice(0, 4);
+
+const formatKeyForBadge = (value: string): string => {
+  return value.replace(/-/g, ' ').toUpperCase();
+};
+
+const primaryConversionLabel = `${fromFormat.name} → ${toFormat.name}`;
+const headerFeatures: HeaderFeature[] = [
+  {
+    icon: 'swatch-book',
+    text: primaryConversionLabel,
+    description: `${fromFormat.description} → ${toFormat.description}`,
+  },
+];
+
+if (modifier) {
+  headerFeatures.push({
+    icon: 'sparkles',
+    text: `${modifier.label} workflow`,
+    description: modifier.heroTagline ?? heroTagline,
+  });
+}
+
+const relatedFeatureIcons = ['arrow-left-right', 'sparkles'] as const;
+let relatedIconIndex = 0;
+
+for (const link of relatedLinks) {
+  if (headerFeatures.length >= 3) {
+    break;
+  }
+
+  const iconKey = relatedFeatureIcons[relatedIconIndex] ?? 'sparkles';
+  headerFeatures.push({
+    icon: iconKey,
+    text: link.label,
+    description: link.label.toLowerCase().includes('workflow')
+      ? 'Explore companion workflows tailored to this conversion.'
+      : 'Try another popular color conversion without leaving the tool.',
+  });
+
+  relatedIconIndex += 1;
+}
+
+while (headerFeatures.length < 3) {
+  headerFeatures.push({
+    icon: 'sparkles',
+    text: '15+ formats supported',
+    description: 'Swap between HEX, RGB, LAB, OKLCH, P3, Rec. 2020, and more instantly.',
+  });
+}
+
+const headerBadge: HeaderBadge = {
+  text: `${formatKeyForBadge(fromKey)} → ${formatKeyForBadge(toKey)}`,
+  icon: 'swatch-book',
+};
+
+const headerOverrides: ResolvedHeaderOverrides = {
+  title: `Convert ${fromFormat.name} to ${toFormat.name}`,
+  subtitle: heroTagline,
+  badge: headerBadge,
+  features: headerFeatures,
+};
+
+const targetFormatForConverter: TargetFormat = toKey;
+
+const getSourceUsage = (format: SupportedFormat): string => {
+  if (['hex', 'rgb', 'hsl', 'hsv', 'hwb'].includes(format)) {
+    return 'digital design and interface work';
+  }
+
+  if (['lab', 'lch', 'oklab', 'oklch'].includes(format)) {
+    return 'perceptual color adjustments and accessibility reviews';
+  }
+
+  if (['p3', 'rec2020', 'prophoto', 'a98rgb'].includes(format)) {
+    return 'wide-gamut photography, video, and motion workflows';
+  }
+
+  if (['xyz', 'xyz-d50'].includes(format)) {
+    return 'color-managed production and proofing tasks';
+  }
+
+  return 'specialized color science tasks';
+};
+
+const getTargetUsage = (format: SupportedFormat): string => {
+  if (['hex', 'rgb', 'hsl', 'hsv', 'hwb'].includes(format)) {
+    return 'browser-ready color tokens and UI builds';
+  }
+
+  if (['lab', 'lch', 'oklab', 'oklch'].includes(format)) {
+    return 'perceptually even gradients and accessibility tuning';
+  }
+
+  if (['p3', 'rec2020', 'prophoto', 'a98rgb'].includes(format)) {
+    return 'wide-gamut storytelling across modern displays';
+  }
+
+  if (['xyz', 'xyz-d50'].includes(format)) {
+    return 'color-managed documentation and print handoffs';
+  }
+
+  return 'specialized applications';
+};
 ---
 
 <Layout
@@ -246,200 +344,82 @@ const relatedLinks = Array.from(relatedLinkMap.values()).slice(0, 4);
 
   <main>
     <div class="container mx-auto px-4 py-10 lg:py-14">
-      <div class="text-center max-w-3xl mx-auto">
-        {isModifierPage && (
-          <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
-            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 8v4l3 3" />
-            </svg>
-            {modifier!.label} Workflow
-          </span>
-        )}
-        <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4">
-          {toFormat.name} Converter
-          {isModifierPage ? (
-            <span class="block text-xl sm:text-2xl font-semibold text-muted-foreground mt-2">
-              Optimized for {modifier!.label.toLowerCase()}
-            </span>
-          ) : (
-            <span class="block text-xl sm:text-2xl font-semibold text-muted-foreground mt-2">
-              Convert {fromFormat.name} to {toFormat.name} without leaving your browser
-            </span>
-          )}
-        </h1>
-        <p class="text-lg text-muted-foreground mb-2">
-          {heroTagline}
-        </p>
-        <p class="text-sm text-muted-foreground">
-          Paste any supported color format, switch outputs instantly, and copy results with a click. Powered by Color.js for trustworthy math.
-        </p>
-      </div>
+      <ColorConverter
+        client:load
+        initialColor={defaultInputColor}
+        targetFormat={targetFormatForConverter}
+        autoCopy={true}
+        headerOverrides={headerOverrides}
+      />
 
-      <div class="mt-10 lg:mt-14">
-        <ColorConverter
-          client:load
-          initialColor={defaultInputColor}
-          hideHeader={true}
-          targetFormat={toKey as any}
-          autoCopy={true}
-        />
-      </div>
+      <section class="mt-16 max-w-4xl mx-auto px-4 sm:px-0">
+        <div class="border-t border-border pt-12">
+          <h2 class="text-2xl sm:text-3xl font-bold mb-8 text-center">
+            Converting <span class="text-primary">{fromFormat.name}</span> to <span class="text-primary">{toFormat.name}</span> Colors
+          </h2>
 
-      <section class="mt-16 lg:mt-20 max-w-5xl mx-auto">
-        <div class="border border-border rounded-3xl p-6 sm:p-10 bg-card/60 backdrop-blur">
-          <div class="grid gap-6">
-            <div class="text-left sm:text-center max-w-3xl mx-auto">
-              <p class="text-lg text-muted-foreground leading-relaxed">
-                {activeContent.summary}
-              </p>
+          <div class="space-y-8">
+            <div class="text-center text-muted-foreground max-w-3xl mx-auto">
+              <p class="text-lg leading-relaxed">{activeContent.summary}</p>
             </div>
 
-            <div class="bg-muted/30 rounded-2xl p-6 sm:p-8">
-              <h2 class="text-xl font-semibold flex items-center gap-2 mb-5">
-                <svg class="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M4 7h16M4 17h16M10 11h4" />
+            <div class="bg-muted/30 rounded-xl p-6 sm:p-8 mx-auto max-w-4xl">
+              <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                Example: {fromFormat.name} → {toFormat.name}
-              </h2>
+                Example Conversion
+              </h3>
               <div class="grid sm:grid-cols-2 gap-4">
-                <div class="bg-background rounded-xl p-4 border border-border">
+                <div class="bg-background rounded-lg p-4 border border-border">
                   <p class="text-sm text-muted-foreground mb-2">Input ({fromFormat.name})</p>
                   <code class="text-base font-mono font-semibold break-all">{defaultInputColor}</code>
                 </div>
-                <div class="bg-background rounded-xl p-4 border border-primary/30">
+                <div class="bg-background rounded-lg p-4 border border-primary/30">
                   <p class="text-sm text-muted-foreground mb-2">Output ({toFormat.name})</p>
                   <code class="text-base font-mono font-semibold text-primary break-all">{targetExampleColor}</code>
                 </div>
               </div>
             </div>
 
-            <div class="grid md:grid-cols-2 gap-5">
-              <div class="bg-background/50 border border-border rounded-xl p-6">
-                <h3 class="text-lg font-semibold mb-3">Why teams use this converter</h3>
-                <ul class="space-y-3 text-sm text-muted-foreground">
-                  {activeContent.valueProps.map((item) => (
-                    <li class="flex items-start gap-3">
-                      <svg class="w-4 h-4 text-primary mt-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M5 12l5 5l10 -10" />
-                      </svg>
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
+            <div class="grid md:grid-cols-2 gap-6 mt-10">
+              <div class="bg-card rounded-xl p-6 border border-border hover:border-primary/30 transition-colors">
+                <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <span class="text-primary font-bold text-sm">A</span>
+                  </div>
+                  About {fromFormat.name}
+                </h3>
+                <p class="text-muted-foreground">
+                  {fromFormat.description}. This color format is commonly used in {getSourceUsage(fromKey)}.
+                </p>
               </div>
-              <div class="bg-background/50 border border-border rounded-xl p-6">
-                <h3 class="text-lg font-semibold mb-3">Workflow in {activeContent.workflowSteps.length} steps</h3>
-                <ol class="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
-                  {activeContent.workflowSteps.map((step) => (
-                    <li>{step}</li>
-                  ))}
-                </ol>
-              </div>
-            </div>
 
-            <div class="grid md:grid-cols-2 gap-5">
-              <div class="border border-border rounded-xl p-6 bg-background/40">
-                <h3 class="text-lg font-semibold mb-3">About {fromFormat.name}</h3>
-                <p class="text-sm text-muted-foreground">
-                  {fromFormat.description}.
-                </p>
-                <p class="text-sm text-muted-foreground mt-2">
-                  Commonly used for {
-                    fromKey === 'hex' || fromKey === 'rgb'
-                      ? 'web and product interfaces'
-                      : fromKey === 'hsl' || fromKey === 'hsv'
-                      ? 'interactive controls and gradient design'
-                      : fromKey === 'lab' || fromKey === 'oklab'
-                      ? 'perceptual color work and accessibility tweaks'
-                      : fromKey === 'p3' || fromKey === 'rec2020'
-                      ? 'wide-gamut video and motion workflows'
-                      : 'specialized color science tasks'
-                  }.
-                </p>
-              </div>
-              <div class="border border-border rounded-xl p-6 bg-background/40">
-                <h3 class="text-lg font-semibold mb-3">About {toFormat.name}</h3>
-                <p class="text-sm text-muted-foreground">
-                  {toFormat.description}.
-                </p>
-                <p class="text-sm text-muted-foreground mt-2">
-                  Ideal when you need {
-                    toKey === 'hex' || toKey === 'rgb'
-                      ? 'browser-safe color tokens'
-                      : toKey === 'hsl' || toKey === 'hsv'
-                      ? 'intuitive hue and saturation controls'
-                      : toKey === 'lab' || toKey === 'oklab' || toKey === 'oklch'
-                      ? 'perceptual consistency across gradients and accessibility states'
-                      : toKey === 'p3' || toKey === 'rec2020' || toKey === 'prophoto'
-                      ? 'wide-gamut storytelling for motion and photography'
-                      : 'color-managed production handoffs'
-                  }.
+              <div class="bg-card rounded-xl p-6 border border-border hover:border-primary/30 transition-colors">
+                <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <span class="text-primary font-bold text-sm">B</span>
+                  </div>
+                  About {toFormat.name}
+                </h3>
+                <p class="text-muted-foreground">
+                  {toFormat.description}. Converting to this format is useful for {getTargetUsage(toKey)}.
                 </p>
               </div>
             </div>
 
-            <div class="grid md:grid-cols-2 gap-5">
-              <div class="border border-destructive/40 bg-destructive/10 rounded-xl p-6">
-                <h3 class="text-lg font-semibold mb-3 text-destructive">Pitfalls to watch</h3>
-                <ul class="space-y-2 text-sm text-destructive-foreground/90">
-                  {activeContent.pitfalls.map((item) => (
-                    <li class="flex items-start gap-3">
-                      <svg class="w-4 h-4 mt-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 9v4" />
-                        <path d="M12 17h.01" />
-                        <path d="M10 3h4l7 7l-7 11h-4L3 10z" />
-                      </svg>
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div class="border border-primary/40 bg-primary/10 rounded-xl p-6">
-                <h3 class="text-lg font-semibold mb-3 text-primary">Use cases we see most</h3>
-                <ul class="space-y-2 text-sm text-primary-foreground/80">
-                  {activeContent.useCases.map((item) => (
-                    <li class="flex items-start gap-3">
-                      <svg class="w-4 h-4 mt-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M9 11l3 3L22 4" />
-                        <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2" />
-                      </svg>
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            <div class="border border-border rounded-xl p-6 bg-background/50">
-              <h3 class="text-lg font-semibold mb-3">Related conversions</h3>
-              <div class="flex flex-wrap gap-3">
-                {relatedLinks.map(({ href, label }) => (
-                  <a class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border hover:border-primary/60 hover:text-primary text-sm transition-colors" href={href}>
-                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M5 12h14" />
-                      <path d="M12 5l7 7-7 7" />
+            <div class="mt-10">
+              <h3 class="text-lg font-semibold mb-4 text-center">Common Use Cases</h3>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-3xl mx-auto">
+                {activeContent.useCases.slice(0, 4).map((item) => (
+                  <div class="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/30 transition-colors">
+                    <svg class="w-5 h-5 text-primary mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    {label}
-                  </a>
-                ))}
-              </div>
-            </div>
-
-            <div class="border border-border rounded-xl p-6 bg-background/60">
-              <h3 class="text-lg font-semibold mb-4">Questions teams ask</h3>
-              <div class="space-y-4">
-                {pageFaqItems.map((item) => (
-                  <div class="border border-border rounded-lg p-4 bg-background/40" role="region">
-                    <p class="font-medium text-base mb-2">{item.question}</p>
-                    <p class="text-sm text-muted-foreground leading-relaxed">{item.answer}</p>
+                    <span class="text-sm text-muted-foreground">{item}</span>
                   </div>
                 ))}
               </div>
-            </div>
-
-            <div class="border border-primary/40 bg-primary/10 rounded-2xl p-6 sm:p-8 text-center">
-              <h3 class="text-2xl font-semibold mb-3 text-primary">{activeContent.ctaTitle}</h3>
-              <p class="text-base text-primary-foreground/80 max-w-2xl mx-auto">{activeContent.ctaBody}</p>
             </div>
           </div>
         </div>

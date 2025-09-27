@@ -9,7 +9,6 @@ import AstroPWA from "@vite-pwa/astro";
 import fs from "fs";
 import tailwindcss from "@tailwindcss/vite";
 import llmsTxt from "./src/integrations/llms-txt.ts";
-import { visualizer } from "rollup-plugin-visualizer";
 
 // https://astro.build/config
 export default defineConfig({
@@ -237,14 +236,6 @@ export default defineConfig({
             "ui-libs": ["@radix-ui/react-dialog", "@radix-ui/react-select"],
           },
         },
-        plugins: [
-          visualizer({
-            filename: "dist/rollup-stats.html",
-            template: "treemap",
-            gzipSize: true,
-            brotliSize: true,
-          }),
-        ],
       },
     },
     assetsInclude: ["**/*.wasm"],

@@ -7,6 +7,8 @@ import React, {
 
 import Color from 'colorjs.io';
 import {
+  ArrowLeftRight,
+  ArrowRight,
   Check,
   Copy,
   Loader2,
@@ -15,6 +17,7 @@ import {
   Sparkles,
   Zap,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
@@ -33,7 +36,7 @@ import {
   type RelatedTool,
   RelatedTools,
 } from '../ui/RelatedTools';
-import { ToolHeader } from '../ui/ToolHeader';
+import { ToolHeader, type Feature } from '../ui/ToolHeader';
 
 type ColorFormat =
   | "hex"
@@ -52,19 +55,46 @@ type ColorFormat =
   | "xyz"
   | "xyz-d50";
 
-const features = [
+const ICON_LIBRARY = {
+  "arrow-left-right": ArrowLeftRight,
+  "arrow-right": ArrowRight,
+  shield: Shield,
+  sparkles: Sparkles,
+  zap: Zap,
+  "swatch-book": Palette,
+} as const satisfies Record<string, LucideIcon>;
+
+type IconKey = keyof typeof ICON_LIBRARY;
+
+type FeatureInput = {
+  icon?: LucideIcon | IconKey;
+  text: string;
+  description: string;
+};
+
+type BadgeInput = {
+  text: string;
+  icon?: LucideIcon | IconKey;
+};
+
+const defaultBadge: BadgeInput = {
+  text: "HEX RGB HSL Color Code Converter",
+  icon: "zap",
+};
+
+const defaultHeaderFeatures: FeatureInput[] = [
   {
-    icon: Shield,
+    icon: "shield",
     text: "Privacy-first",
     description: "All conversions happen locally",
   },
   {
-    icon: Zap,
+    icon: "zap",
     text: "Instant conversion",
     description: "Real-time color updates",
   },
   {
-    icon: Sparkles,
+    icon: "sparkles",
     text: "15+ formats",
     description: "Professional color spaces",
   },
@@ -375,11 +405,65 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
+const getIcon = (
+  icon?: LucideIcon | IconKey,
+  fallback: LucideIcon = Sparkles,
+): LucideIcon => {
+  if (!icon) {
+    return fallback;
+  }
+
+  if (typeof icon === "string") {
+    return ICON_LIBRARY[icon] ?? fallback;
+  }
+
+  return icon;
+};
+
+const defaultBadgeIcon = getIcon(defaultBadge.icon, Zap);
+
+const resolveFeatures = (
+  input?: FeatureInput[] | null,
+): Feature[] | undefined => {
+  if (input === null) {
+    return undefined;
+  }
+
+  const source = input ?? defaultHeaderFeatures;
+  return source.map((item) => ({
+    icon: getIcon(item.icon),
+    text: item.text,
+    description: item.description,
+  }));
+};
+
+const resolveBadge = (
+  input?: BadgeInput | null,
+): { text: string; icon?: LucideIcon } | undefined => {
+  if (input === null) {
+    return undefined;
+  }
+
+  const badge = input ?? defaultBadge;
+  return {
+    text: badge.text,
+    icon: getIcon(badge.icon, defaultBadgeIcon),
+  };
+};
+
+interface HeaderOverrides {
+  title?: string | { highlight?: string; main: string } | React.ReactNode;
+  subtitle?: string;
+  badge?: BadgeInput | null;
+  features?: FeatureInput[] | null;
+}
+
 interface ColorConverterProps {
   initialColor?: string;
   hideHeader?: boolean;
   targetFormat?: ColorFormat;
   autoCopy?: boolean;
+  headerOverrides?: HeaderOverrides;
 }
 
 export function ColorConverter({
@@ -387,6 +471,7 @@ export function ColorConverter({
   hideHeader = false,
   targetFormat,
   autoCopy = false,
+  headerOverrides,
 }: ColorConverterProps) {
   const [inputValue, setInputValue] = useState("");
   const [colorValues, setColorValues] = useState<ColorValues | null>(null);
@@ -1006,10 +1091,18 @@ export function ColorConverter({
         {/* Header with Features */}
         {!hideHeader && (
           <ToolHeader
-            title={{ highlight: "Color", main: "Converter" }}
-            subtitle="Paste any color format and instantly get all conversions"
-            badge={{ text: "HEX RGB HSL Color Code Converter", icon: Zap }}
-            features={features}
+            title={
+              headerOverrides?.title ?? {
+                highlight: "Color",
+                main: "Converter",
+              }
+            }
+            subtitle={
+              headerOverrides?.subtitle ??
+              "Paste any color format and instantly get all conversions"
+            }
+            badge={resolveBadge(headerOverrides?.badge)}
+            features={resolveFeatures(headerOverrides?.features)}
           />
         )}
 
@@ -1032,7 +1125,7 @@ export function ColorConverter({
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
                       onMouseEnter={handleInputHover}
-                      placeholder={`Try: ${initialColor}, rgb(59, 130, 246), hsl(217, 91%, 60%)`}
+                      placeholder={`e.g., ${initialColor}`}
                       className={cn(
                         "h-14 text-lg font-mono pr-32 transition-all w-full placeholder:text-muted-foreground/60 dark:placeholder:text-muted-foreground/50",
                         !isValidColor &&
