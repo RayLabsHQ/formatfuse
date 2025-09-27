@@ -232,6 +232,62 @@ const formatKeyForBadge = (value: string): string => {
 };
 
 const primaryConversionLabel = `${fromFormat.name} → ${toFormat.name}`;
+
+const selectFeatureIcon = (text: string): HeaderFeature['icon'] => {
+  const lower = text.toLowerCase();
+  if (lower.match(/accurate|precision|validated|trust|consistent|document/)) {
+    return 'shield';
+  }
+
+  if (lower.match(/instant|live|real-time|preview|copy|speed|fast/)) {
+    return 'zap';
+  }
+
+  return 'sparkles';
+};
+
+const getValuePropTitle = (value: string): string => {
+  const lower = value.toLowerCase();
+  if (lower.includes('accurate') || lower.includes('precision')) {
+    return 'Production-grade accuracy';
+  }
+
+  if (lower.includes('preview') || lower.includes('instant')) {
+    return 'Live previews';
+  }
+
+  if (lower.includes('offline') || lower.includes('browser')) {
+    return 'Private by design';
+  }
+
+  if (lower.includes('copy')) {
+    return 'Copy-ready outputs';
+  }
+
+  return 'Why teams trust it';
+};
+
+const getUseCaseTitle = (value: string): string => {
+  const lower = value.toLowerCase();
+  if (lower.includes('designer')) {
+    return 'For design teams';
+  }
+
+  if (lower.includes('developer') || lower.includes('front-end')) {
+    return 'For developers';
+  }
+
+  if (lower.includes('print') || lower.includes('production')) {
+    return 'For production teams';
+  }
+
+  if (lower.includes('educator') || lower.includes('students')) {
+    return 'For educators';
+  }
+
+  return 'Popular use case';
+};
+
 const headerFeatures: HeaderFeature[] = [
   {
     icon: 'swatch-book',
@@ -240,32 +296,28 @@ const headerFeatures: HeaderFeature[] = [
   },
 ];
 
-if (modifier) {
+const highlightValueProp = activeContent.valueProps[0];
+if (highlightValueProp) {
   headerFeatures.push({
-    icon: 'sparkles',
-    text: `${modifier.label} workflow`,
-    description: modifier.heroTagline ?? heroTagline,
+    icon: selectFeatureIcon(highlightValueProp),
+    text: getValuePropTitle(highlightValueProp),
+    description: highlightValueProp,
   });
 }
 
-const relatedFeatureIcons = ['arrow-left-right', 'sparkles'] as const;
-let relatedIconIndex = 0;
-
-for (const link of relatedLinks) {
-  if (headerFeatures.length >= 3) {
-    break;
-  }
-
-  const iconKey = relatedFeatureIcons[relatedIconIndex] ?? 'sparkles';
+const highlightUseCase = activeContent.useCases[0];
+if (modifier) {
   headerFeatures.push({
-    icon: iconKey,
-    text: link.label,
-    description: link.label.toLowerCase().includes('workflow')
-      ? 'Explore companion workflows tailored to this conversion.'
-      : 'Try another popular color conversion without leaving the tool.',
+    icon: 'sparkles',
+    text: `Tailored for ${modifier.label}`,
+    description: modifier.heroTagline ?? heroTagline,
   });
-
-  relatedIconIndex += 1;
+} else if (highlightUseCase) {
+  headerFeatures.push({
+    icon: selectFeatureIcon(highlightUseCase),
+    text: getUseCaseTitle(highlightUseCase),
+    description: highlightUseCase,
+  });
 }
 
 while (headerFeatures.length < 3) {

@@ -113,7 +113,7 @@ export function ToolHeader({
               return (
                 <div
                   key={index}
-                  className="flex items-center gap-3 group flex-1 max-w-[200px]"
+                  className="flex items-center gap-3 group flex-1 max-w-3xs"
                 >
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
                     <Icon className="w-5 h-5 text-primary" />
