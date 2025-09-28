@@ -13,6 +13,7 @@ import {
 import { useArchiveExtractor } from "./useArchiveExtractor";
 
 const LARGE_FILE_WARNING_THRESHOLD_BYTES = 1.5 * 1024 * 1024 * 1024; // ~1.5 GB
+const MAX_BROWSER_FILE_SIZE_BYTES = 2_000_000_000; // ~1.86 GB browser array buffer limit
 
 export interface ExtractionMetadata {
   engine: ArchiveEngine;
@@ -194,6 +195,12 @@ export function useArchiveExtractionController(
   );
 
   const readFileBuffer = useCallback(async (file: File) => {
+    if (file.size >= MAX_BROWSER_FILE_SIZE_BYTES) {
+      throw new Error(
+        "This archive is too large for the browser to read (approx 2 GB limit). Try splitting the file or using a desktop archive tool.",
+      );
+    }
+
     try {
       return await file.arrayBuffer();
     } catch (err) {
@@ -226,7 +233,11 @@ export function useArchiveExtractionController(
 
       try {
         await preload();
-        if (file.size >= LARGE_FILE_WARNING_THRESHOLD_BYTES) {
+        if (file.size >= MAX_BROWSER_FILE_SIZE_BYTES) {
+          setProcessingWarning(
+            "This archive exceeds what browsers can load (approx 2 GB limit). Try splitting the file or using a desktop archive tool.",
+          );
+        } else if (file.size >= LARGE_FILE_WARNING_THRESHOLD_BYTES) {
           setProcessingWarning(
             "This archive is quite large. Browsers usually handle up to about 2–3 GB; if extraction fails, try closing other apps or splitting the archive.",
           );

@@ -40,6 +40,12 @@ interface GenericArchiveExtractorProps {
   relatedTools?: RelatedTool[];
 }
 
+const sizeLimitFeature: Feature = {
+  icon: AlertTriangle,
+  text: "Up to 2 GB",
+  description: "Browser limit for individual archives",
+};
+
 const defaultFeatures: Feature[] = [
   {
     icon: Shield,
@@ -52,6 +58,7 @@ const defaultFeatures: Feature[] = [
     text: "Preview files",
     description: "View before extracting",
   },
+  sizeLimitFeature,
 ];
 
 const defaultRelatedTools: RelatedTool[] = [
@@ -94,7 +101,7 @@ const defaultFaqs: FAQItem[] = [
   {
     question: "Is there a file size limit?",
     answer:
-      "You're only limited by the memory available in your browser. Most modern devices handle archives up to a few gigabytes without trouble, and nothing ever leaves your device.",
+      "Browsers can load archives up to about 2 GB before running out of memory. For larger files, split the archive or switch to a desktop archive tool.",
   },
 ];
 
@@ -199,7 +206,11 @@ export default function GenericArchiveExtractor({
     };
   }, [metadata]);
 
-  const featureList = features ?? defaultFeatures;
+  const featureList = useMemo(() => {
+    const base = features ?? defaultFeatures;
+    const hasLimitFeature = base.some((feature) => feature.text === sizeLimitFeature.text);
+    return hasLimitFeature ? base : [...base, sizeLimitFeature];
+  }, [features]);
   const relatedList = relatedTools ?? defaultRelatedTools;
   const faqItems = faqs ?? defaultFaqs;
 
