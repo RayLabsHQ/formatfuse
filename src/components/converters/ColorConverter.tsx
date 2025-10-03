@@ -822,9 +822,15 @@ export function ColorConverter({
   };
 
   const formatColorValue = (color: Color, format: ColorFormat): string => {
-    switch (format) {
-      case "hex":
-        return color.to("srgb").toString({ format: "hex" });
+    // Validate color has valid coordinates
+    if (!color.coords || color.coords.some((c) => !Number.isFinite(c))) {
+      return "N/A";
+    }
+
+    try {
+      switch (format) {
+        case "hex":
+          return color.to("srgb").toString({ format: "hex" });
 
       case "rgb":
         const rgb = color.to("srgb");
@@ -905,8 +911,12 @@ export function ColorConverter({
         const xyzD50 = color.to("xyz-d50");
         return `color(xyz-d50 ${xyzD50.coords[0].toFixed(4)} ${xyzD50.coords[1].toFixed(4)} ${xyzD50.coords[2].toFixed(4)})`;
 
-      default:
-        return "";
+        default:
+          return "";
+      }
+    } catch (error) {
+      console.error(`Error formatting color to ${format}:`, error);
+      return "N/A";
     }
   };
 
