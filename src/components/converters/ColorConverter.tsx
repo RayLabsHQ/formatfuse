@@ -815,6 +815,12 @@ export function ColorConverter({
           return null;
       }
 
+      // Fix: Color.js sometimes returns Number objects instead of primitives
+      // Normalize all coords to primitive numbers
+      if (color && color.coords) {
+        color.coords = color.coords.map(c => +c) as [number, number, number];
+      }
+
       return color;
     } catch (error) {
       return null;
