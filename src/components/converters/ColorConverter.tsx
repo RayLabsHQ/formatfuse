@@ -553,6 +553,7 @@ interface HeaderOverrides {
 interface ColorConverterProps {
   initialColor?: string;
   hideHeader?: boolean;
+  sourceFormat?: ColorFormat; // Format to show in placeholder example
   targetFormat?: ColorFormat;
   autoCopy?: boolean;
   headerOverrides?: HeaderOverrides;
@@ -560,9 +561,35 @@ interface ColorConverterProps {
   relatedToolsTitle?: string;
 }
 
+// Format-specific example values for placeholder
+const getFormatExample = (format?: ColorFormat): string => {
+  if (!format) return "#3B82F6";
+
+  const examples: Record<ColorFormat, string> = {
+    hex: "#3B82F6",
+    rgb: "rgb(59, 130, 246)",
+    hsl: "hsl(217, 91%, 60%)",
+    hsv: "hsv(217, 76%, 96%)",
+    hwb: "hwb(217 23% 4%)",
+    lab: "lab(56 8 -59)",
+    lch: "lch(56 60 277)",
+    oklab: "oklab(0.6 -0.05 -0.15)",
+    oklch: "oklch(0.6 0.16 250)",
+    p3: "color(display-p3 0.3 0.5 0.9)",
+    rec2020: "color(rec2020 0.35 0.48 0.88)",
+    prophoto: "color(prophoto-rgb 0.38 0.46 0.82)",
+    a98rgb: "color(a98-rgb 0.36 0.52 0.91)",
+    xyz: "color(xyz 0.25 0.23 0.68)",
+    "xyz-d50": "color(xyz-d50 0.24 0.23 0.51)",
+  };
+
+  return examples[format] || examples.hex;
+};
+
 export function ColorConverter({
   initialColor = "#3B82F6",
   hideHeader = false,
+  sourceFormat,
   targetFormat,
   autoCopy = false,
   headerOverrides,
@@ -583,6 +610,9 @@ export function ColorConverter({
 
   // Longer debounce (800ms) - only show errors after user pauses typing
   const debouncedInputValue = useDebounce(inputValue, 800);
+
+  // Get example for placeholder based on source format or initial color
+  const placeholderExample = sourceFormat ? getFormatExample(sourceFormat) : initialColor;
 
   const fallbackRelatedToolIcon = getIcon('arrow-right', ArrowRight);
 
@@ -1271,7 +1301,9 @@ export function ColorConverter({
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
                       onMouseEnter={handleInputHover}
-                      placeholder={`e.g., ${initialColor}`}
+                      placeholder={sourceFormat
+                        ? `Try ${getDisplayNameForFormat(sourceFormat)}: ${placeholderExample}`
+                        : `e.g., ${placeholderExample}`}
                       className={cn(
                         "h-14 text-lg font-mono pr-32 transition-all w-full placeholder:text-muted-foreground/60 dark:placeholder:text-muted-foreground/50",
                         !isValidColor &&

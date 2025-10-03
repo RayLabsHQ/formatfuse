@@ -429,6 +429,7 @@ const getTargetUsage = (format: SupportedFormat): string => {
       <ColorConverter
         client:load
         initialColor={defaultInputColor}
+        sourceFormat={fromKey}
         targetFormat={targetFormatForConverter}
         autoCopy={true}
         headerOverrides={headerOverrides}
