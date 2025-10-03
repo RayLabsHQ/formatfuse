@@ -151,6 +151,7 @@ export function useArchiveExtractionController(
             tool: toolId,
             format,
             fileName: file.name,
+            fileSize: file.size,
             stage: "extract",
             code: result.code,
             recoverable: !!result.recoverable,
@@ -264,6 +265,7 @@ export function useArchiveExtractionController(
           tool: toolId,
           format,
           fileName: file.name,
+          fileSize: file.size,
           stage: "read",
         });
       } finally {

@@ -135,6 +135,7 @@ export default function GenericArchiveExtractor({
   const {
     state: {
       archiveName,
+      sourceFileSize,
       files,
       isLoading,
       isReady,
@@ -250,9 +251,14 @@ export default function GenericArchiveExtractor({
             {error && (
               <div className="flex items-start gap-3 rounded-md border border-destructive/30 bg-destructive/10 p-4 text-sm">
                 <AlertCircle className="mt-0.5 h-5 w-5 text-destructive" />
-                <div>
+                <div className="flex-1">
                   <p className="font-medium text-destructive">Extraction failed</p>
                   <p className="text-muted-foreground">{error}</p>
+                  {sourceFileSize !== null && (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      File size: {formatBytes(sourceFileSize)}
+                    </p>
+                  )}
                 </div>
               </div>
             )}
