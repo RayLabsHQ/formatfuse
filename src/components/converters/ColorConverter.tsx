@@ -55,6 +55,13 @@ type ColorFormat =
   | "xyz"
   | "xyz-d50";
 
+type ValidationSeverity = "error" | "info";
+
+interface ValidationFeedback {
+  message: string;
+  severity: ValidationSeverity;
+}
+
 const ICON_LIBRARY = {
   "arrow-left-right": ArrowLeftRight,
   "arrow-right": ArrowRight,
@@ -227,7 +234,7 @@ export const sanitizeColorInput = (value: string): string => {
     .trim();
 
   // Strip surrounding quotes/backticks if present
-  cleaned = cleaned.replace(/^[`'\"]+/, "").replace(/[`'\"]+$/, "");
+  cleaned = cleaned.replace(/^[`'"]+/, "").replace(/[`'"]+$/, "");
 
   // Remove common CSS property prefixes like "color:" or "background-color:"
   const colonIndex = cleaned.indexOf(":");
@@ -278,23 +285,34 @@ export const sanitizeColorInput = (value: string): string => {
 /**
  * Get helpful error message based on detected format and expected source format
  */
-const getValidationError = (
+const getValidationFeedback = (
   value: string,
   detectedFormat: ColorFormat | null,
-  expectedFormat?: ColorFormat
-): string => {
-  // If we have an expected format and detected something different, guide them
+  expectedFormat?: ColorFormat,
+): ValidationFeedback => {
   if (expectedFormat && detectedFormat && detectedFormat !== expectedFormat) {
     const expectedExample = getFormatExample(expectedFormat);
-    return `Expected ${FORMAT_DISPLAY_NAMES[expectedFormat] || expectedFormat.toUpperCase()} format. Try: ${expectedExample}. (You can also use any other format)`;
+    return {
+      message:
+        `Expected ${FORMAT_DISPLAY_NAMES[expectedFormat] || expectedFormat.toUpperCase()} format. Try: ${expectedExample}. (You can also use any other format)`,
+      severity: 'error',
+    };
   }
 
   if (!detectedFormat) {
     if (expectedFormat) {
       const expectedExample = getFormatExample(expectedFormat);
-      return `Unrecognized color. Try ${FORMAT_DISPLAY_NAMES[expectedFormat] || expectedFormat.toUpperCase()}: ${expectedExample}, or any other color format`;
+      return {
+        message:
+          `Unrecognized color. Try ${FORMAT_DISPLAY_NAMES[expectedFormat] || expectedFormat.toUpperCase()}: ${expectedExample}, or any other color format`,
+        severity: 'error',
+      };
     }
-    return "Unrecognized color format. Try: #FF5733, rgb(255, 100, 50), hsl(200, 50%, 75%)";
+    return {
+      message:
+        'Unrecognized color format. Try: #FF5733, rgb(255, 100, 50), hsl(200, 50%, 75%)',
+      severity: 'error',
+    };
   }
 
   const trimmed = value.trim();
@@ -304,10 +322,18 @@ const getValidationError = (
       const hexPart = trimmed.startsWith('#') ? trimmed.slice(1) : trimmed;
       if (!/^[0-9A-Fa-f]+$/.test(hexPart)) {
         const invalid = hexPart.match(/[^0-9A-Fa-f]/g);
-        return `Invalid hex characters: ${invalid?.join(', ')}. Use only 0-9 and A-F. Example: #FF5733`;
+        return {
+          message:
+            `Invalid hex characters: ${invalid?.join(', ')}. Use only 0-9 and A-F. Example: #FF5733`,
+          severity: 'error',
+        };
       }
       if (![3, 4, 6, 8].includes(hexPart.length)) {
-        return `Hex color has ${hexPart.length} digits. Use 3, 4, 6, or 8 digits. Examples: #F73 or #FF5733`;
+        return {
+          message:
+            `Hex color has ${hexPart.length} digits. Use 3, 4, 6, or 8 digits. Examples: #F73 or #FF5733`,
+          severity: 'error',
+        };
       }
       break;
     }
@@ -317,20 +343,33 @@ const getValidationError = (
       if (match) {
         const values = (match[1] || match[2]).split(/[,\s]+/).filter(Boolean);
         if (values.length < 3) {
-          return `RGB needs 3 values (red, green, blue), found ${values.length}. Example: rgb(255, 100, 50)`;
+          return {
+            message:
+              `RGB needs 3 values (red, green, blue), found ${values.length}. Example: rgb(255, 100, 50)`,
+            severity: 'error',
+          };
         }
 
         for (let i = 0; i < Math.min(3, values.length); i++) {
           const num = parseFloat(values[i]);
           const channel = ['red', 'green', 'blue'][i];
           if (isNaN(num)) {
-            return `${channel} value "${values[i]}" is not a number. Example: rgb(255, 100, 50)`;
+            return {
+              message: `${channel} value "${values[i]}" is not a number. Example: rgb(255, 100, 50)`,
+              severity: 'error',
+            };
           }
           if (num > 255) {
-            return `${channel} value ${num} exceeds 255. Did you mean ${Math.round(num / 10)}? Example: rgb(255, 100, 50)`;
+            return {
+              message: `${channel} value ${num} exceeds 255. Did you mean ${Math.round(num / 10)}? Example: rgb(255, 100, 50)`,
+              severity: 'error',
+            };
           }
           if (num < 0) {
-            return `${channel} value cannot be negative. Example: rgb(255, 100, 50)`;
+            return {
+              message: `${channel} value cannot be negative. Example: rgb(255, 100, 50)`,
+              severity: 'error',
+            };
           }
         }
       }
@@ -342,28 +381,51 @@ const getValidationError = (
       if (match) {
         const values = (match[1] || match[2]).split(/[,\s]+/).filter(Boolean);
         if (values.length < 3) {
-          return `HSL needs 3 values (hue, saturation%, lightness%), found ${values.length}. Example: hsl(200, 50%, 75%)`;
+          return {
+            message:
+              `HSL needs 3 values (hue, saturation%, lightness%), found ${values.length}. Example: hsl(200, 50%, 75%)`,
+            severity: 'error',
+          };
         }
 
         const hue = parseFloat(values[0]);
         if (isNaN(hue)) {
-          return `Hue value "${values[0]}" is not a number. Example: hsl(200, 50%, 75%)`;
+          return {
+            message: `Hue value "${values[0]}" is not a number. Example: hsl(200, 50%, 75%)`,
+            severity: 'error',
+          };
         }
         if (hue > 360) {
-          return `Hue ${hue}° exceeds 360°. Colors wrap around (${(hue % 360).toFixed(0)}° is equivalent). Example: hsl(200, 50%, 75%)`;
+          return {
+            message:
+              `Hue ${hue}° exceeds 360°. Colors wrap around (${(hue % 360).toFixed(0)}° is equivalent). Example: hsl(200, 50%, 75%)`,
+            severity: 'error',
+          };
         }
 
         for (let i = 1; i < Math.min(3, values.length); i++) {
           const num = parseFloat(values[i].replace('%', ''));
           const channel = i === 1 ? 'saturation' : 'lightness';
           if (isNaN(num)) {
-            return `${channel} value "${values[i]}" is not a number. Example: hsl(200, 50%, 75%)`;
+            return {
+              message:
+                `${channel} value "${values[i]}" is not a number. Example: hsl(200, 50%, 75%)`,
+              severity: 'error',
+            };
           }
           if (!values[i].includes('%')) {
-            return `${channel} should include % symbol (e.g., ${num}%). Example: hsl(200, 50%, 75%)`;
+            return {
+              message:
+                `${channel} should include % symbol (e.g., ${num}%). Example: hsl(200, 50%, 75%)`,
+              severity: 'error',
+            };
           }
           if (num > 100) {
-            return `${channel} ${num}% exceeds 100%. Example: hsl(200, 50%, 75%)`;
+            return {
+              message:
+                `${channel} ${num}% exceeds 100%. Example: hsl(200, 50%, 75%)`,
+              severity: 'error',
+            };
           }
         }
       }
@@ -371,43 +433,80 @@ const getValidationError = (
     }
 
     case 'a98rgb': {
-      return `Adobe RGB format detected but couldn't parse. Example: color(a98-rgb 0.36 0.52 0.91)`;
+      return {
+        message:
+          "Adobe RGB format detected but couldn't parse. Example: color(a98-rgb 0.36 0.52 0.91)",
+        severity: 'info',
+      };
     }
 
     case 'p3': {
-      return `Display P3 format detected but couldn't parse. Example: color(display-p3 0.3 0.5 0.9)`;
+      return {
+        message:
+          "Display P3 format detected but couldn't parse. Example: color(display-p3 0.3 0.5 0.9)",
+        severity: 'info',
+      };
     }
 
     case 'rec2020': {
-      return `Rec. 2020 format detected but couldn't parse. Example: color(rec2020 0.35 0.48 0.88)`;
+      return {
+        message:
+          "Rec. 2020 format detected but couldn't parse. Example: color(rec2020 0.35 0.48 0.88)",
+        severity: 'info',
+      };
     }
 
     case 'prophoto': {
-      return `ProPhoto RGB format detected but couldn't parse. Example: color(prophoto-rgb 0.38 0.46 0.82)`;
+      return {
+        message:
+          "ProPhoto RGB format detected but couldn't parse. Example: color(prophoto-rgb 0.38 0.46 0.82)",
+        severity: 'info',
+      };
     }
 
     case 'oklch': {
-      return `OKLCH format detected but couldn't parse. Example: oklch(0.6 0.16 250)`;
+      return {
+        message:
+          "OKLCH format detected but couldn't parse. Example: oklch(0.6 0.16 250)",
+        severity: 'info',
+      };
     }
 
     case 'oklab': {
-      return `OKLab format detected but couldn't parse. Example: oklab(0.6 -0.05 -0.15)`;
+      return {
+        message:
+          "OKLab format detected but couldn't parse. Example: oklab(0.6 -0.05 -0.15)",
+        severity: 'info',
+      };
     }
 
     case 'lab': {
-      return `LAB format detected but couldn't parse. Example: lab(56 8 -59)`;
+      return {
+        message: "LAB format detected but couldn't parse. Example: lab(56 8 -59)",
+        severity: 'info',
+      };
     }
 
     case 'lch': {
-      return `LCH format detected but couldn't parse. Example: lch(56 60 277)`;
+      return {
+        message: "LCH format detected but couldn't parse. Example: lch(56 60 277)",
+        severity: 'info',
+      };
     }
 
     default:
       const example = getFormatExample(detectedFormat);
-      return `Could not parse ${FORMAT_DISPLAY_NAMES[detectedFormat] || detectedFormat.toUpperCase()} color. Example: ${example}`;
+      return {
+        message:
+          `Could not parse ${FORMAT_DISPLAY_NAMES[detectedFormat] || detectedFormat.toUpperCase()} color. Example: ${example}`,
+        severity: 'error',
+      };
   }
 
-  return "Invalid color value";
+  return {
+    message: 'Invalid color value',
+    severity: 'error',
+  };
 };
 
 export const detectColorFormat = (value: string): ColorFormat | null => {
@@ -653,6 +752,7 @@ export function ColorConverter({
   const [hasAutoPasted, setHasAutoPasted] = useState(false);
   const [sanitizedDisplayValue, setSanitizedDisplayValue] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string>("");
+  const [validationSeverity, setValidationSeverity] = useState<ValidationSeverity | null>(null);
   const lastCopiedValue = useRef<string>("");
 
   // Longer debounce (800ms) - only show errors after user pauses typing
@@ -1109,6 +1209,9 @@ export function ColorConverter({
       setIsValidColor(false);
       setColorValues(null);
       setSanitizedDisplayValue(null);
+      setDetectedFormat(null);
+      setValidationError("");
+      setValidationSeverity(null);
       return;
     }
 
@@ -1117,11 +1220,12 @@ export function ColorConverter({
     // Auto-detect format
     const format = detectColorFormat(sanitizedValue);
     if (!format) {
-      const errorMessage = getValidationError(sanitizedValue, null, sourceFormat);
+      const feedback = getValidationFeedback(sanitizedValue, null, sourceFormat);
       setIsValidColor(false);
       setColorValues(null);
       setDetectedFormat(null);
-      setValidationError(errorMessage);
+      setValidationError(feedback.message);
+      setValidationSeverity(feedback.severity);
       setIsConverting(false);
       return;
     }
@@ -1132,6 +1236,7 @@ export function ColorConverter({
     if (color) {
       setIsValidColor(true);
       setValidationError(""); // Clear any previous errors
+      setValidationSeverity(null);
       const values: ColorValues = {
         hex: formatColorValue(color, "hex"),
         rgb: formatColorValue(color, "rgb"),
@@ -1154,10 +1259,11 @@ export function ColorConverter({
       setPreviewColor(values.hex);
     } else {
       // Color parsing failed - provide helpful error with expected format context
-      const errorMessage = getValidationError(sanitizedValue, format, sourceFormat);
+      const feedback = getValidationFeedback(sanitizedValue, format, sourceFormat);
       setIsValidColor(false);
       setColorValues(null);
-      setValidationError(errorMessage);
+      setValidationError(feedback.message);
+      setValidationSeverity(feedback.severity);
       if (!sanitizedChanged) {
         setSanitizedDisplayValue(null);
       }
@@ -1355,7 +1461,7 @@ export function ColorConverter({
                         : `e.g., ${placeholderExample}`}
                       className={cn(
                         "h-14 text-lg font-mono pr-32 transition-all w-full placeholder:text-muted-foreground/60 dark:placeholder:text-muted-foreground/50",
-                        !isValidColor &&
+                        validationSeverity === 'error' &&
                           inputValue &&
                           !isConverting &&
                           "border-destructive/50 focus:border-destructive",
@@ -1365,7 +1471,9 @@ export function ColorConverter({
                       {isConverting && (
                         <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
                       )}
-                      {detectedFormat && isValidColor && !isConverting && (
+                      {detectedFormat &&
+                        !isConverting &&
+                        (isValidColor || validationSeverity === 'info') && (
                         <Badge variant="secondary" className="text-xs">
                           {getFormatLabel(detectedFormat)}
                         </Badge>
@@ -1385,8 +1493,15 @@ export function ColorConverter({
                       />
                     </div>
                   </div>
-                  {!isValidColor && inputValue && !isConverting && (
-                    <p className="text-sm text-destructive mt-2">
+                  {!isValidColor && inputValue && !isConverting && validationError && (
+                    <p
+                      className={cn(
+                        "text-sm mt-2",
+                        validationSeverity === 'error'
+                          ? "text-destructive"
+                          : "text-muted-foreground",
+                      )}
+                    >
                       {validationError || "Invalid color format. Try HEX, RGB, HSL, or other supported formats."}
                     </p>
                   )}
