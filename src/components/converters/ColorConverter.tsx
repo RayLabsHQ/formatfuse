@@ -276,24 +276,38 @@ export const sanitizeColorInput = (value: string): string => {
 };
 
 /**
- * Get helpful error message based on detected format and input
+ * Get helpful error message based on detected format and expected source format
  */
-const getValidationError = (value: string, format: ColorFormat | null): string => {
-  if (!format) {
+const getValidationError = (
+  value: string,
+  detectedFormat: ColorFormat | null,
+  expectedFormat?: ColorFormat
+): string => {
+  // If we have an expected format and detected something different, guide them
+  if (expectedFormat && detectedFormat && detectedFormat !== expectedFormat) {
+    const expectedExample = getFormatExample(expectedFormat);
+    return `Expected ${FORMAT_DISPLAY_NAMES[expectedFormat] || expectedFormat.toUpperCase()} format. Try: ${expectedExample}. (You can also use any other format)`;
+  }
+
+  if (!detectedFormat) {
+    if (expectedFormat) {
+      const expectedExample = getFormatExample(expectedFormat);
+      return `Unrecognized color. Try ${FORMAT_DISPLAY_NAMES[expectedFormat] || expectedFormat.toUpperCase()}: ${expectedExample}, or any other color format`;
+    }
     return "Unrecognized color format. Try: #FF5733, rgb(255, 100, 50), hsl(200, 50%, 75%)";
   }
 
   const trimmed = value.trim();
 
-  switch (format) {
+  switch (detectedFormat) {
     case 'hex': {
       const hexPart = trimmed.startsWith('#') ? trimmed.slice(1) : trimmed;
       if (!/^[0-9A-Fa-f]+$/.test(hexPart)) {
         const invalid = hexPart.match(/[^0-9A-Fa-f]/g);
-        return `Invalid hex characters: ${invalid?.join(', ')}. Use only 0-9 and A-F`;
+        return `Invalid hex characters: ${invalid?.join(', ')}. Use only 0-9 and A-F. Example: #FF5733`;
       }
       if (![3, 4, 6, 8].includes(hexPart.length)) {
-        return `Hex color has ${hexPart.length} digits. Use 3, 4, 6, or 8 digits (e.g., #F73 or #FF5733)`;
+        return `Hex color has ${hexPart.length} digits. Use 3, 4, 6, or 8 digits. Examples: #F73 or #FF5733`;
       }
       break;
     }
@@ -303,20 +317,20 @@ const getValidationError = (value: string, format: ColorFormat | null): string =
       if (match) {
         const values = (match[1] || match[2]).split(/[,\s]+/).filter(Boolean);
         if (values.length < 3) {
-          return `RGB needs 3 values (red, green, blue), found ${values.length}`;
+          return `RGB needs 3 values (red, green, blue), found ${values.length}. Example: rgb(255, 100, 50)`;
         }
 
         for (let i = 0; i < Math.min(3, values.length); i++) {
           const num = parseFloat(values[i]);
           const channel = ['red', 'green', 'blue'][i];
           if (isNaN(num)) {
-            return `${channel} value "${values[i]}" is not a number`;
+            return `${channel} value "${values[i]}" is not a number. Example: rgb(255, 100, 50)`;
           }
           if (num > 255) {
-            return `${channel} value ${num} exceeds 255. Did you mean ${Math.round(num / 10)}?`;
+            return `${channel} value ${num} exceeds 255. Did you mean ${Math.round(num / 10)}? Example: rgb(255, 100, 50)`;
           }
           if (num < 0) {
-            return `${channel} value cannot be negative`;
+            return `${channel} value cannot be negative. Example: rgb(255, 100, 50)`;
           }
         }
       }
@@ -328,36 +342,69 @@ const getValidationError = (value: string, format: ColorFormat | null): string =
       if (match) {
         const values = (match[1] || match[2]).split(/[,\s]+/).filter(Boolean);
         if (values.length < 3) {
-          return `HSL needs 3 values (hue, saturation%, lightness%), found ${values.length}`;
+          return `HSL needs 3 values (hue, saturation%, lightness%), found ${values.length}. Example: hsl(200, 50%, 75%)`;
         }
 
         const hue = parseFloat(values[0]);
         if (isNaN(hue)) {
-          return `Hue value "${values[0]}" is not a number`;
+          return `Hue value "${values[0]}" is not a number. Example: hsl(200, 50%, 75%)`;
         }
         if (hue > 360) {
-          return `Hue ${hue}° exceeds 360°. Colors wrap around (${(hue % 360).toFixed(0)}° is equivalent)`;
+          return `Hue ${hue}° exceeds 360°. Colors wrap around (${(hue % 360).toFixed(0)}° is equivalent). Example: hsl(200, 50%, 75%)`;
         }
 
         for (let i = 1; i < Math.min(3, values.length); i++) {
           const num = parseFloat(values[i].replace('%', ''));
           const channel = i === 1 ? 'saturation' : 'lightness';
           if (isNaN(num)) {
-            return `${channel} value "${values[i]}" is not a number`;
+            return `${channel} value "${values[i]}" is not a number. Example: hsl(200, 50%, 75%)`;
           }
           if (!values[i].includes('%')) {
-            return `${channel} should include % symbol (e.g., ${num}%)`;
+            return `${channel} should include % symbol (e.g., ${num}%). Example: hsl(200, 50%, 75%)`;
           }
           if (num > 100) {
-            return `${channel} ${num}% exceeds 100%`;
+            return `${channel} ${num}% exceeds 100%. Example: hsl(200, 50%, 75%)`;
           }
         }
       }
       break;
     }
 
+    case 'a98rgb': {
+      return `Adobe RGB format detected but couldn't parse. Example: color(a98-rgb 0.36 0.52 0.91)`;
+    }
+
+    case 'p3': {
+      return `Display P3 format detected but couldn't parse. Example: color(display-p3 0.3 0.5 0.9)`;
+    }
+
+    case 'rec2020': {
+      return `Rec. 2020 format detected but couldn't parse. Example: color(rec2020 0.35 0.48 0.88)`;
+    }
+
+    case 'prophoto': {
+      return `ProPhoto RGB format detected but couldn't parse. Example: color(prophoto-rgb 0.38 0.46 0.82)`;
+    }
+
+    case 'oklch': {
+      return `OKLCH format detected but couldn't parse. Example: oklch(0.6 0.16 250)`;
+    }
+
+    case 'oklab': {
+      return `OKLab format detected but couldn't parse. Example: oklab(0.6 -0.05 -0.15)`;
+    }
+
+    case 'lab': {
+      return `LAB format detected but couldn't parse. Example: lab(56 8 -59)`;
+    }
+
+    case 'lch': {
+      return `LCH format detected but couldn't parse. Example: lch(56 60 277)`;
+    }
+
     default:
-      return `Could not parse ${format.toUpperCase()} color. Check format syntax`;
+      const example = getFormatExample(detectedFormat);
+      return `Could not parse ${FORMAT_DISPLAY_NAMES[detectedFormat] || detectedFormat.toUpperCase()} color. Example: ${example}`;
   }
 
   return "Invalid color value";
@@ -1070,9 +1117,11 @@ export function ColorConverter({
     // Auto-detect format
     const format = detectColorFormat(sanitizedValue);
     if (!format) {
+      const errorMessage = getValidationError(sanitizedValue, null, sourceFormat);
       setIsValidColor(false);
       setColorValues(null);
       setDetectedFormat(null);
+      setValidationError(errorMessage);
       setIsConverting(false);
       return;
     }
@@ -1104,8 +1153,8 @@ export function ColorConverter({
       setColorValues(values);
       setPreviewColor(values.hex);
     } else {
-      // Color parsing failed - provide helpful error
-      const errorMessage = getValidationError(sanitizedValue, format);
+      // Color parsing failed - provide helpful error with expected format context
+      const errorMessage = getValidationError(sanitizedValue, format, sourceFormat);
       setIsValidColor(false);
       setColorValues(null);
       setValidationError(errorMessage);
