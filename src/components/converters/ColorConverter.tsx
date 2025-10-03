@@ -768,7 +768,7 @@ export function ColorConverter({
   ): RelatedTool[] =>
     tools.map((tool) => ({
       ...tool,
-      icon: getIcon(tool.icon, fallbackRelatedToolIcon),
+      icon: getIcon(tool.icon ?? undefined, fallbackRelatedToolIcon),
     }));
 
   const relatedToolsData: RelatedTool[] = (() => {
