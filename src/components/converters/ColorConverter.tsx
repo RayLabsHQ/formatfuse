@@ -275,6 +275,94 @@ export const sanitizeColorInput = (value: string): string => {
   return cleaned.trim();
 };
 
+/**
+ * Get helpful error message based on detected format and input
+ */
+const getValidationError = (value: string, format: ColorFormat | null): string => {
+  if (!format) {
+    return "Unrecognized color format. Try: #FF5733, rgb(255, 100, 50), hsl(200, 50%, 75%)";
+  }
+
+  const trimmed = value.trim();
+
+  switch (format) {
+    case 'hex': {
+      const hexPart = trimmed.startsWith('#') ? trimmed.slice(1) : trimmed;
+      if (!/^[0-9A-Fa-f]+$/.test(hexPart)) {
+        const invalid = hexPart.match(/[^0-9A-Fa-f]/g);
+        return `Invalid hex characters: ${invalid?.join(', ')}. Use only 0-9 and A-F`;
+      }
+      if (![3, 4, 6, 8].includes(hexPart.length)) {
+        return `Hex color has ${hexPart.length} digits. Use 3, 4, 6, or 8 digits (e.g., #F73 or #FF5733)`;
+      }
+      break;
+    }
+
+    case 'rgb': {
+      const match = trimmed.match(/rgba?\s*\(\s*([^)]+)\s*\)|^([^()]+)$/);
+      if (match) {
+        const values = (match[1] || match[2]).split(/[,\s]+/).filter(Boolean);
+        if (values.length < 3) {
+          return `RGB needs 3 values (red, green, blue), found ${values.length}`;
+        }
+
+        for (let i = 0; i < Math.min(3, values.length); i++) {
+          const num = parseFloat(values[i]);
+          const channel = ['red', 'green', 'blue'][i];
+          if (isNaN(num)) {
+            return `${channel} value "${values[i]}" is not a number`;
+          }
+          if (num > 255) {
+            return `${channel} value ${num} exceeds 255. Did you mean ${Math.round(num / 10)}?`;
+          }
+          if (num < 0) {
+            return `${channel} value cannot be negative`;
+          }
+        }
+      }
+      break;
+    }
+
+    case 'hsl': {
+      const match = trimmed.match(/hsla?\s*\(\s*([^)]+)\s*\)|^([^()]+)$/);
+      if (match) {
+        const values = (match[1] || match[2]).split(/[,\s]+/).filter(Boolean);
+        if (values.length < 3) {
+          return `HSL needs 3 values (hue, saturation%, lightness%), found ${values.length}`;
+        }
+
+        const hue = parseFloat(values[0]);
+        if (isNaN(hue)) {
+          return `Hue value "${values[0]}" is not a number`;
+        }
+        if (hue > 360) {
+          return `Hue ${hue}° exceeds 360°. Colors wrap around (${(hue % 360).toFixed(0)}° is equivalent)`;
+        }
+
+        for (let i = 1; i < Math.min(3, values.length); i++) {
+          const num = parseFloat(values[i].replace('%', ''));
+          const channel = i === 1 ? 'saturation' : 'lightness';
+          if (isNaN(num)) {
+            return `${channel} value "${values[i]}" is not a number`;
+          }
+          if (!values[i].includes('%')) {
+            return `${channel} should include % symbol (e.g., ${num}%)`;
+          }
+          if (num > 100) {
+            return `${channel} ${num}% exceeds 100%`;
+          }
+        }
+      }
+      break;
+    }
+
+    default:
+      return `Could not parse ${format.toUpperCase()} color. Check format syntax`;
+  }
+
+  return "Invalid color value";
+};
+
 export const detectColorFormat = (value: string): ColorFormat | null => {
   const trimmedValue = value.trim();
 
@@ -490,10 +578,11 @@ export function ColorConverter({
   const [isConverting, setIsConverting] = useState(false);
   const [hasAutoPasted, setHasAutoPasted] = useState(false);
   const [sanitizedDisplayValue, setSanitizedDisplayValue] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string>("");
   const lastCopiedValue = useRef<string>("");
 
-  // Debounce the input value for auto-conversion
-  const debouncedInputValue = useDebounce(inputValue, 300);
+  // Longer debounce (800ms) - only show errors after user pauses typing
+  const debouncedInputValue = useDebounce(inputValue, 800);
 
   const fallbackRelatedToolIcon = getIcon('arrow-right', ArrowRight);
 
@@ -963,6 +1052,7 @@ export function ColorConverter({
     const color = parseInput(sanitizedValue, format);
     if (color) {
       setIsValidColor(true);
+      setValidationError(""); // Clear any previous errors
       const values: ColorValues = {
         hex: formatColorValue(color, "hex"),
         rgb: formatColorValue(color, "rgb"),
@@ -984,8 +1074,11 @@ export function ColorConverter({
       setColorValues(values);
       setPreviewColor(values.hex);
     } else {
+      // Color parsing failed - provide helpful error
+      const errorMessage = getValidationError(sanitizedValue, format);
       setIsValidColor(false);
       setColorValues(null);
+      setValidationError(errorMessage);
       if (!sanitizedChanged) {
         setSanitizedDisplayValue(null);
       }
@@ -1213,8 +1306,7 @@ export function ColorConverter({
                   </div>
                   {!isValidColor && inputValue && !isConverting && (
                     <p className="text-sm text-destructive mt-2">
-                      Invalid color format. Try HEX, RGB, HSL, or other supported
-                      formats.
+                      {validationError || "Invalid color format. Try HEX, RGB, HSL, or other supported formats."}
                     </p>
                   )}
                   {sanitizedDisplayValue && (
