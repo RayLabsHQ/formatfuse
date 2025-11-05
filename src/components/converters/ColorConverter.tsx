@@ -1278,12 +1278,22 @@ export function ColorConverter({
       const targetValue = getColorValueForFormat(colorValues, targetFormat);
       if (targetValue && targetValue !== lastCopiedValue.current) {
         lastCopiedValue.current = targetValue;
-        navigator.clipboard.writeText(targetValue);
-        const formatName = getDisplayNameForFormat(targetFormat);
-        toast.success(`Copied ${formatName} value to clipboard!`);
-        const resolvedFormat = resolveFormatKey(targetFormat);
-        setCopiedFormat(resolvedFormat ?? targetFormat);
-        setTimeout(() => setCopiedFormat(null), 2000);
+
+        // Try to copy, but handle permission errors gracefully (Safari on iOS may block)
+        navigator.clipboard.writeText(targetValue)
+          .then(() => {
+            const formatName = getDisplayNameForFormat(targetFormat);
+            toast.success(`Copied ${formatName} value to clipboard!`);
+            const resolvedFormat = resolveFormatKey(targetFormat);
+            setCopiedFormat(resolvedFormat ?? targetFormat);
+            setTimeout(() => setCopiedFormat(null), 2000);
+          })
+          .catch((error) => {
+            // Clipboard access denied - show informational message instead
+            console.log('Auto-copy failed, clipboard permission denied:', error);
+            const formatName = getDisplayNameForFormat(targetFormat);
+            toast.info(`${formatName} ready - click to copy`);
+          });
       }
     }
   }, [colorValues, targetFormat, autoCopy, inputValue]);
@@ -1298,15 +1308,22 @@ export function ColorConverter({
       }
       return;
     }
-    
-    navigator.clipboard.writeText(text);
-    const label = format ? getDisplayNameForFormat(format) : null;
-    toast.success(label ? `Copied ${label} to clipboard!` : "Copied to clipboard!");
-    if (format) {
-      const resolvedFormat = resolveFormatKey(format);
-      setCopiedFormat(resolvedFormat ?? format);
-      setTimeout(() => setCopiedFormat(null), 2000);
-    }
+
+    navigator.clipboard.writeText(text)
+      .then(() => {
+        const label = format ? getDisplayNameForFormat(format) : null;
+        toast.success(label ? `Copied ${label} to clipboard!` : "Copied to clipboard!");
+        if (format) {
+          const resolvedFormat = resolveFormatKey(format);
+          setCopiedFormat(resolvedFormat ?? format);
+          setTimeout(() => setCopiedFormat(null), 2000);
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to copy to clipboard:', error);
+        const label = format ? getDisplayNameForFormat(format) : 'value';
+        toast.error(`Failed to copy ${label}. Please try again or copy manually.`);
+      });
   };
 
   // Auto-convert when input changes (debounced)
