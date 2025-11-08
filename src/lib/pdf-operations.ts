@@ -41,6 +41,7 @@ export interface CompressOptions {
   removeMetadata: boolean;
   optimizeImages: boolean;
   grayscale: boolean;
+  level?: "balanced" | "high-quality" | "small-size" | "extreme";
 }
 
 interface PDFOperationsWorkerAPI {
