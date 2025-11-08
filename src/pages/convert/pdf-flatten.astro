@@ -1,0 +1,11 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import PdfFlatten from "../../components/converters/PdfFlatten";
+
+const title = "Flatten PDF - Make PDF Forms Non-Editable | FormatFuse";
+const description = "Flatten PDF forms and annotations to make them non-editable. Free, secure, and privacy-first PDF flattening tool that works in your browser.";
+---
+
+<Layout title={title} description={description}>
+  <PdfFlatten client:load />
+</Layout>

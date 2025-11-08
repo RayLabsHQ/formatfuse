@@ -1,0 +1,11 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import PdfWatermark from "../../components/converters/PdfWatermark";
+
+const title = "PDF Watermark - Add Watermarks to PDF Online | FormatFuse";
+const description = "Add text or image watermarks to your PDF documents online. Free, secure, and privacy-first PDF watermarking tool that works in your browser.";
+---
+
+<Layout title={title} description={description}>
+  <PdfWatermark client:load />
+</Layout>

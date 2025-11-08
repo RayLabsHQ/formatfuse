@@ -1,0 +1,11 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import PdfUnlock from "../../components/converters/PdfUnlock";
+
+const title = "Unlock PDF - Remove Password Protection Online | FormatFuse";
+const description = "Remove password protection from PDF documents you have authorization to access. Free, secure, and privacy-first PDF unlocking tool.";
+---
+
+<Layout title={title} description={description}>
+  <PdfUnlock client:load />
+</Layout>
