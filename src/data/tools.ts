@@ -483,6 +483,17 @@ const videoToolsAll: Tool[] = [
     route: "/tools/video-trimmer",
   },
   {
+    id: "video-thumbnail-generator",
+    name: "Video Thumbnail Generator",
+    description: "Extract multiple thumbnails from videos at different timestamps",
+    icon: Image,
+    isPopular: true,
+    isNew: true,
+    isImplemented: true,
+    category: "video",
+    route: "/tools/video-thumbnail-generator",
+  },
+  {
     id: "video-resizer",
     name: "Video Resizer",
     description: "Resize videos to different resolutions (1080p, 720p, 480p)",
