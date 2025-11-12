@@ -1,0 +1,19 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import VideoConverter from '../../components/converters/VideoConverter.tsx';
+import '../../styles/global.css';
+
+const title = 'Video Compressor - Reduce Video File Size';
+const description = 'Compress videos to reduce file size while maintaining quality. Choose from multiple quality presets for optimal compression.';
+---
+
+<Layout title={title} description={description} toolType="video">
+  <main>
+    <VideoConverter
+      targetFormat="mp4"
+      title="Video Compressor"
+      description="Reduce your video file size with our smart compression tool. Choose from Low, Medium, High, or Ultra quality presets."
+      client:load
+    />
+  </main>
+</Layout>

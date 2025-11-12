@@ -18,6 +18,9 @@ import {
   GitBranch,
   Package,
   Palette,
+  Video,
+  Film,
+  PlayCircle,
 } from "lucide-react";
 import uFuzzy from "@leeoniya/ufuzzy";
 
@@ -393,7 +396,7 @@ for (const from of colorFormats) {
   }
 }
 
-// Document Tools (unfiltered - includes unimplemented for reference)
+// Document Tools (now under PDF Tools category)
 const documentToolsAll: Tool[] = [
   {
     id: "txt-to-pdf",
@@ -401,7 +404,7 @@ const documentToolsAll: Tool[] = [
     description: "Convert plain text files to PDF",
     icon: FileText,
     isImplemented: false, // TODO: Not implemented
-    category: "document",
+    category: "pdf",
     route: "/convert/txt-to-pdf",
   },
   {
@@ -410,7 +413,7 @@ const documentToolsAll: Tool[] = [
     description: "Convert Rich Text Format files",
     icon: FileText,
     isImplemented: false, // TODO: Not implemented
-    category: "document",
+    category: "pdf",
     route: "/tools/rtf-converter",
   },
   {
@@ -419,7 +422,7 @@ const documentToolsAll: Tool[] = [
     description: "Convert Markdown to HTML format",
     icon: Code,
     isImplemented: false, // TODO: Not implemented
-    category: "document",
+    category: "pdf",
     route: "/tools/markdown-to-html",
   },
   {
@@ -429,7 +432,7 @@ const documentToolsAll: Tool[] = [
     icon: Code,
     isPopular: true,
     isImplemented: true,
-    category: "document",
+    category: "pdf",
     route: "/convert/markdown-to-pdf",
   },
   {
@@ -439,10 +442,111 @@ const documentToolsAll: Tool[] = [
     icon: FileText,
     isPopular: true,
     isImplemented: true,
-    category: "document",
+    category: "pdf",
     route: "/convert/pdf-to-markdown",
   },
 ];
+
+// Video Tools (unfiltered - includes unimplemented for reference)
+const videoToolsAll: Tool[] = [
+  {
+    id: "video-converter",
+    name: "Universal Video Converter",
+    description: "Convert between MP4, WebM, MOV, MKV with advanced settings",
+    icon: Video,
+    isPopular: true,
+    isNew: true,
+    isImplemented: true,
+    category: "video",
+    route: "/tools/video-converter",
+  },
+  {
+    id: "video-compressor",
+    name: "Video Compressor",
+    description: "Reduce video file size while maintaining quality",
+    icon: FileDown,
+    isPopular: true,
+    isNew: true,
+    isImplemented: true,
+    category: "video",
+    route: "/tools/video-compressor",
+  },
+  {
+    id: "video-trimmer",
+    name: "Video Trimmer",
+    description: "Trim and cut videos to exact timestamps",
+    icon: Scissors,
+    isPopular: true,
+    isNew: true,
+    isImplemented: true,
+    category: "video",
+    route: "/tools/video-trimmer",
+  },
+  {
+    id: "video-resizer",
+    name: "Video Resizer",
+    description: "Resize videos to different resolutions (1080p, 720p, 480p)",
+    icon: Film,
+    isNew: true,
+    isImplemented: true,
+    category: "video",
+    route: "/tools/video-resizer",
+  },
+  {
+    id: "video-rotator",
+    name: "Rotate Video",
+    description: "Rotate and flip videos to correct orientation",
+    icon: PlayCircle,
+    isNew: true,
+    isImplemented: true,
+    category: "video",
+    route: "/tools/video-rotator",
+  },
+];
+
+// Video format conversions
+const videoFormats = ["mp4", "webm", "mov", "mkv"];
+const videoConversions: Tool[] = [];
+
+// Generate all video conversion combinations
+for (const from of videoFormats) {
+  for (const to of videoFormats) {
+    // Skip same format conversions except for MP4 (compression)
+    if (from === to && from !== "mp4") continue;
+
+    const fromName = from.toUpperCase();
+    const toName = to.toUpperCase();
+    const isSameFormat = from === to;
+
+    videoConversions.push({
+      id: `${from}-to-${to}`,
+      name: isSameFormat
+        ? `${fromName} Compressor`
+        : `${fromName} to ${toName}`,
+      description: isSameFormat
+        ? `Compress and optimize ${fromName} videos`
+        : `Convert ${fromName} videos to ${toName} format`,
+      icon: Video,
+      isPopular: isPopularVideoConversion(from, to),
+      isNew: true,
+      isImplemented: true,
+      category: "video",
+      route: `/convert/${from}-to-${to}`,
+    });
+  }
+}
+
+// Helper function for popular video conversions
+function isPopularVideoConversion(from: string, to: string): boolean {
+  const popular = [
+    "mp4-to-webm",
+    "webm-to-mp4",
+    "mov-to-mp4",
+    "mkv-to-mp4",
+    "mp4-to-mp4", // compression
+  ];
+  return popular.includes(`${from}-to-${to}`);
+}
 
 // Archive Tools (unfiltered - includes unimplemented for reference)
 const archiveToolsAll: Tool[] = [
@@ -639,10 +743,10 @@ const otherImageToolsAll: Tool[] = [
 const filterImplemented = (tools: Tool[]) =>
   tools.filter((tool) => tool.isImplemented !== false);
 
-// Export filtered tools
-export const pdfTools = filterImplemented(pdfToolsAll);
+// Export filtered tools (document tools now merged into PDF)
+export const pdfTools = filterImplemented([...pdfToolsAll, ...documentToolsAll]);
 export const devTools = filterImplemented(devToolsAll);
-export const documentTools = filterImplemented(documentToolsAll);
+export const videoTools = filterImplemented([...videoToolsAll, ...videoConversions]);
 export const archiveTools = filterImplemented(archiveToolsAll);
 export const otherImageTools = filterImplemented(otherImageToolsAll);
 
@@ -657,10 +761,12 @@ export const imageTools: Tool[] = filterImplemented([
 export const allTools: Tool[] = filterImplemented([
   ...universalTools,
   ...pdfToolsAll,
+  ...documentToolsAll,
   ...otherImageToolsAll,
   ...imageConversions,
   ...devToolsAll,
-  ...documentToolsAll,
+  ...videoToolsAll,
+  ...videoConversions,
   ...archiveToolsAll,
 ]);
 
@@ -681,18 +787,18 @@ export const categories = [
     bgColor: "bg-tool-jpg/10",
   },
   {
+    id: "video",
+    name: "Video Tools",
+    tools: videoTools,
+    color: "border-purple-500 text-purple-500",
+    bgColor: "bg-purple-500/10",
+  },
+  {
     id: "dev",
     name: "Developer Tools",
     tools: devTools,
     color: "border-accent text-accent",
     bgColor: "bg-accent/10",
-  },
-  {
-    id: "document",
-    name: "Document Tools",
-    tools: documentTools,
-    color: "border-tool-doc text-tool-doc",
-    bgColor: "bg-tool-doc/10",
   },
   {
     id: "archive",
