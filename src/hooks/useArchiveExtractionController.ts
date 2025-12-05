@@ -314,10 +314,10 @@ export function useArchiveExtractionController(
         } else {
           setProcessingWarning(null);
         }
+        const buffer = await readFileBuffer(file);
         const request: ExtractRequest = {
           fileName: file.name,
-          size: file.size,
-          stream: file.stream() as unknown as ReadableStream<Uint8Array>,
+          buffer,
           password: password ?? undefined,
         };
 
