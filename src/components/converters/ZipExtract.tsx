@@ -365,7 +365,7 @@ export default function ZipExtract() {
                   onToggleSelect={toggleSelect}
                   getNodeMeta={(node) => (node.isDirectory ? "Directory" : formatBytes(node.size))}
                   renderActions={(node) =>
-                    node.isDirectory || !node.fileData ? null : (
+                    node.isDirectory ? null : (
                       <Button
                         variant="ghost"
                         size="sm"
