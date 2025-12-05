@@ -28,6 +28,7 @@ import {
   type PendingPasswordState,
 } from "../../hooks/useArchiveExtractionController";
 import type { ArchiveFileNode } from "../../lib/archive/fileTree";
+import { isArchiveSupported } from "../../lib/archive/support";
 
 interface GenericArchiveExtractorProps {
   format: string;
@@ -165,12 +166,17 @@ export default function GenericArchiveExtractor({
     },
     helpers,
   } = useArchiveExtractionController({ format, toolId: "generic-archive-extract" });
+  const { fetchFileData } = helpers;
+
+  const support = useMemo(() => isArchiveSupported(), []);
+  const unsupported = !support.supported;
 
   const downloadFile = useCallback(async (node: ArchiveFileNode) => {
-    if (!node.fileData) return;
+    const fileData = await fetchFileData(node);
+    if (!fileData) return;
 
     try {
-      const blob = new Blob([node.fileData]);
+      const blob = new Blob([fileData]);
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
       link.download = node.name;
@@ -236,15 +242,28 @@ export default function GenericArchiveExtractor({
 
         <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
           <div className="space-y-6">
+            {unsupported && (
+              <div className="flex items-start gap-3 rounded-md border border-amber-300/60 bg-amber-50/80 p-4 text-sm text-amber-800 shadow-sm">
+                <AlertTriangle className="mt-0.5 h-5 w-5 text-amber-500" />
+                <div className="space-y-1">
+                  <p className="font-semibold">Browser not supported</p>
+                  <p className="text-amber-700/90">
+                    {support.reason ?? "These archive tools need a modern browser with WebAssembly and module worker support. Please try the latest Chrome, Firefox, Safari, or Edge (Chromium)."}
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div onPointerEnter={warmupEngines} onFocusCapture={warmupEngines}>
               <FileDropZone
                 accept={acceptedExtensions}
                 multiple={false}
                 isDragging={isDragging}
                 onDragStateChange={setIsDragging}
-                onFilesSelected={handleFilesSelected}
+                onFilesSelected={unsupported ? () => undefined : handleFilesSelected}
                 title={`Drop your ${format.toUpperCase()} archive here`}
-                description="We extract everything directly in your browser."
+                subtitle="We extract everything directly in your browser."
+                disabled={unsupported}
               />
             </div>
 

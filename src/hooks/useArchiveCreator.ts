@@ -5,12 +5,14 @@ import type { CreateArchiveRequest, CreateArchiveResult } from "../lib/archive/t
 
 interface ArchiveCreatorRemote {
   create(request: CreateArchiveRequest): Promise<CreateArchiveResult>;
+  warmup(): Promise<void>;
 }
 
 export function useArchiveCreator() {
   const workerRef = useRef<Worker | null>(null);
   const remoteRef = useRef<Comlink.Remote<ArchiveCreatorRemote> | null>(null);
   const ensurePromiseRef = useRef<Promise<Comlink.Remote<ArchiveCreatorRemote>> | null>(null);
+  const warmupPromiseRef = useRef<Promise<void> | null>(null);
   const [isReady, setIsReady] = useState(false);
 
   const ensureRemote = useCallback(async () => {
@@ -26,7 +28,6 @@ export function useArchiveCreator() {
         const remote = Comlink.wrap<ArchiveCreatorRemote>(worker);
         workerRef.current = worker;
         remoteRef.current = remote;
-        setIsReady(true);
         return remote;
       })();
     }
@@ -38,6 +39,7 @@ export function useArchiveCreator() {
     return () => {
       setIsReady(false);
       ensurePromiseRef.current = null;
+      warmupPromiseRef.current = null;
       if (remoteRef.current) {
         remoteRef.current[Comlink.releaseProxy]();
         remoteRef.current = null;
@@ -47,17 +49,29 @@ export function useArchiveCreator() {
     };
   }, []);
 
-  const preload = useCallback(async () => {
-    await ensureRemote();
+  const warmup = useCallback(async () => {
+    const remote = await ensureRemote();
+    if (!warmupPromiseRef.current) {
+      warmupPromiseRef.current = remote.warmup().then(() => {
+        setIsReady(true);
+      }).catch(() => {
+        setIsReady(false);
+      });
+    }
+    return warmupPromiseRef.current;
   }, [ensureRemote]);
+
+  const preload = useCallback(async () => {
+    await warmup();
+  }, [warmup]);
 
   const create = useCallback(async (request: CreateArchiveRequest) => {
     const remote = await ensureRemote();
+    await warmup();
     return remote.create(request);
-  }, [ensureRemote]);
+  }, [ensureRemote, warmup]);
 
   return { create, preload, isReady };
 }
 
 export type UseArchiveCreatorReturn = ReturnType<typeof useArchiveCreator>;
-

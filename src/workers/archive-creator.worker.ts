@@ -5,14 +5,25 @@ import type {
   CreateArchiveResult,
   CreateArchiveSuccess,
   CreateArchiveFailure,
-  CreateArchiveFormat,
+  ArchiveCreateFormat,
 } from "../lib/archive/types";
 import type { SevenZipModule } from "7z-wasm";
+
+/** Clone a Uint8Array's underlying buffer as a proper ArrayBuffer (not SharedArrayBuffer) */
+function toArrayBuffer(data: Uint8Array): ArrayBuffer {
+  const buf = new ArrayBuffer(data.byteLength);
+  new Uint8Array(buf).set(data);
+  return buf;
+}
 
 export class ArchiveCreatorWorker {
   private sevenZipPromise: Promise<SevenZipModule> | null = null;
   private lastStdout: string[] = [];
   private lastStderr: string[] = [];
+
+  async warmup(): Promise<void> {
+    await this.ensureSevenZip();
+  }
 
   private async ensureSevenZip(): Promise<SevenZipModule> {
     if (!this.sevenZipPromise) {
@@ -81,6 +92,14 @@ export class ArchiveCreatorWorker {
       const relativePaths: string[] = [];
       for (const file of request.files) {
         const sanitizedPath = this.sanitizePath(file.path);
+        if (!sanitizedPath) {
+          return {
+            ok: false,
+            code: "CREATE_FAILED",
+            message: "File paths cannot contain '..' or start from the root. Please rename and try again.",
+            recoverable: true,
+          } satisfies CreateArchiveFailure;
+        }
         const fullPath = `${inputRoot}/${sanitizedPath}`;
         const directoryPath = fullPath.includes("/")
           ? fullPath.slice(0, fullPath.lastIndexOf("/"))
@@ -103,7 +122,7 @@ export class ArchiveCreatorWorker {
         if (module.FS.chdir && previousDir) {
           module.FS.chdir(previousDir);
         }
-        this.cleanup(module, inputRoot, archiveName, writtenFiles);
+        this.cleanup(module, inputRoot, archivePath, writtenFiles);
         return this.classifySevenZipError(error as Error);
       }
 
@@ -116,7 +135,7 @@ export class ArchiveCreatorWorker {
 
       return {
         ok: true,
-        data: archiveData.buffer.slice(0),
+        data: toArrayBuffer(archiveData),
         format: request.format,
         engine: "sevenZip",
         warnings: this.lastStderr.slice(),
@@ -128,17 +147,36 @@ export class ArchiveCreatorWorker {
     }
   }
 
-  private supportsFormat(format: CreateArchiveFormat): boolean {
+  private supportsFormat(format: ArchiveCreateFormat): boolean {
     return format === "zip" || format === "sevenZip";
   }
 
-  private getExtension(format: CreateArchiveFormat): string {
+  private getExtension(format: ArchiveCreateFormat): string {
     return format === "zip" ? "zip" : "7z";
   }
 
   private sanitizePath(path: string): string {
-    const cleaned = path.replace(/\\+/g, "/").replace(/^\/+/, "");
-    return cleaned || "file";
+    const cleaned = path.replace(/\\+/g, "/").trim();
+    if (!cleaned || cleaned.startsWith("/") || /^[A-Za-z]:/.test(cleaned)) {
+      return "";
+    }
+
+    const parts = cleaned.split("/").filter(Boolean);
+    const safeParts: string[] = [];
+    for (const part of parts) {
+      if (part === ".") continue;
+      if (part === "..") {
+        // Reject traversal attempts outright
+        return "";
+      }
+      safeParts.push(part);
+    }
+
+    if (safeParts.length === 0) {
+      return "file";
+    }
+
+    return safeParts.join("/");
   }
 
   private ensureDirectory(module: SevenZipModule, directory: string) {
@@ -165,14 +203,15 @@ export class ArchiveCreatorWorker {
     filePaths: string[],
   ): string[] {
     const args = ["a"];
+    const compressionLevel = this.normalizeCompressionLevel(request.compressionLevel);
 
     if (request.format === "zip") {
-      args.push("-tzip", "-mm=Deflate");
+      args.push("-tzip", "-mm=Deflate", `-mx=${compressionLevel}`);
       if (request.password && request.password.length > 0) {
         args.push("-mem=AES256");
       }
     } else {
-      args.push("-t7z", "-m0=lzma2");
+      args.push("-t7z", "-m0=lzma2", `-mx=${compressionLevel}`);
       if (request.encryptHeaders) {
         args.push("-mhe=on");
       }
@@ -181,13 +220,24 @@ export class ArchiveCreatorWorker {
     args.push("-y", "-bd");
 
     if (request.password && request.password.length > 0) {
-      args.push(`-p${request.password}`);
+      args.push(this.buildPasswordArg(request.password));
     }
 
     args.push(archivePath);
     args.push(...filePaths);
 
     return args;
+  }
+
+  private buildPasswordArg(password: string): string {
+    // 7-Zip expects the password immediately after -p with no space; argv items are not shell-split.
+    const sanitized = password.replace(/"/g, "");
+    return `-p${sanitized}`;
+  }
+
+  private normalizeCompressionLevel(level?: number): number {
+    if (!Number.isFinite(level)) return 6;
+    return Math.min(9, Math.max(0, Math.round(level as number)));
   }
 
   private cleanup(

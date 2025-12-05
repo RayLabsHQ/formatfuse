@@ -423,7 +423,9 @@ export default function ImageConverter({
       (selectedTargetFormat?.extension || "jpg");
     document.body.appendChild(a);
     a.click();
-    document.body.removeChild(a);
+    if (a.parentNode) {
+      a.parentNode.removeChild(a);
+    }
     URL.revokeObjectURL(url);
   };
 
@@ -449,7 +451,9 @@ export default function ImageConverter({
           (selectedTargetFormat?.extension || "jpg");
         document.body.appendChild(a);
         a.click();
-        document.body.removeChild(a);
+        if (a.parentNode) {
+          a.parentNode.removeChild(a);
+        }
         URL.revokeObjectURL(url);
       } else if (completedFiles.length > 1) {
         const zip = new JSZip();
@@ -469,7 +473,9 @@ export default function ImageConverter({
         a.download = "converted-images.zip";
         document.body.appendChild(a);
         a.click();
-        document.body.removeChild(a);
+        if (a.parentNode) {
+          a.parentNode.removeChild(a);
+        }
         URL.revokeObjectURL(url);
       }
     } catch (error) {

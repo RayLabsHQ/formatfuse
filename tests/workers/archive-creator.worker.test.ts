@@ -7,11 +7,16 @@ import { ArchiveCreatorWorker } from "../../src/workers/archive-creator.worker";
 import { ArchiveExtractorWorker } from "../../src/workers/archive-extractor.worker";
 
 function textBuffer(value: string): ArrayBuffer {
-  return new TextEncoder().encode(value).buffer;
+  const encoded = new TextEncoder().encode(value);
+  const buf = new ArrayBuffer(encoded.byteLength);
+  new Uint8Array(buf).set(encoded);
+  return buf;
 }
 
 function cloneBuffer(buffer: ArrayBuffer): ArrayBuffer {
-  return buffer.slice(0);
+  const clone = new ArrayBuffer(buffer.byteLength);
+  new Uint8Array(clone).set(new Uint8Array(buffer));
+  return clone;
 }
 
 describe("ArchiveCreatorWorker", () => {
@@ -68,6 +73,9 @@ describe("ArchiveCreatorWorker", () => {
       buffer: cloneBuffer(result.data),
       password,
     });
+    if (!successAttempt.ok) {
+      console.error("Encrypted extract failed", successAttempt);
+    }
 
     expect(successAttempt.ok).toBe(true);
     if (!successAttempt.ok) return;
@@ -77,10 +85,12 @@ describe("ArchiveCreatorWorker", () => {
     expect(paths).toEqual(["bin/data.bin", "docs/readme.txt"]);
 
     const textEntry = successAttempt.entries.find((entry) => entry.path === "docs/readme.txt");
-    expect(textEntry?.data).toBeDefined();
-    if (textEntry?.data) {
-      expect(Buffer.from(textEntry.data).toString("utf8")).toBe("Encrypted hello world");
-    }
+    expect(textEntry).toBeDefined();
+    if (!textEntry) return;
+    const fetched = await extractor.fetchEntry(successAttempt.sessionId, textEntry.path);
+    expect(fetched.ok).toBe(true);
+    if (!fetched.ok) return;
+    expect(Buffer.from((fetched as { ok: true; data: ArrayBuffer }).data).toString("utf8")).toBe("Encrypted hello world");
   });
 
   it("creates standard ZIP archives when no password is supplied", async () => {
@@ -115,6 +125,9 @@ describe("ArchiveCreatorWorker", () => {
     const extractedFiles = extracted.entries.filter((entry) => !entry.isDirectory);
     expect(extractedFiles).toHaveLength(1);
     expect(extractedFiles[0].path).toBe("plain.txt");
-    expect(Buffer.from(extractedFiles[0].data!).toString("utf8")).toBe("just text");
+    const fetched = await extractor.fetchEntry(extracted.sessionId, extractedFiles[0].path);
+    expect(fetched.ok).toBe(true);
+    if (!fetched.ok) return;
+    expect(Buffer.from((fetched as { ok: true; data: ArrayBuffer }).data).toString("utf8")).toBe("just text");
   });
 });

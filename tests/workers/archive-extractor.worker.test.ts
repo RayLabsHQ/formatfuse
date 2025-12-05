@@ -11,7 +11,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 function toArrayBuffer(buffer: Buffer): ArrayBuffer {
-  return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+  const result = new ArrayBuffer(buffer.byteLength);
+  new Uint8Array(result).set(buffer);
+  return result;
 }
 
 function fixturePath(name: string): string {
@@ -39,8 +41,16 @@ describe("ArchiveExtractorWorker", () => {
     expect(result.entries).toHaveLength(1);
     const entry = result.entries[0];
     expect(entry.path).toBe("single.txt");
-    expect(entry.data).toBeDefined();
-    expect(Buffer.from(entry.data!).toString("utf8")).toContain("Single file test data");
+    let dataBuffer: ArrayBuffer | undefined = entry.data;
+    if (!dataBuffer) {
+      const fetched = await worker.fetchEntry(result.sessionId, entry.path);
+      if (fetched.ok) {
+        dataBuffer = (fetched as { ok: true; data: ArrayBuffer }).data;
+      }
+    }
+    expect(dataBuffer).toBeDefined();
+    if (!dataBuffer) return;
+    expect(Buffer.from(dataBuffer).toString("utf8")).toContain("Single file test data");
   });
 
   it("extracts ZIP archives via libarchive", async () => {
@@ -71,7 +81,10 @@ describe("ArchiveExtractorWorker", () => {
     expect(result.engine).toBe("sevenZip");
     const [entry] = result.entries;
     expect(entry.path).toBe("input.txt");
-    expect(Buffer.from(entry.data!).toString("utf8")).toContain("7z sample content");
+    const fetched = await worker.fetchEntry(result.sessionId, entry.path);
+    expect(fetched.ok).toBe(true);
+    if (!fetched.ok) return;
+    expect(Buffer.from((fetched as { ok: true; data: ArrayBuffer }).data).toString("utf8")).toContain("7z sample content");
   });
 
   it("prompts for a password when encountering encrypted archives", async () => {

@@ -22,9 +22,16 @@ describe('All Archive Format Operations', () => {
       'large.zip'
     ];
     
+    // Helper to convert Buffer to ArrayBuffer safely
+    const bufferToArrayBuffer = (buf: Buffer): ArrayBuffer => {
+      const result = new ArrayBuffer(buf.byteLength);
+      new Uint8Array(result).set(buf);
+      return result;
+    };
+
     for (const archive of archives) {
       try {
-        const buffer = await readFile(join(fixturesPath, archive)).then(b => b.buffer);
+        const buffer = await readFile(join(fixturesPath, archive)).then(bufferToArrayBuffer);
         testFixtures.set(archive, buffer);
       } catch (err) {
         console.warn(`Could not load ${archive}:`, err);
