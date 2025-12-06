@@ -323,7 +323,7 @@ export default function GenericArchiveExtractor({
               </div>
             )}
 
-            {files.length > 0 ? (
+            {files.length > 0 && (
               <div className="rounded-md border border-muted bg-card">
                 <div className="flex flex-col gap-3 border-b border-muted p-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
