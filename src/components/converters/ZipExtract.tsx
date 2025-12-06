@@ -183,7 +183,7 @@ export default function ZipExtract() {
     const flat = helpers.flattenNodes();
     const nodes = flat.filter((node) => selectedPaths.has(node.path));
 
-    if (nodes.length === 1 && nodes[0].fileData) {
+    if (nodes.length === 1) {
       await downloadFile(nodes[0]);
       return;
     }
