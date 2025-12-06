@@ -133,6 +133,7 @@ export default function ZipExtract() {
       dismissPassword,
       setError,
       warmupEngines,
+      reset,
     },
     helpers,
   } = useArchiveExtractionController({ format: "zip", toolId: "zip-extract" });
@@ -267,19 +268,21 @@ export default function ZipExtract() {
                 </div>
               </div>
             )}
-            <div onPointerEnter={warmupEngines} onFocusCapture={warmupEngines}>
-              <FileDropZone
-                accept=".zip,.zipx"
-                multiple={false}
-                isDragging={isDragging}
-                onDragStateChange={setIsDragging}
-                onFilesSelected={unsupported ? () => undefined : handleFilesSelected}
-                title="Drop your ZIP archive"
-                subtitle="We extract everything locally in your browser."
-                primaryButtonLabel="Browse ZIP file"
-                disabled={unsupported}
-              />
-            </div>
+            {!isLoading && files.length === 0 && (
+              <div onPointerEnter={warmupEngines} onFocusCapture={warmupEngines}>
+                <FileDropZone
+                  accept=".zip,.zipx"
+                  multiple={false}
+                  isDragging={isDragging}
+                  onDragStateChange={setIsDragging}
+                  onFilesSelected={unsupported ? () => undefined : handleFilesSelected}
+                  title="Drop your ZIP archive"
+                  subtitle="We extract everything locally in your browser."
+                  primaryButtonLabel="Browse ZIP file"
+                  disabled={unsupported}
+                />
+              </div>
+            )}
 
             {error && (
               <div className="flex items-start gap-3 rounded-md border border-destructive/30 bg-destructive/10 p-4 text-sm">
@@ -316,6 +319,9 @@ export default function ZipExtract() {
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
+                    <Button onClick={reset} variant="ghost">
+                      Extract another
+                    </Button>
                     <Button onClick={selectAll} variant="outline" className="gap-2">
                       Select all
                     </Button>
@@ -386,11 +392,6 @@ export default function ZipExtract() {
               </div>
             )}
 
-            {files.length === 0 && !isLoading && !error && (
-              <div className="rounded-2xl border border-dashed border-border/40 bg-card/60 p-8 text-center text-sm text-muted-foreground">
-                Drop a ZIP archive above to examine and extract its contents instantly.
-              </div>
-            )}
           </div>
 
           <aside className="space-y-6">

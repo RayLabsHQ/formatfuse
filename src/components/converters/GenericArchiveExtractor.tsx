@@ -5,7 +5,6 @@ import {
   Download,
   Eye,
   FileArchive,
-  FolderOpen,
   Loader2,
   Lock,
   Package,
@@ -163,6 +162,7 @@ export default function GenericArchiveExtractor({
       setPasswordError,
       setError,
       warmupEngines,
+      reset,
     },
     helpers,
   } = useArchiveExtractionController({ format, toolId: "generic-archive-extract" });
@@ -254,18 +254,20 @@ export default function GenericArchiveExtractor({
               </div>
             )}
 
-            <div onPointerEnter={warmupEngines} onFocusCapture={warmupEngines}>
-              <FileDropZone
-                accept={acceptedExtensions}
-                multiple={false}
-                isDragging={isDragging}
-                onDragStateChange={setIsDragging}
-                onFilesSelected={unsupported ? () => undefined : handleFilesSelected}
-                title={`Drop your ${format.toUpperCase()} archive here`}
-                subtitle="We extract everything directly in your browser."
-                disabled={unsupported}
-              />
-            </div>
+            {!isLoading && files.length === 0 && (
+              <div onPointerEnter={warmupEngines} onFocusCapture={warmupEngines}>
+                <FileDropZone
+                  accept={acceptedExtensions}
+                  multiple={false}
+                  isDragging={isDragging}
+                  onDragStateChange={setIsDragging}
+                  onFilesSelected={unsupported ? () => undefined : handleFilesSelected}
+                  title={`Drop your ${format.toUpperCase()} archive here`}
+                  subtitle="We extract everything directly in your browser."
+                  disabled={unsupported}
+                />
+              </div>
+            )}
 
             {error && (
               <div className="flex items-start gap-3 rounded-md border border-destructive/30 bg-destructive/10 p-4 text-sm">
@@ -336,6 +338,9 @@ export default function GenericArchiveExtractor({
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
+                    <Button variant="ghost" size="sm" onClick={reset}>
+                      Extract another
+                    </Button>
                     <Button variant="outline" size="sm" onClick={selectAll}>
                       Select all
                     </Button>
@@ -378,11 +383,6 @@ export default function GenericArchiveExtractor({
                   className="max-h-[480px] text-sm"
                   onDownload={downloadFile}
                 />
-              </div>
-            ) : (
-              <div className="rounded-md border border-dashed border-muted bg-card p-8 text-center text-sm text-muted-foreground">
-                <FolderOpen className="mx-auto mb-3 h-8 w-8" />
-                <p>Drop a {format.toUpperCase()} archive above to see its contents instantly.</p>
               </div>
             )}
           </div>
