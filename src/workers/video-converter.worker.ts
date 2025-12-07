@@ -276,4 +276,5 @@ class VideoConverterWorker {
   }
 }
 
-Comlink.expose(new VideoConverterWorker());
+// Expose the class, not an instance - let Comlink handle instantiation
+Comlink.expose(VideoConverterWorker);

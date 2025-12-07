@@ -212,6 +212,7 @@ export default defineConfig({
         "@jsquash/png",
         "@jsquash/webp",
         "7z-wasm",
+        "mediabunny",
       ],
     },
     worker: {

@@ -65,8 +65,9 @@ export function useVideoConverter(): UseVideoConverterReturn {
           { type: "module" },
         );
 
-        // Worker exposes an instance directly, not a class
-        workerApiRef.current = Comlink.wrap<any>(workerRef.current);
+        // Worker exposes the class, instantiate it
+        const WorkerClass = Comlink.wrap<any>(workerRef.current);
+        workerApiRef.current = await new WorkerClass();
       } catch (err) {
         console.error("Failed to initialize video converter worker:", err);
         setError("Failed to initialize converter");
