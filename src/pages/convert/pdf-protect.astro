@@ -1,0 +1,11 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import PdfProtect from "../../components/converters/PdfProtect";
+
+const title = "Protect PDF - Add Password Protection Online | FormatFuse";
+const description = "Add password protection to your PDF documents. Free, secure, and privacy-first PDF encryption tool that works entirely in your browser.";
+---
+
+<Layout title={title} description={description}>
+  <PdfProtect client:load />
+</Layout>

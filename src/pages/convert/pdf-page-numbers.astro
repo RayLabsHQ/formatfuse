@@ -1,0 +1,11 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import PdfPageNumbers from "../../components/converters/PdfPageNumbers";
+
+const title = "Add Page Numbers to PDF Online | FormatFuse";
+const description = "Add customizable page numbers to your PDF documents. Free, secure, and privacy-first PDF page numbering tool with full control over position and format.";
+---
+
+<Layout title={title} description={description}>
+  <PdfPageNumbers client:load />
+</Layout>

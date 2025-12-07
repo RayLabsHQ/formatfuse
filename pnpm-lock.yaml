@@ -1501,6 +1501,9 @@ packages:
     resolution: {integrity: sha512-YaBHJvT+T1DoP16puvWM6w46Lq3VhwKIJ8th5m1iEJyGh7mibk5dT7flBvMQ1EH1LYmMzXJ+OUhu+8wQ9I6u7g==}
     engines: {node: '>= 10'}
 
+  '@neslinesli93/qpdf-wasm@0.3.0':
+    resolution: {integrity: sha512-ObyTmabopTMwN6AGwrEkmDbdmM5wnwlRdn9jnJYQ2KbBUPdPDcfNf1QkcWFOVD+qIgSqILz9nK51e22T+x+gkQ==}
+
   '@nodelib/fs.scandir@2.1.5':
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
     engines: {node: '>= 8'}
@@ -7403,6 +7406,8 @@ snapshots:
       '@napi-rs/canvas-linux-x64-musl': 0.1.78
       '@napi-rs/canvas-win32-x64-msvc': 0.1.78
     optional: true
+
+  '@neslinesli93/qpdf-wasm@0.3.0': {}
 
   '@nodelib/fs.scandir@2.1.5':
     dependencies:
