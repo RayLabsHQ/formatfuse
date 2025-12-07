@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import {
   Download,
   X,
@@ -125,7 +125,6 @@ export default function VideoConverter({
   const [resizeWidth, setResizeWidth] = useState(1920);
   const [resizeHeight, setResizeHeight] = useState(1080);
   const [rotation, setRotation] = useState(90);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const {
     convert,
     getMetadata,
@@ -292,19 +291,6 @@ export default function VideoConverter({
         ),
       );
       toast.error(`Failed to process ${fileInfo.file.name}: ${errorMessage}`);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const droppedFiles = Array.from(e.dataTransfer.files);
-    handleFiles(droppedFiles);
-  };
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      handleFiles(Array.from(e.target.files));
     }
   };
 
@@ -510,24 +496,14 @@ export default function VideoConverter({
 
       {/* Drop Zone */}
       <FileDropZone
-        isDragging={isDragging}
-        onDragOver={(e) => {
-          e.preventDefault();
-          setIsDragging(true);
-        }}
-        onDragLeave={() => setIsDragging(false)}
-        onDrop={handleDrop}
-        onClick={() => fileInputRef.current?.click()}
-        acceptedFormats={VIDEO_FORMATS.map((f) => f.mime)}
-      />
-
-      <input
-        ref={fileInputRef}
-        type="file"
+        onFilesSelected={handleFiles}
         accept="video/*"
         multiple
-        onChange={handleFileSelect}
-        className="hidden"
+        isDragging={isDragging}
+        onDragStateChange={setIsDragging}
+        title="Drop videos here"
+        subtitle="or click to browse"
+        infoMessage="Supports MP4, WebM, MOV, and MKV formats"
       />
 
       {error && (
