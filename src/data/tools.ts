@@ -18,6 +18,9 @@ import {
   GitBranch,
   Package,
   Palette,
+  Video,
+  Film,
+  PlayCircle,
 } from "lucide-react";
 import uFuzzy from "@leeoniya/ufuzzy";
 
@@ -449,6 +452,118 @@ const videoToolsAll: Tool[] = [
   // Placeholder for future video tools
 ];
 
+// Video Tools (unfiltered - includes unimplemented for reference)
+const videoToolsAll: Tool[] = [
+  {
+    id: "video-converter",
+    name: "Universal Video Converter",
+    description: "Convert between MP4, WebM, MOV, MKV with advanced settings",
+    icon: Video,
+    isPopular: true,
+    isNew: true,
+    isImplemented: true,
+    category: "video",
+    route: "/tools/video-converter",
+  },
+  {
+    id: "video-compressor",
+    name: "Video Compressor",
+    description: "Reduce video file size while maintaining quality",
+    icon: FileDown,
+    isPopular: true,
+    isNew: true,
+    isImplemented: true,
+    category: "video",
+    route: "/tools/video-compressor",
+  },
+  {
+    id: "video-trimmer",
+    name: "Video Trimmer",
+    description: "Trim and cut videos to exact timestamps",
+    icon: Scissors,
+    isPopular: true,
+    isNew: true,
+    isImplemented: true,
+    category: "video",
+    route: "/tools/video-trimmer",
+  },
+  {
+    id: "video-thumbnail-generator",
+    name: "Video Thumbnail Generator",
+    description: "Extract multiple thumbnails from videos at different timestamps",
+    icon: Image,
+    isPopular: true,
+    isNew: true,
+    isImplemented: true,
+    category: "video",
+    route: "/tools/video-thumbnail-generator",
+  },
+  {
+    id: "video-resizer",
+    name: "Video Resizer",
+    description: "Resize videos to different resolutions (1080p, 720p, 480p)",
+    icon: Film,
+    isNew: true,
+    isImplemented: true,
+    category: "video",
+    route: "/tools/video-resizer",
+  },
+  {
+    id: "video-rotator",
+    name: "Rotate Video",
+    description: "Rotate and flip videos to correct orientation",
+    icon: PlayCircle,
+    isNew: true,
+    isImplemented: true,
+    category: "video",
+    route: "/tools/video-rotator",
+  },
+];
+
+// Video format conversions
+const videoFormats = ["mp4", "webm", "mov", "mkv"];
+const videoConversions: Tool[] = [];
+
+// Generate all video conversion combinations
+for (const from of videoFormats) {
+  for (const to of videoFormats) {
+    // Skip same format conversions except for MP4 (compression)
+    if (from === to && from !== "mp4") continue;
+
+    const fromName = from.toUpperCase();
+    const toName = to.toUpperCase();
+    const isSameFormat = from === to;
+
+    videoConversions.push({
+      id: `${from}-to-${to}`,
+      name: isSameFormat
+        ? `${fromName} Compressor`
+        : `${fromName} to ${toName}`,
+      description: isSameFormat
+        ? `Compress and optimize ${fromName} videos`
+        : `Convert ${fromName} videos to ${toName} format`,
+      icon: Video,
+      isPopular: isPopularVideoConversion(from, to),
+      isNew: true,
+      isImplemented: true,
+      category: "video",
+      route: `/convert/${from}-to-${to}`,
+    });
+  }
+}
+
+// Helper function for popular video conversions
+function isPopularVideoConversion(from: string, to: string): boolean {
+  const popular = [
+    "mp4-to-webm",
+    "webm-to-mp4",
+    "mov-to-mp4",
+    "mkv-to-mp4",
+    "mp4-to-mp4", // compression
+  ];
+  return popular.includes(`${from}-to-${to}`);
+}
+
 // Archive Tools (unfiltered - includes unimplemented for reference)
 const archiveToolsAll: Tool[] = [
   {
@@ -644,8 +759,8 @@ const otherImageToolsAll: Tool[] = [
 const filterImplemented = (tools: Tool[]) =>
   tools.filter((tool) => tool.isImplemented !== false);
 
-// Export filtered tools
-export const pdfTools = filterImplemented(pdfToolsAll);
+// Export filtered tools (document tools now merged into PDF)
+export const pdfTools = filterImplemented([...pdfToolsAll, ...documentToolsAll]);
 export const devTools = filterImplemented(devToolsAll);
 export const textTools = filterImplemented(textToolsAll);
 export const videoTools = filterImplemented(videoToolsAll);
@@ -666,6 +781,7 @@ export const imageTools: Tool[] = filterImplemented([
 export const allTools: Tool[] = filterImplemented([
   ...universalTools,
   ...pdfToolsAll,
+  ...documentToolsAll,
   ...otherImageToolsAll,
   ...imageConversions,
   ...videoToolsAll,

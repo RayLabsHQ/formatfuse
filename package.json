@@ -73,6 +73,7 @@
     "libarchive-wasm": "^1.2.0",
     "libheif-js": "^1.19.8",
     "lucide-react": "^0.542.0",
+    "mediabunny": "^1.25.7",
     "next-themes": "^0.4.6",
     "pako": "^2.1.0",
     "pdf-lib": "^1.17.1",
@@ -92,6 +93,8 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.6",
     "@fontsource/inter": "^5.2.6",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/react-hooks": "^8.0.1",
     "@types/archiver": "^6.0.3",
     "@types/file-saver": "^2.0.7",
     "@types/jsdom": "^21.1.7",
