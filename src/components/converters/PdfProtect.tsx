@@ -199,10 +199,10 @@ export default function PdfProtect() {
 
             <div className="p-3 bg-muted/30 rounded-lg space-y-2">
               <p className="text-sm text-muted-foreground">
-                <strong className="text-foreground">Note:</strong> Browser-side PDF encryption is not supported in this build yet. Attempts to protect will show an error so you don&apos;t get a false sense of security.
+                <strong className="text-foreground">Note:</strong> Protection runs locally in your browser using AES-256. Keep this password safe—we can&apos;t recover it for you.
               </p>
               <p className="text-xs text-muted-foreground">
-                For real password protection, use a desktop PDF tool until encryption support lands here.
+                Owner password matches the user password for compatibility. Use the Unlock tool later to remove protection.
               </p>
             </div>
           </div>

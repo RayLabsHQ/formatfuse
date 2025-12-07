@@ -1,18 +1,41 @@
 import * as Comlink from "comlink";
-import { PDFDocument } from "pdf-lib";
+import createQpdfModule from "@neslinesli93/qpdf-wasm";
+import qpdfWasmUrl from "@neslinesli93/qpdf-wasm/dist/qpdf.wasm?url";
 
 export interface ProtectOptions {
   userPassword: string;
   ownerPassword?: string;
-  permissions?: {
-    printing?: boolean;
-    modifying?: boolean;
-    copying?: boolean;
-    annotating?: boolean;
-    fillingForms?: boolean;
-    contentAccessibility?: boolean;
-    documentAssembly?: boolean;
-  };
+}
+
+let qpdfPromise: Promise<any> | null = null;
+
+const INPUT_PATH = "/input.pdf";
+const OUTPUT_PATH = "/output.pdf";
+
+async function getQpdf() {
+  if (!qpdfPromise) {
+    qpdfPromise = createQpdfModule({
+      locateFile: (path: string) => (path.endsWith(".wasm") ? qpdfWasmUrl : path),
+    });
+  }
+  return qpdfPromise;
+}
+
+function cleanupFS(qpdf: any) {
+  try {
+    if (qpdf?.FS?.analyzePath(INPUT_PATH).exists) {
+      qpdf.FS.unlink(INPUT_PATH);
+    }
+  } catch {
+    /* noop */
+  }
+  try {
+    if (qpdf?.FS?.analyzePath(OUTPUT_PATH).exists) {
+      qpdf.FS.unlink(OUTPUT_PATH);
+    }
+  } catch {
+    /* noop */
+  }
 }
 
 class PdfProtectWorker {
@@ -23,19 +46,45 @@ class PdfProtectWorker {
   ): Promise<Uint8Array> {
     onProgress?.(0);
 
-    // pdf-lib does not support applying real PDF encryption. Surface that
-    // limitation instead of claiming the file is protected.
-    try {
-      await PDFDocument.load(pdfData);
-    } catch (error) {
-      throw new Error("Unable to read PDF for protection.");
+    if (!options.userPassword?.trim()) {
+      throw new Error("Password is required to protect the PDF.");
     }
 
-    onProgress?.(50);
+    const userPassword = options.userPassword;
+    const ownerPassword = options.ownerPassword || options.userPassword;
 
-    throw new Error(
-      "Password protection isn't available in this browser build yet. Please use a desktop PDF tool for encryption.",
-    );
+    const qpdf = await getQpdf();
+
+    try {
+      qpdf.FS.writeFile(INPUT_PATH, pdfData);
+      onProgress?.(25);
+
+      const args = [
+        INPUT_PATH,
+        "--encrypt",
+        userPassword,
+        ownerPassword,
+        "256",
+        "--",
+        OUTPUT_PATH,
+      ];
+
+      qpdf.callMain(args);
+      onProgress?.(75);
+
+      const outputFile = qpdf.FS.readFile(OUTPUT_PATH);
+      onProgress?.(100);
+
+      return Comlink.transfer(new Uint8Array(outputFile), [outputFile.buffer]);
+    } catch (error: any) {
+      const message =
+        typeof error?.message === "string"
+          ? error.message
+          : "Failed to protect PDF.";
+      throw new Error(message);
+    } finally {
+      cleanupFS(qpdf);
+    }
   }
 
   async unlock(
@@ -45,24 +94,36 @@ class PdfProtectWorker {
   ): Promise<Uint8Array> {
     onProgress?.(0);
 
+    const qpdf = await getQpdf();
+
     try {
-      const pdfDoc = await PDFDocument.load(pdfData);
+      qpdf.FS.writeFile(INPUT_PATH, pdfData);
+      onProgress?.(25);
 
-      onProgress?.(50);
+      const args = [
+        "--password=" + (password || ""),
+        "--decrypt",
+        INPUT_PATH,
+        OUTPUT_PATH,
+      ];
 
-      // File wasn't encrypted; just return original content
-      const pdfBytes = await pdfDoc.save({
-        useObjectStreams: false,
-        addDefaultPage: false,
-      });
+      qpdf.callMain(args);
+      onProgress?.(75);
 
+      const outputFile = qpdf.FS.readFile(OUTPUT_PATH);
       onProgress?.(100);
 
-      return Comlink.transfer(new Uint8Array(pdfBytes), [pdfBytes.buffer]);
-    } catch (error) {
-      throw new Error(
-        "Unlocking encrypted PDFs isn't supported in this browser build. Use a desktop PDF tool to remove passwords.",
-      );
+      return Comlink.transfer(new Uint8Array(outputFile), [outputFile.buffer]);
+    } catch (error: any) {
+      const message =
+        typeof error?.message === "string" &&
+        (error.message.includes("password") ||
+          error.message.includes("Invalid"))
+          ? "Incorrect password or unable to decrypt this PDF."
+          : "Failed to unlock PDF.";
+      throw new Error(message);
+    } finally {
+      cleanupFS(qpdf);
     }
   }
 }

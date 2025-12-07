@@ -122,9 +122,7 @@ export default function PdfUnlock() {
                 </button>
               </div>
               <p className="text-xs text-muted-foreground">Leave blank if the PDF has no password</p>
-              <p className="text-xs text-muted-foreground">
-                Unlocking encrypted PDFs in-browser isn&apos;t supported in this build yet; you&apos;ll see an error if the file is protected.
-              </p>
+              <p className="text-xs text-muted-foreground">Unlocking runs locally; provide the correct password to decrypt.</p>
             </div>
           </div>
 
