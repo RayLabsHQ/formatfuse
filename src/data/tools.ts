@@ -425,7 +425,7 @@ const documentToolsAll: Tool[] = [
     icon: Lock,
     isImplemented: true,
     category: "pdf",
-    route: "/tools/pdf-protect",
+    route: "/convert/pdf-protect",
   },
   {
     id: "pdf-unlock",
@@ -434,7 +434,7 @@ const documentToolsAll: Tool[] = [
     icon: Shield,
     isImplemented: true,
     category: "pdf",
-    route: "/tools/pdf-unlock",
+    route: "/convert/pdf-unlock",
   },
 ];
 
