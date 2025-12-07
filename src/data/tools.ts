@@ -416,7 +416,29 @@ for (const from of colorFormats) {
   }
 }
 
-// Document/Text Tools (unfiltered - includes unimplemented for reference)
+// Document Tools (merged into PDF category for SEO - keeping URLs)
+const documentToolsAll: Tool[] = [
+  {
+    id: "pdf-protect",
+    name: "Protect PDF",
+    description: "Add password protection to PDF files",
+    icon: Lock,
+    isImplemented: true,
+    category: "pdf",
+    route: "/tools/pdf-protect",
+  },
+  {
+    id: "pdf-unlock",
+    name: "Unlock PDF",
+    description: "Remove password from protected PDFs",
+    icon: Shield,
+    isImplemented: true,
+    category: "pdf",
+    route: "/tools/pdf-unlock",
+  },
+];
+
+// Text Tools (placeholder - will be adding new text tools)
 const textToolsAll: Tool[] = [
   {
     id: "txt-to-pdf",
@@ -445,11 +467,6 @@ const textToolsAll: Tool[] = [
     category: "text",
     route: "/tools/markdown-to-html",
   },
-];
-
-// Video Tools (unfiltered - includes unimplemented for reference)
-const videoToolsAll: Tool[] = [
-  // Placeholder for future video tools
 ];
 
 // Video Tools (unfiltered - includes unimplemented for reference)
@@ -520,48 +537,82 @@ const videoToolsAll: Tool[] = [
   },
 ];
 
-// Video format conversions
-const videoFormats = ["mp4", "webm", "mov", "mkv"];
+// Video format conversions - comprehensive list for programmatic SEO
+// Input formats we can accept (browser FFmpeg.wasm support)
+const videoInputFormats = ["mp4", "webm", "mov", "mkv", "avi", "wmv", "flv", "3gp", "m4v", "ogv", "ts", "mts"];
+// Output formats we can produce (gif is for video-to-gif conversion only)
+const videoOutputFormats = ["mp4", "webm", "mov", "mkv", "gif"];
+// Quality-adjustable formats (same-format compression)
+const qualityVideoFormats = ["mp4", "webm"];
+// Audio extraction outputs
+const audioOutputFormats = ["mp3", "aac", "wav", "ogg", "flac", "m4a"];
+
 const videoConversions: Tool[] = [];
 
-// Generate all video conversion combinations
-for (const from of videoFormats) {
-  for (const to of videoFormats) {
-    // Skip same format conversions except for MP4 (compression)
-    if (from === to && from !== "mp4") continue;
+// Helper function for popular video conversions
+function isPopularVideoConversion(from: string, to: string): boolean {
+  const popular = [
+    "mp4-to-webm", "webm-to-mp4", "mov-to-mp4", "mkv-to-mp4",
+    "mp4-to-mp4", "avi-to-mp4", "wmv-to-mp4", "flv-to-mp4",
+    "mp4-to-gif", "mov-to-gif", "webm-to-gif",
+    "mp4-to-mp3", "mov-to-mp3", "mkv-to-mp3",
+  ];
+  return popular.includes(`${from}-to-${to}`);
+}
+
+// Generate video to video conversions
+for (const from of videoInputFormats) {
+  for (const to of videoOutputFormats) {
+    // Skip same format conversions except for quality-adjustable formats
+    if (from === to && !qualityVideoFormats.includes(from)) continue;
 
     const fromName = from.toUpperCase();
     const toName = to.toUpperCase();
     const isSameFormat = from === to;
+    const isToGif = to === "gif";
 
     videoConversions.push({
-      id: `${from}-to-${to}`,
+      id: `video-${from}-to-${to}`,
       name: isSameFormat
         ? `${fromName} Compressor`
+        : isToGif
+        ? `${fromName} to GIF`
         : `${fromName} to ${toName}`,
       description: isSameFormat
         ? `Compress and optimize ${fromName} videos`
+        : isToGif
+        ? `Convert ${fromName} videos to animated GIF`
         : `Convert ${fromName} videos to ${toName} format`,
+      icon: isToGif ? Image : Video,
+      isPopular: isPopularVideoConversion(from, to),
+      isNew: true,
+      isImplemented: true,
+      category: "video",
+      route: `/video-tools/${from}-to-${to}`,
+      searches: `${fromName} ${toName} convert converter video`,
+    });
+  }
+}
+
+// Generate video to audio extraction conversions
+for (const from of videoInputFormats.filter(f => f !== "gif")) {
+  for (const to of audioOutputFormats) {
+    const fromName = from.toUpperCase();
+    const toName = to.toUpperCase();
+
+    videoConversions.push({
+      id: `video-${from}-to-${to}`,
+      name: `${fromName} to ${toName}`,
+      description: `Extract ${toName} audio from ${fromName} videos`,
       icon: Video,
       isPopular: isPopularVideoConversion(from, to),
       isNew: true,
       isImplemented: true,
       category: "video",
-      route: `/convert/${from}-to-${to}`,
+      route: `/video-tools/${from}-to-${to}`,
+      searches: `${fromName} ${toName} extract audio converter video`,
     });
   }
-}
-
-// Helper function for popular video conversions
-function isPopularVideoConversion(from: string, to: string): boolean {
-  const popular = [
-    "mp4-to-webm",
-    "webm-to-mp4",
-    "mov-to-mp4",
-    "mkv-to-mp4",
-    "mp4-to-mp4", // compression
-  ];
-  return popular.includes(`${from}-to-${to}`);
 }
 
 // Archive Tools (unfiltered - includes unimplemented for reference)
@@ -763,7 +814,7 @@ const filterImplemented = (tools: Tool[]) =>
 export const pdfTools = filterImplemented([...pdfToolsAll, ...documentToolsAll]);
 export const devTools = filterImplemented(devToolsAll);
 export const textTools = filterImplemented(textToolsAll);
-export const videoTools = filterImplemented(videoToolsAll);
+export const videoTools = filterImplemented([...videoToolsAll, ...videoConversions]);
 export const archiveTools = filterImplemented(archiveToolsAll);
 export const otherImageTools = filterImplemented(otherImageToolsAll);
 
@@ -785,6 +836,7 @@ export const allTools: Tool[] = filterImplemented([
   ...otherImageToolsAll,
   ...imageConversions,
   ...videoToolsAll,
+  ...videoConversions,
   ...textToolsAll,
   ...devToolsAll,
   ...archiveToolsAll,
