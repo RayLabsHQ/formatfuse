@@ -27,6 +27,7 @@ import {
 } from "../../hooks/useArchiveExtractionController";
 import { ArchiveFileTree } from "./ArchiveFileTree";
 import type { ArchiveFileNode } from "../../lib/archive/fileTree";
+import { isArchiveSupported } from "../../lib/archive/support";
 
 const features = [
   {
@@ -132,14 +133,19 @@ export default function ZipExtract() {
       dismissPassword,
       setError,
       warmupEngines,
+      reset,
     },
     helpers,
   } = useArchiveExtractionController({ format: "zip", toolId: "zip-extract" });
+  const { fetchFileData } = helpers;
+  const support = useMemo(() => isArchiveSupported(), []);
+  const unsupported = !support.supported;
 
   const downloadFile = useCallback(async (node: ArchiveFileNode) => {
-    if (!node.fileData) return;
+    const fileData = await fetchFileData(node);
+    if (!fileData) return;
     try {
-      const blob = new Blob([node.fileData]);
+      const blob = new Blob([fileData]);
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
       link.download = node.name;
@@ -158,11 +164,13 @@ export default function ZipExtract() {
 
   const bundleFiles = useCallback(async (nodes: ArchiveFileNode[], archiveLabel: string) => {
     const zip = new JSZip();
-    nodes.forEach((node) => {
-      if (!node.isDirectory && node.fileData) {
-        zip.file(node.path, node.fileData);
+    for (const node of nodes) {
+      if (node.isDirectory) continue;
+      const data = await fetchFileData(node);
+      if (data) {
+        zip.file(node.path, data);
       }
-    });
+    }
     const blob = await zip.generateAsync({ type: "blob" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
@@ -176,7 +184,7 @@ export default function ZipExtract() {
     const flat = helpers.flattenNodes();
     const nodes = flat.filter((node) => selectedPaths.has(node.path));
 
-    if (nodes.length === 1 && nodes[0].fileData) {
+    if (nodes.length === 1) {
       await downloadFile(nodes[0]);
       return;
     }
@@ -249,18 +257,32 @@ export default function ZipExtract() {
 
         <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
           <div className="space-y-6">
-            <div onPointerEnter={warmupEngines} onFocusCapture={warmupEngines}>
-              <FileDropZone
-                accept=".zip,.zipx"
-                multiple={false}
-                isDragging={isDragging}
-                onDragStateChange={setIsDragging}
-                onFilesSelected={handleFilesSelected}
-                title="Drop your ZIP archive"
-                subtitle="We extract everything locally in your browser."
-                primaryButtonLabel="Browse ZIP file"
-              />
-            </div>
+            {unsupported && (
+              <div className="flex items-start gap-3 rounded-md border border-amber-300/60 bg-amber-50/80 p-4 text-sm text-amber-800 shadow-sm">
+                <AlertCircle className="mt-0.5 h-5 w-5 text-amber-500" />
+                <div className="space-y-1">
+                  <p className="font-semibold">Browser not supported</p>
+                  <p className="text-amber-700/90">
+                    {support.reason ?? "These archive tools require a modern browser with WebAssembly and module worker support. Please try the latest Chrome, Firefox, Safari, or Edge (Chromium)."}
+                  </p>
+                </div>
+              </div>
+            )}
+            {!isLoading && files.length === 0 && (
+              <div onPointerEnter={warmupEngines} onFocusCapture={warmupEngines}>
+                <FileDropZone
+                  accept=".zip,.zipx"
+                  multiple={false}
+                  isDragging={isDragging}
+                  onDragStateChange={setIsDragging}
+                  onFilesSelected={unsupported ? () => undefined : handleFilesSelected}
+                  title="Drop your ZIP archive"
+                  subtitle="We extract everything locally in your browser."
+                  primaryButtonLabel="Browse ZIP file"
+                  disabled={unsupported}
+                />
+              </div>
+            )}
 
             {error && (
               <div className="flex items-start gap-3 rounded-md border border-destructive/30 bg-destructive/10 p-4 text-sm">
@@ -297,6 +319,9 @@ export default function ZipExtract() {
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
+                    <Button onClick={reset} variant="ghost">
+                      Extract another
+                    </Button>
                     <Button onClick={selectAll} variant="outline" className="gap-2">
                       Select all
                     </Button>
@@ -346,7 +371,7 @@ export default function ZipExtract() {
                   onToggleSelect={toggleSelect}
                   getNodeMeta={(node) => (node.isDirectory ? "Directory" : formatBytes(node.size))}
                   renderActions={(node) =>
-                    node.isDirectory || !node.fileData ? null : (
+                    node.isDirectory ? null : (
                       <Button
                         variant="ghost"
                         size="sm"
@@ -367,11 +392,6 @@ export default function ZipExtract() {
               </div>
             )}
 
-            {files.length === 0 && !isLoading && !error && (
-              <div className="rounded-2xl border border-dashed border-border/40 bg-card/60 p-8 text-center text-sm text-muted-foreground">
-                Drop a ZIP archive above to examine and extract its contents instantly.
-              </div>
-            )}
           </div>
 
           <aside className="space-y-6">

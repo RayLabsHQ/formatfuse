@@ -215,6 +215,26 @@ const pdfToolsAll: Tool[] = [
     category: "pdf",
     route: "/convert/pdf-rotate",
   },
+  {
+    id: "markdown-to-pdf",
+    name: "Markdown to PDF",
+    description: "Convert Markdown to PDF with live preview",
+    icon: Code,
+    isPopular: true,
+    isImplemented: true,
+    category: "pdf",
+    route: "/convert/markdown-to-pdf",
+  },
+  {
+    id: "pdf-to-markdown",
+    name: "PDF to Markdown",
+    description: "Extract text from PDF and convert to formatted Markdown",
+    icon: FileText,
+    isPopular: true,
+    isImplemented: true,
+    category: "pdf",
+    route: "/convert/pdf-to-markdown",
+  },
 ];
 
 // Developer Tools (unfiltered - includes unimplemented for reference)
@@ -396,15 +416,15 @@ for (const from of colorFormats) {
   }
 }
 
-// Document Tools (now under PDF Tools category)
-const documentToolsAll: Tool[] = [
+// Document/Text Tools (unfiltered - includes unimplemented for reference)
+const textToolsAll: Tool[] = [
   {
     id: "txt-to-pdf",
     name: "Text to PDF",
     description: "Convert plain text files to PDF",
     icon: FileText,
     isImplemented: false, // TODO: Not implemented
-    category: "pdf",
+    category: "text",
     route: "/convert/txt-to-pdf",
   },
   {
@@ -413,7 +433,7 @@ const documentToolsAll: Tool[] = [
     description: "Convert Rich Text Format files",
     icon: FileText,
     isImplemented: false, // TODO: Not implemented
-    category: "pdf",
+    category: "text",
     route: "/tools/rtf-converter",
   },
   {
@@ -422,29 +442,14 @@ const documentToolsAll: Tool[] = [
     description: "Convert Markdown to HTML format",
     icon: Code,
     isImplemented: false, // TODO: Not implemented
-    category: "pdf",
+    category: "text",
     route: "/tools/markdown-to-html",
   },
-  {
-    id: "markdown-to-pdf",
-    name: "Markdown to PDF",
-    description: "Convert Markdown to PDF with live preview",
-    icon: Code,
-    isPopular: true,
-    isImplemented: true,
-    category: "pdf",
-    route: "/convert/markdown-to-pdf",
-  },
-  {
-    id: "pdf-to-markdown",
-    name: "PDF to Markdown",
-    description: "Extract text from PDF and convert to formatted Markdown",
-    icon: FileText,
-    isPopular: true,
-    isImplemented: true,
-    category: "pdf",
-    route: "/convert/pdf-to-markdown",
-  },
+];
+
+// Video Tools (unfiltered - includes unimplemented for reference)
+const videoToolsAll: Tool[] = [
+  // Placeholder for future video tools
 ];
 
 // Video Tools (unfiltered - includes unimplemented for reference)
@@ -757,9 +762,13 @@ const filterImplemented = (tools: Tool[]) =>
 // Export filtered tools (document tools now merged into PDF)
 export const pdfTools = filterImplemented([...pdfToolsAll, ...documentToolsAll]);
 export const devTools = filterImplemented(devToolsAll);
-export const videoTools = filterImplemented([...videoToolsAll, ...videoConversions]);
+export const textTools = filterImplemented(textToolsAll);
+export const videoTools = filterImplemented(videoToolsAll);
 export const archiveTools = filterImplemented(archiveToolsAll);
 export const otherImageTools = filterImplemented(otherImageToolsAll);
+
+// Check if we're in development mode
+const isDev = import.meta.env?.DEV ?? false;
 
 // Combine all tools with universal tools first
 export const imageTools: Tool[] = filterImplemented([
@@ -775,13 +784,13 @@ export const allTools: Tool[] = filterImplemented([
   ...documentToolsAll,
   ...otherImageToolsAll,
   ...imageConversions,
-  ...devToolsAll,
   ...videoToolsAll,
-  ...videoConversions,
+  ...textToolsAll,
+  ...devToolsAll,
   ...archiveToolsAll,
 ]);
 
-// Categories for filtering (with unimplemented tools filtered out)
+// Categories for filtering (show empty categories in dev mode only)
 export const categories = [
   {
     id: "pdf",
@@ -805,20 +814,27 @@ export const categories = [
     bgColor: "bg-purple-500/10",
   },
   {
+    id: "text",
+    name: "Text Tools",
+    tools: textTools,
+    color: "border-tool-doc text-tool-doc",
+    bgColor: "bg-tool-doc/10",
+  },
+  {
     id: "dev",
-    name: "Developer Tools",
+    name: "Developer",
     tools: devTools,
     color: "border-accent text-accent",
     bgColor: "bg-accent/10",
   },
   {
     id: "archive",
-    name: "Archive Tools",
+    name: "Archive",
     tools: archiveTools,
     color: "border-amber-500 text-amber-500",
     bgColor: "bg-amber-500/10",
   },
-].filter((cat) => cat.tools.length > 0); // Only show categories with tools
+].filter((cat) => isDev || cat.tools.length > 0); // Show empty categories in dev mode
 
 const categoryNameMap = new Map(categories.map((cat) => [cat.id, cat.name]));
 

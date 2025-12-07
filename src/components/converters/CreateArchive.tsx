@@ -208,6 +208,7 @@ export default function CreateArchive() {
           format: "zip",
           files: payload,
           password: trimmedPassword,
+          compressionLevel,
         });
 
         if (!result.ok) {

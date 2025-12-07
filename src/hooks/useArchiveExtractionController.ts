@@ -2,7 +2,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { RefObject } from "react";
 
 import { captureError, captureEvent } from "../lib/posthog";
-import type { ArchiveEngine, ArchiveFormat, ExtractRequest, ExtractResult } from "../lib/archive/types";
+import type {
+  ArchiveEngine,
+  ArchiveFormat,
+  ExtractRequest,
+  ExtractResult,
+  FetchEntryResult,
+} from "../lib/archive/types";
 import {
   buildArchiveTree,
   computeArchiveStats,
@@ -14,6 +20,8 @@ import { useArchiveExtractor } from "./useArchiveExtractor";
 
 const LARGE_FILE_WARNING_THRESHOLD_BYTES = 1.5 * 1024 * 1024 * 1024; // ~1.5 GB
 const MAX_BROWSER_FILE_SIZE_BYTES = 2_000_000_000; // ~1.86 GB browser array buffer limit
+const MOBILE_FILE_SIZE_LIMIT_BYTES = 800 * 1024 * 1024; // ~800 MB
+const IOS_FILE_SIZE_LIMIT_BYTES = 500 * 1024 * 1024; // ~500 MB
 
 export interface ExtractionMetadata {
   engine: ArchiveEngine;
@@ -73,6 +81,7 @@ export interface ArchiveExtractionControllerReturn {
   };
   helpers: {
     flattenNodes: () => ArchiveFileNode[];
+    fetchFileData: (node: ArchiveFileNode) => Promise<Uint8Array | null>;
   };
 }
 
@@ -87,11 +96,39 @@ function mapPasswordReason(message: string): "missing" | "incorrect" | undefined
   return undefined;
 }
 
+function formatBytesShort(bytes: number): string {
+  if (!Number.isFinite(bytes) || bytes <= 0) return "0 B";
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  const exponent = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+  const value = bytes / 1024 ** exponent;
+  return `${value.toFixed(value < 10 && exponent > 0 ? 1 : 0)} ${units[exponent]}`;
+}
+
+function detectSizeLimit(): number {
+  if (typeof navigator === "undefined") return MAX_BROWSER_FILE_SIZE_BYTES;
+  const ua = navigator.userAgent.toLowerCase();
+  const deviceMemory = (navigator as unknown as { deviceMemory?: number }).deviceMemory;
+
+  if (/iphone|ipad|ipod/.test(ua)) {
+    return IOS_FILE_SIZE_LIMIT_BYTES;
+  }
+
+  if (/android|mobile/.test(ua)) {
+    return MOBILE_FILE_SIZE_LIMIT_BYTES;
+  }
+
+  if (typeof deviceMemory === "number" && deviceMemory > 0 && deviceMemory <= 4) {
+    return 1_000_000_000; // ~1 GB on low-memory desktops
+  }
+
+  return MAX_BROWSER_FILE_SIZE_BYTES;
+}
+
 export function useArchiveExtractionController(
   config: ArchiveExtractionControllerConfig,
 ): ArchiveExtractionControllerReturn {
   const { format, toolId } = config;
-  const { extract, preload, isReady } = useArchiveExtractor();
+  const { extract, preload, isReady, fetchEntry, release } = useArchiveExtractor();
 
   const [files, setFiles] = useState<ArchiveFileNode[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -105,12 +142,23 @@ export function useArchiveExtractionController(
   const [pendingPassword, setPendingPassword] = useState<PendingPasswordState | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [processingWarning, setProcessingWarning] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
   const passwordInputRef = useRef<HTMLInputElement>(null);
   const lastSuccessfulPasswordRef = useRef<string | null>(null);
   const lastFileNameRef = useRef<string | null>(null);
+  const lastFileSignatureRef = useRef<string | null>(null);
+  const sizeLimitBytes = useMemo(() => detectSizeLimit(), []);
+
+  const computeFileSignature = useCallback((file: File) => {
+    const modified = typeof file.lastModified === "number" ? file.lastModified : 0;
+    return `${file.name}::${file.size}::${modified}`;
+  }, []);
 
   const reset = useCallback(() => {
+    if (sessionId) {
+      void release(sessionId);
+    }
     setFiles([]);
     setSelectedPaths(new Set());
     setExpandedPaths(new Set());
@@ -119,9 +167,11 @@ export function useArchiveExtractionController(
     setPasswordError(null);
     setSourceFileSize(null);
     setProcessingWarning(null);
+    setSessionId(null);
     lastSuccessfulPasswordRef.current = null;
     lastFileNameRef.current = null;
-  }, []);
+    lastFileSignatureRef.current = null;
+  }, [release, sessionId]);
 
   const handleExtractionSuccess = useCallback(
     (file: File, result: ExtractResult, passwordUsed: boolean) => {
@@ -187,18 +237,20 @@ export function useArchiveExtractionController(
         format: result.format,
         encrypted: result.encrypted,
       });
+      setSessionId(result.sessionId);
       setPendingPassword(null);
       setPasswordError(null);
       setProcessingWarning(null);
       lastFileNameRef.current = file.name;
+      lastFileSignatureRef.current = computeFileSignature(file);
     },
-    [format, toolId, setProcessingWarning],
+    [computeFileSignature, format, toolId, setProcessingWarning],
   );
 
   const readFileBuffer = useCallback(async (file: File) => {
-    if (file.size >= MAX_BROWSER_FILE_SIZE_BYTES) {
+    if (file.size >= sizeLimitBytes) {
       throw new Error(
-        "This archive is too large for the browser to read (approx 2 GB limit). Try splitting the file or using a desktop archive tool.",
+        `This archive is too large for this browser/device (approx ${formatBytesShort(sizeLimitBytes)} limit). Try splitting the file or using a desktop archive tool.`,
       );
     }
 
@@ -219,7 +271,7 @@ export function useArchiveExtractionController(
       }
       throw err;
     }
-  }, []);
+  }, [sizeLimitBytes]);
 
   const performExtraction = useCallback(
     async (file: File, password?: string | null) => {
@@ -231,16 +283,33 @@ export function useArchiveExtractionController(
       setFiles([]);
       setSelectedPaths(new Set());
       setExpandedPaths(new Set());
+      if (sessionId) {
+        void release(sessionId);
+        setSessionId(null);
+      }
 
       try {
         await preload();
-        if (file.size >= MAX_BROWSER_FILE_SIZE_BYTES) {
-          setProcessingWarning(
-            "This archive exceeds what browsers can load (approx 2 GB limit). Try splitting the file or using a desktop archive tool.",
+        const warningThreshold = Math.min(LARGE_FILE_WARNING_THRESHOLD_BYTES, sizeLimitBytes * 0.75);
+        if (file.size >= sizeLimitBytes) {
+          const limitText = formatBytesShort(sizeLimitBytes);
+          setError(
+            `This archive is too large for your current browser/device (roughly ${limitText} limit). Try splitting the file or using a desktop archive tool.`,
           );
-        } else if (file.size >= LARGE_FILE_WARNING_THRESHOLD_BYTES) {
+          captureEvent("archive_extract_failed", {
+            tool: toolId,
+            format,
+            fileName: file.name,
+            fileSize: file.size,
+            stage: "preflight",
+            code: "FILE_TOO_LARGE",
+            recoverable: false,
+          });
+          setIsLoading(false);
+          return;
+        } else if (file.size >= warningThreshold) {
           setProcessingWarning(
-            "This archive is quite large. Browsers usually handle up to about 2–3 GB; if extraction fails, try closing other apps or splitting the archive.",
+            `This archive is quite large for your device. Browsers often fail above about ${formatBytesShort(sizeLimitBytes)}; if extraction fails, try closing other tabs or splitting the archive.`,
           );
         } else {
           setProcessingWarning(null);
@@ -280,6 +349,7 @@ export function useArchiveExtractionController(
       readFileBuffer,
       toolId,
       setProcessingWarning,
+      sizeLimitBytes,
     ],
   );
 
@@ -300,13 +370,16 @@ export function useArchiveExtractionController(
       if (!file) return;
 
       if (lastFileNameRef.current === file.name && lastSuccessfulPasswordRef.current) {
-        void performExtraction(file, lastSuccessfulPasswordRef.current);
-        return;
+        const signature = computeFileSignature(file);
+        if (signature === lastFileSignatureRef.current) {
+          void performExtraction(file, lastSuccessfulPasswordRef.current);
+          return;
+        }
       }
 
       void performExtraction(file);
     },
-    [format, performExtraction, toolId],
+    [computeFileSignature, format, performExtraction, toolId],
   );
 
   const toggleExpand = useCallback((path: string) => {
@@ -389,6 +462,44 @@ export function useArchiveExtractionController(
     return computeArchiveStats(files);
   }, [files]);
 
+  useEffect(() => {
+    return () => {
+      if (sessionId) {
+        void release(sessionId);
+      }
+    };
+  }, [release, sessionId]);
+
+  const fetchFileData = useCallback(
+    async (node: ArchiveFileNode): Promise<Uint8Array | null> => {
+      if (node.isDirectory) return null;
+      if (node.fileData) return node.fileData;
+      if (!sessionId) {
+        setError("We lost the extraction session. Please re-open the archive.");
+        return null;
+      }
+      try {
+        const result = await fetchEntry(sessionId, node.path);
+        if (!result.ok || !result.data) {
+          setError(result.ok ? "File data not available." : result.message);
+          return null;
+        }
+        return new Uint8Array(result.data);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Failed to load file data";
+        setError(message);
+        captureError(err, {
+          tool: toolId,
+          format,
+          fileName: node.name,
+          stage: "fetch-entry",
+        });
+        return null;
+      }
+    },
+    [fetchEntry, format, sessionId, setError, toolId],
+  );
+
   return {
     state: {
       archiveName,
@@ -424,6 +535,7 @@ export function useArchiveExtractionController(
     },
     helpers: {
       flattenNodes: () => flattenArchiveNodes(files),
+      fetchFileData,
     },
   };
 }

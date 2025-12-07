@@ -7,12 +7,20 @@ import type {
   ExtractFailure,
   WorkerArchiveEntry,
   ArchiveFormat,
+  ArchiveEngine,
 } from "../lib/archive/types";
 
 import { ungzip } from "pako";
 import type { LibarchiveWasm } from "libarchive-wasm";
 import type { ArchiveReader as ArchiveReaderType } from "libarchive-wasm";
 import type { SevenZipModule } from "7z-wasm";
+
+/** Clone a Uint8Array's underlying buffer as a proper ArrayBuffer (not SharedArrayBuffer) */
+function toArrayBuffer(data: Uint8Array): ArrayBuffer {
+  const buf = new ArrayBuffer(data.byteLength);
+  new Uint8Array(buf).set(data);
+  return buf;
+}
 
 export class ArchiveExtractorWorker {
   private libarchivePromise: Promise<LibarchiveWasm> | null = null;
@@ -23,10 +31,105 @@ export class ArchiveExtractorWorker {
 
   private lastSevenZipStderr: string[] = [];
 
+  private activeSession: {
+    id: string;
+    engine: ArchiveEngine;
+    cleanup: () => void;
+    fetch: (path: string) => ArrayBuffer | null;
+  } | null = null;
+
+  async warmup(): Promise<void> {
+    await Promise.all([this.ensureLibarchive(), this.ensureSevenZip()]);
+  }
+
+  private nextSessionId(): string {
+    if (typeof crypto !== "undefined" && "randomUUID" in crypto && typeof crypto.randomUUID === "function") {
+      return crypto.randomUUID();
+    }
+    return `sess-${Date.now().toString(16)}-${Math.random().toString(16).slice(2)}`;
+  }
+
+  private async peekStream(stream?: ReadableStream<Uint8Array> | null): Promise<Uint8Array | null> {
+    if (!stream) return null;
+    const reader = stream.getReader();
+    const { done, value } = await reader.read();
+    if (done || !value) {
+      await reader.releaseLock();
+      return null;
+    }
+    // Recreate a new stream with the peeked chunk + the rest
+    const remaining = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(value);
+        (async () => {
+          while (true) {
+            const { done: d, value: v } = await reader.read();
+            if (d) {
+              controller.close();
+              break;
+            }
+            if (v) controller.enqueue(v);
+          }
+          await reader.releaseLock();
+        })().catch(() => controller.error(new Error("Stream error")));
+      },
+    });
+    // Replace the original stream reference with the reconstructed one
+    (stream as any).getReader = remaining.getReader.bind(remaining);
+    return value;
+  }
+
+  private async streamToUint8Array(stream?: ReadableStream<Uint8Array> | null, size?: number): Promise<Uint8Array> {
+    if (!stream) throw new Error("No stream provided for archive data");
+    const reader = stream.getReader();
+    const chunks: Uint8Array[] = [];
+    let total = 0;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (value) {
+        chunks.push(value);
+        total += value.byteLength;
+      }
+      if (typeof size === "number" && total >= size) break;
+    }
+    await reader.releaseLock();
+    const result = new Uint8Array(total);
+    let offset = 0;
+    for (const chunk of chunks) {
+      result.set(chunk, offset);
+      offset += chunk.byteLength;
+    }
+    return result;
+  }
+
+  private async writeStreamToFs(module: SevenZipModule, path: string, request: ExtractRequest) {
+    if (!request.stream) {
+      throw new Error("No stream available for archive input");
+    }
+    const reader = request.stream.getReader();
+    const CHUNK_SIZE = 128 * 1024;
+    module.FS.writeFile(path, new Uint8Array());
+    let position = 0;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (value && value.byteLength > 0) {
+        module.FS.writeFile(path, value, { flags: "a" });
+        position += value.byteLength;
+      }
+    }
+    await reader.releaseLock();
+    // Ensure file size is set (some FS impls need this)
+    if (module.FS.truncate) {
+      module.FS.truncate(path, position);
+    }
+  }
+
   private async ensureLibarchive(): Promise<LibarchiveWasm> {
     if (!this.libarchivePromise) {
       this.libarchivePromise = (async () => {
-        const { libarchiveWasm } = await import("libarchive-wasm");
+      const { libarchiveWasm } = await import("libarchive-wasm");
         const nodeWasmPath = typeof window === "undefined"
           ? new URL("../../public/libarchive.wasm", import.meta.url).pathname
           : null;
@@ -77,6 +180,7 @@ export class ArchiveExtractorWorker {
 
   async extract(request: ExtractRequest): Promise<ExtractResult> {
     try {
+      this.releaseCurrentSession();
       return await this.handleExtract(request);
     } catch (error) {
       const failure: ExtractFailure = {
@@ -89,12 +193,28 @@ export class ArchiveExtractorWorker {
     }
   }
 
+  private releaseCurrentSession() {
+    if (this.activeSession) {
+      try {
+        this.activeSession.cleanup();
+      } catch (err) {
+        // ignore cleanup errors
+      }
+      this.activeSession = null;
+    }
+  }
+
   private async handleExtract(request: ExtractRequest): Promise<ExtractResult> {
-    const data = new Uint8Array(request.buffer);
-    const detection = detectArchiveFormat(data, request.fileName);
+    const sourceBuffer = request.buffer ? new Uint8Array(request.buffer) : null;
+    const detectionSource = sourceBuffer ?? (request.stream ? await this.peekStream(request.stream) : null);
+    if (!detectionSource) {
+      throw new Error("No archive data provided");
+    }
+    const detection = detectArchiveFormat(detectionSource, request.fileName);
 
     if (isSingleFileCompression(detection.format) && detection.format.format === "gz") {
-      const single = await this.extractSingle(data, request, detection.format);
+      const gzData = sourceBuffer ?? (await this.streamToUint8Array(request.stream, request.size));
+      const single = await this.extractSingle(gzData, request, detection.format);
       return this.withTransfer(single);
     }
 
@@ -103,7 +223,7 @@ export class ArchiveExtractorWorker {
     const tryLibarchiveFirst = shouldTryLibarchiveFirst(detection.format);
 
     if (isSingleFileCompression(detection.format) && detection.format.format !== "gz") {
-      const sevenZipResult = await this.trySevenZip(data, request, detection.format);
+      const sevenZipResult = await this.trySevenZip(sourceBuffer, request, detection.format);
       if (sevenZipResult.ok) {
         if (sevenZipResult.entries.length === 1) {
           const desiredName = inferOutputName(request.fileName);
@@ -123,7 +243,7 @@ export class ArchiveExtractorWorker {
     }
 
     if (tryLibarchiveFirst) {
-      const libarchiveResult = await this.tryLibarchive(data, request, detection.format);
+      const libarchiveResult = await this.tryLibarchive(sourceBuffer, request, detection.format);
       if (libarchiveResult.ok) {
         return this.withTransfer(libarchiveResult);
       }
@@ -133,7 +253,7 @@ export class ArchiveExtractorWorker {
       }
     }
 
-    const sevenZipResult = await this.trySevenZip(data, request, detection.format);
+    const sevenZipResult = await this.trySevenZip(sourceBuffer, request, detection.format);
     if (sevenZipResult.ok) {
       return this.withTransfer(sevenZipResult);
     }
@@ -141,7 +261,7 @@ export class ArchiveExtractorWorker {
     attempts.push(sevenZipResult);
 
     if (!tryLibarchiveFirst) {
-      const libarchiveResult = await this.tryLibarchive(data, request, detection.format);
+      const libarchiveResult = await this.tryLibarchive(sourceBuffer, request, detection.format);
       if (libarchiveResult.ok) {
         return this.withTransfer(libarchiveResult);
       }
@@ -193,6 +313,7 @@ export class ArchiveExtractorWorker {
     request: ExtractRequest,
     format: ArchiveFormat,
   ): Promise<ExtractSuccess> {
+    const sessionId = this.nextSessionId();
     const outputName = inferOutputName(request.fileName);
     let decompressed: Uint8Array;
 
@@ -204,12 +325,27 @@ export class ArchiveExtractorWorker {
         throw new Error(`Unsupported single-file format ${format.format}`);
     }
 
+    const dataBuffer = toArrayBuffer(decompressed);
+    this.activeSession = {
+      id: sessionId,
+      engine: "native",
+      cleanup: () => {
+        // allow GC
+      },
+      fetch: (path: string) => {
+        if (path === outputName) {
+          return dataBuffer;
+        }
+        return null;
+      },
+    };
+
     const entry: WorkerArchiveEntry = {
       path: outputName,
       size: decompressed.byteLength,
       isDirectory: false,
       lastModified: Date.now(),
-      data: decompressed.buffer,
+      data: dataBuffer,
     };
 
     return {
@@ -218,20 +354,24 @@ export class ArchiveExtractorWorker {
       engine: "native",
       format,
       warnings: [],
+      sessionId,
     };
   }
 
   private async tryLibarchive(
-    data: Uint8Array,
+    data: Uint8Array | null,
     request: ExtractRequest,
     format: ArchiveFormat,
   ): Promise<ExtractResult> {
     let reader: ArchiveReaderType | null = null;
+    const dataMap = new Map<string, ArrayBuffer>();
+    const sessionId = this.nextSessionId();
 
     try {
       const mod = await this.ensureLibarchive();
       const { ArchiveReader } = await import("libarchive-wasm");
-      reader = new ArchiveReader(mod, new Int8Array(data), request.password ?? undefined);
+      const archiveData = data ?? (await this.streamToUint8Array(request.stream, request.size));
+      reader = new ArchiveReader(mod, new Int8Array(archiveData), request.password ?? undefined);
 
       const entries: WorkerArchiveEntry[] = [];
       for (const entry of reader.entries()) {
@@ -246,6 +386,7 @@ export class ArchiveExtractorWorker {
             const read = entry.readData();
             if (read) {
               payload = new Uint8Array(read);
+              dataMap.set(path, toArrayBuffer(payload));
             }
           } catch (err) {
             entry.skipData();
@@ -260,12 +401,20 @@ export class ArchiveExtractorWorker {
           size,
           isDirectory,
           lastModified: entry.getModificationTime?.() ?? null,
-          data: payload?.buffer,
         });
       }
 
       reader.free();
       reader = null;
+
+      this.activeSession = {
+        id: sessionId,
+        engine: "libarchive",
+        cleanup: () => {
+          dataMap.clear();
+        },
+        fetch: (path: string) => dataMap.get(path) ?? null,
+      };
 
       return {
         ok: true,
@@ -274,6 +423,7 @@ export class ArchiveExtractorWorker {
         warnings: [],
         format,
         encrypted: Boolean(request.password && request.password.length > 0),
+        sessionId,
       } satisfies ExtractSuccess;
     } catch (error) {
       if (reader) {
@@ -341,7 +491,7 @@ export class ArchiveExtractorWorker {
   }
 
   private async trySevenZip(
-    data: Uint8Array,
+    data: Uint8Array | null,
     request: ExtractRequest,
     format: ArchiveFormat,
   ): Promise<ExtractResult> {
@@ -351,9 +501,14 @@ export class ArchiveExtractorWorker {
 
     const archiveName = `input-${Date.now()}.bin`;
     const outputDir = `/output-${Date.now().toString(16)}`;
+    const sessionId = this.nextSessionId();
 
     try {
-      module.FS.writeFile(archiveName, data);
+      if (data) {
+        module.FS.writeFile(archiveName, data);
+      } else {
+        await this.writeStreamToFs(module, archiveName, request);
+      }
       try {
         module.FS.mkdir(outputDir);
       } catch (error) {
@@ -389,7 +544,33 @@ export class ArchiveExtractorWorker {
         this.cleanupSevenZip(module, archiveName, outputDir);
         return failure;
       }
-      this.cleanupSevenZip(module, archiveName, outputDir);
+      try {
+        module.FS.unlink(archiveName);
+      } catch (err) {
+        // ignore
+      }
+
+      this.activeSession = {
+        id: sessionId,
+        engine: "sevenZip",
+        cleanup: () => {
+          this.cleanupSevenZip(module, archiveName, outputDir);
+        },
+        fetch: (path: string) => {
+          const normalized = path.replace(/\\+/g, "/");
+          const fullPath = `${outputDir}/${normalized}`.replace(/\\+/g, "/");
+          try {
+            const stat = module.FS.stat(fullPath);
+            if (module.FS.isDir(stat.mode)) {
+              return null;
+            }
+            const fileData = module.FS.readFile(fullPath, { encoding: "binary" });
+            return toArrayBuffer(fileData);
+          } catch (err) {
+            return null;
+          }
+        },
+      };
 
       return {
         ok: true,
@@ -398,6 +579,7 @@ export class ArchiveExtractorWorker {
         warnings: this.lastSevenZipStderr.slice(),
         format,
         encrypted: Boolean(request.password && request.password.length > 0),
+        sessionId,
       } satisfies ExtractSuccess;
     } catch (error) {
       this.cleanupSevenZip(module, archiveName, outputDir);
@@ -423,13 +605,23 @@ export class ArchiveExtractorWorker {
           });
           walk(fullPath, `${relative}/`);
         } else if (module.FS.isFile(stat.mode)) {
-          const fileData = module.FS.readFile(fullPath, { encoding: "binary" });
+          const size = stat.size ?? 0;
+          let data: ArrayBuffer | undefined;
+          // Attach data for small files to reduce fetch round-trips, keep large files lazy
+          if (size <= 5 * 1024 * 1024) {
+            try {
+              const fileData = module.FS.readFile(fullPath, { encoding: "binary" });
+              data = toArrayBuffer(fileData);
+            } catch (err) {
+              // ignore, will be fetched on demand
+            }
+          }
           entries.push({
             path: relative,
-            size: fileData.byteLength,
+            size,
             isDirectory: false,
             lastModified: stat.mtime?.getTime?.() ?? null,
-            data: fileData.buffer,
+            data,
           });
         }
       }
@@ -471,6 +663,7 @@ export class ArchiveExtractorWorker {
     const stderr = this.lastSevenZipStderr.join("\n").toLowerCase();
     const stdout = this.lastSevenZipStdout.join("\n").toLowerCase();
     const combined = `${stderr}\n${stdout}`;
+    const message = error.message || "";
 
     if (
       combined.includes("wrong password") ||
@@ -481,6 +674,17 @@ export class ArchiveExtractorWorker {
         ok: false,
         code: "PASSWORD_REQUIRED",
         message: "The password you entered is incorrect. Try again.",
+        recoverable: true,
+        format,
+        engine: "sevenZip",
+      };
+    }
+
+    if (combined.includes("array buffer allocation failed") || message.toLowerCase().includes("array buffer allocation failed")) {
+      return {
+        ok: false,
+        code: "EXTRACTION_FAILED",
+        message: "Your device ran out of memory while opening this archive. Try closing other tabs or splitting the archive into smaller parts.",
         recoverable: true,
         format,
         engine: "sevenZip",
@@ -538,6 +742,32 @@ export class ArchiveExtractorWorker {
     }
 
     return null;
+  }
+
+  async fetchEntry(sessionId: string, path: string) {
+    if (!this.activeSession || this.activeSession.id !== sessionId) {
+      return { ok: false, message: "This archive session is no longer available. Please reopen the file." };
+    }
+    try {
+      const data =
+        this.activeSession.fetch(path) ||
+        (path.endsWith("/") ? null : this.activeSession.fetch(`${path}/`));
+      if (!data) {
+        return { ok: false, message: "That file is not available in the current archive." };
+      }
+      return Comlink.transfer({ ok: true, data }, [data]);
+    } catch (error) {
+      return {
+        ok: false,
+        message: error instanceof Error ? error.message : "Failed to load file data.",
+      };
+    }
+  }
+
+  async release(sessionId: string) {
+    if (this.activeSession && this.activeSession.id === sessionId) {
+      this.releaseCurrentSession();
+    }
   }
 }
 

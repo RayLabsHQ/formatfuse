@@ -141,8 +141,8 @@ export default defineConfig({
         categories: ['productivity', 'utilities']
       },
       workbox: {
-        // Use the actual offline HTML file shipped in /public
-        navigateFallback: '/offline.html',
+        // No offline fallback - all pages work offline once cached
+        navigateFallback: null,
         globPatterns: ['**/*.{css,js,html,svg,png,ico,txt,woff,woff2}'],
         // Exclude WASM files from precaching, they'll be cached at runtime
         globIgnores: ['**/*.wasm'],
@@ -193,8 +193,7 @@ export default defineConfig({
         ]
       },
       devOptions: {
-        enabled: true, // Enable in dev for testing
-        navigateFallbackAllowlist: [/^\/$/],
+        enabled: false, // Disable in dev to avoid issues
         type: 'module',
         suppressWarnings: true
       },

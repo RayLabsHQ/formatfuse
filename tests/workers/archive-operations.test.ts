@@ -11,11 +11,18 @@ describe('Archive Operations', () => {
   beforeAll(async () => {
     // Load test fixtures
     const fixturesPath = join(process.cwd(), 'tests', 'fixtures', 'archives');
-    
+
+    // Helper to convert Buffer to ArrayBuffer safely
+    const bufferToArrayBuffer = (buf: Buffer): ArrayBuffer => {
+      const result = new ArrayBuffer(buf.byteLength);
+      new Uint8Array(result).set(buf);
+      return result;
+    };
+
     // Load pre-made ZIP files
-    testZipBuffer = await readFile(join(fixturesPath, 'test-archive.zip')).then(b => b.buffer);
-    nestedZipBuffer = await readFile(join(fixturesPath, 'nested-archive.zip')).then(b => b.buffer);
-    
+    testZipBuffer = await readFile(join(fixturesPath, 'test-archive.zip')).then(bufferToArrayBuffer);
+    nestedZipBuffer = await readFile(join(fixturesPath, 'nested-archive.zip')).then(bufferToArrayBuffer);
+
     // Load sample files for ZIP creation tests
     sampleFiles = new Map();
     const files = [
@@ -24,9 +31,9 @@ describe('Archive Operations', () => {
       'sample-files/styles.css',
       'sample-files/empty-file.txt'
     ];
-    
+
     for (const file of files) {
-      const buffer = await readFile(join(fixturesPath, file)).then(b => b.buffer);
+      const buffer = await readFile(join(fixturesPath, file)).then(bufferToArrayBuffer);
       sampleFiles.set(file, buffer);
     }
   });
