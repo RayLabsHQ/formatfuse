@@ -16,23 +16,34 @@ interface UseVideoConverterReturn {
     file: File | Blob,
     targetFormat: string,
     options?: VideoConversionOptions,
+    onProgress?: (progress: number) => void,
   ) => Promise<Blob | null>;
-  getMetadata: (file: File | Blob) => Promise<VideoMetadata | null>;
+  getMetadata: (
+    file: File | Blob,
+    onProgress?: (progress: number) => void,
+  ) => Promise<VideoMetadata | null>;
   compress: (
     file: File | Blob,
-    quality: "low" | "medium" | "high",
+    quality: "low" | "medium" | "high" | "ultra",
+    onProgress?: (progress: number) => void,
   ) => Promise<Blob | null>;
   trim: (
     file: File | Blob,
     startTime: number,
     endTime: number,
+    onProgress?: (progress: number) => void,
   ) => Promise<Blob | null>;
   resize: (
     file: File | Blob,
     width: number,
     height: number,
+    onProgress?: (progress: number) => void,
   ) => Promise<Blob | null>;
-  rotate: (file: File | Blob, rotation: number) => Promise<Blob | null>;
+  rotate: (
+    file: File | Blob,
+    rotation: number,
+    onProgress?: (progress: number) => void,
+  ) => Promise<Blob | null>;
   progress: number;
   loading: boolean;
   error: string | null;
@@ -80,6 +91,7 @@ export function useVideoConverter(): UseVideoConverterReturn {
       file: File | Blob,
       targetFormat: string,
       options: VideoConversionOptions = {},
+      onProgress?: (progress: number) => void,
     ): Promise<Blob | null> => {
       if (!workerApiRef.current) {
         setError("Converter not initialized");
@@ -97,6 +109,7 @@ export function useVideoConverter(): UseVideoConverterReturn {
         // Create progress callback
         const progressCallback = Comlink.proxy((percent: number) => {
           setProgress(percent);
+          onProgress?.(percent);
         });
 
         const converted = await workerApiRef.current.convert(
@@ -134,7 +147,10 @@ export function useVideoConverter(): UseVideoConverterReturn {
   );
 
   const getMetadata = useCallback(
-    async (file: File | Blob): Promise<VideoMetadata | null> => {
+    async (
+      file: File | Blob,
+      onProgress?: (progress: number) => void,
+    ): Promise<VideoMetadata | null> => {
       if (!workerApiRef.current) {
         setError("Converter not initialized");
         return null;
@@ -150,6 +166,7 @@ export function useVideoConverter(): UseVideoConverterReturn {
 
         const progressCallback = Comlink.proxy((percent: number) => {
           setProgress(percent);
+          onProgress?.(percent);
         });
 
         const metadata = await workerApiRef.current.getMetadata(
@@ -173,7 +190,8 @@ export function useVideoConverter(): UseVideoConverterReturn {
   const compress = useCallback(
     async (
       file: File | Blob,
-      quality: "low" | "medium" | "high",
+      quality: "low" | "medium" | "high" | "ultra",
+      onProgress?: (progress: number) => void,
     ): Promise<Blob | null> => {
       if (!workerApiRef.current) {
         setError("Converter not initialized");
@@ -190,6 +208,7 @@ export function useVideoConverter(): UseVideoConverterReturn {
 
         const progressCallback = Comlink.proxy((percent: number) => {
           setProgress(percent);
+          onProgress?.(percent);
         });
 
         const compressed = await workerApiRef.current.compress(
@@ -216,6 +235,7 @@ export function useVideoConverter(): UseVideoConverterReturn {
       file: File | Blob,
       startTime: number,
       endTime: number,
+      onProgress?: (progress: number) => void,
     ): Promise<Blob | null> => {
       if (!workerApiRef.current) {
         setError("Converter not initialized");
@@ -232,6 +252,7 @@ export function useVideoConverter(): UseVideoConverterReturn {
 
         const progressCallback = Comlink.proxy((percent: number) => {
           setProgress(percent);
+          onProgress?.(percent);
         });
 
         const trimmed = await workerApiRef.current.trim(
@@ -259,6 +280,7 @@ export function useVideoConverter(): UseVideoConverterReturn {
       file: File | Blob,
       width: number,
       height: number,
+      onProgress?: (progress: number) => void,
     ): Promise<Blob | null> => {
       if (!workerApiRef.current) {
         setError("Converter not initialized");
@@ -275,6 +297,7 @@ export function useVideoConverter(): UseVideoConverterReturn {
 
         const progressCallback = Comlink.proxy((percent: number) => {
           setProgress(percent);
+          onProgress?.(percent);
         });
 
         const resized = await workerApiRef.current.resize(
@@ -298,7 +321,11 @@ export function useVideoConverter(): UseVideoConverterReturn {
   );
 
   const rotate = useCallback(
-    async (file: File | Blob, rotation: number): Promise<Blob | null> => {
+    async (
+      file: File | Blob,
+      rotation: number,
+      onProgress?: (progress: number) => void,
+    ): Promise<Blob | null> => {
       if (!workerApiRef.current) {
         setError("Converter not initialized");
         return null;
@@ -314,6 +341,7 @@ export function useVideoConverter(): UseVideoConverterReturn {
 
         const progressCallback = Comlink.proxy((percent: number) => {
           setProgress(percent);
+          onProgress?.(percent);
         });
 
         const rotated = await workerApiRef.current.rotate(

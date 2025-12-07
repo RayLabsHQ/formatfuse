@@ -3,6 +3,7 @@ import { readFileSync, existsSync } from "fs";
 import { join } from "path";
 import { fileURLToPath } from "url";
 import * as Comlink from "comlink";
+import nodeEndpoint from "comlink/dist/esm/node-adapter.mjs";
 
 const __dirname = join(fileURLToPath(import.meta.url), "../..");
 
@@ -11,17 +12,19 @@ const hasTestVideos = () => {
   const mp4Path = join(__dirname, "fixtures/videos/test.mp4");
   return existsSync(mp4Path);
 };
+const skipSuite = !hasTestVideos();
 
-describe("Video Converter Worker", () => {
+describe.skipIf(skipSuite)("Video Converter Worker", () => {
   let worker: Worker;
   let VideoConverterClass: any;
   let converter: any;
 
   beforeAll(async () => {
-    if (!hasTestVideos()) {
+    if (skipSuite) {
       console.warn(
         "⚠️  Video test fixtures not found. Run 'tests/fixtures/videos/generate-test-videos.sh' to generate them.",
       );
+      return;
     }
 
     // Initialize the worker
@@ -33,11 +36,12 @@ describe("Video Converter Worker", () => {
       },
     ) as any;
 
-    VideoConverterClass = Comlink.wrap(worker);
+    VideoConverterClass = Comlink.wrap(nodeEndpoint(worker));
     converter = await new VideoConverterClass();
   });
 
   afterAll(() => {
+    if (skipSuite) return;
     if (converter) {
       converter[Comlink.releaseProxy]();
     }

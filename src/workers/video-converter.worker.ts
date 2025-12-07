@@ -9,6 +9,11 @@ import {
   Mp4OutputFormat,
   WebMOutputFormat,
   MkvOutputFormat,
+  MovOutputFormat,
+  QUALITY_LOW,
+  QUALITY_MEDIUM,
+  QUALITY_HIGH,
+  QUALITY_VERY_HIGH,
   type VideoCodec,
 } from "mediabunny";
 
@@ -29,6 +34,9 @@ class VideoConverterWorker {
       case "mp4":
       case "video/mp4":
         return new Mp4OutputFormat();
+      case "mov":
+      case "video/quicktime":
+        return new MovOutputFormat();
       case "webm":
       case "video/webm":
         return new WebMOutputFormat();
@@ -42,12 +50,12 @@ class VideoConverterWorker {
 
   private getBitrateFromQuality(quality: string): number {
     const bitrateMap = {
-      low: 1_000_000, // 1 Mbps
-      medium: 2_500_000, // 2.5 Mbps
-      high: 5_000_000, // 5 Mbps
-      ultra: 10_000_000, // 10 Mbps
+      low: QUALITY_LOW,
+      medium: QUALITY_MEDIUM,
+      high: QUALITY_HIGH,
+      ultra: QUALITY_VERY_HIGH,
     };
-    return bitrateMap[quality as keyof typeof bitrateMap] || bitrateMap.medium;
+    return bitrateMap[quality as keyof typeof bitrateMap] || QUALITY_MEDIUM;
   }
 
   async convert(
@@ -81,22 +89,32 @@ class VideoConverterWorker {
 
       // Get video track info for resizing if needed
       const videoTrack = await input.getPrimaryVideoTrack();
+      if (!videoTrack) {
+        throw new Error("File has no video track");
+      }
 
       // Set up conversion options
       const conversionOptions: any = {};
 
-      if (options.width || options.height) {
+      if (options.width !== undefined || options.height !== undefined) {
         conversionOptions.resize = {
           width: options.width || videoTrack?.displayWidth,
           height: options.height || videoTrack?.displayHeight,
         };
       }
 
-      if (options.rotation) {
+      if (options.rotation !== undefined) {
         conversionOptions.rotate = options.rotation;
       }
 
       if (options.startTime !== undefined || options.endTime !== undefined) {
+        if (
+          options.endTime !== undefined &&
+          options.startTime !== undefined &&
+          options.endTime <= options.startTime
+        ) {
+          throw new Error("End time must be greater than start time");
+        }
         conversionOptions.trim = {
           start: options.startTime || 0,
           end: options.endTime,
@@ -204,7 +222,7 @@ class VideoConverterWorker {
 
   async compress(
     file: Uint8Array,
-    quality: "low" | "medium" | "high",
+    quality: "low" | "medium" | "high" | "ultra",
     onProgress?: (progress: number) => void,
   ): Promise<Uint8Array> {
     // Compression is just conversion with lower bitrate

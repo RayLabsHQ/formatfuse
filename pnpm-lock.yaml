@@ -165,8 +165,8 @@ importers:
         specifier: ^0.542.0
         version: 0.542.0(react@19.1.1)
       mediabunny:
-        specifier: ^1.24.6
-        version: 1.24.6
+        specifier: ^1.25.7
+        version: 1.25.7
       next-themes:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -4164,8 +4164,8 @@ packages:
   mdn-data@2.12.2:
     resolution: {integrity: sha512-IEn+pegP1aManZuckezWCO+XZQDplx1366JoVhTpMpBB1sPey/SbveZQUosKiKiGYjg1wH4pMlNgXbCiYgihQA==}
 
-  mediabunny@1.24.6:
-    resolution: {integrity: sha512-GODsNvKeig2Zhj2NCABBskVgJS1IMltP0uX/I0ltFksPCHpshreZhJEMwc903YbgdsW3RT7e6uvLX6UtlmeIkQ==}
+  mediabunny@1.25.7:
+    resolution: {integrity: sha512-DL0E1h29HTDaD9bYRXLSSHiAoLbDBksrdYS+4OHWA+aNhQeN+CAGEG7EU6wlhPZ8MOpwXIeC7uv06lo4ziohQQ==}
 
   merge2@1.4.1:
     resolution: {integrity: sha512-8q7VEgMJW4J8tcfVPy8g09NcQwZdbwFEqhe/WZkoIzjn/3TGDwtOCYtXGxA3O8tPzpczCCDgv+P2P5y00ZJOOg==}
@@ -5048,6 +5048,7 @@ packages:
   sitemap@8.0.0:
     resolution: {integrity: sha512-+AbdxhM9kJsHtruUF39bwS/B0Fytw6Fr1o4ZAIAEqA6cke2xcoO2GleBw9Zw7nRzILVEgz7zBM5GiTJjie1G9A==}
     engines: {node: '>=14.0.0', npm: '>=6.0.0'}
+    deprecated: 'SECURITY: Multiple vulnerabilities fixed in 8.0.1 (XML injection, path traversal, command injection, protocol injection). Upgrade immediately: npm install sitemap@8.0.1'
     hasBin: true
 
   smob@1.5.0:
@@ -10377,7 +10378,7 @@ snapshots:
 
   mdn-data@2.12.2: {}
 
-  mediabunny@1.24.6:
+  mediabunny@1.25.7:
     dependencies:
       '@types/dom-mediacapture-transform': 0.1.11
       '@types/dom-webcodecs': 0.1.13

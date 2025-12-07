@@ -1,6 +1,5 @@
 import React, { useState, useRef } from "react";
 import {
-  Upload,
   Download,
   X,
   Video,
@@ -13,7 +12,8 @@ import {
   Info,
   Film,
   Scissors,
-  PlayCircle,
+  RotateCw,
+  Scan,
 } from "lucide-react";
 import { useVideoConverter } from "../../hooks/useVideoConverter";
 import { Button } from "../ui/button";
@@ -29,6 +29,7 @@ interface VideoConverterProps {
   targetFormat?: string;
   title?: string;
   description?: string;
+  mode?: "convert" | "compress" | "trim" | "resize" | "rotate";
 }
 
 interface FileInfo {
@@ -114,12 +115,26 @@ export default function VideoConverter({
   targetFormat,
   title,
   description,
+  mode = "convert",
 }: VideoConverterProps) {
   const [files, setFiles] = useState<FileInfo[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [quality, setQuality] = useState<"low" | "medium" | "high" | "ultra">("high");
+  const [trimStart, setTrimStart] = useState(0);
+  const [trimEnd, setTrimEnd] = useState(5);
+  const [resizeWidth, setResizeWidth] = useState(1920);
+  const [resizeHeight, setResizeHeight] = useState(1080);
+  const [rotation, setRotation] = useState(90);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { convert, getMetadata, progress, loading, error } = useVideoConverter();
+  const {
+    convert,
+    getMetadata,
+    compress,
+    trim,
+    resize,
+    rotate,
+    error,
+  } = useVideoConverter();
 
   const getTargetFormat = () => {
     return targetFormat || "mp4";
@@ -128,6 +143,37 @@ export default function VideoConverter({
   const formatDisplayName = (format: string) => {
     const videoFormat = VIDEO_FORMATS.find((f) => f.key === format.toLowerCase());
     return videoFormat?.name || format.toUpperCase();
+  };
+
+  const updateFileProgress = (index: number, percent: number) => {
+    setFiles((prev) =>
+      prev.map((f, i) =>
+        i === index ? { ...f, progress: Math.min(100, Math.max(0, percent)) } : f,
+      ),
+    );
+  };
+
+  const validateInputs = (metadata?: FileInfo["metadata"]): string | null => {
+    switch (mode) {
+      case "trim": {
+        if (trimStart < 0 || trimEnd <= 0) return "Please enter valid start and end times.";
+        if (trimEnd <= trimStart) return "End time must be greater than start time.";
+        if (metadata?.duration && trimStart >= metadata.duration) {
+          return "Start time must be within the video duration.";
+        }
+        return null;
+      }
+      case "resize": {
+        if (resizeWidth <= 0 || resizeHeight <= 0) return "Width and height must be positive.";
+        return null;
+      }
+      case "rotate": {
+        if (![0, 90, 180, 270].includes(rotation)) return "Rotation must be 0, 90, 180, or 270.";
+        return null;
+      }
+      default:
+        return null;
+    }
   };
 
   const handleFiles = async (newFiles: File[]) => {
@@ -165,17 +211,64 @@ export default function VideoConverter({
       );
 
       // Get metadata first
-      const metadata = await getMetadata(fileInfo.file);
+      const metadata = await getMetadata(fileInfo.file, (percent) =>
+        updateFileProgress(index, percent / 2),
+      );
       if (metadata) {
         setFiles((prev) =>
           prev.map((f, i) =>
             i === index ? { ...f, metadata } : f,
           ),
         );
+        if (mode === "trim" && trimEnd === 5 && metadata.duration > 0) {
+          setTrimEnd(Math.min(metadata.duration, trimEnd));
+        }
+      }
+
+      const validationError = validateInputs(metadata);
+      if (validationError) {
+        throw new Error(validationError);
       }
 
       // Convert the video
-      const result = await convert(fileInfo.file, getTargetFormat(), { quality });
+      const progressHandler = (percent: number) => {
+        updateFileProgress(index, 50 + percent / 2);
+      };
+
+      const effectiveTargetFormat = getTargetFormat();
+      const effectiveTrimEnd =
+        mode === "trim" && metadata?.duration
+          ? Math.min(trimEnd, metadata.duration)
+          : trimEnd;
+
+      let result: Blob | null = null;
+      switch (mode) {
+        case "compress":
+          result = await compress(fileInfo.file, quality, progressHandler);
+          break;
+        case "trim":
+          result = await trim(fileInfo.file, trimStart, effectiveTrimEnd, progressHandler);
+          break;
+        case "resize":
+          result = await resize(
+            fileInfo.file,
+            resizeWidth,
+            resizeHeight,
+            progressHandler,
+          );
+          break;
+        case "rotate":
+          result = await rotate(fileInfo.file, rotation, progressHandler);
+          break;
+        default:
+          result = await convert(
+            fileInfo.file,
+            effectiveTargetFormat,
+            { quality },
+            progressHandler,
+          );
+          break;
+      }
 
       if (result) {
         setFiles((prev) =>
@@ -198,7 +291,7 @@ export default function VideoConverter({
             : f,
         ),
       );
-      toast.error(`Failed to convert ${fileInfo.file.name}`);
+      toast.error(`Failed to process ${fileInfo.file.name}: ${errorMessage}`);
     }
   };
 
@@ -266,35 +359,154 @@ export default function VideoConverter({
         features={features}
       />
 
-      {/* Quality Settings Card */}
-      <div className="mb-8 bg-card rounded-lg border">
-        <div className="p-4 bg-gradient-to-r from-primary/5 to-transparent border-b flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-primary" />
-          <h2 className="text-lg font-semibold">Quality Settings</h2>
+      {/* Mode-specific settings */}
+      {(mode === "convert" || mode === "compress") && (
+        <div className="mb-8 bg-card rounded-lg border">
+          <div className="p-4 bg-gradient-to-r from-primary/5 to-transparent border-b flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-primary" />
+            <h2 className="text-lg font-semibold">Quality Settings</h2>
+          </div>
+          <div className="p-6">
+            <div className="flex flex-col sm:flex-row gap-3">
+              {(["low", "medium", "high", "ultra"] as const).map((q) => (
+                <button
+                  key={q}
+                  onClick={() => setQuality(q)}
+                  className={cn(
+                    "flex-1 px-4 py-3 rounded-md border-2 ff-transition capitalize",
+                    quality === q
+                      ? "border-primary bg-primary/10 text-primary font-medium"
+                      : "border-border hover:border-primary/50",
+                  )}
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+            <div className="mt-4 text-sm text-muted-foreground">
+              <Info className="w-4 h-4 inline mr-1" />
+              Higher quality produces larger files but better visual fidelity
+            </div>
+          </div>
         </div>
-        <div className="p-6">
-          <div className="flex flex-col sm:flex-row gap-3">
-            {(["low", "medium", "high", "ultra"] as const).map((q) => (
+      )}
+
+      {mode === "trim" && (
+        <div className="mb-8 bg-card rounded-lg border">
+          <div className="p-4 bg-gradient-to-r from-primary/5 to-transparent border-b flex items-center gap-2">
+            <Scissors className="w-5 h-5 text-primary" />
+            <h2 className="text-lg font-semibold">Trim Settings</h2>
+          </div>
+          <div className="p-6 grid gap-4 sm:grid-cols-2">
+            <label className="space-y-2">
+              <span className="text-sm font-medium">Start time (seconds)</span>
+              <input
+                type="number"
+                min={0}
+                step="0.1"
+                value={trimStart}
+                onChange={(e) => setTrimStart(parseFloat(e.target.value) || 0)}
+                className="w-full rounded-md border bg-background px-3 py-2"
+              />
+            </label>
+            <label className="space-y-2">
+              <span className="text-sm font-medium">End time (seconds)</span>
+              <input
+                type="number"
+                min={0}
+                step="0.1"
+                value={trimEnd}
+                onChange={(e) => setTrimEnd(parseFloat(e.target.value) || 0)}
+                className="w-full rounded-md border bg-background px-3 py-2"
+              />
+            </label>
+            <p className="text-sm text-muted-foreground sm:col-span-2">
+              Make sure the end time is greater than the start time. If metadata is available, you will see duration next to each file.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {mode === "resize" && (
+        <div className="mb-8 bg-card rounded-lg border">
+          <div className="p-4 bg-gradient-to-r from-primary/5 to-transparent border-b flex items-center gap-2">
+            <Scan className="w-5 h-5 text-primary" />
+            <h2 className="text-lg font-semibold">Resize Settings</h2>
+          </div>
+          <div className="p-6 space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="space-y-2">
+                <span className="text-sm font-medium">Width (px)</span>
+                <input
+                  type="number"
+                  min={1}
+                  value={resizeWidth}
+                  onChange={(e) => setResizeWidth(parseInt(e.target.value) || 0)}
+                  className="w-full rounded-md border bg-background px-3 py-2"
+                />
+              </label>
+              <label className="space-y-2">
+                <span className="text-sm font-medium">Height (px)</span>
+                <input
+                  type="number"
+                  min={1}
+                  value={resizeHeight}
+                  onChange={(e) => setResizeHeight(parseInt(e.target.value) || 0)}
+                  className="w-full rounded-md border bg-background px-3 py-2"
+                />
+              </label>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              {[
+                { w: 1920, h: 1080, label: "1080p" },
+                { w: 1280, h: 720, label: "720p" },
+                { w: 854, h: 480, label: "480p" },
+                { w: 640, h: 360, label: "360p" },
+              ].map((preset) => (
+                <Button
+                  key={preset.label}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setResizeWidth(preset.w);
+                    setResizeHeight(preset.h);
+                  }}
+                >
+                  {preset.label} ({preset.w}x{preset.h})
+                </Button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {mode === "rotate" && (
+        <div className="mb-8 bg-card rounded-lg border">
+          <div className="p-4 bg-gradient-to-r from-primary/5 to-transparent border-b flex items-center gap-2">
+            <RotateCw className="w-5 h-5 text-primary" />
+            <h2 className="text-lg font-semibold">Rotation</h2>
+          </div>
+          <div className="p-6 flex flex-wrap gap-3">
+            {[0, 90, 180, 270].map((angle) => (
               <button
-                key={q}
-                onClick={() => setQuality(q)}
+                key={angle}
+                onClick={() => setRotation(angle)}
                 className={cn(
-                  "flex-1 px-4 py-3 rounded-md border-2 ff-transition capitalize",
-                  quality === q
+                  "px-4 py-2 rounded-md border-2 ff-transition",
+                  rotation === angle
                     ? "border-primary bg-primary/10 text-primary font-medium"
                     : "border-border hover:border-primary/50",
                 )}
               >
-                {q}
+                {angle}°
               </button>
             ))}
-          </div>
-          <div className="mt-4 text-sm text-muted-foreground">
-            <Info className="w-4 h-4 inline mr-1" />
-            Higher quality produces larger files but better visual fidelity
+            <div className="text-sm text-muted-foreground w-full">
+              Rotation is clockwise. 0° can be used to normalize orientation.
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Drop Zone */}
       <FileDropZone
@@ -317,6 +529,16 @@ export default function VideoConverter({
         onChange={handleFileSelect}
         className="hidden"
       />
+
+      {error && (
+        <div className="mt-4 bg-destructive/10 border border-destructive rounded-lg p-4 flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-medium text-destructive">Error</p>
+            <p className="text-sm text-destructive/90">{error}</p>
+          </div>
+        </div>
+      )}
 
       {/* Files List */}
       {files.length > 0 && (
@@ -374,12 +596,12 @@ export default function VideoConverter({
                       <div className="mt-2">
                         <div className="flex items-center gap-2 text-sm text-primary">
                           <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>Processing... {Math.round(progress)}%</span>
+                          <span>Processing... {Math.round(fileInfo.progress)}%</span>
                         </div>
                         <div className="mt-1 h-2 bg-secondary rounded-full overflow-hidden">
                           <div
                             className="h-full bg-primary ff-transition"
-                            style={{ width: `${progress}%` }}
+                            style={{ width: `${fileInfo.progress}%` }}
                           />
                         </div>
                       </div>
