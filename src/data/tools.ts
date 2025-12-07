@@ -814,7 +814,10 @@ const filterImplemented = (tools: Tool[]) =>
 export const pdfTools = filterImplemented([...pdfToolsAll, ...documentToolsAll]);
 export const devTools = filterImplemented(devToolsAll);
 export const textTools = filterImplemented(textToolsAll);
-export const videoTools = filterImplemented([...videoToolsAll, ...videoConversions]);
+// Video tools for nav - only show main tools, not all 130+ conversions
+export const videoTools = filterImplemented(videoToolsAll);
+// All video tools including conversions (for search)
+export const videoToolsAll_exported = filterImplemented([...videoToolsAll, ...videoConversions]);
 export const archiveTools = filterImplemented(archiveToolsAll);
 export const otherImageTools = filterImplemented(otherImageToolsAll);
 
