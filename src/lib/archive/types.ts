@@ -25,7 +25,9 @@ export type ArchiveEngine = "libarchive" | "sevenZip" | "native";
 
 export interface ExtractRequest {
   fileName: string;
-  buffer: ArrayBuffer;
+  buffer?: ArrayBuffer;
+  stream?: ReadableStream<Uint8Array>;
+  size?: number;
   password?: string | null;
 }
 
@@ -34,8 +36,9 @@ export interface WorkerArchiveEntry {
   size: number;
   isDirectory: boolean;
   lastModified?: number | null;
-  data?: ArrayBuffer;
   compressedSize?: number;
+  /** Inline data for small files; large files are fetched on demand via fetchEntry */
+  data?: ArrayBuffer;
 }
 
 export interface ExtractSuccess {
@@ -45,6 +48,7 @@ export interface ExtractSuccess {
   format: ArchiveFormat;
   warnings: string[];
   encrypted?: boolean;
+  sessionId: string;
 }
 
 export type ExtractionErrorCode =
@@ -63,6 +67,15 @@ export interface ExtractFailure {
 }
 
 export type ExtractResult = ExtractSuccess | ExtractFailure;
+
+export interface FetchEntryRequest {
+  sessionId: string;
+  path: string;
+}
+
+export type FetchEntryResult =
+  | { ok: true; data: ArrayBuffer }
+  | { ok: false; message: string };
 
 export interface FormatDetectionResult {
   format: ArchiveFormat;
@@ -89,6 +102,8 @@ export interface CreateArchiveRequest {
   files: CreateArchiveFile[];
   password?: string | null;
   encryptHeaders?: boolean;
+  /** 0-9 compression strength hint; defaults to 6 when omitted */
+  compressionLevel?: number;
 }
 
 export interface CreateArchiveSuccess {
