@@ -37,3 +37,9 @@ tests/**/*.result.*
 coverage/
 .coverage/
 
+# test video files (generated, not committed)
+tests/fixtures/videos/*.mp4
+tests/fixtures/videos/*.webm
+tests/fixtures/videos/*.mov
+tests/fixtures/videos/*.mkv
+

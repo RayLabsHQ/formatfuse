@@ -1,0 +1,14 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import VideoConverter from '../../components/converters/VideoConverter.tsx';
+import '../../styles/global.css';
+
+const title = 'Universal Video Converter - Convert MP4, WebM, MOV, MKV';
+const description = 'Convert between MP4, WebM, MOV, and MKV video formats. Free online video converter with high quality processing, all in your browser.';
+---
+
+<Layout title={title} description={description} toolType="video">
+  <main>
+    <VideoConverter client:load />
+  </main>
+</Layout>

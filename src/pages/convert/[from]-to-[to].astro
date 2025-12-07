@@ -1,6 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import ImageConverter from '../../components/converters/ImageConverter.tsx';
+import VideoConverter from '../../components/converters/VideoConverter.tsx';
 import '../../styles/global.css';
 
 // Pre-render all dynamic routes at build time for SEO
@@ -9,7 +10,7 @@ export const prerender = true;
 export async function getStaticPaths() {
   // All supported image formats
   // Note: HEIC is supported via libheif-js, others via image-rs
-  const formats = [
+  const imageFormats = [
     { key: 'png', name: 'PNG' },
     { key: 'jpg', name: 'JPG' },
     { key: 'webp', name: 'WebP' },
@@ -21,44 +22,82 @@ export async function getStaticPaths() {
     { key: 'heic', name: 'HEIC' }
   ];
 
-  // Formats that support quality adjustment (useful for same-format conversion)
-  const qualityFormats = ['jpg', 'webp', 'avif'];
+  // All supported video formats
+  const videoFormats = [
+    { key: 'mp4', name: 'MP4' },
+    { key: 'webm', name: 'WebM' },
+    { key: 'mov', name: 'MOV' },
+    { key: 'mkv', name: 'MKV' }
+  ];
+
+  // Image formats that support quality adjustment (useful for same-format conversion)
+  const qualityImageFormats = ['jpg', 'webp', 'avif'];
+
+  // Video formats that support compression (same-format conversion)
+  const qualityVideoFormats = ['mp4'];
 
   // Generate all possible combinations
   const paths = [];
-  
-  for (const from of formats) {
-    for (const to of formats) {
+
+  // Image conversions
+  for (const from of imageFormats) {
+    for (const to of imageFormats) {
       // Skip same format conversions EXCEPT for quality-adjustable formats
-      if (from.key === to.key && !qualityFormats.includes(from.key)) continue;
-      
+      if (from.key === to.key && !qualityImageFormats.includes(from.key)) continue;
+
       paths.push({
         params: { from: from.key, to: to.key }
       });
     }
   }
-  
+
+  // Video conversions
+  for (const from of videoFormats) {
+    for (const to of videoFormats) {
+      // Skip same format conversions EXCEPT for quality-adjustable formats
+      if (from.key === to.key && !qualityVideoFormats.includes(from.key)) continue;
+
+      paths.push({
+        params: { from: from.key, to: to.key }
+      });
+    }
+  }
+
   return paths;
 }
 
 // Dynamic route parameters
 const fromKey = Astro.params.from;
 const toKey = Astro.params.to;
+
+// Detect if this is a video or image conversion
+const videoFormats = ['mp4', 'webm', 'mov', 'mkv'];
+const isVideo = videoFormats.includes(fromKey as string) || videoFormats.includes(toKey as string);
+const mediaType = isVideo ? 'video' : 'image';
+
 // Human-friendly format names
 const formatNameMap: Record<string, string> = {
+  // Image formats
   png: 'PNG', jpg: 'JPEG/JPG', webp: 'WebP', gif: 'GIF',
-  bmp: 'BMP', ico: 'ICO', tiff: 'TIFF', avif: 'AVIF', heic: 'HEIC'
+  bmp: 'BMP', ico: 'ICO', tiff: 'TIFF', avif: 'AVIF', heic: 'HEIC',
+  // Video formats
+  mp4: 'MP4', webm: 'WebM', mov: 'MOV', mkv: 'MKV'
 };
 const fromFormat = formatNameMap[fromKey as string] || fromKey?.toUpperCase();
 const toFormat = formatNameMap[toKey as string] || toKey?.toUpperCase();
+
 // Title and description logic
 const isSame = fromKey === toKey;
+const mediaName = isVideo ? 'Video' : 'Image';
+const mediaPluralName = isVideo ? 'videos' : 'images';
+
 const title = isSame
-  ? `${fromFormat} Compressor - Optimize & Resize ${fromFormat} Images`
-  : `${fromFormat} to ${toFormat} Converter - Free Online Tool`;
+  ? `${fromFormat} Compressor - Optimize & Resize ${fromFormat} ${mediaName}s`
+  : `${fromFormat} to ${toFormat} Converter - Free Online ${mediaName} Converter`;
+
 const description = isSame
-  ? `Compress and optimize ${fromFormat} images by adjusting quality. Reduce file size while maintaining visual quality. No upload required, 100% private.`
-  : `Convert ${fromFormat} images to ${toFormat} format instantly in your browser. No upload required, 100% private and secure. Supports batch conversion.`;
+  ? `Compress and optimize ${fromFormat} ${mediaPluralName} by adjusting quality. Reduce file size while maintaining ${isVideo ? 'visual and audio' : 'visual'} quality. No upload required, 100% private.`
+  : `Convert ${fromFormat} ${mediaPluralName} to ${toFormat} format instantly in your browser. No upload required, 100% private and secure. Supports batch conversion.`;
 
 // Schema.org structured data for SEO
 const structuredData = {
@@ -85,10 +124,14 @@ const structuredData = {
 };
 ---
 
-<Layout title={title} description={description} sourceFormat={fromKey} targetFormat={toKey} toolType="image">
+<Layout title={title} description={description} sourceFormat={fromKey} targetFormat={toKey} toolType={mediaType}>
   <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
-  
+
   <main>
-    <ImageConverter sourceFormat={fromKey} targetFormat={toKey} client:load />
+    {isVideo ? (
+      <VideoConverter sourceFormat={fromKey} targetFormat={toKey} client:load />
+    ) : (
+      <ImageConverter sourceFormat={fromKey} targetFormat={toKey} client:load />
+    )}
   </main>
 </Layout>

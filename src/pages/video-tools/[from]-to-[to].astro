@@ -1,0 +1,124 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import VideoConverter from '../../components/converters/VideoConverter.tsx';
+import '../../styles/global.css';
+
+// Pre-render all dynamic routes at build time for SEO
+export const prerender = true;
+
+export async function getStaticPaths() {
+  // Formats we can actually convert (browser-based FFmpeg.wasm support)
+  const supportedInputFormats = ['mp4', 'webm', 'mov', 'mkv', 'avi', 'wmv', 'flv', '3gp', 'm4v', 'ogv', 'ts', 'mts'];
+  const supportedOutputFormats = ['mp4', 'webm', 'mov', 'mkv', 'gif'];
+  const supportedAudioOutputFormats = ['mp3', 'aac', 'wav', 'ogg', 'flac', 'm4a'];
+
+  // Quality-adjustable formats (same-format compression)
+  const qualityFormats = ['mp4', 'webm'];
+
+  const paths = [];
+
+  // Video to video conversions
+  for (const from of supportedInputFormats) {
+    for (const to of supportedOutputFormats) {
+      // Skip same format conversions EXCEPT for quality-adjustable formats
+      if (from === to && !qualityFormats.includes(from)) continue;
+
+      paths.push({
+        params: { from, to }
+      });
+    }
+  }
+
+  // Video to audio extraction
+  for (const from of supportedInputFormats) {
+    for (const to of supportedAudioOutputFormats) {
+      paths.push({
+        params: { from, to }
+      });
+    }
+  }
+
+  return paths;
+}
+
+const fromKey = Astro.params.from as string;
+const toKey = Astro.params.to as string;
+
+// Format name mappings
+const formatNameMap: Record<string, string> = {
+  // Video formats
+  mp4: 'MP4', webm: 'WebM', mov: 'MOV', mkv: 'MKV',
+  avi: 'AVI', wmv: 'WMV', flv: 'FLV', '3gp': '3GP',
+  m4v: 'M4V', ogv: 'OGV', ts: 'TS', mts: 'MTS', gif: 'GIF',
+  // Audio formats
+  mp3: 'MP3', aac: 'AAC', wav: 'WAV', ogg: 'OGG', flac: 'FLAC', m4a: 'M4A'
+};
+
+const fromFormat = formatNameMap[fromKey] || fromKey.toUpperCase();
+const toFormat = formatNameMap[toKey] || toKey.toUpperCase();
+
+// Detect conversion type
+const audioFormatsKeys = ['mp3', 'aac', 'wav', 'ogg', 'flac', 'm4a'];
+const isVideoToAudio = audioFormatsKeys.includes(toKey);
+const isVideoToGif = toKey === 'gif';
+const isSameFormat = fromKey === toKey;
+
+// Generate SEO-optimized title and description
+let title: string;
+let description: string;
+
+if (isVideoToAudio) {
+  title = `${fromFormat} to ${toFormat} Converter - Extract Audio from ${fromFormat} Videos Free`;
+  description = `Extract ${toFormat} audio from ${fromFormat} video files instantly in your browser. No upload required, 100% private. Free ${fromFormat} to ${toFormat} audio extraction tool.`;
+} else if (isVideoToGif) {
+  title = `${fromFormat} to GIF Converter - Create Animated GIFs from Videos Free`;
+  description = `Convert ${fromFormat} videos to animated GIF images instantly in your browser. Create perfect GIFs for social media. No upload required, 100% private.`;
+} else if (isSameFormat) {
+  title = `${fromFormat} Compressor - Reduce ${fromFormat} Video File Size Online`;
+  description = `Compress and optimize ${fromFormat} videos to reduce file size while maintaining quality. No upload required, 100% private. Free ${fromFormat} video compression.`;
+} else {
+  title = `${fromFormat} to ${toFormat} Converter - Convert ${fromFormat} to ${toFormat} Free Online`;
+  description = `Convert ${fromFormat} videos to ${toFormat} format instantly in your browser. Free online ${fromFormat} to ${toFormat} video converter. No upload required, 100% private and secure.`;
+}
+
+// Schema.org structured data for SEO
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": title,
+  "description": description,
+  "url": `https://formatfuse.com/video-tools/${fromKey}-to-${toKey}`,
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "Any",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "featureList": [
+    "Browser-based conversion",
+    "No file uploads required",
+    "Batch video processing",
+    "Privacy-focused - files never leave your device",
+    "No watermarks added",
+    "Unlimited conversions",
+    "Supports large files"
+  ]
+};
+
+// Determine the mode based on conversion type
+const mode = isSameFormat ? 'compress' : 'convert';
+---
+
+<Layout title={title} description={description} sourceFormat={fromKey} targetFormat={toKey} toolType="video">
+  <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
+
+  <main>
+    <VideoConverter
+      sourceFormat={fromKey}
+      targetFormat={toKey}
+      mode={mode}
+      client:load
+    />
+  </main>
+</Layout>

@@ -1,0 +1,20 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import VideoConverter from '../../components/converters/VideoConverter.tsx';
+import '../../styles/global.css';
+
+const title = 'Video Rotator - Rotate and Flip Videos Online';
+const description = 'Rotate videos 90, 180, or 270 degrees. Fix video orientation issues with our free video rotation tool.';
+---
+
+<Layout title={title} description={description} toolType="video">
+  <main>
+    <VideoConverter
+      targetFormat="mp4"
+      mode="rotate"
+      title="Rotate Video"
+      description="Fix video orientation by rotating your videos. Rotate 90°, 180°, or 270° clockwise or counterclockwise."
+      client:load
+    />
+  </main>
+</Layout>
