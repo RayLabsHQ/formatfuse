@@ -192,7 +192,7 @@ export default function GenericArchiveExtractor({
         stage: "download",
       });
     }
-  }, [format, setError]);
+  }, [fetchFileData, format, setError]);
 
   const downloadSelected = useCallback(() => {
     const flat = helpers.flattenNodes();
