@@ -179,6 +179,7 @@ export default function CreateZip() {
           format: "zip",
           files: payload,
           password: trimmedPassword,
+          compressionLevel: compressionLevel.compressionLevel,
         });
 
         if (!result.ok) {

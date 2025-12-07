@@ -27,6 +27,12 @@
 
     window.addEventListener('error', function (e) {
       var info = normalize(e.error || e.message);
+      var isScriptError = info.message === 'Script error.' || info.message === 'Script error';
+      var isCrossOrigin = info.message && info.message.toLowerCase().indexOf('cross-origin') !== -1;
+      // Skip noisy cross-origin errors with no stack/filename context
+      if ((isScriptError || isCrossOrigin) && !info.stack && (!e.filename || e.filename === location.href)) {
+        return;
+      }
       send('$exception', {
         $exception_message: info.message,
         $exception_type: info.name,
@@ -54,4 +60,3 @@
     });
   })();
 </script>
-
