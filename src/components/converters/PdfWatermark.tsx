@@ -165,16 +165,15 @@ export default function PdfWatermark() {
     setProgress(0);
     setError(null);
 
+    const worker = new Worker(
+      new URL("../../workers/pdf-watermark.worker.ts", import.meta.url),
+      { type: "module" },
+    );
+
     try {
       const pdfData = new Uint8Array(await pdfFile.arrayBuffer());
 
-      const worker = new Worker(
-        new URL("../../workers/pdf-watermark.worker.ts", import.meta.url),
-        { type: "module" },
-      );
-
-      const watermarkWorker =
-        Comlink.wrap<any>(worker);
+      const watermarkWorker = Comlink.wrap<any>(worker);
 
       const options: WatermarkOptions = {
         type: settings.type,
@@ -204,11 +203,11 @@ export default function PdfWatermark() {
       const baseName = pdfFile.name.replace(/\.pdf$/i, "");
       saveAs(blob, `${baseName}_watermarked.pdf`);
 
-      worker.terminate();
     } catch (err) {
       console.error("Watermark error:", err);
       setError(err instanceof Error ? err.message : "Failed to add watermark");
     } finally {
+      worker.terminate();
       setIsProcessing(false);
       setProgress(0);
     }

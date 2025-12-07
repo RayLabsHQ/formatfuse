@@ -55,9 +55,10 @@ export default function PdfFlatten() {
     setProgress(0);
     setError(null);
 
+    const worker = new Worker(new URL("../../workers/pdf-flatten.worker.ts", import.meta.url), { type: "module" });
+
     try {
       const pdfData = new Uint8Array(await pdfFile.arrayBuffer());
-      const worker = new Worker(new URL("../../workers/pdf-flatten.worker.ts", import.meta.url), { type: "module" });
       const flattenWorker = Comlink.wrap<any>(worker);
 
       const result = await flattenWorker.flatten(pdfData, Comlink.proxy((p: number) => setProgress(p)));
@@ -66,11 +67,11 @@ export default function PdfFlatten() {
       const baseName = pdfFile.name.replace(/\.pdf$/i, "");
       saveAs(blob, `${baseName}_flattened.pdf`);
 
-      worker.terminate();
     } catch (err) {
       console.error("Flatten error:", err);
       setError(err instanceof Error ? err.message : "Failed to flatten PDF");
     } finally {
+      worker.terminate();
       setIsProcessing(false);
       setProgress(0);
     }

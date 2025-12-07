@@ -57,9 +57,10 @@ export default function PdfUnlock() {
     setProgress(0);
     setError(null);
 
+    const worker = new Worker(new URL("../../workers/pdf-protect.worker.ts", import.meta.url), { type: "module" });
+
     try {
       const pdfData = new Uint8Array(await pdfFile.arrayBuffer());
-      const worker = new Worker(new URL("../../workers/pdf-protect.worker.ts", import.meta.url), { type: "module" });
       const unlockWorker = Comlink.wrap<any>(worker);
 
       const result = await unlockWorker.unlock(pdfData, password, Comlink.proxy((p: number) => setProgress(p)));
@@ -69,11 +70,11 @@ export default function PdfUnlock() {
       saveAs(blob, `${baseName}_unlocked.pdf`);
 
       setPassword("");
-      worker.terminate();
     } catch (err) {
       console.error("Unlock error:", err);
       setError(err instanceof Error ? err.message : "Failed to unlock PDF. Check your password.");
     } finally {
+      worker.terminate();
       setIsProcessing(false);
       setProgress(0);
     }
@@ -121,6 +122,9 @@ export default function PdfUnlock() {
                 </button>
               </div>
               <p className="text-xs text-muted-foreground">Leave blank if the PDF has no password</p>
+              <p className="text-xs text-muted-foreground">
+                Unlocking encrypted PDFs in-browser isn&apos;t supported in this build yet; you&apos;ll see an error if the file is protected.
+              </p>
             </div>
           </div>
 

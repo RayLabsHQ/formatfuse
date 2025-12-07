@@ -109,13 +109,13 @@ export default function PdfProtect() {
     setProgress(0);
     setError(null);
 
+    const worker = new Worker(
+      new URL("../../workers/pdf-protect.worker.ts", import.meta.url),
+      { type: "module" },
+    );
+
     try {
       const pdfData = new Uint8Array(await pdfFile.arrayBuffer());
-
-      const worker = new Worker(
-        new URL("../../workers/pdf-protect.worker.ts", import.meta.url),
-        { type: "module" },
-      );
 
       const protectWorker = Comlink.wrap<any>(worker);
 
@@ -130,11 +130,11 @@ export default function PdfProtect() {
       saveAs(blob, `${baseName}_protected.pdf`);
 
       setPassword("");
-      worker.terminate();
     } catch (err) {
       console.error("Protection error:", err);
       setError(err instanceof Error ? err.message : "Failed to protect PDF");
     } finally {
+      worker.terminate();
       setIsProcessing(false);
       setProgress(0);
     }
@@ -197,11 +197,12 @@ export default function PdfProtect() {
               </p>
             </div>
 
-            <div className="p-3 bg-muted/30 rounded-lg">
+            <div className="p-3 bg-muted/30 rounded-lg space-y-2">
               <p className="text-sm text-muted-foreground">
-                <strong className="text-foreground">Note:</strong> This
-                implementation provides basic PDF protection. For enterprise-grade security, consider using professional
-                document management systems.
+                <strong className="text-foreground">Note:</strong> Browser-side PDF encryption is not supported in this build yet. Attempts to protect will show an error so you don&apos;t get a false sense of security.
+              </p>
+              <p className="text-xs text-muted-foreground">
+                For real password protection, use a desktop PDF tool until encryption support lands here.
               </p>
             </div>
           </div>

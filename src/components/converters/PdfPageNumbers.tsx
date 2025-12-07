@@ -147,13 +147,13 @@ export default function PdfPageNumbers() {
     setProgress(0);
     setError(null);
 
+    const worker = new Worker(
+      new URL("../../workers/pdf-page-numbers.worker.ts", import.meta.url),
+      { type: "module" },
+    );
+
     try {
       const pdfData = new Uint8Array(await pdfFile.arrayBuffer());
-
-      const worker = new Worker(
-        new URL("../../workers/pdf-page-numbers.worker.ts", import.meta.url),
-        { type: "module" },
-      );
 
       const pageNumberWorker = Comlink.wrap<any>(worker);
 
@@ -175,13 +175,13 @@ export default function PdfPageNumbers() {
       const baseName = pdfFile.name.replace(/\.pdf$/i, "");
       saveAs(blob, `${baseName}_numbered.pdf`);
 
-      worker.terminate();
     } catch (err) {
       console.error("Page numbers error:", err);
       setError(
         err instanceof Error ? err.message : "Failed to add page numbers",
       );
     } finally {
+      worker.terminate();
       setIsProcessing(false);
       setProgress(0);
     }

@@ -1,5 +1,5 @@
 import * as Comlink from "comlink";
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument, PDFName } from "pdf-lib";
 
 class PdfFlattenWorker {
   async flatten(
@@ -13,28 +13,27 @@ class PdfFlattenWorker {
 
     onProgress?.(30);
 
-    // Flatten form fields by removing interactivity
+    // Flatten form fields to burn values into page content
     try {
-      const fields = form.getFields();
-
-      // This will make form fields non-editable
-      fields.forEach((field) => {
-        try {
-          (field as any).acroField.dict.delete((field as any).acroField.dict.context.obj('Ff'));
-          (field as any).acroField.dict.set(
-            (field as any).acroField.dict.context.obj('Ff'),
-            (field as any).acroField.dict.context.obj(1)
-          );
-        } catch (e) {
-          // Field might not support flattening
-          console.warn('Could not flatten field:', e);
-        }
-      });
+      form.flatten();
     } catch (e) {
-      console.warn('No form fields to flatten or error occurred:', e);
+      console.warn("No form fields to flatten or error occurred:", e);
     }
 
     onProgress?.(70);
+
+    // Remove annotations to avoid interactive remnants
+    try {
+      const pages = pdfDoc.getPages();
+      pages.forEach((page) => {
+        const annots = page.node.get(PDFName.of("Annots"));
+        if (annots) {
+          page.node.set(PDFName.of("Annots"), pdfDoc.context.obj([]));
+        }
+      });
+    } catch (e) {
+      console.warn("Failed to remove annotations:", e);
+    }
 
     const pdfBytes = await pdfDoc.save({
       useObjectStreams: true,

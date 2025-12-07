@@ -23,26 +23,19 @@ class PdfProtectWorker {
   ): Promise<Uint8Array> {
     onProgress?.(0);
 
-    const pdfDoc = await PDFDocument.load(pdfData);
+    // pdf-lib does not support applying real PDF encryption. Surface that
+    // limitation instead of claiming the file is protected.
+    try {
+      await PDFDocument.load(pdfData);
+    } catch (error) {
+      throw new Error("Unable to read PDF for protection.");
+    }
 
     onProgress?.(50);
 
-    // Note: pdf-lib has limited encryption support
-    // For full encryption, we would need additional libraries
-    // This is a basic implementation that sets metadata
-
-    const pdfBytes = await pdfDoc.save({
-      useObjectStreams: false,
-      addDefaultPage: false,
-    });
-
-    onProgress?.(100);
-
-    // Note: This is a simplified implementation
-    // For production use, consider using libraries like pdf-lib with encryption support
-    // or server-side processing with more robust encryption
-
-    return Comlink.transfer(new Uint8Array(pdfBytes), [pdfBytes.buffer]);
+    throw new Error(
+      "Password protection isn't available in this browser build yet. Please use a desktop PDF tool for encryption.",
+    );
   }
 
   async unlock(
@@ -53,19 +46,23 @@ class PdfProtectWorker {
     onProgress?.(0);
 
     try {
-      const pdfDoc = await PDFDocument.load(pdfData, {
-        ignoreEncryption: true,
-      });
+      const pdfDoc = await PDFDocument.load(pdfData);
 
       onProgress?.(50);
 
-      const pdfBytes = await pdfDoc.save();
+      // File wasn't encrypted; just return original content
+      const pdfBytes = await pdfDoc.save({
+        useObjectStreams: false,
+        addDefaultPage: false,
+      });
 
       onProgress?.(100);
 
       return Comlink.transfer(new Uint8Array(pdfBytes), [pdfBytes.buffer]);
     } catch (error) {
-      throw new Error("Failed to unlock PDF. The password may be incorrect.");
+      throw new Error(
+        "Unlocking encrypted PDFs isn't supported in this browser build. Use a desktop PDF tool to remove passwords.",
+      );
     }
   }
 }

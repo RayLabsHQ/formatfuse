@@ -29,6 +29,7 @@ class PdfPageNumbersWorker {
     const marginX = options.marginX || 50;
     const marginY = options.marginY || 30;
     const startPage = options.startPage || 1;
+    const displayTotal = startPage - 1 + totalPages;
 
     for (let i = 0; i < totalPages; i++) {
       const page = pages[i];
@@ -42,13 +43,13 @@ class PdfPageNumbersWorker {
           text = `${pageNumber}`;
           break;
         case "page-of-total":
-          text = `${pageNumber} / ${totalPages}`;
+          text = `${pageNumber} / ${displayTotal}`;
           break;
         case "text-number":
           text = `Page ${pageNumber}`;
           break;
         case "text-page-of-total":
-          text = `Page ${pageNumber} of ${totalPages}`;
+          text = `Page ${pageNumber} of ${displayTotal}`;
           break;
       }
 
