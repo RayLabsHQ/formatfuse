@@ -7,48 +7,53 @@ import JpgToPdf from "../../components/converters/JpgToPdf.tsx";
 import PdfToJpg from "../../components/converters/PdfToJpg.tsx";
 import MarkdownToPdf from "../../components/converters/MarkdownToPdf.tsx";
 import "../../styles/global.css";
-import { alternateRoutes, pdfToolsSeo } from "../../data/pdf-seo";
-
-const toolMap = [
-  {
-    slug: "jpg-to-pdf",
-    component: "JpgToPdf",
-    toolType: "pdf",
-    sourceFormat: "jpg",
-    targetFormat: "pdf",
-  },
-  {
-    slug: "pdf-merge",
-    component: "PdfMerge",
-    toolType: "pdf",
-  },
-  {
-    slug: "pdf-split",
-    component: "PdfSplit",
-    toolType: "pdf",
-  },
-  {
-    slug: "pdf-rotate",
-    component: "PdfRotate",
-    toolType: "pdf",
-  },
-  {
-    slug: "pdf-to-jpg",
-    component: "PdfToJpg",
-    toolType: "pdf",
-    sourceFormat: "pdf",
-    targetFormat: "jpg",
-  },
-  {
-    slug: "markdown-to-pdf",
-    component: "MarkdownToPdf",
-    toolType: "text",
-    sourceFormat: "markdown",
-    targetFormat: "pdf",
-  },
-];
+import {
+  alternateRoutes,
+  pdfToolsSeo,
+  imageToPdfFormats,
+  pdfToImageFormats,
+} from "../../data/pdf-seo";
 
 export function getStaticPaths() {
+  const toolMap = [
+    {
+      slug: "jpg-to-pdf",
+      component: "JpgToPdf",
+      toolType: "pdf",
+      sourceFormat: "jpg",
+      targetFormat: "pdf",
+    },
+    {
+      slug: "pdf-merge",
+      component: "PdfMerge",
+      toolType: "pdf",
+    },
+    {
+      slug: "pdf-split",
+      component: "PdfSplit",
+      toolType: "pdf",
+    },
+    {
+      slug: "pdf-rotate",
+      component: "PdfRotate",
+      toolType: "pdf",
+    },
+    {
+      slug: "pdf-to-jpg",
+      component: "PdfToJpg",
+      toolType: "pdf",
+      sourceFormat: "pdf",
+      targetFormat: "jpg",
+    },
+    {
+      slug: "markdown-to-pdf",
+      component: "MarkdownToPdf",
+      toolType: "text",
+      sourceFormat: "markdown",
+      targetFormat: "pdf",
+    },
+  ];
+
   const basePaths = toolMap.map((tool) => {
     const seo = pdfToolsSeo[tool.slug] || {
       title: tool.slug,
@@ -74,6 +79,13 @@ export function getStaticPaths() {
 
   const altPaths = alternateRoutes
     .filter(({ canonical, alt }) => canonical !== alt && toolLookup.has(canonical))
+    .filter(({ alt }) => {
+      const reserved = new Set<string>([
+        ...imageToPdfFormats.map(({ format }) => `${format}-to-pdf`),
+        ...pdfToImageFormats.map(({ format }) => `pdf-to-${format}`),
+      ]);
+      return !reserved.has(alt);
+    })
     .map(({ alt, canonical }) => {
       const tool = toolLookup.get(canonical)!;
       const seo = pdfToolsSeo[canonical] || {
