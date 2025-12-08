@@ -1,91 +1,138 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import PdfSplit from '../../components/converters/PdfSplit.tsx';
-import PdfMerge from '../../components/converters/PdfMerge.tsx';
-import PdfRotate from '../../components/converters/PdfRotate.tsx';
-import JpgToPdf from '../../components/converters/JpgToPdf.tsx';
-import PdfToJpg from '../../components/converters/PdfToJpg.tsx';
-import MarkdownToPdf from '../../components/converters/MarkdownToPdf.tsx';
-import '../../styles/global.css';
+import Layout from "../../layouts/Layout.astro";
+import PdfSplit from "../../components/converters/PdfSplit.tsx";
+import PdfMerge from "../../components/converters/PdfMerge.tsx";
+import PdfRotate from "../../components/converters/PdfRotate.tsx";
+import JpgToPdf from "../../components/converters/JpgToPdf.tsx";
+import PdfToJpg from "../../components/converters/PdfToJpg.tsx";
+import MarkdownToPdf from "../../components/converters/MarkdownToPdf.tsx";
+import "../../styles/global.css";
+import { alternateRoutes, pdfToolsSeo } from "../../data/pdf-seo";
+
+const toolMap = [
+  {
+    slug: "jpg-to-pdf",
+    component: "JpgToPdf",
+    toolType: "pdf",
+    sourceFormat: "jpg",
+    targetFormat: "pdf",
+  },
+  {
+    slug: "pdf-merge",
+    component: "PdfMerge",
+    toolType: "pdf",
+  },
+  {
+    slug: "pdf-split",
+    component: "PdfSplit",
+    toolType: "pdf",
+  },
+  {
+    slug: "pdf-rotate",
+    component: "PdfRotate",
+    toolType: "pdf",
+  },
+  {
+    slug: "pdf-to-jpg",
+    component: "PdfToJpg",
+    toolType: "pdf",
+    sourceFormat: "pdf",
+    targetFormat: "jpg",
+  },
+  {
+    slug: "markdown-to-pdf",
+    component: "MarkdownToPdf",
+    toolType: "text",
+    sourceFormat: "markdown",
+    targetFormat: "pdf",
+  },
+];
 
 export function getStaticPaths() {
-  return [
-    { 
-      params: { tool: 'jpg-to-pdf' }, 
-      props: { 
-        title: 'JPG to PDF Converter', 
-        component: 'JpgToPdf',
-        description: 'Convert JPG, PNG, and other images to PDF documents. Create multi-page PDFs from multiple images. Free and private.',
-        toolType: 'pdf',
-        sourceFormat: 'jpg',
-        targetFormat: 'pdf'
-      } 
-    },
-    { 
-      params: { tool: 'pdf-merge' }, 
-      props: { 
-        title: 'Merge PDF Files', 
-        component: 'PdfMerge',
-        description: 'Combine multiple PDF files into one document. Reorder pages and merge PDFs easily. No uploads required.',
-        toolType: 'pdf'
-      } 
-    },
-    { 
-      params: { tool: 'pdf-split' }, 
-      props: { 
-        title: 'Split PDF - Extract Pages from PDF', 
-        component: 'PdfSplit',
-        description: 'Split PDF files by extracting specific pages or ranges. Download individual pages or create new PDFs from selected pages.',
-        toolType: 'pdf'
-      } 
-    },
-    { 
-      params: { tool: 'pdf-rotate' }, 
-      props: { 
-        title: 'Rotate PDF Pages', 
-        component: 'PdfRotate',
-        description: 'Rotate PDF pages individually or all at once. Fix orientation issues in your PDF documents. Free and fast.',
-        toolType: 'pdf'
-      } 
-    },
-    { 
-      params: { tool: 'pdf-to-jpg' }, 
-      props: { 
-        title: 'PDF to JPG Converter', 
-        component: 'PdfToJpg',
-        description: 'Convert PDF pages to JPG images. Extract all pages or select specific ones. High-quality image output.',
-        toolType: 'pdf',
-        sourceFormat: 'pdf',
-        targetFormat: 'jpg'
-      } 
-    },
-    { 
-      params: { tool: 'markdown-to-pdf' }, 
-      props: { 
-        title: 'Markdown to PDF Converter', 
-        component: 'MarkdownToPdf',
-        description: 'Convert Markdown documents to beautifully formatted PDFs. Supports tables, code blocks, and custom styling.',
-        toolType: 'text',
-        sourceFormat: 'markdown',
-        targetFormat: 'pdf'
-      } 
-    },
-    // Add more tools here
-  ];
+  const basePaths = toolMap.map((tool) => {
+    const seo = pdfToolsSeo[tool.slug] || {
+      title: tool.slug,
+      description: "",
+      keywords: [],
+    };
+    return {
+      params: { tool: tool.slug },
+      props: {
+        title: seo.title,
+        component: tool.component,
+        description: seo.description,
+        toolType: tool.toolType,
+        sourceFormat: tool.sourceFormat,
+        targetFormat: tool.targetFormat,
+        isAlternate: false,
+        canonicalSlug: tool.slug,
+      },
+    };
+  });
+
+  const toolLookup = new Map(toolMap.map((t) => [t.slug, t]));
+
+  const altPaths = alternateRoutes
+    .filter(({ canonical, alt }) => canonical !== alt && toolLookup.has(canonical))
+    .map(({ alt, canonical }) => {
+      const tool = toolLookup.get(canonical)!;
+      const seo = pdfToolsSeo[canonical] || {
+        title: canonical,
+        description: "",
+        keywords: [],
+      };
+      return {
+        params: { tool: alt },
+        props: {
+          title: seo.title,
+          component: tool.component,
+          description: seo.description,
+          toolType: tool.toolType,
+          sourceFormat: tool.sourceFormat,
+          targetFormat: tool.targetFormat,
+          isAlternate: true,
+          canonicalSlug: canonical,
+        },
+      };
+    });
+
+  return [...basePaths, ...altPaths];
 }
 
 const { tool } = Astro.params;
-const { title, component, description, toolType, sourceFormat, targetFormat } = Astro.props;
+const {
+  title,
+  component,
+  description,
+  toolType,
+  sourceFormat,
+  targetFormat,
+  isAlternate,
+  canonicalSlug,
+} = Astro.props;
 ---
 
-<Layout title={title} description={description} toolType={toolType} sourceFormat={sourceFormat} targetFormat={targetFormat}>
-  <main class={component === 'MarkdownToPdf' ? 'flex flex-col h-[calc(100vh-4rem)] md:h-auto min-h-0' : ''}>
-    {component === 'PdfSplit' && <PdfSplit client:load />}
-    {component === 'PdfMerge' && <PdfMerge client:load />}
-    {component === 'PdfRotate' && <PdfRotate client:load />}
-    {component === 'JpgToPdf' && <JpgToPdf client:load />}
-    {component === 'PdfToJpg' && <PdfToJpg client:load />}
-    {component === 'MarkdownToPdf' && <MarkdownToPdf client:load />}
+<Layout
+  title={title}
+  description={description}
+  toolType={toolType}
+  sourceFormat={sourceFormat}
+  targetFormat={targetFormat}
+>
+  {isAlternate && (
+    <link
+      slot="head"
+      rel="canonical"
+      href={new URL(`/convert/${canonicalSlug}`, Astro.site)}
+    />
+  )}
+  <main class={component === "MarkdownToPdf" ? "flex flex-col h-[calc(100vh-4rem)] md:h-auto min-h-0" : ""}>
+    {component === "PdfSplit" && <PdfSplit client:load />}
+    {component === "PdfMerge" && <PdfMerge client:load />}
+    {component === "PdfRotate" && <PdfRotate client:load />}
+    {component === "JpgToPdf" && <JpgToPdf client:load />}
+    {component === "PdfToJpg" && <PdfToJpg client:load />}
+    {component === "MarkdownToPdf" && <MarkdownToPdf client:load />}
     {/* Add more component conditions here */}
   </main>
 </Layout>

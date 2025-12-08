@@ -1,8 +1,60 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import PdfCompress from "../../components/converters/PdfCompress";
+import PdfSchema from "../../components/PdfSchema.astro";
+import { pdfToolsSeo } from "../../data/pdf-seo";
+
+const seo = pdfToolsSeo["pdf-compress"];
+
+const faqs = [
+  {
+    question: "How much can PDF compression reduce file size?",
+    answer: "Compression typically reduces file size by 20-80% depending on the content. PDFs with many images see the most reduction, while text-only PDFs compress less. Our smart compression maintains readability while achieving optimal size reduction."
+  },
+  {
+    question: "What's the difference between compression quality levels?",
+    answer: "High quality preserves almost all detail (10-30% reduction), Medium balances quality and size (30-60% reduction), and Low maximizes compression (50-80% reduction). Custom mode lets you fine-tune the exact balance you need."
+  },
+  {
+    question: "Will compression affect text quality?",
+    answer: "Text remains sharp and searchable at all compression levels. Only embedded images are compressed. If you enable grayscale conversion, color images become black and white but text quality is preserved."
+  },
+  {
+    question: "Can I batch compress multiple PDFs?",
+    answer: "Yes! You can select multiple PDFs and compress them all with the same settings. Each file is processed individually and can be downloaded separately or all together as a ZIP file."
+  }
+];
+
+const steps = [
+  { name: "Upload PDF", text: "Drag and drop your PDF file or click to browse and select a file" },
+  { name: "Choose Quality", text: "Select High, Medium, or Low compression based on your needs" },
+  { name: "Compress", text: "Click the Compress button to reduce your PDF file size" },
+  { name: "Download", text: "Download your compressed PDF file instantly" }
+];
+
+const features = [
+  "Reduce PDF size by up to 80%",
+  "Batch compress multiple files",
+  "100% private - no file uploads",
+  "No signup required",
+  "Works offline",
+  "Preserves text quality"
+];
 ---
 
-<Layout title="Compress PDF - Reduce PDF File Size | FormatFuse" description="Compress PDF files to reduce their size while maintaining quality. Smart compression with customizable settings for the perfect balance.">
+<Layout
+  title={seo.title}
+  description={seo.description}
+  keywords={seo.keywords.join(", ")}
+  toolType="pdf"
+>
+  <PdfSchema
+    toolId="pdf-compress"
+    toolName="Compress PDF"
+    description={seo.description}
+    features={features}
+    faqs={faqs}
+    steps={steps}
+  />
   <PdfCompress client:load />
 </Layout>

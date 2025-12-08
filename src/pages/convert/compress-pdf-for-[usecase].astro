@@ -1,0 +1,50 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import PdfCompressWithTarget from "../../components/converters/PdfCompressWithTarget";
+import PdfSchema from "../../components/PdfSchema.astro";
+import { compressionUseCases, getUseCaseSeoData } from "../../data/pdf-seo";
+
+export function getStaticPaths() {
+  return compressionUseCases.map(({ usecase, display, targetKB, description }) => ({
+    params: { usecase },
+    props: {
+      targetKB,
+      display,
+      description,
+      seo: getUseCaseSeoData(usecase, display, description)
+    },
+  }));
+}
+
+const { usecase } = Astro.params;
+const { targetKB, display, description, seo } = Astro.props;
+---
+
+<Layout
+  title={seo.metaTitle}
+  description={seo.metaDescription}
+  keywords={seo.keywords.join(", ")}
+  toolType="pdf"
+>
+  <PdfSchema
+    toolId={seo.id}
+    toolName={seo.h1}
+    description={seo.metaDescription}
+    features={seo.features}
+    faqs={seo.faqs}
+    steps={[
+      { name: "Upload PDF", text: "Drag and drop your PDF file or click to browse" },
+      { name: "Optimize", text: `We auto-tune compression for ${display}` },
+      { name: "Compress", text: "Click Compress to process your file" },
+      { name: "Download", text: "Download the optimized PDF" },
+    ]}
+  />
+  <PdfCompressWithTarget
+    client:load
+    targetSize={targetKB}
+    targetDisplay={display}
+    useCase={usecase}
+    useCaseDescription={description}
+    seoData={seo}
+  />
+</Layout>

@@ -1,0 +1,88 @@
+---
+export interface Props {
+  toolId: string;
+  toolName: string;
+  description: string;
+  features?: string[];
+  faqs?: { question: string; answer: string }[];
+  steps?: { name: string; text: string }[];
+}
+
+const { toolId, toolName, description, features = [], faqs = [], steps = [] } = Astro.props;
+const pageUrl = new URL(Astro.url.pathname, Astro.site);
+
+// SoftwareApplication schema
+const softwareSchema = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": `${toolName} - FormatFuse`,
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Web Browser",
+  "url": pageUrl.toString(),
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  ...(features.length > 0 && { "featureList": features })
+};
+
+// FAQPage schema
+const faqSchema = faqs.length > 0 ? {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": faqs.map(faq => ({
+    "@type": "Question",
+    "name": faq.question,
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": faq.answer
+    }
+  }))
+} : null;
+
+// HowTo schema
+const howToSchema = steps.length > 0 ? {
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": `How to ${toolName}`,
+  "description": description,
+  "totalTime": "PT1M",
+  "step": steps.map((step, i) => ({
+    "@type": "HowToStep",
+    "position": i + 1,
+    "name": step.name,
+    "text": step.text
+  }))
+} : null;
+
+// BreadcrumbList schema
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": new URL("/", Astro.site).toString()
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "PDF Tools",
+      "item": new URL("/pdf-tools", Astro.site).toString()
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": toolName
+    }
+  ]
+};
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(softwareSchema)} />
+<script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+{faqSchema && <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />}
+{howToSchema && <script type="application/ld+json" set:html={JSON.stringify(howToSchema)} />}

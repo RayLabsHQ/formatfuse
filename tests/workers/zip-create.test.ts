@@ -1,8 +1,6 @@
 import { describe, it, expect } from "vitest";
 import JSZip from "jszip";
 
-// @vitest-environment jsdom
-
 describe("ZIP Create", () => {
   describe("Basic ZIP creation", () => {
     it("should create a ZIP with single file", async () => {

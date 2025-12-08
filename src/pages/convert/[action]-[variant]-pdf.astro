@@ -1,0 +1,62 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import PdfSplit from "../../components/converters/PdfSplit.tsx";
+import PdfSchema from "../../components/PdfSchema.astro";
+import { splitVariations, getSplitVariationSeoData } from "../../data/pdf-seo";
+
+export function getStaticPaths() {
+  return splitVariations.map(({ variant, display, action, description, keywords }) => ({
+    params: {
+      action: action.toLowerCase().replace(" ", "-"),
+      variant
+    },
+    props: {
+      display,
+      action,
+      description,
+      seo: getSplitVariationSeoData(variant, display, action, description, keywords)
+    },
+  }));
+}
+
+const { action, variant } = Astro.params;
+const { display, seo } = Astro.props;
+
+// Map variant to preset mode for PdfSplit
+const variantPresetMap: Record<string, string> = {
+  "first-page": "first",
+  "last-page": "last",
+  "single-page": "individual",
+  "page-range": "range",
+  "odd-pages": "odd",
+  "even-pages": "even",
+  "every-page": "individual",
+  "half": "halves",
+};
+---
+
+<Layout
+  title={seo.metaTitle}
+  description={seo.metaDescription}
+  keywords={seo.keywords.join(", ")}
+  toolType="pdf"
+>
+  <PdfSchema
+    toolId={seo.id}
+    toolName={seo.title}
+    description={seo.metaDescription}
+    features={seo.features}
+    faqs={seo.faqs}
+    steps={[
+      { name: "Upload PDF", text: "Drag and drop your PDF file or click to browse" },
+      { name: "Preview Pages", text: "See all pages in your PDF" },
+      { name: action, text: `${action} ${display.toLowerCase()} from your PDF` },
+      { name: "Download", text: "Download your extracted pages" },
+    ]}
+  />
+  <PdfSplit
+    client:load
+    defaultPreset={variantPresetMap[variant] || "individual"}
+    seoData={seo}
+  />
+</Layout>

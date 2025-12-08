@@ -1,0 +1,50 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import PdfCompress from "../../components/converters/PdfCompress";
+import PdfSchema from "../../components/PdfSchema.astro";
+import { compressionQualities, getCompressionQualitySeoData } from "../../data/pdf-seo";
+
+export function getStaticPaths() {
+  return compressionQualities.map(({ quality, display, level, description, reduction }) => ({
+    params: { quality },
+    props: {
+      display,
+      level,
+      description,
+      reduction,
+      seo: getCompressionQualitySeoData(quality, display, description, reduction)
+    },
+  }));
+}
+
+const { quality } = Astro.params;
+const { display, level, reduction, seo } = Astro.props;
+---
+
+<Layout
+  title={seo.metaTitle}
+  description={seo.metaDescription}
+  keywords={seo.keywords.join(", ")}
+  toolType="pdf"
+>
+  <PdfSchema
+    toolId={seo.id}
+    toolName={seo.title}
+    description={seo.metaDescription}
+    features={seo.features}
+    faqs={seo.faqs}
+    steps={[
+      { name: "Upload PDF", text: "Drag and drop your PDF file or click to browse" },
+      { name: "Quality Preset", text: `${display} compression is pre-selected` },
+      { name: "Compress", text: "Click Compress to reduce file size" },
+      { name: "Download", text: "Download your compressed PDF" },
+    ]}
+  />
+  <PdfCompress
+    client:load
+    defaultQuality={level}
+    qualityDisplay={display}
+    expectedReduction={reduction}
+    seoData={seo}
+  />
+</Layout>

@@ -1,0 +1,47 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import PdfCompress from "../../components/converters/PdfCompress";
+import PdfMerge from "../../components/converters/PdfMerge.tsx";
+import PdfRotate from "../../components/converters/PdfRotate.tsx";
+import PdfSchema from "../../components/PdfSchema.astro";
+import { batchOperations, getBatchOperationSeoData } from "../../data/pdf-seo";
+
+export function getStaticPaths() {
+  return batchOperations.map(({ operation, display, description, keywords }) => ({
+    params: { operation },
+    props: {
+      display,
+      description,
+      seo: getBatchOperationSeoData(operation, display, description, keywords)
+    },
+  }));
+}
+
+const { operation } = Astro.params;
+const { display, seo } = Astro.props;
+---
+
+<Layout
+  title={seo.metaTitle}
+  description={seo.metaDescription}
+  keywords={seo.keywords.join(", ")}
+  toolType="pdf"
+>
+  <PdfSchema
+    toolId={seo.id}
+    toolName={seo.title}
+    description={seo.metaDescription}
+    features={seo.features}
+    faqs={seo.faqs}
+    steps={[
+      { name: "Upload PDFs", text: "Select multiple PDF files to process" },
+      { name: "Configure", text: "Adjust settings for batch processing" },
+      { name: "Process All", text: `${display} all files at once` },
+      { name: "Download", text: "Download results as ZIP or individually" },
+    ]}
+  />
+  {operation === "compress" && <PdfCompress client:load batchMode={true} seoData={seo} />}
+  {operation === "merge" && <PdfMerge client:load batchMode={true} seoData={seo} />}
+  {operation === "rotate" && <PdfRotate client:load batchMode={true} seoData={seo} />}
+  {operation === "convert" && <PdfCompress client:load batchMode={true} seoData={seo} />}
+</Layout>

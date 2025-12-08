@@ -1,0 +1,48 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import PdfCompressWithTarget from "../../components/converters/PdfCompressWithTarget";
+import PdfSchema from "../../components/PdfSchema.astro";
+import { reductionPercentages, getReductionPercentSeoData } from "../../data/pdf-seo";
+
+export function getStaticPaths() {
+  return reductionPercentages.map(({ percent, display, description }) => ({
+    params: { percent },
+    props: {
+      display,
+      description,
+      seo: getReductionPercentSeoData(percent, display, description)
+    },
+  }));
+}
+
+const { percent } = Astro.params;
+const { display, seo } = Astro.props;
+const reductionPercent = Number(percent);
+---
+
+<Layout
+  title={seo.metaTitle}
+  description={seo.metaDescription}
+  keywords={seo.keywords.join(", ")}
+  toolType="pdf"
+>
+  <PdfSchema
+    toolId={seo.id}
+    toolName={seo.title}
+    description={seo.metaDescription}
+    features={seo.features}
+    faqs={seo.faqs}
+    steps={[
+      { name: "Upload PDF", text: "Drag and drop your PDF file or click to browse" },
+      { name: "Target Set", text: `Target reduction: ${display}` },
+      { name: "Compress", text: "Click Compress to reduce file size" },
+      { name: "Download", text: "Download your compressed PDF" },
+    ]}
+  />
+  <PdfCompressWithTarget
+    client:load
+    targetDisplay={display}
+    reductionPercent={Number.isFinite(reductionPercent) ? reductionPercent : undefined}
+    seoData={seo}
+  />
+</Layout>

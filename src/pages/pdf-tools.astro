@@ -1,0 +1,247 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { pdfToolCategories, compressionSizes, compressionUseCases } from "../data/pdf-seo";
+import { pdfTools } from "../data/tools";
+import {
+  FileDown,
+  Layers,
+  Scissors,
+  RotateCw,
+  Lock,
+  Unlock,
+  Droplets,
+  FileText,
+  Hash,
+  Image,
+  Code,
+  Shield,
+  Zap,
+  Globe,
+  Target,
+} from "lucide-react";
+
+const title = "Free PDF Tools Online - Edit, Convert, Compress PDF | FormatFuse";
+const description = "Free online PDF tools: compress, merge, split, convert, protect, and edit PDF files. No signup, no watermarks. 100% private - files never leave your browser.";
+const keywords = "pdf tools, pdf editor online, compress pdf, merge pdf, split pdf, pdf converter, pdf to jpg, jpg to pdf, protect pdf, free pdf tools";
+
+// Icon mapping
+const iconMap: Record<string, any> = {
+  "pdf-compress": FileDown,
+  "pdf-merge": Layers,
+  "pdf-split": Scissors,
+  "pdf-rotate": RotateCw,
+  "pdf-protect": Lock,
+  "pdf-unlock": Unlock,
+  "pdf-watermark": Droplets,
+  "pdf-flatten": FileText,
+  "pdf-page-numbers": Hash,
+  "jpg-to-pdf": Image,
+  "pdf-to-jpg": Image,
+  "markdown-to-pdf": Code,
+  "pdf-to-markdown": FileText,
+};
+
+const features = [
+  {
+    icon: "Shield",
+    title: "100% Private",
+    description: "Files never leave your browser. All processing happens locally on your device.",
+  },
+  {
+    icon: "Zap",
+    title: "Lightning Fast",
+    description: "Powered by WebAssembly for near-instant processing of your PDF files.",
+  },
+  {
+    icon: "Globe",
+    title: "Works Offline",
+    description: "Once loaded, all tools work without internet connection.",
+  },
+];
+---
+
+<Layout title={title} description={description} keywords={keywords} toolType="pdf">
+  <div class="w-full">
+    <!-- Background Effects -->
+    <div class="hidden sm:block fixed inset-0 overflow-hidden pointer-events-none">
+      <div class="absolute inset-0 bg-gradient-to-br from-primary/[0.02] via-transparent to-accent/[0.02]"></div>
+      <div class="absolute top-1/4 right-10 w-96 h-96 bg-[var(--tool-pdf)]/10 rounded-full blur-3xl"></div>
+      <div class="absolute bottom-1/4 left-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl"></div>
+    </div>
+
+    <section class="w-full max-w-6xl mx-auto p-4 sm:p-6 lg:px-8 lg:py-12 relative z-10">
+      <!-- Hero Section -->
+      <div class="text-center mb-12">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--tool-pdf)]/10 border border-[var(--tool-pdf)]/20 text-sm font-medium text-[var(--tool-pdf)] mb-4">
+          <FileText className="w-4 h-4" />
+          All PDF Tools
+        </div>
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
+          Free Online <span class="text-[var(--tool-pdf)]">PDF Tools</span>
+        </h1>
+        <p class="text-lg text-muted-foreground max-w-2xl mx-auto">
+          Everything you need to work with PDFs. Compress, merge, split, convert, and secure your documents - completely free and private.
+        </p>
+      </div>
+
+      <!-- Feature Pills -->
+      <div class="flex flex-wrap justify-center gap-3 mb-12">
+        {features.map((feature) => (
+          <div class="flex items-center gap-2 px-4 py-2 rounded-full bg-card/50 border border-border/50">
+            {feature.icon === "Shield" && <Shield className="w-4 h-4 text-primary" />}
+            {feature.icon === "Zap" && <Zap className="w-4 h-4 text-primary" />}
+            {feature.icon === "Globe" && <Globe className="w-4 h-4 text-primary" />}
+            <span class="text-sm font-medium">{feature.title}</span>
+          </div>
+        ))}
+      </div>
+
+      <!-- Tool Categories -->
+      <div class="space-y-12">
+        {pdfToolCategories.map((category) => (
+          <div>
+            <div class="flex items-center gap-3 mb-6">
+              <h2 class="text-xl font-semibold">{category.name}</h2>
+              <span class="text-sm text-muted-foreground">{category.description}</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {category.tools.map((toolId) => {
+                const tool = pdfTools.find((t) => t.id === toolId);
+                if (!tool) return null;
+                const IconComponent = iconMap[toolId] || FileText;
+                return (
+                  <a
+                    href={tool.route || `/convert/${tool.id}`}
+                    class="group p-4 rounded-xl bg-card/50 border border-border/50 hover:border-primary/30 hover:bg-card transition-all"
+                  >
+                    <div class="flex items-start gap-3">
+                      <div class="w-10 h-10 rounded-lg bg-[var(--tool-pdf)]/10 flex items-center justify-center flex-shrink-0 group-hover:bg-[var(--tool-pdf)]/20 transition-colors">
+                        <IconComponent className="w-5 h-5 text-[var(--tool-pdf)]" />
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <h3 class="font-medium group-hover:text-primary transition-colors">
+                          {tool.name}
+                        </h3>
+                        <p class="text-sm text-muted-foreground line-clamp-2">
+                          {tool.description}
+                        </p>
+                      </div>
+                    </div>
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <!-- Size-based Compression Section -->
+      <div class="mt-16 pt-12 border-t">
+        <div class="flex items-center gap-3 mb-6">
+          <Target className="w-6 h-6 text-primary" />
+          <h2 class="text-xl font-semibold">Compress PDF to Specific Size</h2>
+        </div>
+        <p class="text-muted-foreground mb-6">
+          Need your PDF under a specific file size? Choose your target:
+        </p>
+        <div class="flex flex-wrap gap-3">
+          {compressionSizes.map(({ size, display }) => (
+            <a
+              href={`/convert/compress-pdf-to-${size}`}
+              class="px-4 py-2 rounded-lg bg-card/50 border border-border/50 hover:border-primary/30 hover:bg-card transition-all text-sm font-medium"
+            >
+              Compress to {display}
+            </a>
+          ))}
+        </div>
+      </div>
+
+      <!-- Use-case Compression Section -->
+      <div class="mt-12">
+        <div class="flex items-center gap-3 mb-6">
+          <Globe className="w-6 h-6 text-primary" />
+          <h2 class="text-xl font-semibold">Compress PDF for Specific Use</h2>
+        </div>
+        <p class="text-muted-foreground mb-6">
+          Optimize your PDF for specific platforms and purposes:
+        </p>
+        <div class="flex flex-wrap gap-3">
+          {compressionUseCases.map(({ usecase, display }) => (
+            <a
+              href={`/convert/compress-pdf-for-${usecase}`}
+              class="px-4 py-2 rounded-lg bg-card/50 border border-border/50 hover:border-primary/30 hover:bg-card transition-all text-sm font-medium"
+            >
+              Compress for {display}
+            </a>
+          ))}
+        </div>
+      </div>
+
+      <!-- Why FormatFuse Section -->
+      <div class="mt-16 pt-12 border-t">
+        <h2 class="text-xl font-semibold mb-6 text-center">Why Use FormatFuse PDF Tools?</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="text-center p-6 rounded-xl bg-card/30">
+            <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+              <Shield className="w-6 h-6 text-primary" />
+            </div>
+            <h3 class="font-medium mb-2">Complete Privacy</h3>
+            <p class="text-sm text-muted-foreground">
+              Your files never leave your device. All processing happens locally in your browser using WebAssembly technology.
+            </p>
+          </div>
+          <div class="text-center p-6 rounded-xl bg-card/30">
+            <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+              <Zap className="w-6 h-6 text-primary" />
+            </div>
+            <h3 class="font-medium mb-2">No Signup Required</h3>
+            <p class="text-sm text-muted-foreground">
+              Start using any tool immediately. No account creation, no email verification, no waiting.
+            </p>
+          </div>
+          <div class="text-center p-6 rounded-xl bg-card/30">
+            <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+              <Globe className="w-6 h-6 text-primary" />
+            </div>
+            <h3 class="font-medium mb-2">Works Anywhere</h3>
+            <p class="text-sm text-muted-foreground">
+              Works on any device with a modern browser. Once loaded, even works offline without internet.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Schema.org Structured Data -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Free PDF Tools Online",
+    "description": description,
+    "url": new URL("/pdf-tools", Astro.site),
+    "mainEntity": {
+      "@type": "SoftwareApplication",
+      "name": "FormatFuse PDF Tools",
+      "applicationCategory": "UtilitiesApplication",
+      "operatingSystem": "Web Browser",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "featureList": [
+        "Compress PDF files",
+        "Merge multiple PDFs",
+        "Split PDF pages",
+        "Rotate PDF pages",
+        "Convert JPG to PDF",
+        "Convert PDF to JPG",
+        "Password protect PDF",
+        "Remove PDF password",
+        "Add watermarks to PDF",
+        "Add page numbers to PDF"
+      ]
+    }
+  })} />
+</Layout>

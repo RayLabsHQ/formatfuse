@@ -1,0 +1,43 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import PdfCompressWithTarget from "../../components/converters/PdfCompressWithTarget";
+import PdfSchema from "../../components/PdfSchema.astro";
+import { compressionSizes, getCompressionSeoData } from "../../data/pdf-seo";
+
+export function getStaticPaths() {
+  return compressionSizes.map(({ size, targetKB, display }) => ({
+    params: { size },
+    props: { targetKB, display, seo: getCompressionSeoData(size, display) },
+  }));
+}
+
+const { size } = Astro.params;
+const { targetKB, display, seo } = Astro.props;
+---
+
+<Layout
+  title={seo.metaTitle}
+  description={seo.metaDescription}
+  keywords={seo.keywords.join(", ")}
+  toolType="pdf"
+>
+  <PdfSchema
+    toolId={seo.id}
+    toolName={seo.h1}
+    description={seo.metaDescription}
+    features={seo.features}
+    faqs={seo.faqs}
+    steps={[
+      { name: "Upload PDF", text: "Drag and drop your PDF file or click to browse" },
+      { name: "Target Size", text: `We'll tune compression to hit under ${display}` },
+      { name: "Compress", text: "Click Compress to reduce file size" },
+      { name: "Download", text: "Download your compressed PDF" },
+    ]}
+  />
+  <PdfCompressWithTarget
+    client:load
+    targetSize={targetKB}
+    targetDisplay={display}
+    seoData={seo}
+  />
+</Layout>

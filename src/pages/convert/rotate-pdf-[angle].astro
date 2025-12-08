@@ -1,0 +1,56 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import PdfRotate from "../../components/converters/PdfRotate.tsx";
+import PdfSchema from "../../components/PdfSchema.astro";
+import { rotationAngles, getRotationSeoData } from "../../data/pdf-seo";
+
+export function getStaticPaths() {
+  return rotationAngles.map(({ angle, display, direction, description }) => ({
+    params: { angle },
+    props: {
+      display,
+      direction,
+      description,
+      seo: getRotationSeoData(angle, display, direction, description)
+    },
+  }));
+}
+
+const { angle } = Astro.params;
+const { display, direction, seo } = Astro.props;
+
+// Map angle to degrees for component
+const angleToDegrees: Record<string, number> = {
+  "90": 90,
+  "180": 180,
+  "270": 270,
+  "left": 270,
+  "right": 90,
+};
+---
+
+<Layout
+  title={seo.metaTitle}
+  description={seo.metaDescription}
+  keywords={seo.keywords.join(", ")}
+  toolType="pdf"
+>
+  <PdfSchema
+    toolId={seo.id}
+    toolName={seo.title}
+    description={seo.metaDescription}
+    features={seo.features}
+    faqs={seo.faqs}
+    steps={[
+      { name: "Upload PDF", text: "Drag and drop your PDF file or click to browse" },
+      { name: "Select Pages", text: "Choose which pages to rotate (all or specific)" },
+      { name: `Rotate ${display}`, text: `Rotate selected pages ${display} ${direction}` },
+      { name: "Download", text: "Download your rotated PDF" },
+    ]}
+  />
+  <PdfRotate
+    client:load
+    defaultRotation={angleToDegrees[angle] || 90}
+    seoData={seo}
+  />
+</Layout>

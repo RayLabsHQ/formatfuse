@@ -3,8 +3,6 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import JSZip from "jszip";
 
-// @vitest-environment jsdom
-
 describe("ZIP Extract", () => {
   let testZip: Uint8Array;
   let emptyZip: Uint8Array;

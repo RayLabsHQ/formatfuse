@@ -1,0 +1,61 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import JpgToPdf from "../../components/converters/JpgToPdf.tsx";
+import PdfSchema from "../../components/PdfSchema.astro";
+import { imageToPdfFormats, getImageToPdfSeoData } from "../../data/pdf-seo";
+
+export function getStaticPaths() {
+  return imageToPdfFormats.map(({ format, display, description, keywords }) => ({
+    params: { format },
+    props: {
+      display,
+      description,
+      seo: getImageToPdfSeoData(format, display, description, keywords)
+    },
+  }));
+}
+
+const { format } = Astro.params;
+const { display, seo } = Astro.props;
+
+// Map formats to accepted MIME types
+const formatMimeTypes: Record<string, string> = {
+  png: "image/png",
+  heic: "image/heic,image/heif",
+  webp: "image/webp",
+  gif: "image/gif",
+  bmp: "image/bmp",
+  tiff: "image/tiff",
+  avif: "image/avif",
+  svg: "image/svg+xml",
+};
+---
+
+<Layout
+  title={seo.metaTitle}
+  description={seo.metaDescription}
+  keywords={seo.keywords.join(", ")}
+  toolType="pdf"
+  sourceFormat={format}
+  targetFormat="pdf"
+>
+  <PdfSchema
+    toolId={seo.id}
+    toolName={seo.title}
+    description={seo.metaDescription}
+    features={seo.features}
+    faqs={seo.faqs}
+    steps={[
+      { name: `Upload ${display}`, text: `Drag and drop your ${display} files or click to browse` },
+      { name: "Arrange Images", text: "Reorder images by dragging them into your preferred sequence" },
+      { name: "Configure Settings", text: "Choose page size and orientation" },
+      { name: "Convert & Download", text: "Click Convert and download your PDF" },
+    ]}
+  />
+  <JpgToPdf
+    client:load
+    sourceFormat={format}
+    sourceDisplay={display}
+    seoData={seo}
+  />
+</Layout>

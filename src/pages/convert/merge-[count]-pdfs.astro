@@ -1,0 +1,42 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import PdfMerge from "../../components/converters/PdfMerge.tsx";
+import PdfSchema from "../../components/PdfSchema.astro";
+import { mergeCountVariations, getMergeCountSeoData } from "../../data/pdf-seo";
+
+export function getStaticPaths() {
+  return mergeCountVariations.map(({ count, display, description }) => ({
+    params: { count },
+    props: {
+      display,
+      description,
+      seo: getMergeCountSeoData(count, display, description)
+    },
+  }));
+}
+
+const { count } = Astro.params;
+const { display, seo } = Astro.props;
+---
+
+<Layout
+  title={seo.metaTitle}
+  description={seo.metaDescription}
+  keywords={seo.keywords.join(", ")}
+  toolType="pdf"
+>
+  <PdfSchema
+    toolId={seo.id}
+    toolName={seo.title}
+    description={seo.metaDescription}
+    features={seo.features}
+    faqs={seo.faqs}
+    steps={[
+      { name: "Upload PDFs", text: `Select ${display.toLowerCase()} PDF files to merge` },
+      { name: "Arrange Order", text: "Drag files to reorder them as needed" },
+      { name: "Merge", text: "Click Merge to combine all PDFs into one" },
+      { name: "Download", text: "Download your merged PDF file" },
+    ]}
+  />
+  <PdfMerge client:load suggestedCount={count} seoData={seo} />
+</Layout>

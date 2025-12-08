@@ -1,0 +1,49 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import PdfToJpg from "../../components/converters/PdfToJpg.tsx";
+import PdfSchema from "../../components/PdfSchema.astro";
+import { pdfToImageFormats, getPdfToImageSeoData } from "../../data/pdf-seo";
+
+export function getStaticPaths() {
+  return pdfToImageFormats.map(({ format, display, description, keywords }) => ({
+    params: { format },
+    props: {
+      display,
+      description,
+      seo: getPdfToImageSeoData(format, display, description, keywords)
+    },
+  }));
+}
+
+const { format } = Astro.params;
+const { display, seo } = Astro.props;
+---
+
+<Layout
+  title={seo.metaTitle}
+  description={seo.metaDescription}
+  keywords={seo.keywords.join(", ")}
+  toolType="pdf"
+  sourceFormat="pdf"
+  targetFormat={format}
+>
+  <PdfSchema
+    toolId={seo.id}
+    toolName={seo.title}
+    description={seo.metaDescription}
+    features={seo.features}
+    faqs={seo.faqs}
+    steps={[
+      { name: "Upload PDF", text: "Drag and drop your PDF file or click to browse" },
+      { name: "Select Pages", text: "Choose which pages to convert (all or specific)" },
+      { name: "Convert", text: `Click Convert to transform pages to ${display}` },
+      { name: "Download", text: `Download your ${display} images individually or as ZIP` },
+    ]}
+  />
+  <PdfToJpg
+    client:load
+    targetFormat={format}
+    targetDisplay={display}
+    seoData={seo}
+  />
+</Layout>
