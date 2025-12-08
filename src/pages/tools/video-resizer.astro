@@ -1,6 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import VideoConverter from '../../components/converters/VideoConverter.tsx';
+import VideoResizer from '../../components/converters/VideoResizer.tsx';
 import '../../styles/global.css';
 
 const title = 'Video Resizer - Change Video Resolution Online';
@@ -9,11 +9,9 @@ const description = 'Resize videos to different resolutions like 1080p, 720p, or
 
 <Layout title={title} description={description} toolType="video">
   <main>
-    <VideoConverter
-      targetFormat="mp4"
-      mode="resize"
+    <VideoResizer
       title="Video Resizer"
-      description="Change your video resolution to fit any platform. Resize to 1080p, 720p, 480p, or custom dimensions."
+      description="Change your video resolution with a live preview. See dimension changes before applying them."
       client:load
     />
   </main>
