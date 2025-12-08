@@ -103,13 +103,14 @@ const faqs: FAQItem[] = [
   },
 ];
 
+// Resolution presets defined by their longer edge (works for both orientations)
 const RESOLUTION_PRESETS = [
-  { label: "4K", width: 3840, height: 2160 },
-  { label: "1080p", width: 1920, height: 1080 },
-  { label: "720p", width: 1280, height: 720 },
-  { label: "480p", width: 854, height: 480 },
-  { label: "360p", width: 640, height: 360 },
-  { label: "240p", width: 426, height: 240 },
+  { label: "4K", longEdge: 3840, shortEdge: 2160 },
+  { label: "1080p", longEdge: 1920, shortEdge: 1080 },
+  { label: "720p", longEdge: 1280, shortEdge: 720 },
+  { label: "480p", longEdge: 854, shortEdge: 480 },
+  { label: "360p", longEdge: 640, shortEdge: 360 },
+  { label: "240p", longEdge: 426, shortEdge: 240 },
 ] as const;
 
 function formatTime(seconds: number): string {
@@ -130,10 +131,19 @@ export default function VideoResizer({
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
+  const [isPortrait, setIsPortrait] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const aspectRatioRef = useRef<number>(16 / 9);
 
   const { resize, getMetadata, error } = useVideoConverter();
+
+  // Get preset dimensions based on video orientation
+  const getPresetDimensions = (preset: (typeof RESOLUTION_PRESETS)[number]) => {
+    if (isPortrait) {
+      return { width: preset.shortEdge, height: preset.longEdge };
+    }
+    return { width: preset.longEdge, height: preset.shortEdge };
+  };
 
   // Handle file selection
   const handleFiles = async (newFiles: File[]) => {
@@ -168,6 +178,8 @@ export default function VideoResizer({
         setTargetWidth(metadata.width);
         setTargetHeight(metadata.height);
         aspectRatioRef.current = metadata.width / metadata.height;
+        // Detect portrait orientation (height > width)
+        setIsPortrait(metadata.height > metadata.width);
       }
     } catch (err) {
       toast.error("Failed to read video metadata");
@@ -190,23 +202,25 @@ export default function VideoResizer({
     }
   };
 
-  // Apply preset
+  // Apply preset - respects video orientation
   const applyPreset = (preset: (typeof RESOLUTION_PRESETS)[number]) => {
+    const { width: presetWidth, height: presetHeight } = getPresetDimensions(preset);
+
     if (maintainAspectRatio) {
       // Fit within preset dimensions while maintaining aspect ratio
-      const targetAspect = preset.width / preset.height;
-      if (aspectRatioRef.current > targetAspect) {
-        // Video is wider, constrain by width
-        setTargetWidth(preset.width);
-        setTargetHeight(Math.round(preset.width / aspectRatioRef.current));
+      const presetAspect = presetWidth / presetHeight;
+      if (aspectRatioRef.current > presetAspect) {
+        // Video is wider than preset, constrain by width
+        setTargetWidth(presetWidth);
+        setTargetHeight(Math.round(presetWidth / aspectRatioRef.current));
       } else {
-        // Video is taller, constrain by height
-        setTargetHeight(preset.height);
-        setTargetWidth(Math.round(preset.height * aspectRatioRef.current));
+        // Video is taller than preset, constrain by height
+        setTargetHeight(presetHeight);
+        setTargetWidth(Math.round(presetHeight * aspectRatioRef.current));
       }
     } else {
-      setTargetWidth(preset.width);
-      setTargetHeight(preset.height);
+      setTargetWidth(presetWidth);
+      setTargetHeight(presetHeight);
     }
   };
 
@@ -310,6 +324,7 @@ export default function VideoResizer({
     setIsPlaying(false);
     setTargetWidth(1920);
     setTargetHeight(1080);
+    setIsPortrait(false);
   };
 
   const formatFileSize = (bytes: number) => {
@@ -522,22 +537,29 @@ export default function VideoResizer({
 
               {/* Preset buttons */}
               <div>
-                <label className="text-sm font-medium mb-2 block">Quick Presets</label>
+                <label className="text-sm font-medium mb-2 block">
+                  Quick Presets {isPortrait && <span className="text-muted-foreground font-normal">(Portrait)</span>}
+                </label>
                 <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                  {RESOLUTION_PRESETS.map((preset) => (
-                    <button
-                      key={preset.label}
-                      onClick={() => applyPreset(preset)}
-                      className={cn(
-                        "px-3 py-2 rounded-md border text-sm font-medium transition-all",
-                        targetWidth === preset.width && targetHeight === preset.height
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border hover:border-primary/50 hover:bg-muted",
-                      )}
-                    >
-                      {preset.label}
-                    </button>
-                  ))}
+                  {RESOLUTION_PRESETS.map((preset) => {
+                    const { width: pWidth, height: pHeight } = getPresetDimensions(preset);
+                    const isSelected = targetWidth === pWidth && targetHeight === pHeight;
+                    return (
+                      <button
+                        key={preset.label}
+                        onClick={() => applyPreset(preset)}
+                        className={cn(
+                          "px-3 py-2 rounded-md border text-sm font-medium transition-all",
+                          isSelected
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border hover:border-primary/50 hover:bg-muted",
+                        )}
+                        title={`${pWidth} x ${pHeight}`}
+                      >
+                        {preset.label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
