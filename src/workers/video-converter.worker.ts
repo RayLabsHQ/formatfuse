@@ -95,18 +95,38 @@ class VideoConverterWorker {
 
       // Set up conversion options
       const conversionOptions: any = {};
+      const videoOptions: any = {};
 
+      // Video resize options
       if (options.width !== undefined || options.height !== undefined) {
-        conversionOptions.resize = {
-          width: options.width || videoTrack?.displayWidth,
-          height: options.height || videoTrack?.displayHeight,
-        };
+        videoOptions.width = options.width || videoTrack?.displayWidth;
+        videoOptions.height = options.height || videoTrack?.displayHeight;
+        videoOptions.fit = 'fill'; // Use fill to match exact dimensions
       }
 
+      // Video rotation options
       if (options.rotation !== undefined) {
-        conversionOptions.rotate = options.rotation;
+        videoOptions.rotate = options.rotation;
       }
 
+      // Video bitrate/quality options
+      if (options.bitrate) {
+        videoOptions.bitrate = options.bitrate;
+      } else if (options.quality) {
+        videoOptions.bitrate = this.getBitrateFromQuality(options.quality);
+      }
+
+      // Video codec options
+      if (options.codec) {
+        videoOptions.codec = options.codec;
+      }
+
+      // Apply video options if any were set
+      if (Object.keys(videoOptions).length > 0) {
+        conversionOptions.video = videoOptions;
+      }
+
+      // Trim options (these go at the top level)
       if (options.startTime !== undefined || options.endTime !== undefined) {
         if (
           options.endTime !== undefined &&
@@ -119,18 +139,6 @@ class VideoConverterWorker {
           start: options.startTime || 0,
           end: options.endTime,
         };
-      }
-
-      if (options.bitrate) {
-        conversionOptions.videoBitrate = options.bitrate;
-      } else if (options.quality) {
-        conversionOptions.videoBitrate = this.getBitrateFromQuality(
-          options.quality,
-        );
-      }
-
-      if (options.codec) {
-        conversionOptions.videoCodec = options.codec;
       }
 
       progressCallback(20);
