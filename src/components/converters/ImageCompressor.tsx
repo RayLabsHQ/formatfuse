@@ -25,7 +25,7 @@ import { FAQ, type FAQItem } from "../ui/FAQ";
 import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { ToolHeader } from "../ui/ToolHeader";
 import { FileDropZone } from "../ui/FileDropZone";
-import { cn } from "../../lib/utils";
+import { cn, filterFilesBySize, MAX_FILE_SIZE_MB } from "../../lib/utils";
 import { ImageCarouselModal } from "./ImageCarouselModal";
 import JSZip from "jszip";
 
@@ -142,6 +142,7 @@ export default function ImageCompressor() {
   const [quality, setQuality] = useState(85);
   const [maxWidth, setMaxWidth] = useState<number | undefined>(undefined);
   const [maxHeight, setMaxHeight] = useState<number | undefined>(undefined);
+  const [fileSizeError, setFileSizeError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFiles = useCallback(
@@ -149,7 +150,19 @@ export default function ImageCompressor() {
       const imageFiles = selectedFiles.filter((file) =>
         file.type.startsWith("image/"),
       );
-      const newFiles: FileInfo[] = imageFiles.map((file) => ({
+
+      // Validate file sizes
+      const { validFiles, errors } = filterFilesBySize(imageFiles);
+
+      if (errors.length > 0) {
+        setFileSizeError(errors.join("\n"));
+      } else {
+        setFileSizeError(null);
+      }
+
+      if (validFiles.length === 0) return;
+
+      const newFiles: FileInfo[] = validFiles.map((file) => ({
         file,
         status: "pending" as const,
         progress: 0,
@@ -643,6 +656,25 @@ export default function ImageCompressor() {
             </div>
           </div>
 
+          {/* File Size Error */}
+          {fileSizeError && (
+            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 flex items-start gap-3 animate-fade-in">
+              <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-destructive">File too large</p>
+                <p className="text-sm text-destructive/80 whitespace-pre-line">{fileSizeError}</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="shrink-0 h-6 w-6 p-0"
+                onClick={() => setFileSizeError(null)}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
+
           {/* File Upload Area - Only show when no files */}
           {files.length === 0 && (
             <div
@@ -658,7 +690,7 @@ export default function ImageCompressor() {
                 title="Drop images here"
                 subtitle="or click to browse"
                 infoMessage="Supports JPG, PNG, WebP, AVIF, and more"
-                secondaryInfo="Maximum 50MB per file"
+                secondaryInfo={`Maximum file size: ${MAX_FILE_SIZE_MB}MB`}
               />
             </div>
           )}

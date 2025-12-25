@@ -784,16 +784,6 @@ const archiveToolsAll: Tool[] = [
 // Other image tools (non-conversion) (unfiltered - includes unimplemented for reference)
 const otherImageToolsAll: Tool[] = [
   {
-    id: "background-remove",
-    name: "Remove Background",
-    description: "Remove background from images automatically",
-    icon: Image,
-    isPopular: true,
-    isImplemented: false, // TODO: Not implemented
-    category: "image",
-    route: "/tools/background-remove",
-  },
-  {
     id: "svg-to-png",
     name: "SVG to PNG",
     description:

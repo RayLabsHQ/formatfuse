@@ -30,7 +30,7 @@ import { RelatedTools, type RelatedTool } from "../ui/RelatedTools";
 import { FormatSelect } from "../ui/format-select";
 import { ToolHeader } from "../ui/ToolHeader";
 import { FileDropZone } from "../ui/FileDropZone";
-import { cn } from "../../lib/utils";
+import { cn, filterFilesBySize, MAX_FILE_SIZE_MB } from "../../lib/utils";
 import { ImageCarouselModal } from "./ImageCarouselModal";
 import JSZip from "jszip";
 import { useVirtualizer } from "@tanstack/react-virtual";
@@ -161,6 +161,7 @@ export default function ImageConverter({
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [isLossless, setIsLossless] = useState(true);
   const [qualityInput, setQualityInput] = useState("100");
+  const [fileSizeError, setFileSizeError] = useState<string | null>(null);
   const parentRef = useRef<HTMLDivElement>(null);
 
   // Handle format lookup
@@ -300,17 +301,26 @@ export default function ImageConverter({
 
   const handleFilesSelected = useCallback(
     (selectedFiles: File[]) => {
-      // Auto-detect source format
-      if (selectedFiles.length > 0) {
-        const firstFile = selectedFiles[0];
-        const extension = firstFile.name.split(".").pop()?.toUpperCase();
-        const detectedFormat = getFormat(extension);
-        if (detectedFormat) {
-          setSelectedSourceFormat(detectedFormat);
-        }
+      // Validate file sizes
+      const { validFiles, errors } = filterFilesBySize(selectedFiles);
+
+      if (errors.length > 0) {
+        setFileSizeError(errors.join("\n"));
+      } else {
+        setFileSizeError(null);
       }
 
-      const newFiles = selectedFiles.map((file) => ({
+      if (validFiles.length === 0) return;
+
+      // Auto-detect source format
+      const firstFile = validFiles[0];
+      const extension = firstFile.name.split(".").pop()?.toUpperCase();
+      const detectedFormat = getFormat(extension);
+      if (detectedFormat) {
+        setSelectedSourceFormat(detectedFormat);
+      }
+
+      const newFiles = validFiles.map((file) => ({
         file,
         status: "pending" as const,
         progress: 0,
@@ -903,6 +913,25 @@ export default function ImageConverter({
                 )}
               </div>
 
+              {/* File Size Error */}
+              {fileSizeError && (
+                <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 flex items-start gap-3 animate-fade-in">
+                  <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-destructive">File too large</p>
+                    <p className="text-sm text-destructive/80 whitespace-pre-line">{fileSizeError}</p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="shrink-0 h-6 w-6 p-0"
+                    onClick={() => setFileSizeError(null)}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
+
               {/* File Upload Area - Only show when no files */}
               {files.length === 0 && (
                 <div
@@ -918,7 +947,7 @@ export default function ImageConverter({
                     title="Drop images here"
                     subtitle="or click to browse"
                     infoMessage="Support for PNG, JPG, WebP, GIF, BMP, ICO, TIFF, AVIF, HEIC"
-                    secondaryInfo="Max recommended size: 100MB"
+                    secondaryInfo={`Maximum file size: ${MAX_FILE_SIZE_MB}MB`}
                   />
                 </div>
               )}
