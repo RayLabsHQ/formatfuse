@@ -46,27 +46,23 @@ export function useArchiveFileSelection({
 
   const inputs = useMemo(
     () => (
-      <>
+      <div className="hidden" aria-hidden="true">
         <input
           ref={fileInputRef}
           type="file"
           multiple={multiple}
           onChange={handleSelection}
-          className="hidden"
         />
-        {allowFolders && (
-          <input
-            ref={folderInputRef}
-            type="file"
-            multiple={multiple}
-            onChange={handleSelection}
-            className="hidden"
-            {...({ webkitdirectory: "", directory: "" } as any)}
-          />
-        )}
-      </>
+        <input
+          ref={folderInputRef}
+          type="file"
+          multiple={multiple}
+          onChange={handleSelection}
+          {...({ webkitdirectory: "", directory: "" } as any)}
+        />
+      </div>
     ),
-    [allowFolders, handleSelection, multiple],
+    [handleSelection, multiple],
   );
 
   return {

@@ -156,26 +156,23 @@ export function FileDropZone({
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
     >
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept={accept}
-        multiple={multiple}
-        onChange={handleFileSelect}
-        className="hidden"
-        disabled={disabled}
-      />
-      
-      {allowFolders && (
+      <div className="hidden" aria-hidden="true">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={accept}
+          multiple={multiple}
+          onChange={handleFileSelect}
+          disabled={disabled}
+        />
         <input
           ref={folderInputRef}
           type="file"
           onChange={handleFileSelect}
-          className="hidden"
           disabled={disabled}
           {...({ webkitdirectory: "", directory: "" } as any)}
         />
-      )}
+      </div>
       
       <div
         onClick={handleClick}
