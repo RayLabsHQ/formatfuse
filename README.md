@@ -2,7 +2,13 @@
 
 A privacy-first, browser-based file conversion toolkit. All processing happens locally using WebAssembly - your files never leave your device.
 
-**[Live Demo](https://formatfuse.com)**
+<a href='https://formatfuse.com/'>
+  <picture>
+    <source srcset="./products/formatfuse/formatfuse-dark.png" media="(prefers-color-scheme: dark)" />
+    <source srcset="./products/formatfuse/formatfuse-light.png" media="(prefers-color-scheme: light)" />
+    <img src="./products/formatfuse/formatfuse-light.png" alt="FormatFuse" />
+  </picture>
+</a>
 
 ## Features
 
