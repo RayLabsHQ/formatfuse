@@ -29,6 +29,16 @@ import {
 import type { ArchiveFileNode } from "../../lib/archive/fileTree";
 import { isArchiveSupported } from "../../lib/archive/support";
 
+interface HeaderOverrides {
+  title?: string | { highlight?: string; main: string };
+  subtitle?: string;
+  badge?: {
+    text: string;
+    icon?: React.ElementType;
+  };
+  features?: Feature[];
+}
+
 interface GenericArchiveExtractorProps {
   format: string;
   formatName: string;
@@ -38,6 +48,7 @@ interface GenericArchiveExtractorProps {
   features?: Feature[];
   faqs?: FAQItem[];
   relatedTools?: RelatedTool[];
+  headerOverrides?: HeaderOverrides;
 }
 
 const sizeLimitFeature: Feature = {
@@ -131,6 +142,7 @@ export default function GenericArchiveExtractor({
   features,
   faqs,
   relatedTools,
+  headerOverrides,
 }: GenericArchiveExtractorProps) {
   const {
     state: {
@@ -231,13 +243,16 @@ export default function GenericArchiveExtractor({
 
       <div className="relative z-10 mx-auto flex max-w-6xl flex-col gap-10 px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
         <ToolHeader
-          title={{ highlight: "Extract", main: `${formatName} Archives` }}
-          subtitle={formatDescription}
-          badge={{
+          title={headerOverrides?.title ?? { highlight: "Extract", main: `${formatName} Archives` }}
+          subtitle={headerOverrides?.subtitle ?? formatDescription}
+          badge={headerOverrides?.badge ? {
+            text: headerOverrides.badge.text,
+            icon: (headerOverrides.badge.icon ?? Icon) as LucideIcon,
+          } : {
             text: `${formatName} Extractor • Online • Free`,
             icon: Icon as LucideIcon,
           }}
-          features={featureList}
+          features={headerOverrides?.features ?? featureList}
         />
 
         <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">

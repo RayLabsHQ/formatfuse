@@ -197,6 +197,25 @@ otherFormats.forEach((item) => {
 addRelatedLink('/tools/multi-extract/', 'Universal archive extractor');
 
 const relatedLinks = Array.from(relatedLinkMap.values());
+
+// Build header overrides to pass to the React component
+const headerTitle = modifier
+  ? `${formatDisplayName} Archive Extractor`
+  : { highlight: formatDisplayName, main: 'Archive Extractor' };
+
+const headerSubtitle = modifier
+  ? `Optimized for ${modifier.label.toLowerCase()}. ${heroTagline}`
+  : heroTagline;
+
+const headerBadge = modifier
+  ? { text: `${modifier.label} Workflow • ${formatDisplayName}` }
+  : { text: `${formatDisplayName} Extractor • Online • Free` };
+
+const headerOverrides = {
+  title: headerTitle,
+  subtitle: headerSubtitle,
+  badge: headerBadge,
+};
 ---
 
 <Layout
@@ -211,43 +230,15 @@ const relatedLinks = Array.from(relatedLinkMap.values());
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbData)} />
 
   <main>
-    <div class="container mx-auto px-4 py-10 lg:py-14">
-      <div class="text-center max-w-4xl mx-auto">
-        {modifier && (
-          <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
-            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 8v4l3 3" />
-            </svg>
-            {modifier.label} Workflow
-          </span>
-        )}
-        <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4">
-          {formatDisplayName} Archive Extractor
-          {modifier ? (
-            <span class="block text-xl sm:text-2xl font-semibold text-muted-foreground mt-2">
-              Optimized for {modifier.label.toLowerCase()}
-            </span>
-          ) : (
-            <span class="block text-xl sm:text-2xl font-semibold text-muted-foreground mt-2">
-              Extract {formatDisplayName} archives directly in your browser
-            </span>
-          )}
-        </h1>
-        <p class="text-lg text-muted-foreground mb-2">{heroTagline}</p>
-        <p class="text-sm text-muted-foreground">
-          Works entirely on your device—no uploads, no installs. Preview folders, unlock encrypted sections, and download only what you need.
-        </p>
-      </div>
-
-      <div class="mt-10 lg:mt-14">
-        <GenericArchiveExtractor
-          client:load
-          format={extractorFormatMap[format]}
-          formatName={formatDisplayName}
-          formatDescription={formatMeta.formatSummary}
-          acceptedExtensions={acceptedExtensions}
-        />
-      </div>
+    <div class="container mx-auto px-4 pb-10 lg:pb-14">
+      <GenericArchiveExtractor
+        client:load
+        format={extractorFormatMap[format]}
+        formatName={formatDisplayName}
+        formatDescription={formatMeta.formatSummary}
+        acceptedExtensions={acceptedExtensions}
+        headerOverrides={headerOverrides}
+      />
 
       <section class="mt-16 lg:mt-20 max-w-5xl mx-auto">
         <div class="border border-border rounded-3xl p-6 sm:p-10 bg-card/60 backdrop-blur">
