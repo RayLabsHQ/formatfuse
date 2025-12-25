@@ -1,18 +1,11 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import VideoCompressor from '../../components/converters/VideoCompressor.tsx';
-import '../../styles/global.css';
 
 const title = 'Video Compressor - Reduce Video File Size';
 const description = 'Compress videos to reduce file size while maintaining quality. Choose from multiple quality presets for optimal compression.';
 ---
 
 <Layout title={title} description={description} toolType="video">
-  <main>
-    <VideoCompressor
-      title="Video Compressor"
-      description="Reduce your video file size with estimated savings preview. See how much space you'll save before compressing."
-      client:load
-    />
-  </main>
+  <VideoCompressor client:load />
 </Layout>

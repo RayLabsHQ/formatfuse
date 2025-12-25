@@ -1,14 +1,11 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import VideoThumbnailGenerator from '../../components/converters/VideoThumbnailGenerator.tsx';
-import '../../styles/global.css';
 
 const title = 'Video Thumbnail Generator - Extract Thumbnails from Videos';
 const description = 'Generate high-quality thumbnails from your videos at different timestamps. Perfect for video previews, galleries, and content management. Free online tool.';
 ---
 
 <Layout title={title} description={description} toolType="video">
-  <main>
-    <VideoThumbnailGenerator client:load />
-  </main>
+  <VideoThumbnailGenerator client:load />
 </Layout>

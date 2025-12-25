@@ -27,8 +27,6 @@ import { toast } from "sonner";
 interface VideoConverterProps {
   sourceFormat?: string;
   targetFormat?: string;
-  title?: string;
-  description?: string;
   mode?: "convert" | "compress" | "trim" | "resize" | "rotate";
 }
 
@@ -113,8 +111,6 @@ const faqs: FAQItem[] = [
 export default function VideoConverter({
   sourceFormat,
   targetFormat,
-  title,
-  description,
   mode = "convert",
 }: VideoConverterProps) {
   const [files, setFiles] = useState<FileInfo[]>([]);
@@ -335,13 +331,12 @@ export default function VideoConverter({
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <ToolHeader
         title={
-          title ||
-          `${sourceFormat ? formatDisplayName(sourceFormat) + " to " : ""}${formatDisplayName(getTargetFormat())}${sourceFormat ? "" : " Video Converter"}`
+          sourceFormat
+            ? { main: `${formatDisplayName(sourceFormat)} to`, highlight: formatDisplayName(getTargetFormat()) }
+            : { highlight: "Video", main: "Converter" }
         }
-        description={
-          description ||
-          `Convert your videos to ${formatDisplayName(getTargetFormat())} format with high quality and fast processing. All conversions happen locally in your browser.`
-        }
+        subtitle={`Convert your videos to ${formatDisplayName(getTargetFormat())} format with high quality and fast processing. All conversions happen locally in your browser.`}
+        badge={{ text: "Convert Videos Online", icon: Video }}
         features={features}
       />
 

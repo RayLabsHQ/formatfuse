@@ -1,18 +1,11 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import VideoRotator from '../../components/converters/VideoRotator.tsx';
-import '../../styles/global.css';
 
 const title = 'Video Rotator - Rotate and Flip Videos Online';
 const description = 'Rotate videos 90, 180, or 270 degrees. Fix video orientation issues with our free video rotation tool.';
 ---
 
 <Layout title={title} description={description} toolType="video">
-  <main>
-    <VideoRotator
-      title="Video Rotator"
-      description="Rotate your videos with a live preview. See the rotation effect before applying it."
-      client:load
-    />
-  </main>
+  <VideoRotator client:load />
 </Layout>

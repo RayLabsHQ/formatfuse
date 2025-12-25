@@ -27,10 +27,6 @@ import { Slider } from "../ui/slider";
 import { cn } from "../../lib/utils";
 import { toast } from "sonner";
 
-interface VideoCompressorProps {
-  title?: string;
-  description?: string;
-}
 
 interface FileInfo {
   file: File;
@@ -157,10 +153,7 @@ function formatFileSize(bytes: number): string {
   return (bytes / Math.pow(k, i)).toFixed(1) + " " + sizes[i];
 }
 
-export default function VideoCompressor({
-  title = "Video Compressor",
-  description = "Compress your videos with size estimation. See the expected file size before compressing.",
-}: VideoCompressorProps) {
+export default function VideoCompressor() {
   const [file, setFile] = useState<FileInfo | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [quality, setQuality] = useState<QualityLevel>("high");
@@ -338,8 +331,9 @@ export default function VideoCompressor({
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <ToolHeader
-        title={title}
-        description={description}
+        title={{ highlight: "Video", main: "Compressor" }}
+        subtitle="Reduce your video file size with estimated savings preview. See how much space you'll save before compressing."
+        badge={{ text: "Compress Videos Online", icon: FileDown }}
         features={features}
       />
 

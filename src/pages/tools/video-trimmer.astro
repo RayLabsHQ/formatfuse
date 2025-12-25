@@ -1,18 +1,11 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import VideoTrimmer from '../../components/converters/VideoTrimmer.tsx';
-import '../../styles/global.css';
 
 const title = 'Video Trimmer - Cut and Trim Videos Online';
 const description = 'Trim and cut your videos to exact timestamps. Simple, fast, and free video trimming tool that works in your browser.';
 ---
 
 <Layout title={title} description={description} toolType="video">
-  <main>
-    <VideoTrimmer
-      title="Video Trimmer"
-      description="Cut and trim your videos to the perfect length. Use the visual timeline to select the exact portion you want to keep."
-      client:load
-    />
-  </main>
+  <VideoTrimmer client:load />
 </Layout>

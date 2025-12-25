@@ -26,10 +26,6 @@ import { FileDropZone } from "../ui/FileDropZone";
 import { cn } from "../../lib/utils";
 import { toast } from "sonner";
 
-interface VideoResizerProps {
-  title?: string;
-  description?: string;
-}
 
 interface FileInfo {
   file: File;
@@ -119,10 +115,7 @@ function formatTime(seconds: number): string {
   return `${mins}:${secs.toString().padStart(2, "0")}`;
 }
 
-export default function VideoResizer({
-  title = "Video Resizer",
-  description = "Resize your videos with a visual preview. See dimension changes before applying.",
-}: VideoResizerProps) {
+export default function VideoResizer() {
   const [file, setFile] = useState<FileInfo | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [targetWidth, setTargetWidth] = useState(1920);
@@ -355,8 +348,9 @@ export default function VideoResizer({
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <ToolHeader
-        title={title}
-        description={description}
+        title={{ highlight: "Video", main: "Resizer" }}
+        subtitle="Resize your videos with a visual preview. See dimension changes before applying."
+        badge={{ text: "Resize Videos Online", icon: Maximize2 }}
         features={features}
       />
 

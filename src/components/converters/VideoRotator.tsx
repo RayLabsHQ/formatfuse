@@ -15,8 +15,6 @@ import {
   Pause,
   Volume2,
   VolumeX,
-  FlipHorizontal,
-  FlipVertical,
 } from "lucide-react";
 import { useVideoConverter } from "../../hooks/useVideoConverter";
 import { Button } from "../ui/button";
@@ -27,10 +25,6 @@ import { FileDropZone } from "../ui/FileDropZone";
 import { cn } from "../../lib/utils";
 import { toast } from "sonner";
 
-interface VideoRotatorProps {
-  title?: string;
-  description?: string;
-}
 
 interface FileInfo {
   file: File;
@@ -117,10 +111,7 @@ function formatTime(seconds: number): string {
   return `${mins}:${secs.toString().padStart(2, "0")}`;
 }
 
-export default function VideoRotator({
-  title = "Video Rotator",
-  description = "Rotate your videos with a live preview. See the rotation effect before applying.",
-}: VideoRotatorProps) {
+export default function VideoRotator() {
   const [file, setFile] = useState<FileInfo | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [rotation, setRotation] = useState(90);
@@ -297,8 +288,9 @@ export default function VideoRotator({
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <ToolHeader
-        title={title}
-        description={description}
+        title={{ highlight: "Video", main: "Rotator" }}
+        subtitle="Rotate your videos with a live preview. See the rotation effect before applying it."
+        badge={{ text: "Rotate Videos Online", icon: RotateCw }}
         features={features}
       />
 

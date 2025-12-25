@@ -26,10 +26,6 @@ import { FileDropZone } from "../ui/FileDropZone";
 import { cn } from "../../lib/utils";
 import { toast } from "sonner";
 
-interface VideoTrimmerProps {
-  title?: string;
-  description?: string;
-}
 
 interface FileInfo {
   file: File;
@@ -318,10 +314,7 @@ function Timeline({
   );
 }
 
-export default function VideoTrimmer({
-  title = "Video Trimmer",
-  description = "Trim and cut your videos with precision. All processing happens locally in your browser.",
-}: VideoTrimmerProps) {
+export default function VideoTrimmer() {
   const [file, setFile] = useState<FileInfo | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [trimStart, setTrimStart] = useState(0);
@@ -565,8 +558,9 @@ export default function VideoTrimmer({
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <ToolHeader
-        title={title}
-        description={description}
+        title={{ highlight: "Video", main: "Trimmer" }}
+        subtitle="Cut and trim your videos to the perfect length. Use the visual timeline to select the exact portion you want to keep."
+        badge={{ text: "Trim Videos Online", icon: Scissors }}
         features={features}
       />
 

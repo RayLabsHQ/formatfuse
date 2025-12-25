@@ -1,8 +1,6 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
-  Upload,
   Download,
-  X,
   Video,
   AlertCircle,
   Loader2,
@@ -100,7 +98,6 @@ export default function VideoThumbnailGenerator() {
   const [error, setError] = useState<string | null>(null);
   const [thumbnailCount, setThumbnailCount] = useState(16);
   const [thumbnailSize, setThumbnailSize] = useState(200);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFiles = useCallback((files: File[]) => {
     const videoFile = files.find((f) => f.type.startsWith("video/"));
@@ -259,19 +256,6 @@ export default function VideoThumbnailGenerator() {
     toast.success("All thumbnails downloaded");
   };
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const droppedFiles = Array.from(e.dataTransfer.files);
-    handleFiles(droppedFiles);
-  };
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      handleFiles(Array.from(e.target.files));
-    }
-  };
-
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
@@ -281,8 +265,9 @@ export default function VideoThumbnailGenerator() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       <ToolHeader
-        title="Video Thumbnail Generator"
-        description="Extract high-quality thumbnails from your videos at different timestamps. Perfect for video previews, galleries, and content management."
+        title={{ highlight: "Video", main: "Thumbnail Generator" }}
+        subtitle="Extract high-quality thumbnails from your videos at different timestamps. Perfect for video previews, galleries, and content management."
+        badge={{ text: "Generate Thumbnails Online", icon: ImageIcon }}
         features={features}
       />
 
@@ -360,23 +345,15 @@ export default function VideoThumbnailGenerator() {
 
       {/* Drop Zone */}
       <FileDropZone
-        isDragging={isDragging}
-        onDragOver={(e) => {
-          e.preventDefault();
-          setIsDragging(true);
-        }}
-        onDragLeave={() => setIsDragging(false)}
-        onDrop={handleDrop}
-        onClick={() => fileInputRef.current?.click()}
-        acceptedFormats={["video/*"]}
-      />
-
-      <input
-        ref={fileInputRef}
-        type="file"
+        onFilesSelected={handleFiles}
         accept="video/*"
-        onChange={handleFileSelect}
-        className="hidden"
+        multiple={false}
+        isDragging={isDragging}
+        onDragStateChange={setIsDragging}
+        title="Drop video here"
+        subtitle="or click to browse"
+        infoMessage="Supports MP4, WebM, MOV, MKV, and more"
+        primaryButtonLabel="Select video"
       />
 
       {/* File Info and Generate Button */}
