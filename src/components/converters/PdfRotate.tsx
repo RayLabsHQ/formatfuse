@@ -112,13 +112,6 @@ export default function PdfRotate() {
     manualPages: "",
   });
 
-  // Debug effect
-  useEffect(() => {
-    if (rotatedResult) {
-      console.log('[PdfRotate] rotatedResult updated, size:', rotatedResult.byteLength);
-    }
-  }, [rotatedResult]);
-
   const handleFilesSelected = useCallback(
     async (selectedFiles: File[]) => {
       const selectedFile = selectedFiles[0];
@@ -177,45 +170,24 @@ export default function PdfRotate() {
     const file = files[0];
     if (!file || !file.data) return;
 
-    console.log('[PdfRotate] Starting rotation with options:', {
-      angle: options.angle,
-      mode: options.mode,
-      selectedPages: options.selectedPages,
-      manualPages: options.manualPages
-    });
-
     setRotatedResult(null);
 
     try {
       const pageNumbers = getPageNumbers();
-      console.log('[PdfRotate] Page numbers to rotate:', pageNumbers);
-      
+
       const rotated = await rotate(file.data, {
         angle: options.angle,
         pages: pageNumbers,
       });
-      
-      console.log('[PdfRotate] Rotation complete, result size:', rotated.length);
+
       setRotatedResult(rotated);
     } catch (err) {
       console.error("[PdfRotate] Error rotating PDF:", err);
     }
   };
 
-  const handleDownload = async () => {
+  const handleDownload = () => {
     if (!rotatedResult || !files[0]) return;
-    
-    console.log('[PdfRotate] Downloading rotated PDF, size:', rotatedResult.byteLength);
-    
-    // Quick verification - load the result to check rotation
-    try {
-      const { PDFDocument } = await import('pdf-lib');
-      const pdfDoc = await PDFDocument.load(rotatedResult);
-      const page = pdfDoc.getPage(0);
-      console.log('[PdfRotate] Downloaded PDF rotation:', page.getRotation().angle, '°');
-    } catch (err) {
-      console.error('[PdfRotate] Error verifying rotation:', err);
-    }
 
     const blob = new Blob([rotatedResult], { type: "application/pdf" });
     const baseName = files[0].file.name.replace(/\.pdf$/i, "");

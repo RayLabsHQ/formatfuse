@@ -104,7 +104,7 @@ const finalOgImage = new URL(finalOgImagePath, Astro.site);
     <meta name="author" content="FormatFuse" />
     
     <!-- Content Security Policy -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cloud.umami.is https://eu.i.posthog.com https://eu-assets.i.posthog.com https://*.posthog.com; connect-src 'self' https://cloud.umami.is https://api-gateway.umami.dev https://eu.i.posthog.com https://eu-assets.i.posthog.com https://*.posthog.com; img-src 'self' data: blob: https://eu.i.posthog.com https://eu-assets.i.posthog.com https://*.posthog.com; media-src 'self' blob:; style-src 'self' 'unsafe-inline'; worker-src 'self' blob:; font-src 'self' https://fonts.gstatic.com; frame-src 'self';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://eu.i.posthog.com https://eu-assets.i.posthog.com https://*.posthog.com; connect-src 'self' https://eu.i.posthog.com https://eu-assets.i.posthog.com https://*.posthog.com; img-src 'self' data: blob: https://eu.i.posthog.com https://eu-assets.i.posthog.com https://*.posthog.com; media-src 'self' blob:; style-src 'self' 'unsafe-inline'; worker-src 'self' blob:; font-src 'self' https://fonts.gstatic.com; frame-src 'self';">
     
     <!-- PWA -->
     <link rel="manifest" href="/manifest.webmanifest" />
@@ -133,9 +133,6 @@ const finalOgImage = new URL(finalOgImagePath, Astro.site);
     <!-- WASM Prefetch hints -->
     <WasmPrefetch sourceFormat={sourceFormat} targetFormat={targetFormat} />
     
-    <!-- 100% privacy-first analytics -->
-    <script defer src="https://cloud.umami.is/script.js" data-website-id="a2b66d80-769d-4c9f-8f1d-0f6a3f4a54fe"></script>
-
     <!-- PostHog -->
     <PostHog />
     <!-- Safety net for global errors when autocapture is disabled -->

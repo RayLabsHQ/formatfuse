@@ -74,7 +74,6 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
       }
 
       try {
-        console.log("Starting PDF load...");
         setLoading(true);
         setError(null);
         setThumbnails([]);
@@ -119,12 +118,10 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
         pdfDoc = await Promise.race([loadingTask.promise, timeoutPromise]);
 
         if (cancelled || !mountedRef.current) {
-          console.log("Component unmounted, cleaning up...");
           if (pdfDoc) pdfDoc.destroy();
           return;
         }
 
-        console.log(`PDF loaded: ${pdfDoc.numPages} pages`);
         setPdf(pdfDoc);
         setTotalPages(pdfDoc.numPages);
 
@@ -162,7 +159,6 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
         }
 
         if (!cancelled && mountedRef.current) {
-          console.log(`Generated ${thumbs.length} thumbnails`);
           setThumbnails(thumbs);
           setLoading(false);
         }
@@ -185,7 +181,6 @@ export const PdfPreview: React.FC<PdfPreviewProps> = ({
     return () => {
       cancelled = true;
       if (pdfDoc) {
-        console.log("Destroying PDF document...");
         pdfDoc.destroy();
       }
     };

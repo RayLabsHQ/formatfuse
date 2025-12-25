@@ -40,27 +40,24 @@ import Layout from '../layouts/Layout.astro';
 
           <section class="space-y-4 mt-8">
             <h2 class="text-2xl font-semibold">What Information We Collect</h2>
-            
+
             <h3 class="text-lg font-semibold">Analytics Data</h3>
             <p>
               To improve FormatFuse and understand how our tools are used, we collect anonymous analytics data using:
             </p>
             <ul class="list-disc pl-6 space-y-2">
               <li>
-                <strong>SimpleAnalytics</strong> - A privacy-first analytics tool that:
+                <strong>PostHog</strong> - A privacy-focused product analytics tool that:
                 <ul class="list-disc pl-6 space-y-1 mt-2">
-                  <li>Never collects personal data or uses cookies</li>
-                  <li>Doesn't require consent banners or privacy notices</li>
-                  <li>Is 100% GDPR compliant by design</li>
-                  <li>Only tracks anonymous usage metrics like page views and referrers</li>
+                  <li>Tracks anonymous usage metrics like page views and feature usage</li>
+                  <li>Helps us understand which tools are most useful</li>
+                  <li>Uses EU-based servers for data processing</li>
+                  <li>Is GDPR compliant</li>
                 </ul>
-              </li>
-              <li>
-                <strong>Microsoft Clarity</strong> - Helps us understand user interactions through session recordings and heatmaps
               </li>
             </ul>
             <p>
-              <strong>Important:</strong> These analytics tools only track how you interact with our website interface. They cannot and do not access the contents of any files you process.
+              <strong>Important:</strong> Analytics only tracks how you interact with our website interface. They cannot and do not access the contents of any files you process.
             </p>
 
             <h3 class="text-lg font-semibold mt-6">Automatically Collected Information</h3>
@@ -93,8 +90,7 @@ import Layout from '../layouts/Layout.astro';
               FormatFuse uses minimal cookies:
             </p>
             <ul class="list-disc pl-6 space-y-2">
-              <li><strong>SimpleAnalytics</strong> - Does not use any cookies or collect personal data</li>
-              <li><strong>Microsoft Clarity</strong> - Uses cookies for session recordings and heatmaps</li>
+              <li><strong>PostHog</strong> - Uses cookies for anonymous session tracking</li>
               <li><strong>Theme preferences</strong> - Stores your light/dark mode preference locally in your browser</li>
             </ul>
             <p>
@@ -116,12 +112,8 @@ import Layout from '../layouts/Layout.astro';
             </p>
             <ul class="list-disc pl-6 space-y-2">
               <li>
-                <strong>Umami</strong> - 
-                <a href="https://umami.is/privacy" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">Privacy Policy</a>
-              </li>
-              <li>
-                <strong>Microsoft Clarity</strong> - 
-                <a href="https://privacy.microsoft.com/privacystatement" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">Privacy Policy</a>
+                <strong>PostHog</strong> -
+                <a href="https://posthog.com/privacy" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">Privacy Policy</a>
               </li>
             </ul>
           </section>
@@ -166,7 +158,7 @@ import Layout from '../layouts/Layout.astro';
             <ul class="space-y-2 list-disc pl-6">
               <li>✅ Your files never leave your device - everything is processed locally</li>
               <li>✅ We don't upload, store, or access your files</li>
-              <li>✅ We use SimpleAnalytics (no cookies, no personal data) and Clarity for analytics</li>
+              <li>✅ We use PostHog for anonymous analytics only</li>
               <li>✅ No personal data collection beyond basic analytics</li>
               <li>✅ FormatFuse is operated by RayLabs Pte. Ltd. (Singapore)</li>
             </ul>
