@@ -183,10 +183,11 @@ export class ArchiveExtractorWorker {
       this.releaseCurrentSession();
       return await this.handleExtract(request);
     } catch (error) {
+      const rawMessage = error instanceof Error ? error.message : String(error);
       const failure: ExtractFailure = {
         ok: false,
         code: "EXTRACTION_FAILED",
-        message: error instanceof Error ? error.message : "Extraction failed",
+        message: rawMessage || "Extraction failed",
         recoverable: false,
       };
       return failure;
@@ -308,6 +309,27 @@ export class ArchiveExtractorWorker {
     );
   }
 
+  private classifyGzipError(error: unknown): string {
+    const rawMessage = (error instanceof Error ? error.message : String(error)).toLowerCase();
+
+    if (rawMessage.includes("unknown compression method") || rawMessage.includes("incorrect header check")) {
+      return "This file doesn't appear to be a valid GZIP archive. It may be corrupted or not actually compressed.";
+    }
+    if (rawMessage.includes("buffer error") || rawMessage.includes("unexpected end")) {
+      return "The GZIP file appears to be incomplete or truncated. The download may have been interrupted.";
+    }
+    if (rawMessage.includes("invalid distance") || rawMessage.includes("invalid block") || rawMessage.includes("invalid code")) {
+      return "The compressed data is corrupted and cannot be decompressed. Try downloading the file again.";
+    }
+    if (rawMessage.includes("too much data") || rawMessage.includes("stream error")) {
+      return "The decompressed data is too large for your browser to handle. Try using a desktop application.";
+    }
+
+    // Return the original error if we can't classify it
+    const original = error instanceof Error ? error.message : String(error);
+    return original || "Failed to decompress GZIP file.";
+  }
+
   private async extractSingle(
     data: Uint8Array,
     request: ExtractRequest,
@@ -319,7 +341,11 @@ export class ArchiveExtractorWorker {
 
     switch (format.format) {
       case "gz":
-        decompressed = ungzip(data);
+        try {
+          decompressed = ungzip(data);
+        } catch (error) {
+          throw new Error(this.classifyGzipError(error));
+        }
         break;
       default:
         throw new Error(`Unsupported single-file format ${format.format}`);
